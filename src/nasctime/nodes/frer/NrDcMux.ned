@@ -1,7 +1,8 @@
 //
 //                  nascTime
 //
-// Authors: Mohamed Seliem (University College Cork)
+// Authors: Mohamed Seliem (University College Cork),
+//          Afshin Zanganeh and How-Hang Liu (Technical University of Dresden)
 //
 // This file is part of a software released under the license included in file
 // "LICENSE.txt". Please read LICENSE.txt and README files before using it.
@@ -15,6 +16,9 @@ simple NrDcMux
 {
     parameters:
         @display("i=block/dispatch");
+        // Uplink IP DSCP values whose packets use the secondary NR stack.
+        string secondaryDscps = default("8");
+        string binderModule = default("binder");
     gates:
         inout upper;       // to ip2nic.stackNic
         inout primary;     // to sdap  (NR stack 1 / primary cell group)

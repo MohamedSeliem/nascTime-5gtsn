@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# Authors: Afshin Zanganeh and How-Hang Liu (Technical University of Dresden)
 """
 gen_profile_ini.py — Generate per-endpoint app configuration for nascTime
                      heterogeneous traffic scenarios.
@@ -194,7 +195,8 @@ def emit_header(out, profile_names: list[str], *, frer: bool = False,
     print(f"", file=out)
 
 
-def emit_sdap(out, n: int, *, frer: bool = False) -> None:
+def emit_sdap(out, n: int, *, frer: bool = False, gnb_name: str = "gnb",
+              include_ue: bool = True) -> None:
     """Emit SDAP drbConfig for n UEs.
 
     Without FRER: 4 DRBs (DRB 0/1/2/3).
@@ -215,7 +217,7 @@ def emit_sdap(out, n: int, *, frer: bool = False) -> None:
     # known-good v1.5.0 standalone_drb example -- prior version had unquoted
     # keys here, which OMNeT++'s cValueMap-style literal syntax tolerates,
     # but the inconsistency across the file was worth cleaning up regardless.
-    print(f"*.gnb.cellularNic.sdap.drbConfig = [ \\", file=out)
+    print(f"*.{gnb_name}.cellularNic.sdap.drbConfig = [ \\", file=out)
     entries = []
     for i in range(n):
         ue_id = 2049 + i
@@ -227,6 +229,9 @@ def emit_sdap(out, n: int, *, frer: bool = False) -> None:
             entries.append(f'    {{"drb": 4, "ue": {ue_id}, "qfiList": [8], "rlcType": "UM"}}')  # FRER replica
     print(", \\\n".join(entries) + "]", file=out)
     print(f"", file=out)
+
+    if not include_ue:
+        return
 
     # UE drbConfig (uniform across UEs)
     print(f"*.ue[*].cellularNic.sdap.drbConfig = [ \\", file=out)
@@ -280,7 +285,7 @@ DRB4_QOS_SYMMETRIC = {
 
 
 def emit_drb_qos(out, n: int, *, frer: bool = False,
-                 frer_symmetric: bool = False) -> None:
+                 frer_symmetric: bool = False, gnb_name: str = "gnb") -> None:
     """Emit drbQosConfig for n UEs.
 
     Without FRER: n × 4 DRBs.
@@ -293,7 +298,7 @@ def emit_drb_qos(out, n: int, *, frer: bool = False,
 
     ndesc = f"{n} UEs x {len(template)} DRBs = {n * len(template)} entries"
     print(f"# ----- drbQosConfig ({ndesc}) -----", file=out)
-    print(f"*.gnb.cellularNic.mac.drbQosConfig = [ \\", file=out)
+    print(f"*.{gnb_name}.cellularNic.mac.drbQosConfig = [ \\", file=out)
 
     entries = []
     for i in range(n):
@@ -310,7 +315,8 @@ def emit_drb_qos(out, n: int, *, frer: bool = False,
     print(f"", file=out)
 
 
-def emit_device_a_apps(out, assignment: list[tuple[int, str, ProfileDef]]) -> None:
+def emit_device_a_apps(out, assignment: list[tuple[int, str, ProfileDef]],
+                       *, frer: bool = False) -> None:
     """Emit tsnDeviceA.numApps and per-app generators + 1 reverse sink."""
     # Build flat list of (app_idx, endpoint_idx, flow_idx, flow, profile_name)
     flat = []
@@ -337,6 +343,8 @@ def emit_device_a_apps(out, assignment: list[tuple[int, str, ProfileDef]]) -> No
         print(f"*.tsnDeviceA.app[{app_idx}].messageLength = {flow.msg_bytes}B", file=out)
         print(f"*.tsnDeviceA.app[{app_idx}].sendInterval = {flow.interval}", file=out)
         print(f"*.tsnDeviceA.app[{app_idx}].startTime = uniform(0s, 0.01s)", file=out)
+        if frer:
+            print(f"*.tsnDeviceA.app[{app_idx}].dscp = 7", file=out)
         print(f"", file=out)
 
     # Reverse traffic sink
@@ -379,7 +387,8 @@ def emit_stream_mappings(out, flat: list[tuple]) -> None:
     print(f"", file=out)
 
 
-def emit_device_b_apps(out, assignment: list[tuple[int, str, ProfileDef]]) -> None:
+def emit_device_b_apps(out, assignment: list[tuple[int, str, ProfileDef]],
+                       *, frer: bool = False) -> None:
     """Emit per-Device-B sink apps + reverse-traffic source.
 
     Because each Device B has a different number of flows depending on its
@@ -408,6 +417,8 @@ def emit_device_b_apps(out, assignment: list[tuple[int, str, ProfileDef]]) -> No
         print(f"*.tsnDeviceB[{ep_idx}].app[{rev}].messageLength = 100B", file=out)
         print(f"*.tsnDeviceB[{ep_idx}].app[{rev}].sendInterval = 10ms", file=out)
         print(f"*.tsnDeviceB[{ep_idx}].app[{rev}].startTime = 1s", file=out)
+        if frer:
+            print(f"*.tsnDeviceB[{ep_idx}].app[{rev}].dscp = 7", file=out)
         print(f"", file=out)
 
 
@@ -440,7 +451,7 @@ def emit_nwtt_registration(out, n: int) -> None:
 
 
 def emit_full(out, profile_names: list[str], *, frer: bool = False,
-              frer_symmetric: bool = False) -> None:
+              frer_symmetric: bool = False, uplink_only: bool = False) -> None:
     """Emit a complete .ini fragment for the given profile assignment."""
     n = len(profile_names)
     assignment = expand_assignment(profile_names)
@@ -449,10 +460,26 @@ def emit_full(out, profile_names: list[str], *, frer: bool = False,
     emit_nwtt_registration(out, n)
     emit_sdap(out, n, frer=frer)
     emit_drb_qos(out, n, frer=frer, frer_symmetric=frer_symmetric)
-    flat = emit_device_a_apps(out, assignment)
-    emit_stream_mappings(out, flat)
-    emit_device_b_apps(out, assignment)
+    if uplink_only:
+        print("# ----- TSN Device A: uplink sink only -----", file=out)
+        print("*.tsnDeviceA.hasOutgoingStreams = false", file=out)
+        print("*.tsnDeviceA.numApps = 1", file=out)
+        print('*.tsnDeviceA.app[0].typename = "UdpSink"', file=out)
+        print(f"*.tsnDeviceA.app[0].localPort = {REVERSE_PORT}", file=out)
+        print("", file=out)
+    else:
+        flat = emit_device_a_apps(out, assignment, frer=frer)
+        emit_stream_mappings(out, flat)
+    emit_device_b_apps(out, assignment, frer=frer)
     emit_bmca_spanning_tree(out, n)
+
+
+def emit_secondary_ran(out, n: int, *, frer_symmetric: bool = False) -> None:
+    """Emit only the secondary-gNB bearer and QoS tables."""
+    print(f"# Auto-generated secondary RAN profile for {n} UEs", file=out)
+    emit_sdap(out, n, frer=True, gnb_name="gnb2", include_ue=False)
+    emit_drb_qos(out, n, frer=True, frer_symmetric=frer_symmetric,
+                 gnb_name="gnb2")
 
 
 # ---------------------------------------------------------------------------
@@ -474,6 +501,12 @@ def main():
                    help="Emit profiles_N{N}.ini for all standard sizes.")
     ap.add_argument("-o", "--output-dir", default=".",
                     help="Output directory for --all (default: current dir).")
+    ap.add_argument("--output-file",
+                    help="Write a single generated profile to this file.")
+    ap.add_argument("--secondary-ran-output",
+                    help="Also write gNB2 bearer/QoS tables to this file.")
+    ap.add_argument("--uplink-only", action="store_true",
+                    help="Generate only reverse endpoint traffic and a Device-A sink.")
 
     # FRER options
     ap.add_argument("--frer", action="store_true",
@@ -508,7 +541,25 @@ def main():
     else:
         names = assignment_for_n(args.n)
 
-    emit_full(sys.stdout, names, frer=frer, frer_symmetric=frer_symmetric)
+    if args.output_file:
+        from pathlib import Path
+        output_path = Path(args.output_file)
+        output_path.parent.mkdir(parents=True, exist_ok=True)
+        with output_path.open("w") as out:
+            emit_full(out, names, frer=frer, frer_symmetric=frer_symmetric,
+                      uplink_only=args.uplink_only)
+        output_path.write_text(output_path.read_text().rstrip() + "\n")
+    else:
+        emit_full(sys.stdout, names, frer=frer, frer_symmetric=frer_symmetric,
+                  uplink_only=args.uplink_only)
+
+    if args.secondary_ran_output:
+        from pathlib import Path
+        secondary_path = Path(args.secondary_ran_output)
+        secondary_path.parent.mkdir(parents=True, exist_ok=True)
+        with secondary_path.open("w") as out:
+            emit_secondary_ran(out, len(names), frer_symmetric=frer_symmetric)
+        secondary_path.write_text(secondary_path.read_text().rstrip() + "\n")
 
 
 if __name__ == "__main__":

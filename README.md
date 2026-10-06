@@ -37,6 +37,12 @@ Simu5G do I need?" below for the exact split.
 | NW-TT/DS-TT bridge, QoS mapping, gPTP, BMCA, multi-endpoint scaling (`tests/`, `simulations/demos/multi_endpoint_test`, `ext_multiendpoint_test`) | **Vanilla Simu5G v1.5.0** — no changes needed |
 | FRER — any scenario in `simulations/demos/frer_test/` (F1–F4), and therefore a full `make tests` run | **[nascTime's Simu5G fork](https://github.com/MohamedSeliem/Simu5G/tree/nasctime-v1.0)**, tag `nasctime-v1.0` |
 
+The two-gNB **uplink** FRER configurations (`FrerUplinkDualConn_N1`, `_N2`,
+and `_N10`) additionally require the companion Simu5G
+[`feat/uplink-frer`](https://github.com/howhangliu/Simu5G/tree/feat/uplink-frer)
+branch. Its `Ip2Nic` preserves IPv4 ToS in `FlowControlInfo`, which the UE's
+`NrDcMux` and SDAP use to send the replica on DRB 4 through the second gNB.
+
 The fork is a strict superset of vanilla Simu5G v1.5.0 — everything that
 works against vanilla also works against the fork. **If you're setting
 up nascTime for the first time and aren't sure which scenarios you'll
@@ -528,6 +534,10 @@ simulations/demos/ext_multiendpoint_test/  Scalability sweep, heterogeneous traf
 
 simulations/demos/frer_test/            FRER validation (F1-F4)
 ├── frer_uplink.ini                      Bidirectional replication/recovery (FrerBidirectional_N1)
+├── frer_uplink_dualconn.ini             Uplink DS-TT replication over gNB + gNB2 (FrerUplinkDualConn_N1)
+├── analyze_uplink_dualconn.py           Checks both radio legs and NW-TT elimination
+├── frer_uplink_dualconn_scalability.ini  2/10-UE uplink FRER load tests
+├── analyze_uplink_dualconn_scalability.py Aggregate and per-UE scalability checks
 ├── frer_intersession.ini                Inter-PDU-session transport diversity (FrerInterSession_N15)
 ├── frer_dualconn.ini                    NR dual-connectivity transport diversity (FrerDualConn_N15)
 ├── frer_sweep.ini                       Scheduler × N × FRER-mode evaluation sweep
@@ -759,8 +769,9 @@ re-record them and for the known debug-library limitation.
    has not yet completed full end-to-end integration testing across all
    scenario configurations.
 
-5. **FRER NR dual-connectivity transport diversity (F4)** is under active
-   development and not yet available for use.
+5. **FRER NR dual-connectivity transport diversity (F4)** is implemented for
+   the two-gNB uplink scenario with the companion Simu5G `feat/uplink-frer`
+   branch.
 
 6. **Vanilla Simu5G v1.5.0 is sufficient only for non-FRER features.**
    Earlier versions of this README incorrectly stated no Simu5G source

@@ -1,7 +1,8 @@
 //
 //                  nascTime
 //
-// Authors: Mohamed Seliem (University College Cork)
+// Authors: Mohamed Seliem (University College Cork),
+//          Afshin Zanganeh and How-Hang Liu (Technical University of Dresden)
 //
 // This file is part of a software released under the license included in file
 // "LICENSE.txt". Please read LICENSE.txt and README files before using it.
@@ -32,14 +33,12 @@ class FrerRecovery : public cSimpleModule
     };
 
   protected:
-    /** Per-stream state for the Vector Recovery Algorithm.
-     *  Tracks which DSCP "copy" was accepted at each window position,
-     *  so that multiple IP fragments of the same accepted datagram all
-     *  pass through, while fragments of the duplicate copy are dropped.
-     */
+    /** Per-stream state for the Vector Recovery Algorithm. */
     struct StreamState {
         uint16_t highestSeqSeen = 0;
-        // Per-position: -1 = not yet seen, >=0 = accepted from this DSCP
+        // Per-position: -1 = not yet seen, >=0 = sequence position accepted.
+        // The stored DSCP is diagnostic only; any subsequent complete frame
+        // at the same sequence position is a duplicate, even on the same leg.
         std::vector<int16_t> accepted;
         bool active = false;
         cMessage *timeoutMsg = nullptr;
@@ -57,7 +56,12 @@ class FrerRecovery : public cSimpleModule
     bool ethernetFramed = true;
 
     // --- Per-stream recovery state ---
-    std::map<uint16_t, StreamState> streams;
+    // Recovery state is scoped by source IPv4 address and FRER stream ID.
+    // Separate DS-TTs start their sequence generators independently, so a
+    // stream-ID-only key would cause equal sequence numbers from different
+    // UEs to be eliminated as duplicates.
+    std::map<uint64_t, StreamState> streams;
+    std::map<cMessage *, uint64_t> timeoutKeys;
 
     // --- Gate IDs ---
     int inGateId;
@@ -91,12 +95,12 @@ class FrerRecovery : public cSimpleModule
      * @param seqNum    IPv4 Identification value
      * @param dscp      actual DSCP of this packet (primary or replica)
      */
-    virtual RecoveryResult recoverSequence(uint16_t streamId,
+    virtual RecoveryResult recoverSequence(uint64_t recoveryKey,
                                            uint16_t seqNum,
                                            int dscp);
 
-    virtual void resetStream(uint16_t streamId);
-    virtual void rescheduleTimeout(uint16_t streamId);
+    virtual void resetStream(uint64_t recoveryKey);
+    virtual void rescheduleTimeout(uint64_t recoveryKey);
 };
 
 #endif
