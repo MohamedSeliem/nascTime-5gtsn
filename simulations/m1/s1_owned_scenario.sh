@@ -6,6 +6,8 @@
 # Requires OMNeT++ 6.4.0 / INET 4.7.0 / Simu5G 1.8.0 built; OMNETPP_ROOT, INET_ROOT,
 # SIMU5G_ROOT set (or the defaults below). Does not load libnasctime: M1 uses only
 # unmodified Simu5G and INET modules.
+# NED path: nascTime simulations/ and src/ (for nasctime.tt, used by S2); the legacy
+# package nasctime.nodes is excluded (-x) because its NED does not load on Simu5G 1.8.0.
 # Output: simulations/m1/results/S1/
 set -eo pipefail
 HERE=$(cd "$(dirname "$0")" && pwd)
@@ -30,7 +32,7 @@ source "$OMNETPP_ROOT/setenv" -f >/dev/null
 } > "$OUT/env.txt"
 
 cd "$HERE"
-opp_run -l "$SIMU5G_ROOT/src/simu5g" -n "$NASCTIME/simulations:$SIMU5G_ROOT/src:$INET_ROOT/src" \
+opp_run -l "$SIMU5G_ROOT/src/simu5g" -n "$NASCTIME/simulations:$NASCTIME/src:$SIMU5G_ROOT/src:$INET_ROOT/src" -x nasctime.nodes \
   -u Cmdenv -f omnetpp.ini -c S1 --repeat="$REPEAT" -r "$SEEDS" --result-dir="$OUT/seeds" \
   --cmdenv-express-mode=true > "$OUT/run-S1-seeds.log" 2>&1 \
   || { echo "ERROR: S1 run failed, see $OUT/run-S1-seeds.log" >&2; exit 1; }

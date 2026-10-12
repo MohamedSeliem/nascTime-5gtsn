@@ -19,6 +19,7 @@ import simu5g.nodes.NrUe;
 import simu5g.nodes.Upf;
 import simu5g.nodes.gNodeB;
 import simu5g.world.radio.LteChannelControl;
+import nasctime.tt.PassThroughTt;
 
 //
 // M1 minimal 5G Ethernet bridge (stage S1): nascTime's own copy of Simu5G 1.8.0's
@@ -32,11 +33,16 @@ import simu5g.world.radio.LteChannelControl;
 // same as in the upstream reference; S1's acceptance test depends on that.
 // Unmodified Simu5G and INET modules only.
 //
+// With hasPassThroughTts (stage S2, default off), two pass-through translators are
+// inserted: dsTt between ue[0] and talker, nwTt between the UPF's N6 Ethernet port
+// and listener. Off, the network is exactly the S1 network.
+//
 network M1Bridge
 {
     parameters:
         **.cellularNic.hasSdap = default(true);
         upf.hasEthernetBridge = default(true);
+        bool hasPassThroughTts = default(false);
         @display("i=block/network2;bgb=1000,700");
     submodules:
         channelControl: LteChannelControl {
@@ -78,10 +84,20 @@ network M1Bridge
         talker: StandardHost {
             @display("p=500,650;i=device/device");
         }
+        dsTt: PassThroughTt if hasPassThroughTts {
+            @display("p=650,575");
+        }
+        nwTt: PassThroughTt if hasPassThroughTts {
+            @display("p=500,215");
+        }
     connections:
         server.pppg++ <--> Eth10G <--> router.pppg++;
         router.pppg++ <--> Eth10G <--> upf.dnPppg;
-        upf.dnEthg <--> Eth1G <--> listener.ethg++;
+        upf.dnEthg <--> Eth1G <--> listener.ethg++ if !hasPassThroughTts;
+        upf.dnEthg <--> Eth1G <--> nwTt.ethg++ if hasPassThroughTts;
+        nwTt.ethg++ <--> Eth1G <--> listener.ethg++ if hasPassThroughTts;
         upf.pppg++ <--> Eth10G <--> gnb1.ppp;
-        talker.ethg++ <--> Eth1G <--> ue[0].ethg++;
+        talker.ethg++ <--> Eth1G <--> ue[0].ethg++ if !hasPassThroughTts;
+        ue[0].ethg++ <--> Eth1G <--> dsTt.ethg++ if hasPassThroughTts;
+        dsTt.ethg++ <--> Eth1G <--> talker.ethg++ if hasPassThroughTts;
 }
