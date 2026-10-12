@@ -1,0 +1,2 @@
+Config S3, seed 0, rerun at eee8500 vs results/S3/seeds.csv (recorded at 76fbe4a):
+vectors 1868 of 1868 identical; scalars 1875 of 1875 identical
