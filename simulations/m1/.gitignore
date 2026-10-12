@@ -1,0 +1,5 @@
+results/*/runs/
+results/*/seeds/
+results/*/*.csv
+results/*/*.log
+!results/*/fingerprints.log
