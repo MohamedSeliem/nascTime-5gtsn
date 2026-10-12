@@ -1,6 +1,8 @@
 results/*/runs/
 results/*/seeds/
 results/*/pcaprun/
+results/*/ctl/
+results/*/load/
 results/*/*.csv
 results/*/*.log
 !results/*/fingerprints.log
