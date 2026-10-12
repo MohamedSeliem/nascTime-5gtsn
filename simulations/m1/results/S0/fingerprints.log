@@ -1,0 +1,13 @@
+/simulations/nr/ethernet/ -f omnetpp.ini -c Ethernet-Hosts -r 0  ... : PASS
+/simulations/nr/ethernet/ -f omnetpp.ini -c Ethernet-Bridge -r 0  ... : PASS
+/simulations/nr/ethernet/ -f omnetpp.ini -c Ethernet-Handover -r 0  ... : PASS
+/simulations/nr/ethernet/ -f omnetpp.ini -c Ethernet-Mixed -r 0  ... : PASS
+
+----------------------------------------------------------------------
+Ran 4 tests in 3.007s
+
+OK
+
+Log has been saved to fingerprinttest.out
+Test results equals to expected results
+HINT: In case of errors/fingerprint mismatches, the reason might be using the wrong omnetpp or inet version -- please check the versions CI uses, see .github/workflows/fingerprint-tests.yml
