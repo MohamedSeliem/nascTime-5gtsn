@@ -25,7 +25,7 @@ source "$OMNETPP_ROOT/setenv" -f >/dev/null
   echo "omnetpp: $(opp_run -v 2>/dev/null | grep -m1 -i 'version' || true)"
   echo "inet_version_file: $(cat "$INET_ROOT/Version" 2>/dev/null || echo n/a)"
   echo "simu5g_version_file: $(cat "$SIMU5G_ROOT/Version" 2>/dev/null || echo n/a)"
-  echo "nascTime_commit: $(git -C "$NASCTIME" rev-parse HEAD 2>/dev/null || echo n/a)$( [ -z "$(git -C "$NASCTIME" status --porcelain -- simulations/m1 src/nasctime/tt 2>/dev/null)" ] || echo ' (+ uncommitted/untracked changes in simulations/m1 or src/nasctime/tt)')"
+  echo "nascTime_commit: $(git -C "$NASCTIME" rev-parse HEAD 2>/dev/null || echo n/a)$( [ -z "$(git -C "$NASCTIME" status --porcelain -- simulations/m1 src/nasctime/tt ':!simulations/m1/results' 2>/dev/null)" ] || echo ' (+ uncommitted/untracked changes in simulations/m1 or src/nasctime/tt)')"
   echo "os: $(uname -srm)"
 } > "$OUT/env.txt"
 
