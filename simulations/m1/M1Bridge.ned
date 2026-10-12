@@ -10,6 +10,7 @@ import inet.networklayer.configurator.ipv4.Ipv4NetworkConfigurator;
 import inet.node.ethernet.Eth1G;
 import inet.node.ethernet.Eth10G;
 import inet.node.inet.Router;
+import inet.node.contract.INetworkNode;
 import inet.node.inet.StandardHost;
 import simu5g.common.binder.Binder;
 import simu5g.common.carrierAggregation.CarrierAggregation;
@@ -36,6 +37,9 @@ import nasctime.tt.PassThroughTt;
 // With hasPassThroughTts (stage S2, default off), two pass-through translators are
 // inserted: dsTt between ue[0] and talker, nwTt between the UPF's N6 Ethernet port
 // and listener. Off, the network is exactly the S1 network.
+//
+// talker and listener are StandardHost unless a config sets their typename (stage S4
+// makes them INET TsnDevices: gPTP grandmaster = listener, gPTP slave = talker).
 //
 network M1Bridge
 {
@@ -69,7 +73,7 @@ network M1Bridge
         router: Router {
             @display("p=351,115;i=device/smallrouter");
         }
-        listener: StandardHost {
+        listener: <default("StandardHost")> like INetworkNode {
             @display("p=351,215;i=device/pc");
         }
         upf: Upf {
@@ -81,7 +85,7 @@ network M1Bridge
         ue[1]: NrUe {
             @display("p=500,500");
         }
-        talker: StandardHost {
+        talker: <default("StandardHost")> like INetworkNode {
             @display("p=500,650;i=device/device");
         }
         dsTt: PassThroughTt if hasPassThroughTts {
