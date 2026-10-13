@@ -16,6 +16,7 @@
 #include "inet/common/packet/Packet.h"
 #include "inet/queueing/base/PacketFlowBase.h"
 
+#include "TtEgressPairer.h"
 #include "TtTimestampTag_m.h"
 
 namespace nasctime {
@@ -26,8 +27,11 @@ using namespace inet;
 // M2-S0 processor (see TtTimestampLayer.ned). One instance per direction of an
 // Ethernet interface's measurement-layer slot. Stateless with respect to the frames,
 // except for the per-translator frame counter (ingress) and the statistics.
+// M2-S1 (observePort, or mode "observer"): also listens to its own interface's PHY/MAC
+// signals and records, per frame, the reception events (ingress role) or the MAC
+// dequeue / transmission start / transmission end events (egress role). Passive.
 //
-class TtTimestampProcessor : public queueing::PacketFlowBase, public TransparentProtocolRegistrationListener
+class TtTimestampProcessor : public queueing::PacketFlowBase, public TransparentProtocolRegistrationListener, public cListener
 {
   public:
     // Data part of a frame at the measurement-layer slot, as checked by parse():
@@ -59,7 +63,7 @@ class TtTimestampProcessor : public queueing::PacketFlowBase, public Transparent
 
   protected:
     enum Role { INGRESS, EGRESS };
-    enum Mode { TRANSLATOR, AUDIT, PROBE };
+    enum Mode { TRANSLATOR, AUDIT, PROBE, OBSERVER };
 
     Role role = INGRESS;
     Mode mode = TRANSLATOR;
@@ -72,6 +76,23 @@ class TtTimestampProcessor : public queueing::PacketFlowBase, public Transparent
     std::ofstream log;
 
     uint64_t frameCounter = 0;      // last frame id assigned (ingress)
+
+    // M2-S1 port observation
+    bool observePort = false;
+    enum IngressEvent { RX_END, RX_START } ingressEvent = RX_END;           // TEST ONLY: RX_START
+    enum EgressEvent { EG_TX_END, EG_TX_START, EG_SLOT } egressEvent = EG_TX_END; // TEST ONLY: others
+    bool pairingRotate = false;     // TEST ONLY: write each tx row with the previous row's identity
+    cModule *interfaceModule = nullptr;
+    cModule *transmitterModule = nullptr;
+    cModule *receiverModule = nullptr;
+    cModule *macEmitterModule = nullptr;
+    cModule *macQueueModule = nullptr;
+    std::ofstream portLog;
+    TtEgressPairer pairer;          // egress role
+    std::vector<TtPortRecord> rotateRows;
+    long rxStartTree = -1, rxEndTree = -1;   // ingress role: last reception events
+    simtime_t rxStartTime = -1, rxEndTime = -1;
+    long numPortRx = 0, numPortTx = 0, numRxStartSeen = 0;
 
     // statistics (scalars)
     long numFrames = 0;             // frames processed
@@ -93,8 +114,9 @@ class TtTimestampProcessor : public queueing::PacketFlowBase, public Transparent
     virtual void pushPacketProgress(Packet *packet, const cGate *gate, bps datarate, b position, b extraProcessableLength) override;
     virtual void pushPacketEnd(Packet *packet, const cGate *gate) override;
     virtual void processPacket(Packet *packet) override;
+    virtual void receiveSignal(cComponent *source, simsignal_t signalID, cObject *obj, cObject *details) override;
 
-    Layout parse(const Packet *packet) const;
+    Layout parse(const Packet *packet, bool allowPhyHeader = false) const;
     static void collectLeaves(const Ptr<const Chunk>& chunk, b offset, std::vector<Leaf>& leaves);
     static void collectAllLevelTags(const Ptr<const Chunk>& chunk, int& count);
     std::vector<FoundTag> collectLeafTags(const Layout& layout) const;
@@ -105,7 +127,14 @@ class TtTimestampProcessor : public queueing::PacketFlowBase, public Transparent
     void processEgress(Packet *packet, const Layout& layout);
     void processAudit(Packet *packet, const Layout& layout);
 
+    void processObserver(Packet *packet, const Layout& layout);
+    void portRx(Packet *packet, const Layout& layout, const TtTimestampTag *tag);
+    void portEnqueue(Packet *packet, const Layout& layout, const TtTimestampTag *tag, const std::string& note);
+    void writePortTx(const TtPortRecord& r, const TtPortRecord& identity, const char *event);
+    static const Packet *encapsulatedPacket(cObject *obj);
+
     void selfTest();
+    int selfTestPairer();
 
     void writeLog(const char *event, const Layout& layout, const std::string& hash, const TtTimestampTag *tag, int regions, const std::string& note);
 };

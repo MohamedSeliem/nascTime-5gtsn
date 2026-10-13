@@ -11,12 +11,14 @@
 #include <cinttypes>
 #include <filesystem>
 
+#include "inet/common/Simsignals.h"
 #include "inet/common/TimeTag_m.h"
 #include "inet/common/packet/chunk/ByteCountChunk.h"
 #include "inet/common/packet/chunk/BytesChunk.h"
 #include "inet/common/packet/chunk/SequenceChunk.h"
 #include "inet/linklayer/ethernet/common/EthernetMacHeader_m.h"
 #include "inet/linklayer/ieee8021q/Ieee8021qTagHeader_m.h"
+#include "inet/physicallayer/wired/ethernet/EthernetPhyHeader_m.h"
 
 namespace nasctime {
 
@@ -48,6 +50,8 @@ void TtTimestampProcessor::initialize(int stage)
             mode = AUDIT;
         else if (m == "probe")
             mode = PROBE;
+        else if (m == "observer")
+            mode = OBSERVER;
         else
             throw cRuntimeError("Unknown mode '%s'", m.c_str());
         ttId = par("ttId");
@@ -71,9 +75,222 @@ void TtTimestampProcessor::initialize(int stage)
                 throw cRuntimeError("Cannot open log file '%s'", path.c_str());
             log << "event,t,ttId,role,frameId,ingressTime,ingressTtId,regions,etherType,pcp,vid,payloadLen,payloadHash,signature,note\n";
         }
+        // M2-S1 port observation (off by default: M2-S0 behaviour and logs unchanged)
+        observePort = par("observePort").boolValue() || mode == OBSERVER;
+        std::string ie = par("ingressEvent").stdstringValue();
+        if (ie == "receptionEnded")
+            ingressEvent = RX_END;
+        else if (ie == "receptionStarted")
+            ingressEvent = RX_START;
+        else
+            throw cRuntimeError("Unknown ingressEvent '%s'", ie.c_str());
+        std::string ee = par("egressEvent").stdstringValue();
+        if (ee == "transmissionEnded")
+            egressEvent = EG_TX_END;
+        else if (ee == "transmissionStarted")
+            egressEvent = EG_TX_START;
+        else if (ee == "enqueue")
+            egressEvent = EG_SLOT;
+        else
+            throw cRuntimeError("Unknown egressEvent '%s'", ee.c_str());
+        std::string pt = par("pairingTest").stdstringValue();
+        if (pt == "rotate")
+            pairingRotate = true;
+        else if (!pt.empty())
+            throw cRuntimeError("Unknown pairingTest '%s'", pt.c_str());
+        if (!observePort && (ingressEvent != RX_END || egressEvent != EG_TX_END || pairingRotate))
+            throw cRuntimeError("ingressEvent, egressEvent and pairingTest need observePort = true");
+        if (observePort) {
+            // processor -> TtTimestampLayer -> network interface (LayeredEthernetInterface)
+            interfaceModule = getParentModule()->getParentModule();
+            transmitterModule = interfaceModule->findModuleByPath(".phyLayer.transmitter");
+            receiverModule = interfaceModule->findModuleByPath(".phyLayer.receiver");
+            macEmitterModule = interfaceModule->findModuleByPath(".macLayer.outboundEmitter");
+            macQueueModule = interfaceModule->findModuleByPath(".macLayer.queue");
+            if (!transmitterModule || !receiverModule || !macEmitterModule || !macQueueModule)
+                throw cRuntimeError("observePort: %s lacks phyLayer.transmitter/receiver or macLayer.outboundEmitter/queue",
+                        interfaceModule->getFullPath().c_str());
+            if (role == EGRESS) {
+                interfaceModule->subscribe(transmissionStartedSignal, this);
+                interfaceModule->subscribe(transmissionEndedSignal, this);
+                interfaceModule->subscribe(packetSentToLowerSignal, this);
+                interfaceModule->subscribe(packetDroppedSignal, this);
+            }
+            else {
+                interfaceModule->subscribe(receptionStartedSignal, this);
+                interfaceModule->subscribe(receptionEndedSignal, this);
+            }
+            if (!logFile.empty()) {
+                std::string path = logFile + "." + r + ".port.csv";
+                portLog.open(path, std::ios::out | std::ios::trunc);
+                if (!portLog)
+                    throw cRuntimeError("Cannot open log file '%s'", path.c_str());
+                portLog << "event,t,ttId,role,treeId,tagged,frameId,ingressTime,ingressTtId,etherType,pcp,vid,payloadLen,hash,txHash,"
+                           "tRxStart,tRxEnd,tSlot,tDequeue,tTxStart,tTxEnd,egressTime,residence,note\n";
+            }
+        }
         if (par("selfTest"))
             selfTest();
     }
+}
+
+static std::string ts(simtime_t t)
+{
+    return t < SIMTIME_ZERO ? std::string() : t.str();
+}
+
+const Packet *TtTimestampProcessor::encapsulatedPacket(cObject *obj)
+{
+    if (auto packet = dynamic_cast<Packet *>(obj))
+        return packet;
+    auto signal = check_and_cast<cPacket *>(obj);
+    return check_and_cast<Packet *>(signal->getEncapsulatedPacket());
+}
+
+// Interface signals (observePort). Only the four sources resolved at initialization
+// count; any other emitter of the same signal (e.g. the PHY layer's own outbound
+// emitter, which also emits packetSentToLower) is ignored.
+void TtTimestampProcessor::receiveSignal(cComponent *source, simsignal_t signalID, cObject *obj, cObject *details)
+{
+    Enter_Method("receiveSignal");
+    simtime_t now = simTime();
+    if (role == INGRESS) {
+        if (source != receiverModule)
+            return;
+        const Packet *packet = encapsulatedPacket(obj);
+        if (signalID == receptionStartedSignal) {
+            numRxStartSeen++;
+            rxStartTree = packet->getTreeId();
+            rxStartTime = now;
+        }
+        else if (signalID == receptionEndedSignal) {
+            if (rxEndTree != -1)
+                throw cRuntimeError("observePort: receptionEnded of tree id %ld while the previous one (tree id %ld) never reached the slot",
+                        packet->getTreeId(), rxEndTree);
+            if (numRxStartSeen > 0 && rxStartTree != packet->getTreeId())
+                throw cRuntimeError("observePort: receptionEnded of tree id %ld does not match receptionStarted of tree id %ld",
+                        packet->getTreeId(), rxStartTree);
+            if (packet->hasBitError())
+                throw cRuntimeError("observePort: received frame with bit error (unsupported)");
+            rxEndTree = packet->getTreeId();
+            rxEndTime = now;
+        }
+        return;
+    }
+    TtEgressPairer::Event event;
+    if (signalID == packetSentToLowerSignal && source == macEmitterModule)
+        event = TtEgressPairer::DEQUEUE;
+    else if (signalID == transmissionStartedSignal && source == transmitterModule)
+        event = TtEgressPairer::TX_START;
+    else if (signalID == transmissionEndedSignal && source == transmitterModule)
+        event = TtEgressPairer::TX_END;
+    else if (signalID == packetDroppedSignal && source == macQueueModule) {
+        auto packet = check_and_cast<Packet *>(obj);
+        for (const auto& r : pairer.fifo)
+            if (r.treeId == packet->getTreeId())
+                throw cRuntimeError("observePort: frame of tree id %ld dropped by the MAC queue", r.treeId);
+        return;
+    }
+    else
+        return;
+    const Packet *packet = encapsulatedPacket(obj);
+    if (packet->hasBitError())
+        throw cRuntimeError("observePort: %s with bit error (aborted transmission, unsupported)", TtEgressPairer::eventName(event));
+    size_t index = 0;
+    std::string error = pairer.match(event, packet->getTreeId(), now, index);
+    if (!error.empty())
+        throw cRuntimeError("observePort pairing: %s", error.c_str());
+    if (event != TtEgressPairer::TX_END)
+        return;
+    // end of transmission: the transmitted packet must be the recorded frame
+    TtPortRecord& r = pairer.fifo.front();
+    Layout layout = parse(packet, true);
+    if (!layout.error.empty())
+        throw cRuntimeError("observePort: unsupported structure of the transmitted frame: %s (%s)", layout.error.c_str(), layout.signature.c_str());
+    r.txHash = payloadHash(packet, layout);
+    if (r.txHash != r.hash)
+        throw cRuntimeError("observePort pairing: payload hash of the transmitted frame (tree id %ld) differs from the enqueued one", r.treeId);
+    auto found = collectLeafTags(layout);
+    bool txTagged = !found.empty();
+    if (txTagged != r.tagOnWire || (txTagged && r.tagged && found[0].tag->getFrameId() != r.frameId))
+        throw cRuntimeError("observePort pairing: tag of the transmitted frame differs from the enqueued one (tree id %ld)", r.treeId);
+    numPortTx++;
+    if (pairingRotate)
+        rotateRows.push_back(r);
+    else
+        writePortTx(r, r, "tx");
+    pairer.fifo.pop_front();
+}
+
+void TtTimestampProcessor::writePortTx(const TtPortRecord& r, const TtPortRecord& id, const char *event)
+{
+    if (!portLog.is_open())
+        return;
+    simtime_t egress = egressEvent == EG_TX_END ? r.tTxEnd : egressEvent == EG_TX_START ? r.tTxStart : r.tSlot;
+    portLog << event << ',' << ts(r.tTxEnd) << ',' << ttId << ",egress," << r.treeId << ',' << (id.tagged ? 1 : 0) << ',';
+    if (id.tagged)
+        portLog << id.frameId << ',' << id.ingressTime.str() << ',' << id.ingressTtId;
+    else
+        portLog << ",,";
+    portLog << ',' << id.etherType << ',' << id.pcp << ',' << id.vid << ',' << id.payloadLength << ',' << id.hash << ',' << r.txHash
+            << ",,," << ts(r.tSlot) << ',' << ts(r.tDequeue) << ',' << ts(r.tTxStart) << ',' << ts(r.tTxEnd) << ',' << ts(egress) << ',';
+    if (id.tagged && egress >= SIMTIME_ZERO)
+        portLog << (egress - id.ingressTime).str();
+    portLog << ',' << r.note << '\n';
+}
+
+// ingress role: the frame at the slot must be the one whose reception just ended
+void TtTimestampProcessor::portRx(Packet *packet, const Layout& layout, const TtTimestampTag *tag)
+{
+    numPortRx++;
+    if (portLog.is_open()) {
+        portLog << "rx," << simTime().str() << ',' << ttId << ",ingress," << packet->getTreeId() << ',' << (tag ? 1 : 0) << ',';
+        if (tag)
+            portLog << tag->getFrameId() << ',' << tag->getIngressTime().str() << ',' << tag->getIngressTtId();
+        else
+            portLog << ",,";
+        portLog << ',' << layout.etherType << ',' << layout.pcp << ',' << layout.vid << ',' << B(layout.payloadLength).get() << ','
+                << payloadHash(packet, layout) << ",," << (numRxStartSeen > 0 ? ts(rxStartTime) : std::string()) << ','
+                << ts(rxEndTime) << ',' << simTime().str() << ",,,,,,\n";
+    }
+    rxEndTree = -1;
+}
+
+// egress role: a frame enters the MAC FIFO
+void TtTimestampProcessor::portEnqueue(Packet *packet, const Layout& layout, const TtTimestampTag *tag, const std::string& note)
+{
+    TtPortRecord r;
+    r.tagOnWire = !collectLeafTags(layout).empty();
+    r.treeId = packet->getTreeId();
+    r.tSlot = simTime();
+    r.tagged = tag != nullptr;
+    if (tag) {
+        r.frameId = tag->getFrameId();
+        r.ingressTime = tag->getIngressTime();
+        r.ingressTtId = tag->getIngressTtId();
+    }
+    r.hash = payloadHash(packet, layout);
+    r.etherType = layout.etherType;
+    r.pcp = layout.pcp;
+    r.vid = layout.vid;
+    r.payloadLength = B(layout.payloadLength).get();
+    r.note = note;
+    pairer.push(r);
+}
+
+// mode "observer": record the frame's port events, change nothing
+void TtTimestampProcessor::processObserver(Packet *packet, const Layout& layout)
+{
+    auto found = collectLeafTags(layout);
+    const TtTimestampTag *tag = found.empty() ? nullptr : found[0].tag.get();
+    if (role == INGRESS) {
+        if (rxEndTree != packet->getTreeId() || rxEndTime != simTime())
+            throw cRuntimeError("observePort: frame at the RX slot (tree id %ld) is not the one whose reception just ended (tree id %ld)",
+                    packet->getTreeId(), rxEndTree);
+        portRx(packet, layout, tag);
+    }
+    else
+        portEnqueue(packet, layout, tag, "");
 }
 
 cGate *TtTimestampProcessor::getRegistrationForwardingGate(cGate *gate)
@@ -115,7 +332,7 @@ void TtTimestampProcessor::collectLeaves(const Ptr<const Chunk>& chunk, b offset
         leaves.push_back({offset, chunk});
 }
 
-TtTimestampProcessor::Layout TtTimestampProcessor::parse(const Packet *packet) const
+TtTimestampProcessor::Layout TtTimestampProcessor::parse(const Packet *packet, bool allowPhyHeader) const
 {
     Layout layout;
     const auto& data = packet->peekData();
@@ -142,22 +359,25 @@ TtTimestampProcessor::Layout TtTimestampProcessor::parse(const Packet *packet) c
 
     auto isEthernetPart = [] (const Ptr<const Chunk>& c) {
         return dynamicPtrCast<const EthernetMacHeader>(c) || dynamicPtrCast<const Ieee8021qTagEpdHeader>(c)
-               || dynamicPtrCast<const EthernetPadding>(c) || dynamicPtrCast<const EthernetFcs>(c);
+               || dynamicPtrCast<const EthernetPadding>(c) || dynamicPtrCast<const EthernetFcs>(c)
+               || dynamicPtrCast<const physicallayer::EthernetPhyHeaderBase>(c);
     };
     size_t n = leaves.size();
-    if (n == 0) {
+    // a transmitted/received PHY frame (observePort) starts with the PHY header
+    size_t s = allowPhyHeader && n > 0 && dynamicPtrCast<const physicallayer::EthernetPhyHeaderBase>(leaves[0].chunk) ? 1 : 0;
+    if (n == s) {
         layout.error = "empty data part";
         return layout;
     }
-    auto mac = dynamicPtrCast<const EthernetMacHeader>(leaves[0].chunk);
+    auto mac = dynamicPtrCast<const EthernetMacHeader>(leaves[s].chunk);
     if (!mac) {
         layout.error = "first chunk of the data part is not an EthernetMacHeader";
         return layout;
     }
     int typeOrLength = mac->getTypeOrLength();
-    size_t i = 1;
+    size_t i = s + 1;
     if (typeOrLength == 0x8100) {
-        auto q = n > 1 ? dynamicPtrCast<const Ieee8021qTagEpdHeader>(leaves[1].chunk) : nullptr;
+        auto q = n > s + 1 ? dynamicPtrCast<const Ieee8021qTagEpdHeader>(leaves[s + 1].chunk) : nullptr;
         if (!q) {
             layout.error = "MAC typeOrLength is 0x8100 but the next chunk is not an Ieee8021qTagEpdHeader";
             return layout;
@@ -165,7 +385,7 @@ TtTimestampProcessor::Layout TtTimestampProcessor::parse(const Packet *packet) c
         layout.pcp = q->getPcp();
         layout.vid = q->getVid();
         typeOrLength = q->getTypeOrLength();
-        i = 2;
+        i = s + 2;
     }
     if (typeOrLength < 0x600) {
         layout.error = "length interpretation of typeOrLength (802.3 length / LLC) is not supported";
@@ -302,6 +522,9 @@ void TtTimestampProcessor::processPacket(Packet *packet)
         case AUDIT:
             processAudit(packet, layout);
             break;
+        case OBSERVER:
+            processObserver(packet, layout);
+            break;
         case TRANSLATOR:
             if (role == INGRESS)
                 processIngress(packet, layout);
@@ -318,14 +541,28 @@ void TtTimestampProcessor::processIngress(Packet *packet, const Layout& layout)
     if (already > 0)
         throw cRuntimeError("Frame already carries a TtTimestampTag at translator ingress (containment breach). Structure: %s", layout.signature.c_str());
     std::string hash = payloadHash(packet, layout);
+    simtime_t ingressEventTime = simTime();
+    if (observePort) {
+        // the ingress event is the receiver's receptionEnded of this very frame, in this call
+        if (rxEndTree != packet->getTreeId() || rxEndTime != simTime())
+            throw cRuntimeError("observePort: frame at the RX slot (tree id %ld) is not the one whose reception just ended (tree id %ld)",
+                    packet->getTreeId(), rxEndTree);
+        if (ingressEvent == RX_START) {     // TEST ONLY (negative control)
+            if (numRxStartSeen == 0 || rxStartTree != packet->getTreeId())
+                throw cRuntimeError("ingressEvent = receptionStarted needs a streaming receiver");
+            ingressEventTime = rxStartTime;
+        }
+    }
     if (!tagAtIngress) {
         numNotTagged++;
         writeLog("pass", layout, hash, nullptr, 0, "");
+        if (observePort)
+            portRx(packet, layout, nullptr);
         return;
     }
     frameCounter += frameIdStride;
     TtTimestampTag tag;
-    tag.setIngressTime(simTime() + timestampOffset);
+    tag.setIngressTime(ingressEventTime + timestampOffset);
     tag.setIngressTtId(ttId);
     tag.setFrameId(frameCounter);
     replacePayload(packet, layout, &tag, false);
@@ -343,6 +580,8 @@ void TtTimestampProcessor::processIngress(Packet *packet, const Layout& layout)
                 layout.signature.c_str(), after.signature.c_str());
     numTagged++;
     writeLog("tag", layout, hash, &tag, (int)found.size(), "");
+    if (observePort)
+        portRx(packet, layout, &tag);
 }
 
 void TtTimestampProcessor::processEgress(Packet *packet, const Layout& layout)
@@ -352,6 +591,8 @@ void TtTimestampProcessor::processEgress(Packet *packet, const Layout& layout)
     if (found.empty()) {
         numUntagged++;
         writeLog("untagged", layout, hash, nullptr, 0, "");
+        if (observePort)
+            portEnqueue(packet, layout, nullptr, "untagged");
         return;
     }
     std::string reason;
@@ -393,6 +634,11 @@ void TtTimestampProcessor::processEgress(Packet *packet, const Layout& layout)
         if (after.signature != layout.signature || payloadHash(packet, after) != hash)
             throw cRuntimeError("Internal error: stripping changed the frame");
         numStripped++;
+    }
+    if (observePort) {
+        TtTimestampTag recovered = *first;
+        Layout after = parse(packet);
+        portEnqueue(packet, after, reason.empty() ? &recovered : nullptr, reason);
     }
 }
 
@@ -543,6 +789,60 @@ void TtTimestampProcessor::selfTest()
     recordScalar("selfTestPassed", passed);
     if (passed != (int)cases.size())
         throw cRuntimeError("Self-test failed: %d of %d cases passed (see log)", passed, (int)cases.size());
+    if (observePort)
+        selfTestPairer();
+}
+
+// M2-S1: the egress pairing rules on synthetic event sequences (observePort only, so that
+// M2-S0 logs are unchanged). Each case states the expected outcome.
+int TtTimestampProcessor::selfTestPairer()
+{
+    using E = TtEgressPairer;
+    struct Step { char op; long tree; double t; };   // op: 'P' push, 'D' dequeue, 'S' start, 'E' end
+    struct Case { const char *name; std::vector<Step> steps; const char *expectedError; };
+    std::vector<Case> cases = {
+        {"idle port: one frame", {{'P', 1, 1}, {'D', 1, 1}, {'S', 1, 1}, {'E', 1, 2}}, nullptr},
+        {"two frames queued, FIFO", {{'P', 1, 1}, {'P', 2, 1}, {'D', 1, 1}, {'S', 1, 1}, {'E', 1, 2}, {'D', 2, 2}, {'S', 2, 3}, {'E', 2, 4}}, nullptr},
+        {"event for an unknown frame", {{'P', 1, 1}, {'D', 9, 1}}, "orphan"},
+        {"two pending frames share a tree id", {{'P', 5, 1}, {'P', 5, 1}, {'D', 5, 1}}, "ambiguous"},
+        {"second frame dequeued first", {{'P', 1, 1}, {'P', 2, 1}, {'D', 2, 1}}, "out-of-order"},
+        {"same event twice", {{'P', 1, 1}, {'D', 1, 1}, {'D', 1, 1}}, "duplicate"},
+        {"start before dequeue", {{'P', 1, 1}, {'S', 1, 1}}, "no MAC dequeue"},
+        {"end of a frame that is not the head", {{'P', 1, 1}, {'P', 2, 1}, {'D', 1, 1}, {'S', 1, 1}, {'D', 2, 1}, {'S', 2, 1}, {'E', 2, 2}}, "not at the head"},
+        {"event before the frame entered the queue", {{'P', 1, 2}, {'D', 1, 1}}, "time order"},
+    };
+    int passed = 0;
+    for (const auto& c : cases) {
+        TtEgressPairer p;
+        std::string error;
+        for (const auto& s : c.steps) {
+            if (s.op == 'P') {
+                TtPortRecord r;
+                r.treeId = s.tree;
+                r.tSlot = s.t;
+                p.push(r);
+                continue;
+            }
+            size_t index;
+            E::Event e = s.op == 'D' ? E::DEQUEUE : s.op == 'S' ? E::TX_START : E::TX_END;
+            error = p.match(e, s.tree, s.t, index);
+            if (!error.empty())
+                break;
+            if (e == E::TX_END)
+                p.fifo.pop_front();
+        }
+        bool ok = c.expectedError == nullptr ? error.empty() && p.fifo.empty() : error.find(c.expectedError) != std::string::npos;
+        if (ok)
+            passed++;
+        if (log.is_open())
+            log << "selftest,0," << ttId << ',' << (role == INGRESS ? "ingress" : "egress") << ",,,,0,,,,,,pairer,"
+                << (ok ? "PASS " : "FAIL ") << c.name << " / " << (error.empty() ? "accepted" : error) << '\n';
+    }
+    recordScalar("selfTestPairerCases", cases.size());
+    recordScalar("selfTestPairerPassed", passed);
+    if (passed != (int)cases.size())
+        throw cRuntimeError("Pairer self-test failed: %d of %d cases passed (see log)", passed, (int)cases.size());
+    return passed;
 }
 
 void TtTimestampProcessor::writeLog(const char *event, const Layout& layout, const std::string& hash, const TtTimestampTag *tag, int regions, const std::string& note)
@@ -572,6 +872,19 @@ void TtTimestampProcessor::finish()
     recordScalar("lastFrameId", (double)frameCounter);
     if (log.is_open())
         log.close();
+    if (observePort) {
+        // TEST ONLY: identities rotated by one row (each record still written once)
+        for (size_t i = 0; i < rotateRows.size(); i++)
+            writePortTx(rotateRows[i], rotateRows[(i + rotateRows.size() - 1) % rotateRows.size()], "tx");
+        // frames that entered the MAC FIFO but were not completely transmitted by the end
+        for (const auto& r : pairer.fifo)
+            writePortTx(r, r, "pending");
+        recordScalar("portRx", numPortRx);
+        recordScalar("portTx", numPortTx);
+        recordScalar("portPending", (double)pairer.fifo.size());
+        if (portLog.is_open())
+            portLog.close();
+    }
 }
 
 } // namespace nasctime

@@ -24,7 +24,7 @@ module TtTimestampLayer like IMeasurementLayer
 {
     parameters:
         int ttId = default(-1);                 // identifies this translator in the tag
-        string mode = default("translator");    // "translator" | "audit" | "probe"
+        string mode = default("translator");    // "translator" | "audit" | "probe" | "observer" (M2-S1: port events only, implies observePort)
         bool tagAtIngress = default(true);      // translator: tag frames on the RX path
         bool stripAtEgress = default(true);     // translator: remove tags on the TX path
         double timestampOffset @unit(s) = default(0s); // TEST ONLY (negative control): added to the ingress time
@@ -32,6 +32,11 @@ module TtTimestampLayer like IMeasurementLayer
         bool failOnUnsupported = default(true); // unsupported packet structure: error (true) or count and pass (false)
         string logFile = default("");           // per-frame CSV log ("" = none); one file per role is derived from it
         bool selfTest = default(false);         // run the structure/tag self-test on synthetic frames at initialization
+        // M2-S1 (all off by default; M2-S0 behaviour and logs unchanged)
+        bool observePort = default(false);      // also record this interface's reception / MAC dequeue / transmission events per frame
+        string ingressEvent = default("receptionEnded");   // TEST ONLY: "receptionStarted" (streaming receivers)
+        string egressEvent = default("transmissionEnded"); // TEST ONLY: "transmissionStarted" | "enqueue"
+        string pairingTest = default("");       // TEST ONLY: "rotate" writes each tx row with the previous row's identity
         ingress.role = "ingress";
         egress.role = "egress";
         *.ttId = this.ttId;
@@ -43,6 +48,10 @@ module TtTimestampLayer like IMeasurementLayer
         *.failOnUnsupported = this.failOnUnsupported;
         *.logFile = this.logFile;
         *.selfTest = this.selfTest;
+        *.observePort = this.observePort;
+        *.ingressEvent = this.ingressEvent;
+        *.egressEvent = this.egressEvent;
+        *.pairingTest = this.pairingTest;
         @display("i=block/layer");
     gates:
         input upperLayerIn;
@@ -76,5 +85,9 @@ simple TtTimestampProcessor extends PacketFlowBase
         bool failOnUnsupported;
         string logFile;
         bool selfTest;
+        bool observePort;
+        string ingressEvent;
+        string egressEvent;
+        string pairingTest;
         @class(nasctime::TtTimestampProcessor);
 }
