@@ -11,6 +11,7 @@
 #include <cinttypes>
 #include <filesystem>
 
+#include "inet/common/TimeTag_m.h"
 #include "inet/common/packet/chunk/ByteCountChunk.h"
 #include "inet/common/packet/chunk/BytesChunk.h"
 #include "inet/common/packet/chunk/SequenceChunk.h"
@@ -250,8 +251,13 @@ void TtTimestampProcessor::replacePayload(Packet *packet, const Layout& layout, 
     for (size_t k = layout.firstPayload; k < layout.endPayload; k++) {
         auto copy = layout.leaves[k].chunk->dupShared();
         b length = copy->getChunkLength();
-        if (removeTags)
-            copy->removeTagsWherePresent<TtTimestampTag>(b(0), length);
+        if (removeTags) {
+            // NOTE: INET 4.7's Chunk::removeTagsWherePresent<T>() clears the tags of EVERY type in
+            // the range (SharingRegionTagSet::clearTags), which would also delete e.g. the
+            // application's CreationTimeTag. Remove exactly the TtTimestampTag regions instead.
+            for (const auto& region : copy->getAllTags<TtTimestampTag>(b(0), length))
+                copy->removeTag<TtTimestampTag>(region.getOffset(), region.getLength());
+        }
         if (addTag) {
             const auto& tag = copy->addTag<TtTimestampTag>(b(0), length);
             tag->setIngressTime(addTag->getIngressTime());
@@ -422,8 +428,20 @@ void TtTimestampProcessor::selfTest()
     };
     auto bytes = [] (int n) {
         auto c = makeShared<ByteCountChunk>(B(n), 0x5a);
+        // a foreign tag that tagging and stripping must leave untouched
+        c->addTag<CreationTimeTag>()->setCreationTime(SimTime(1000 + n, SIMTIME_NS));
         c->markImmutable();
         return c;
+    };
+    auto foreignTags = [this] (const Packet& p) {
+        std::string s;
+        Layout l = parse(&p);
+        for (size_t k = l.firstPayload; k < l.endPayload; k++)
+            for (const auto& rt : l.leaves[k].chunk->getAllTags<CreationTimeTag>())
+                s += std::to_string((l.leaves[k].offset + rt.getOffset()).get()) + "+" + std::to_string(rt.getLength().get())
+                     + "=" + rt.getTag()->getCreationTime().str() + " ";
+        auto top = p.peekDataAt(l.payloadOffset, l.payloadLength)->getAllTags<CreationTimeTag>();
+        return s + "| top-level regions " + std::to_string(top.size());
     };
     auto padding = [] (int n) {
         auto c = makeShared<EthernetPadding>();
@@ -465,11 +483,27 @@ void TtTimestampProcessor::selfTest()
         bool ok;
         if (c.expectedError == nullptr)
             ok = layout.error.empty() && layout.payloadOffset == B(c.payloadOffset) && layout.payloadLength == B(c.payloadLength);
-        else
+        else {
+            // the structure check must name the problem, and processing must stop with an error
             ok = layout.error.find(c.expectedError) != std::string::npos;
+            bool threw = false;
+            bool savedFail = failOnUnsupported;
+            failOnUnsupported = true;
+            try {
+                processPacket(&packet);
+            }
+            catch (cRuntimeError& e) {
+                threw = std::string(e.what()).find("Unsupported packet structure") != std::string::npos;
+            }
+            failOnUnsupported = savedFail;
+            numFrames = 0;
+            ok = ok && threw;
+            detail = threw ? " / processing stops with an error" : " / processing did NOT stop";
+        }
         if (ok && c.expectedError == nullptr) {
             // round trip: tag, recover (full coverage, one value), strip (no tag at any level), bytes unchanged
             std::string hash = payloadHash(&packet, layout);
+            std::string foreign = foreignTags(packet);
             TtTimestampTag tag;
             tag.setIngressTime(SimTime(123456789, SIMTIME_PS));
             tag.setIngressTtId(7);
@@ -485,17 +519,18 @@ void TtTimestampProcessor::selfTest()
             int taggedLevels = 0;
             collectAllLevelTags(packet.peekAll(), taggedLevels);
             bool tagOk = covered == tagged.payloadLength && taggedLevels > 0;
-            bool tagSame = payloadHash(&packet, tagged) == hash && tagged.signature == layout.signature;
+            bool tagSame = payloadHash(&packet, tagged) == hash && tagged.signature == layout.signature && foreignTags(packet) == foreign;
             replacePayload(&packet, tagged, nullptr, true);
             int remaining = 0;
             collectAllLevelTags(packet.peekAll(), remaining);
             Layout stripped = parse(&packet);
             bool stripOk = remaining == 0 && collectLeafTags(stripped).empty();
-            bool stripSame = payloadHash(&packet, stripped) == hash && stripped.signature == layout.signature;
+            bool stripSame = payloadHash(&packet, stripped) == hash && stripped.signature == layout.signature && foreignTags(packet) == foreign;
             ok = tagOk && tagSame && stripOk && stripSame;
             detail = " / round trip: tag covers payload " + std::string(tagOk ? "yes" : "NO") + " (" + std::to_string(found.size())
                      + " leaf regions, " + std::to_string(taggedLevels) + " at all levels), frame unchanged " + (tagSame ? "yes" : "NO: " + tagged.signature + " hash " + hash + " -> " + payloadHash(&packet, tagged))
-                     + "; strip leaves no tag " + (stripOk ? "yes" : "NO (" + std::to_string(remaining) + ")") + ", frame unchanged " + (stripSame ? "yes" : "NO: " + stripped.signature + " hash " + hash + " -> " + payloadHash(&packet, stripped));
+                     + "; strip leaves no tag " + (stripOk ? "yes" : "NO (" + std::to_string(remaining) + ")") + ", frame unchanged " + (stripSame ? "yes" : "NO: " + stripped.signature + " hash " + hash + " -> " + payloadHash(&packet, stripped))
+                     + "; CreationTimeTags kept: " + (foreignTags(packet) == foreign ? "yes (" + foreign + ")" : "NO: " + foreign + " -> " + foreignTags(packet));
         }
         if (ok)
             passed++;
