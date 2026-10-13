@@ -1,0 +1,25 @@
+Regressions at 4dddf2c (M2-S3 adds checker code only: libnasctime_m2, omnetpp.ini and all M1 files are identical to 56c8fb3).
+
+IDENTICAL  2c2705f82c21ac8f  simulations/m2/results/M2-S1/check.txt  (OVERALL: PASS (28/28))
+IDENTICAL  ac8d881d27ab4fdd  simulations/m2/results/M2-S1/census.txt  ()
+M2-S1: m2s1.sh rerun; all 632 .pcapng and per-frame log hashes identical to raw-outputs.sha256 at 56c8fb3: YES
+IDENTICAL  514b4ebd4c24aa13  simulations/m2/results/M2-S0/check.txt
+IDENTICAL  070072e37f59a832  simulations/m2/results/M2-S0/census.txt
+M2-S0: m2s0.sh rerun; all 314 .pcapng and per-frame log hashes identical to raw-outputs.sha256 at 56c8fb3: YES
+
+M1: every runner that writes a checker output rerun; output compared byte for byte with the record at 56c8fb3 (= fbe41a9 for these files):
+IDENTICAL  b55a713aae5ae9a4  simulations/m1/results/S1/check.txt  (OVERALL: PASS)
+IDENTICAL  d40ad5f240687a40  simulations/m1/results/S2/check.txt  (OVERALL: PASS)
+IDENTICAL  d833b6a0be014453  simulations/m1/results/S2-phase/check.txt  (OVERALL: PASS)
+IDENTICAL  09794fa72828e243  simulations/m1/results/S3/check.txt  (OVERALL: PASS)
+IDENTICAL  b493bd3134ce52a2  simulations/m1/results/O-S3-1/check.txt  (OVERALL: PASS)
+IDENTICAL  fe191a656dfffdc5  simulations/m1/results/S4/transport-check.txt  (OVERALL: PASS)
+IDENTICAL  7c28150e4b229f19  simulations/m1/results/S4/clock-check.txt  (OVERALL: PASS)
+IDENTICAL  a30442b7a51dd4cd  simulations/m1/results/O-tail/check.txt  (OVERALL: PASS)
+IDENTICAL  8031717daaf40d11  simulations/m1/results/S5/check.txt  (OVERALL: PASS)
+IDENTICAL  440ff47c88f75c12  simulations/m1/results/upstream-issues/check.txt  (OVERALL (issues reproduced): YES)
+
+M1 records unchanged since fbe41a9: YES
+Simulation code unchanged vs 56c8fb3 (src/, simulations/m1/*.ini|*.ned|*.sh|*.py, simulations/m2/omnetpp.ini): YES
+
+Reruns rewrote env.txt and raw-outputs.sha256 (incl. .sca/.vec hashes, not byte-reproducible) of the rerun stages; those committed records were restored with git checkout after the comparison.

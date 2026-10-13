@@ -1,0 +1,15 @@
+M2S1#0	C1 equal	{'pdelay': 5, 'nRR': 4, 'gm': 38, 'comp': 39, 'steps': 39, 'clock samples': 5081, 'step samples': 78}	ignored []	sync overwritten 0
+M2S1#1	C1 equal	{'pdelay': 5, 'nRR': 4, 'gm': 38, 'comp': 39, 'steps': 39, 'clock samples': 5081, 'step samples': 78}	ignored []	sync overwritten 0
+M2S1#2	C1 equal	{'pdelay': 5, 'nRR': 4, 'gm': 38, 'comp': 39, 'steps': 39, 'clock samples': 5081, 'step samples': 78}	ignored []	sync overwritten 0
+M2S1#3	C1 equal	{'pdelay': 5, 'nRR': 4, 'gm': 38, 'comp': 39, 'steps': 39, 'clock samples': 5081, 'step samples': 78}	ignored []	sync overwritten 0
+M2S1#4	C1 equal	{'pdelay': 5, 'nRR': 4, 'gm': 38, 'comp': 39, 'steps': 39, 'clock samples': 5081, 'step samples': 78}	ignored []	sync overwritten 0
+M2S1#5	C1 equal	{'pdelay': 5, 'nRR': 4, 'gm': 38, 'comp': 39, 'steps': 39, 'clock samples': 5081, 'step samples': 78}	ignored []	sync overwritten 0
+M2S1#6	C1 equal	{'pdelay': 5, 'nRR': 4, 'gm': 38, 'comp': 39, 'steps': 39, 'clock samples': 5081, 'step samples': 78}	ignored []	sync overwritten 0
+M2S1#7	C1 equal	{'pdelay': 5, 'nRR': 4, 'gm': 38, 'comp': 39, 'steps': 39, 'clock samples': 5081, 'step samples': 78}	ignored []	sync overwritten 0
+M2S1#8	C1 equal	{'pdelay': 5, 'nRR': 4, 'gm': 38, 'comp': 39, 'steps': 39, 'clock samples': 5081, 'step samples': 78}	ignored []	sync overwritten 0
+M2S1#9	C1 equal	{'pdelay': 5, 'nRR': 4, 'gm': 38, 'comp': 39, 'steps': 39, 'clock samples': 5081, 'step samples': 78}	ignored []	sync overwritten 0
+M2S1-frag#0	C1 equal	{'pdelay': 5, 'nRR': 4, 'gm': 38, 'comp': 39, 'steps': 39, 'clock samples': 5081, 'step samples': 78}	ignored []	sync overwritten 0
+M2S1-load#0	C1 equal	{'pdelay': 5, 'nRR': 4, 'gm': 32, 'comp': 33, 'steps': 33, 'clock samples': 5069, 'step samples': 66}	ignored []	sync overwritten 0
+M2S1-load-harq16#0	C1 equal	{'pdelay': 5, 'nRR': 4, 'gm': 37, 'comp': 38, 'steps': 38, 'clock samples': 5079, 'step samples': 76}	ignored []	sync overwritten 0
+M2S1-off#0	C1 equal	{'pdelay': 5, 'nRR': 4, 'gm': 38, 'comp': 39, 'steps': 39, 'clock samples': 5081, 'step samples': 78}	ignored []	sync overwritten 0
+M2S1-load-off#0	C1 equal	{'pdelay': 5, 'nRR': 4, 'gm': 32, 'comp': 33, 'steps': 33, 'clock samples': 5069, 'step samples': 66}	ignored []	sync overwritten 0
