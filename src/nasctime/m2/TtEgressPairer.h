@@ -56,7 +56,10 @@ class TtEgressPairer
 
     std::deque<TtPortRecord> fifo;
 
-    void push(const TtPortRecord& record) { fifo.push_back(record); }
+    // Adds a frame that entered the MAC FIFO; returns "" or an error description. A tree id
+    // that is already pending is rejected (copies of one packet entering the same port
+    // could not be told apart by their transmission events).
+    std::string push(const TtPortRecord& record);
 
     // Sets the event time on the matching record; returns "" or an error description.
     // On success, index is the record's position in the FIFO (0 for TX_END).

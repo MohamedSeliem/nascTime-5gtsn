@@ -275,7 +275,9 @@ void TtTimestampProcessor::portEnqueue(Packet *packet, const Layout& layout, con
     r.vid = layout.vid;
     r.payloadLength = B(layout.payloadLength).get();
     r.note = note;
-    pairer.push(r);
+    std::string error = pairer.push(r);
+    if (!error.empty())
+        throw cRuntimeError("observePort pairing: %s", error.c_str());
 }
 
 // mode "observer": record the frame's port events, change nothing
@@ -802,9 +804,10 @@ int TtTimestampProcessor::selfTestPairer()
     struct Case { const char *name; std::vector<Step> steps; const char *expectedError; };
     std::vector<Case> cases = {
         {"idle port: one frame", {{'P', 1, 1}, {'D', 1, 1}, {'S', 1, 1}, {'E', 1, 2}}, nullptr},
-        {"two frames queued, FIFO", {{'P', 1, 1}, {'P', 2, 1}, {'D', 1, 1}, {'S', 1, 1}, {'E', 1, 2}, {'D', 2, 2}, {'S', 2, 3}, {'E', 2, 4}}, nullptr},
+        {"two frames queued in FIFO order", {{'P', 1, 1}, {'P', 2, 1}, {'D', 1, 1}, {'S', 1, 1}, {'E', 1, 2}, {'D', 2, 2}, {'S', 2, 3}, {'E', 2, 4}}, nullptr},
         {"event for an unknown frame", {{'P', 1, 1}, {'D', 9, 1}}, "orphan"},
-        {"two pending frames share a tree id", {{'P', 5, 1}, {'P', 5, 1}, {'D', 5, 1}}, "ambiguous"},
+        {"a second frame with a pending tree id enters the queue", {{'P', 5, 1}, {'P', 5, 1}}, "ambiguous enqueue"},
+        {"two pending records share a tree id (bypassing the enqueue check)", {{'P', 5, 1}, {'p', 5, 1}, {'D', 5, 1}}, "ambiguous MAC dequeue"},
         {"second frame dequeued first", {{'P', 1, 1}, {'P', 2, 1}, {'D', 2, 1}}, "out-of-order"},
         {"same event twice", {{'P', 1, 1}, {'D', 1, 1}, {'D', 1, 1}}, "duplicate"},
         {"start before dequeue", {{'P', 1, 1}, {'S', 1, 1}}, "no MAC dequeue"},
@@ -816,11 +819,16 @@ int TtTimestampProcessor::selfTestPairer()
         TtEgressPairer p;
         std::string error;
         for (const auto& s : c.steps) {
-            if (s.op == 'P') {
+            if (s.op == 'P' || s.op == 'p') {   // 'p': raw insertion, bypassing the enqueue check
                 TtPortRecord r;
                 r.treeId = s.tree;
                 r.tSlot = s.t;
-                p.push(r);
+                if (s.op == 'p')
+                    p.fifo.push_back(r);
+                else
+                    error = p.push(r);
+                if (!error.empty())
+                    break;
                 continue;
             }
             size_t index;
@@ -834,9 +842,9 @@ int TtTimestampProcessor::selfTestPairer()
         bool ok = c.expectedError == nullptr ? error.empty() && p.fifo.empty() : error.find(c.expectedError) != std::string::npos;
         if (ok)
             passed++;
-        if (log.is_open())
-            log << "selftest,0," << ttId << ',' << (role == INGRESS ? "ingress" : "egress") << ",,,,0,,,,,,pairer,"
-                << (ok ? "PASS " : "FAIL ") << c.name << " / " << (error.empty() ? "accepted" : error) << '\n';
+        if (portLog.is_open())
+            portLog << "selftest,0," << ttId << ',' << (role == INGRESS ? "ingress" : "egress") << ",,,,,,,,,,,,,,,,,,,,"
+                    << (ok ? "PASS " : "FAIL ") << c.name << " / " << (error.empty() ? "accepted" : error) << '\n';
     }
     recordScalar("selfTestPairerCases", cases.size());
     recordScalar("selfTestPairerPassed", passed);

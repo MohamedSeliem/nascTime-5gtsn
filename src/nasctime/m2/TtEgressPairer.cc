@@ -28,6 +28,15 @@ simtime_t& TtEgressPairer::field(TtPortRecord& r, Event e)
     }
 }
 
+std::string TtEgressPairer::push(const TtPortRecord& record)
+{
+    for (const auto& r : fifo)
+        if (r.treeId == record.treeId)
+            return "ambiguous enqueue of tree id " + std::to_string(record.treeId) + ": a pending record already has this tree id";
+    fifo.push_back(record);
+    return "";
+}
+
 std::string TtEgressPairer::match(Event event, long treeId, simtime_t t, size_t& index)
 {
     std::string what = std::string(eventName(event)) + " of tree id " + std::to_string(treeId);
