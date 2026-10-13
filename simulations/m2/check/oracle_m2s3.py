@@ -846,7 +846,7 @@ def main():
                 fh.write(f"{where}\t{sig}\t{n}\n")
     with open(os.path.join(OUT, "vec.sha256"), "w") as fh:
         for n, h, same in vec_info:
-            fh.write(f"{h}  {n}  {'= committed M2-S1 hash' if same else '!= committed M2-S1 hash'}\n")
+            fh.write(f"{h}  {n}  {'equal to' if same else 'differs from'} the hash in the given raw-outputs.sha256\n")
     cols = ["run", "seq", "gm_start", "pot_wire", "t1", "t12", "t9", "t5", "t8", "Xin", "Xout", "Lup", "Ldn", "Res", "B",
             "D", "sl_start", "fu_t9", "d3a", "d3b", "d3c", "NC-a", "NC-b", "NC-c", "NC-d", "NC-d2", "NC-e", "NC-f"]
     with open(os.path.join(OUT, "syncs.csv"), "w", newline="") as fh:
