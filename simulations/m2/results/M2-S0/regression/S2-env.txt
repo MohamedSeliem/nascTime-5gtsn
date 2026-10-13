@@ -1,0 +1,6 @@
+date_utc: 2026-10-13T12:01:34Z
+omnetpp: Version: 6.4.0, build: 260506-2cf25223fe, edition: Academic Public License -- NOT FOR COMMERCIAL USE
+inet_version_file: inet-4.7.0-dfe270b21f
+simu5g_version_file: 1.8.0
+nascTime_commit: d18929b5d159adc565b26dd6a283561188adc445
+os: Linux 6.18.44-fc-v114 x86_64

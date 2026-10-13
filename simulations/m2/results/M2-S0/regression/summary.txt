@@ -1,0 +1,16 @@
+M1 regressions at d18929b (the M2-S0 commit). Every M1 runner that writes a checker output was rerun:
+s1_owned_scenario, s2_passthrough_tts, s2_phase_offset, s3_qfi_drb, o_s3_1_investigation, s4_gptp_transport,
+o_tail_investigation, s5_metadata, upstream-issues/run_issues. (S0 runs Simu5G's own reference only; not rerun.)
+Each rewritten checker output (copied here as <stage>-*.txt, env as <stage>-env.txt) is compared byte for byte
+with the record committed at fbe41a9.
+
+IDENTICAL  b55a713aae5ae9a4  simulations/m1/results/S1/check.txt  (overall: OVERALL: PASS)
+IDENTICAL  d40ad5f240687a40  simulations/m1/results/S2/check.txt  (overall: OVERALL: PASS)
+IDENTICAL  d833b6a0be014453  simulations/m1/results/S2-phase/check.txt  (overall: OVERALL: PASS)
+IDENTICAL  09794fa72828e243  simulations/m1/results/S3/check.txt  (overall: OVERALL: PASS)
+IDENTICAL  b493bd3134ce52a2  simulations/m1/results/O-S3-1/check.txt  (overall: OVERALL: PASS)
+IDENTICAL  fe191a656dfffdc5  simulations/m1/results/S4/transport-check.txt  (overall: OVERALL: PASS)
+IDENTICAL  7c28150e4b229f19  simulations/m1/results/S4/clock-check.txt  (overall: OVERALL: PASS)
+IDENTICAL  a30442b7a51dd4cd  simulations/m1/results/O-tail/check.txt  (overall: OVERALL: PASS)
+IDENTICAL  8031717daaf40d11  simulations/m1/results/S5/check.txt  (overall: OVERALL: PASS)
+IDENTICAL  440ff47c88f75c12  simulations/m1/results/upstream-issues/check.txt  (overall: OVERALL (issues reproduced): YES)
