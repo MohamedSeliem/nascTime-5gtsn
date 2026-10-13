@@ -26,7 +26,7 @@ rm -f "$OUT/probe-build.log"
   echo "libINET_sha256: $(sha256sum "$INET_ROOT/src/libINET.so" | cut -d' ' -f1)"
   echo "python: $(python3 --version 2>&1)"
   echo "nascTime_commit: $(git -C "$NASCTIME" rev-parse HEAD 2>/dev/null || echo n/a)$( [ -z "$(git -C "$NASCTIME" status --porcelain -- simulations/m2 src/nasctime ':!simulations/m2/results' 2>/dev/null)" ] || echo ' (+ uncommitted/untracked changes in simulations/m2 or src/nasctime)')"
-  echo "m2s1_runs: $(grep -m1 '^attr datetime ' "$RUNS/M2S1/M2S1/0.vec" | cut -d' ' -f2-) (M2S1 seed 0 run start)"
+  echo "m2s1_runs: $(grep -m1 '^attr datetime ' "$RUNS/M2S1/M2S1/0.vec" | cut -d' ' -f3) (M2S1 seed 0 run start, host local time)"
   echo "os: $(uname -srm)"
 } > "$OUT/env.txt"
 python3 "$HERE/check/oracle_m2s3.py" "$RUNS" "$HERE/results/M2-S1/raw-outputs.sha256" \
