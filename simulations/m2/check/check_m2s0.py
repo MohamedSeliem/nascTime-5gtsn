@@ -8,13 +8,15 @@ PCAP by payload identity (EtherType, PCP, VID, FNV-1a 64 of the payload bytes, w
 the checker recomputes from the captured bytes). All times are integer picoseconds.
 
 Ingress event (the timestamp definition under test): the translator's TSN-side port
-(eth[1]) RX path, measurement-layer slot, in the same simulation event in which that
-port's MAC layer records the frame as received from the PHY (signal
-packetReceivedFromLower = the PCAP inbound record), i.e. at the end of reception of the
-frame's last bit. Expected relations, both exact (no tolerance):
+(eth[1]) RX path, measurement-layer slot, in the same call in which that port's PHY
+receiver emits receptionEnded (the PCAP inbound record: INET PcapRecorder default
+receivingSignalNames) and pushes the frame up through PHY and MAC, i.e. at the end of
+reception of the frame's last bit. (Corrected 2026-10-13: earlier text named the MAC
+signal packetReceivedFromLower; values and verdicts are unaffected.) Expected relations, both exact (no tolerance):
   ingressTime == PCAP inbound time at TT eth[1]
   PCAP inbound time at TT eth[1] == PCAP outbound time at the sending station + 50 ns
-  (cable 10 m at 2e8 m/s; INET records an outbound frame at the end of its transmission)
+  (cable 10 m at 2e8 m/s; PCAP records an outbound frame at transmissionEnded, the end of
+  its transmission)
 Recovery event: the opposite translator's eth[1] TX path, measurement-layer slot (above
 the MAC queue), expected in the same event as the frame's reception on that
 translator's 5G-side port eth[0] (PCAP inbound there).
