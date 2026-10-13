@@ -1,0 +1,2 @@
+Config S3, seed 0, rerun at a98caaa vs results/S3/seeds.csv (recorded at 76fbe4a), values and timestamps (NaN = NaN):
+vectors 1868 of 1868 identical; scalars 1875 of 1875 identical
