@@ -1,0 +1,15 @@
+Regressions at 6726768 (libnasctime_m2 identical to the final M2-S1 commit; later commits change only the M2-S1 checker and docs).
+
+M2-S0: m2s0.sh rerun. check.txt and census.txt byte-identical to the records at ad47a8a: YES; all 314 .pcapng and per-frame log hashes identical to raw-outputs.sha256 at ad47a8a: YES
+
+M1: every runner that writes a checker output rerun; output compared byte for byte with the record committed at fbe41a9:
+IDENTICAL  b55a713aae5ae9a4  simulations/m1/results/S1/check.txt  (OVERALL: PASS)
+IDENTICAL  d40ad5f240687a40  simulations/m1/results/S2/check.txt  (OVERALL: PASS)
+IDENTICAL  d833b6a0be014453  simulations/m1/results/S2-phase/check.txt  (OVERALL: PASS)
+IDENTICAL  09794fa72828e243  simulations/m1/results/S3/check.txt  (OVERALL: PASS)
+IDENTICAL  b493bd3134ce52a2  simulations/m1/results/O-S3-1/check.txt  (OVERALL: PASS)
+IDENTICAL  fe191a656dfffdc5  simulations/m1/results/S4/transport-check.txt  (OVERALL: PASS)
+IDENTICAL  7c28150e4b229f19  simulations/m1/results/S4/clock-check.txt  (OVERALL: PASS)
+IDENTICAL  a30442b7a51dd4cd  simulations/m1/results/O-tail/check.txt  (OVERALL: PASS)
+IDENTICAL  8031717daaf40d11  simulations/m1/results/S5/check.txt  (OVERALL: PASS)
+IDENTICAL  440ff47c88f75c12  simulations/m1/results/upstream-issues/check.txt  (OVERALL (issues reproduced): YES)
