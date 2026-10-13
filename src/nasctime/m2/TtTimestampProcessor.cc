@@ -808,7 +808,7 @@ int TtTimestampProcessor::selfTestPairer()
         {"second frame dequeued first", {{'P', 1, 1}, {'P', 2, 1}, {'D', 2, 1}}, "out-of-order"},
         {"same event twice", {{'P', 1, 1}, {'D', 1, 1}, {'D', 1, 1}}, "duplicate"},
         {"start before dequeue", {{'P', 1, 1}, {'S', 1, 1}}, "no MAC dequeue"},
-        {"end of a frame that is not the head", {{'P', 1, 1}, {'P', 2, 1}, {'D', 1, 1}, {'S', 1, 1}, {'D', 2, 1}, {'S', 2, 1}, {'E', 2, 2}}, "not at the head"},
+        {"end of the second frame before the first", {{'P', 1, 1}, {'P', 2, 1}, {'D', 1, 1}, {'S', 1, 1}, {'D', 2, 1}, {'S', 2, 1}, {'E', 2, 2}}, "out-of-order"},
         {"event before the frame entered the queue", {{'P', 1, 2}, {'D', 1, 1}}, "time order"},
     };
     int passed = 0;
