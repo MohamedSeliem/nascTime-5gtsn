@@ -595,7 +595,7 @@ for d in DIRS:
         "C5": f"{len(iv)} frames, R {min(x[11] for x in iv) / MS:.6f}-{max(x[11] for x in iv) / MS:.6f} ms" if iv else "",
         "C6": f"{len(iv)} frames; P_in {rng(0)}, Q_in {rng(1)}, G_in {rng(2)}, X_in {rng(3)}; cables {rng(4)} / {rng(6)}; "
               f"S {min(x[5] for x in iv) / MS:.6f}-{max(x[5] for x in iv) / MS:.6f} ms; P_out {rng(7)}, Q_out {rng(8)}, "
-              f"G_out {rng(9)}, X_out {rng(10)}; t12 - t9 {rng(12)}; frames with queueing or IFG hold at a translator: "
+              f"G_out {rng(9)}, X_out {rng(10)}; t12 - t9 {rng(12)}; frames that waited in a translator MAC FIFO (incl. inter-frame gap): "
               f"{t['queued']}; idle-port frames giving an independent PCAP value of P: {t['idle_in']} (TT_in), "
               f"{t['idle_out']} (TT_out)" if iv else "",
     }
@@ -612,9 +612,9 @@ need = {"DL": {"pcp0", "pcp5", "gptp-Sync", "gptp-FollowUp", "gptp-PdelayResp", 
 ok8 &= all(need[d] <= set(cls[d]) for d in DIRS)
 qn = sum(tot[d]["queued"] for d in DIRS)
 add("C8 coverage (M2S1, seeds 0-9): C2-C7 hold per frame for every frame class (both DRBs, every gPTP message type), "
-    "every RLC SDU cut and reassembled, and every frame that queued or waited for the inter-frame gap at a translator",
+    "every RLC SDU cut and reassembled, and every frame that waited in a translator MAC FIFO (queueing or inter-frame gap)",
     " | ".join(det8) + f" (frames passing / with final egress) | RLC-cut SDUs with final egress: {cut_n}, passing: "
-    f"{cut_ok} | frames with queueing or IFG hold at a translator: {qn} (all included above)",
+    f"{cut_ok} | frames that waited in a translator MAC FIFO (incl. inter-frame gap): {qn} (all included above)",
     ok8 and cut_n > 0 and cut_ok == cut_n and qn > 0)
 
 
@@ -652,7 +652,7 @@ for cfg in ("M2S1-load", "M2S1-load-harq16"):
     mac[cfg] = sum(r["loss"][LOST_MAC] for r in rl.values())
     for d, r in rl.items():
         ok10 &= all(verdict(r)[c] for c in ROWS[:6])
-        det10.append(f"{cfg} {d}: {r['n_in']} in, {r['n_out']} with final egress, queued/IFG at a translator "
+        det10.append(f"{cfg} {d}: {r['n_in']} in, {r['n_out']} with final egress, waited in a translator MAC FIFO "
                      f"{r['queued']}, not completed {dict(r['loss'])}, failing {[c for c in ROWS[:6] if not verdict(r)[c]] or 'none'}")
 add("C10 load (saturating PCP 0 background both directions): C1-C6 hold for every frame with a final egress; with 5 HARQ "
     "processes frames are lost after the TX RLC (M1 L1), with 16 none",
@@ -692,8 +692,8 @@ def stat_equal(a, b):
 det12, ok12 = [], True
 for a, b in (("M2S1", "M2S1-off"), ("M2S1-load", "M2S1-load-off")):
     nva, nvb, vs, nsa, nsb, ss = stat_equal(a, b)
-    clockv = sum(1 for (m_, n_) in [k for k in stats(a)[stats(a).type == "vector"][["mod", "name"]].itertuples(index=False)]
-                 if m_.startswith("talker.clock") or ".gptp" in m_)
+    sa0 = stats(a)[(stats(a).type == "vector") & (stats(a).rep == 0)]
+    clockv = sum(1 for m_ in sa0["mod"] if m_.startswith("talker.clock") or ".gptp" in m_)
     ok12 &= nva == nvb == vs and nsa == nsb == ss and nva > 0
     det12.append(f"{a} vs {b}: vectors {vs}/{nva} identical ({nvb} in control; {clockv} gPTP/clock vectors among them), "
                  f"scalars {ss}/{nsa} identical ({nsb} in control)")
