@@ -79,6 +79,23 @@ simple TtPdelayEngine
         bool terminate;
         bool requester;
         bool responder;
+        string clockIdentity = default("");        // e.g. "0x0000000000000001"; required with terminate (explicit, design decision 5)
+        int portNumber = default(1);
+        int domainNumber = default(0);
+        double pdelayInterval @unit(s) = default(1s);
+        double pdelayInitialOffset @unit(s) = default(0s);
+        int initialSequenceId = default(0);
+        int allowedLostResponses = default(3);    // [802.1AS default unverified]
+        double neighborPropDelayThresh @unit(s) = default(800ns); // [802.1AS default unverified]; record-only flag
+        string fcsMode @enum("computed") = default("computed");
+        string logFile = default("");             // per-port CSV (".pdelay.csv" appended); times in integer ps
+        bool selfTest = default(false);
+        // TEST ONLY (negative controls, migration/m2-s4-design.md section 9); "" = correct behaviour
+        string pairingTest = default("");         // "previousRequest" (requester) | "previousSeq" (responder)
+        string timestampTest = default("");       // "t4End" | "t1t4End" (requester) | "t3End" (responder)
+        string unitTest = default("");            // "nsAsPs" (requester)
+        string formulaTest = default("");         // "noHalf" | "noTurnaround" (requester)
+        string faultPolicyTest = default("");     // "noTimeout" | "acceptLast" | "republishLate" (requester)
         @class(nasctime::TtPdelayEngine);
         @display("i=block/cogwheel");
 }
