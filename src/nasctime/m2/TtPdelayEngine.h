@@ -12,6 +12,7 @@
 #include <fstream>
 #include <map>
 
+#include "inet/clock/common/ClockTimeScale.h"
 #include "inet/common/packet/Packet.h"
 #include "inet/linklayer/common/MacAddress.h"
 #include "inet/linklayer/ieee8021as/GptpPacket_m.h"
@@ -105,6 +106,8 @@ class TtPdelayEngine : public cSimpleModule, public cListener
     bool haveResponder = false;
     bool havePrevExchange = false;
     simtime_t prevT3, prevT4;             // last completed exchange (neighborRateRatio)
+    ClockTimeScale lastNrr;               // rate ratio used for the last publication
+    int64_t lastNrrNum = 1, lastNrrDen = 1;
     int consecutiveLost = 0;
     bool measuring = false;
     cOutVector meanLinkDelayVector, nrrVector, measuringVector;

@@ -36,7 +36,7 @@ void PdelayFaultInjector::initialize(int stage)
     PacketFlowBase::initialize(stage);
     if (stage == INITSTAGE_LOCAL) {
         action = par("action").stdstringValue();
-        static const std::set<std::string> known = {"", "drop", "dup", "dupAfter", "holdUntilAfter", "delay", "rewrite", "truncate", "badFcs"};
+        static const std::set<std::string> known = {"", "drop", "dup", "dupAfter", "holdUntilAfter", "delay", "rewrite", "truncate", "badFcs", "fuBefore"};
         if (!known.count(action))
             throw cRuntimeError("Unknown action '%s'", action.c_str());
         std::istringstream ts(par("messageTypes").stdstringValue());
@@ -196,6 +196,27 @@ void PdelayFaultInjector::pushPacket(Packet *packet, const cGate *gate)
         Packet *out = rewritten(packet);
         delete packet;
         forward(out);
+    }
+    else if (action == "fuBefore") {
+        // a Pdelay_Resp_Follow_Up for the same sequenceId and requester, sent ahead of the
+        // Pdelay_Resp (as a medium that reorders would deliver it); responseOriginTimestamp 0
+        if (type != 3)
+            throw cRuntimeError("fuBefore applies to Pdelay_Resp only");
+        auto resp = packet->peekDataAt<GptpPdelayResp>(off, B(54));
+        auto fu = makeShared<GptpPdelayRespFollowUp>();
+        fu->setDomainNumber(resp->getDomainNumber());
+        fu->setSourcePortIdentity(resp->getSourcePortIdentity());
+        fu->setRequestingPortIdentity(resp->getRequestingPortIdentity());
+        fu->setSequenceId(resp->getSequenceId());
+        fu->setResponseOriginTimestamp(CLOCKTIME_ZERO);
+        auto out = new Packet("injectedRespFollowUp");
+        out->copyTags(*packet);
+        out->insertAtBack(packet->peekDataAt<EthernetMacHeader>(b(0)));
+        out->insertAtBack(fu);
+        out->insertAtBack(makeShared<EthernetFcs>());
+        recomputeFcs(out);
+        forward(out);
+        forward(packet);
     }
     else if (action == "badFcs") {
         auto fcs = packet->popAtBack<EthernetFcs>(B(4));

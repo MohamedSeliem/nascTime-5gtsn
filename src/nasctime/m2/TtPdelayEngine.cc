@@ -508,6 +508,7 @@ void TtPdelayEngine::processResponse(const GptpPdelayResp *resp, simtime_t tRxSt
             break;
         case DONE:
             if (faultPolicyTest == "republishLate") {  // TEST ONLY: wrong policy
+                writeLog("rx", 3, s, &src, &rp, tRxStart, tRxEnd, "late duplicate (TEST republishLate)");
                 t2 = toSim(resp->getRequestReceiptTimestamp());
                 t4 = tRxStart;
                 t4End = tRxEnd;
@@ -594,7 +595,12 @@ void TtPdelayEngine::publish(bool republish, const char *note)
     }
     ClockTimeScale nrr;
     int64_t num = 1, den = 1;
-    if (havePrevExchange) {
+    if (republish) {                             // TEST ONLY republishLate: the rate ratio of the original publication
+        nrr = lastNrr;
+        num = lastNrrNum;
+        den = lastNrrDen;
+    }
+    else if (havePrevExchange) {
         num = (t3 - prevT3).raw();
         den = (t4 - prevT4).raw();
         nrr = ClockTimeScale::fromRatio(toClock(t3 - prevT3), toClock(t4 - prevT4));
@@ -615,6 +621,9 @@ void TtPdelayEngine::publish(bool republish, const char *note)
         d = (rt - turnaround) / 2;
     simtime_t D = toSim(d);
     if (!republish) {
+        lastNrr = nrr;
+        lastNrrNum = num;
+        lastNrrDen = den;
         havePrevExchange = true;
         prevT3 = t3;
         prevT4 = t4;

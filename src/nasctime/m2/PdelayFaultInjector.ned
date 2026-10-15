@@ -47,6 +47,8 @@ module PdelayFaultInjectorLayer like IMeasurementLayer, ITrafficConditionerLayer
 //   rewrite         set 'field' to 'value' (FCS recomputed)
 //   truncate        replace the gPTP message by its first truncateTo bytes (raw), pad, FCS recomputed
 //   badFcs          invert the FCS (the receiver's FCS checker drops the frame)
+//   fuBefore        (Pdelay_Resp only) send a Pdelay_Resp_Follow_Up with the same sequenceId and
+//                   requester (responseOriginTimestamp 0) ahead of the Resp: a reordering medium
 //
 simple PdelayFaultInjector extends PacketFlowBase
 {
