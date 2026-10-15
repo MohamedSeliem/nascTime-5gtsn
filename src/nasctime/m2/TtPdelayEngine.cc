@@ -74,8 +74,19 @@ void TtPdelayEngine::initialize()
     unitTest = par("unitTest").stdstringValue();
     formulaTest = par("formulaTest").stdstringValue();
     faultPolicyTest = par("faultPolicyTest").stdstringValue();
-    if (!pairingTest.empty() || !timestampTest.empty() || !unitTest.empty() || !formulaTest.empty() || !faultPolicyTest.empty())
-        throw cRuntimeError("TEST ONLY knobs are not implemented in this version");
+    // TEST ONLY knobs: only the documented values (negative controls, design section 9)
+    auto allowed = [](const std::string& v, std::initializer_list<const char *> ok) {
+        if (v.empty())
+            return true;
+        for (auto o : ok)
+            if (v == o)
+                return true;
+        return false;
+    };
+    if (!allowed(pairingTest, {"previousRequest", "previousSeq"}) || !allowed(timestampTest, {"t4End", "t1t4End", "t3End"})
+        || !allowed(unitTest, {"nsAsPs"}) || !allowed(formulaTest, {"noHalf", "noTurnaround"})
+        || !allowed(faultPolicyTest, {"noTimeout", "acceptLast", "republishLate"}))
+        throw cRuntimeError("Unknown TEST ONLY knob value");
     if (std::string(par("fcsMode").stringValue()) != "computed")
         throw cRuntimeError("Only fcsMode = \"computed\" is supported");
     if (!terminate)
@@ -257,7 +268,7 @@ void TtPdelayEngine::receiveSignal(cComponent *source, simsignal_t signalID, cOb
         else if (r.messageType == 3) {
             // Pdelay_Resp fully sent: send the Pdelay_Resp_Follow_Up with its first-bit time
             // (as INET Gptp.cc:661-670)
-            simtime_t t3own = r.tTxStart;
+            simtime_t t3own = timestampTest == "t3End" ? r.tTxEnd : r.tTxStart;   // TEST ONLY t3End
             writeLog("tx", 3, r.seq, nullptr, &r.requesting, r.tTxStart, r.tTxEnd, "");
             auto fu = makeShared<GptpPdelayRespFollowUp>();
             fu->setDomainNumber(domainNumber);
@@ -373,18 +384,34 @@ void TtPdelayEngine::processRequest(const GptpPdelayReq *req, simtime_t tRxStart
         return;
     }
     writeLog("rx", 2, req->getSequenceId(), &src, nullptr, tRxStart, tRxEnd, "");
+    uint16_t answerSeq = req->getSequenceId();
+    PortIdentity answerTo = src;
+    if (pairingTest == "previousSeq") {          // TEST ONLY: answer with the previous request's identity
+        bool have = havePrevReq;
+        uint16_t ps = prevReqSeq;
+        PortIdentity pp = prevReqSource;
+        havePrevReq = true;
+        prevReqSeq = req->getSequenceId();
+        prevReqSource = src;
+        if (!have) {
+            writeLog("noPrevious", 2, req->getSequenceId(), &src, nullptr, tRxStart, tRxEnd, "TEST previousSeq: not answered");
+            return;
+        }
+        answerSeq = ps;
+        answerTo = pp;
+    }
     auto resp = makeShared<GptpPdelayResp>();
     resp->setDomainNumber(domainNumber);
     PortIdentity own;
     own.clockIdentity = clockIdentity;
     own.portNumber = portNumber;
     resp->setSourcePortIdentity(own);
-    resp->setRequestingPortIdentity(src);
-    resp->setSequenceId(req->getSequenceId());
+    resp->setRequestingPortIdentity(answerTo);
+    resp->setSequenceId(answerSeq);
     resp->setRequestReceiptTimestamp(toClock(tRxStart));     // t2 = first bit of the request
     numReqAnswered++;
     numRespSent++;
-    send(buildFrame("TtPdelayResp", resp), 3, req->getSequenceId(), src);
+    send(buildFrame("TtPdelayResp", resp), 3, answerSeq, answerTo);
 }
 
 // ---------------------------------------------------------------------------------------
