@@ -44,7 +44,7 @@ export -f run
 export HERE NASCTIME SIMU5G_ROOT OUT
 {
   printf '%s\n' "M2S4-load 0" "M2S4-load-harq16 0" "M2S4-passive-load 0" "M2S4-passive-load-harq16 0" \
-    "M2S4 0..9" "M2S4-passive 0..9" "M2S4-frag 0" "M2S4-passive-frag 0"
+    "M2S4 0..9" "M2S4-passive 0..9" "M2S4-frag 0" "M2S4-passive-frag 0" "M2S4-ctl-nopdelay 0..9" "M2S4-ctl-nopdelay-load 0"
   for c in fault-dropResp fault-dupResp fault-dupRespLate fault-dupFU fault-malformed \
            nc-pairing nc-t4end nc-t3end nc-t1t4end nc-units nc-nohalf nc-noturn nc-noTimeout nc-acceptLast nc-republishLate; do
     echo "M2S4-$c 0"; done

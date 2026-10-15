@@ -744,10 +744,12 @@ def main():
                 only4 = [k for k in a4 if k not in set(a1)]
                 only1 = [k for k in a1 if k not in set(a4)]
                 inflight = all(tx1.get(k, 0) >= END - lat1[fl] for k in only4) and all(tx4.get(k, 0) >= END - lat4[fl] for k in only1)
-                if c4 != c1 or not inflight:
+                # under saturating load the 5GS drops frames (M2-S3 A3) and the drop pattern may change:
+                # there only the order is required, frames delivered in one run only are reported
+                if c4 != c1 or (not inflight and "load" not in cfg):
                     probs.append(f"{cfg}#{rep} {name} flow {fl}: order equal {c4 == c1}, only-M2S4 {len(only4)}, "
                                  f"only-M2S1 {len(only1)}, all in flight at the end {inflight}")
-                tail[name] += len(only4) + len(only1)
+                tail[f"{name}{' load' if 'load' in cfg else ''}"] += len(only4) + len(only1)
         for dirn, src4, dst4, src1, dst1 in (("DL", R.gm, R.sl, gm1, sl1), ("UL", R.sl, R.gm, sl1, gm1)):
             def lat(src, dst):
                 tx = {f["key"][3]: f["end"] for f in src if f["dir"] == 2 and f["f"]["etherType"] != 0x88F7}
@@ -767,13 +769,39 @@ def main():
     ch_dl = sum(1 for x in dl if x)
     ch_ul = sum(1 for x in ul if x)
     add("R2", "application traffic and QoS mappings unchanged vs M2S1 (same seed/variant): the application frames "
-        "(payload hashes) delivered in both runs arrive in the same order per flow at both stations, and any frame "
-        "delivered in only one run was still in flight at the end of the other; same PCP -> QFI mapping on N3 per direction (gPTP "
+        "(payload hashes) delivered in both runs arrive in the same order per flow at both stations, and (except under "
+        "saturating load, where the 5GS drops frames) any frame delivered in only one run was still in flight at the "
+        "end of the other; same PCP -> QFI mapping on N3 per direction (gPTP "
         "keeps its QFI). End-to-end latencies are reported, not required equal (removing Pdelay from the 5GS can "
         "change RLC/MAC timing)", not probs,
         f"{nflow} flow sequences compared; frames delivered in only one run (in flight at the end of the other): {dict(tail)}; latency change per application frame (M2S4 - M2S1): DL {len(dl)} frames, "
         f"{ch_dl} changed{f' ({fmt(min(dl))} .. {fmt(max(dl))})' if ch_dl else ''}; UL {len(ul)} frames, {ch_ul} changed"
         f"{f' ({fmt(min(ul))} .. {fmt(max(ul))})' if ch_ul else ''}; problems: {probs[:3] or 'none'}")
+
+    # ---- R2b: attribution of the latency changes (control without any Pdelay, no TtPdelayPort)
+    probs, ncmp, nchg = [], 0, 0
+    for (cfg, rep), (cc, rc) in [(("M2S4", r), ("M2S4-ctl-nopdelay", r)) for r in range(10)] + [(("M2S4-load", 0), ("M2S4-ctl-nopdelay-load", 0))]:
+        R = keep[(cfg, rep)]["R"]
+        pc = os.path.join(RUNS, cc, "pcap", f"{cc}-{rc}")
+        slc = frames(os.path.join(pc, "M1Bridge.talker.pcapRecorder[0].pcapng"))
+        gmc = frames(os.path.join(pc, "M1Bridge.listener.pcapRecorder[0].pcapng"))
+        for dirn, src4, dst4, srcc, dstc in (("DL", R.gm, R.sl, gmc, slc), ("UL", R.sl, R.gm, slc, gmc)):
+            def lat(src, dst):
+                tx = {f["key"]: f["end"] for f in src if f["dir"] == 2 and f["f"]["etherType"] != 0x88F7}
+                return {f["key"]: f["end"] - tx[f["key"]] for f in dst
+                        if f["dir"] == 1 and f["f"]["etherType"] != 0x88F7 and f["key"] in tx}
+            l4, lc = lat(src4, dst4), lat(srcc, dstc)
+            if set(l4) != set(lc):
+                probs.append(f"{cfg}#{rep} {dirn}: delivered sets differ ({len(l4)} vs {len(lc)})")
+            ncmp += len(l4)
+            ch = [l4[k] - lc[k] for k in l4 if k in lc and l4[k] != lc[k]]
+            nchg += len(ch)
+            if ch:
+                probs.append(f"{cfg}#{rep} {dirn}: {len(ch)} latencies differ ({sorted(set(ch))[:4]})")
+    add("R2b", "attribution of the R2 latency changes: application frames in M2S4 have exactly the latencies of a control "
+        "with no Pdelay anywhere and no TtPdelayPort (M2S4-ctl-nopdelay, seeds 0-9 and load): the changes come from "
+        "removing Pdelay traffic from the 5GS, not from the engine", not probs,
+        f"{ncmp} application frames compared, {nchg} differ; problems: {probs[:4] or 'none'}")
 
     # ---- L4: baseline comparison (report)
     lines = []
@@ -856,7 +884,8 @@ def main():
     pd, rfu, resp = data["L2"]["pd_rec"], data["L2"]["d_rfu"], data["L2"]["d_resp"]
     sig = bool(pd) and all(v == O.dbl(L_REF - X72 // 2) for v in pd) and all(
         wire(rfu[s][0]["g"]["ts"]) == floor_ns(resp[s][0]["end"]) for s in rfu)
-    nc.append(("N3b", "wrong PHY event at the responder: t3 at transmissionEnded", {"L2", "S2", "S3"}, failed, sig,
+    # S3 is computed from PCAP first bits (correct-responder inputs), so it cannot see this mistake
+    nc.append(("N3b", "wrong PHY event at the responder: t3 at transmissionEnded", {"L2", "S2"}, failed, sig,
                f"slave pdelay every sample {sorted(set(pd))} s = (100 - 640)/2 ns (INET release build accepts it); DS-TT "
                f"Resp_FU t3 = floor_ns(Resp last bit)"))
     # N3c: both t1 and t4 at the last bit (discriminability control)
