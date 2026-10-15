@@ -1,0 +1,7 @@
+date_utc: 2026-10-15T14:13:49Z
+omnetpp: Version: 6.4.0, build: 260506-2cf25223fe, edition: Academic Public License -- NOT FOR COMMERCIAL USE
+inet_version_file: inet-4.7.0-dfe270b21f
+simu5g_version_file: 1.8.0
+simu5g_ethernet_example_sha256: e2f9f66b00da4cfef9256c40527c94ea127ea6130e70f3a7dcda5d1dcb87d33c cca7f54d3423590f44b2a6b85b3cab50b74d504897648f0d528b297ec39acdcb 
+issues_ini_sha256: c061eda972b47716dad4bdcf6a4dbac59e93cb8df7817f00bb23eae7fc6dc359
+nascTime_commit: 6754d28b6df9661227711075620ea5407c18f06e

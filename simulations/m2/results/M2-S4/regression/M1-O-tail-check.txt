@@ -1,0 +1,11 @@
+PASS  replay O2-s4 (S4): each DRB 1 SDU delivered 4 ms after its last byte left the gNB RLC                      333 SDUs in, 332 completed, 332 delivered at the UE, all matching: True; left in the RLC at the end: [(4.985002, 120, 4)]
+PASS  shortfall (S4): every cut happens when the grant covers the scheduler's demand but not the SDUs' headers   277 slots with a cut, all with >= 2 queued items: True; demand <= grant < need in all: True; cuts of a single fresh SDU: 0
+PASS  stranding (S4): after a cut, DRB 1 sends nothing until the next SDU arrives                                277 cuts; next DRB 1 transmission always within 2 slots after the next arrival and never before: True
+PASS  O-S4-1 explained: late Follow_Ups are exactly the cut ones; afterwards every DRB 1 SDU waits for the next  Follow_Ups 39, waiting > 2 ms at the gNB 39, of which cut 39, cut but not late 0; first cut at 0.125004 s; DRB 1 SDUs from then on cut 276 of 327, waits 1.0..21.0 ms
+PASS  replay O2-s4-nodl: each DRB 1 SDU delivered 4 ms after its last byte left the gNB RLC                      88 SDUs in, 88 completed, 88 delivered at the UE, all matching: True; left in the RLC at the end: []
+PASS  counterfactual O2-s4-nodl: gPTP alone on DRB 1 -- no cut, no lag                                           88 SDUs, cuts 0, longest wait at the gNB 1.999 ms, left 0
+PASS  replay O1-harq16 (seed 0): each DRB 1 SDU delivered 4 ms after its last byte left the gNB RLC              12621 SDUs in, 12620 completed, 12620 delivered at the UE, all matching: True; left in the RLC at the end: [(3.016006, 316, 4)]
+PASS  replay O2-flush (seed 0): each DRB 1 SDU delivered 4 ms after its last byte left the gNB RLC               12622 SDUs in, 12621 completed, 12621 delivered at the UE, all matching: True; left in the RLC at the end: [(3.500002, 70, 4)]
+PASS  O-S3-2 explained: the last segmented SDU is stranded; one more frame releases it and is stranded itself    O1-harq16: left (arrival, size, bytes unsent) [(3.016006, 316, 4)], the last SDU to arrive: True; O2-flush: it completes at 3.501 s; now left [(3.500002, 70, 4)]
+
+OVERALL: PASS

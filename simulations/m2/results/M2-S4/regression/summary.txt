@@ -1,0 +1,31 @@
+Regressions at 6754d28 (M2-S4 adds new modules, configs and checkers only; existing configs, runners, checkers and M1 files are unchanged since 8c59d4f; inet_model.py gained STRICT_INET_ASSERTS, default unchanged).
+
+IDENTICAL  2c2705f82c21ac8f  simulations/m2/results/M2-S1/check.txt  (OVERALL: PASS (28/28))
+IDENTICAL  ac8d881d27ab4fdd  simulations/m2/results/M2-S1/census.txt  ()
+M2-S1: m2s1.sh rerun; all 632 .pcapng and per-frame log hashes identical to raw-outputs.sha256 at 8c59d4f: YES
+IDENTICAL  0ba5c36c0c95dd88  simulations/m2/results/M2-S3/check.txt
+IDENTICAL  22d4cd6305ed59de  simulations/m2/results/M2-S3/census.txt
+IDENTICAL  c7fc366d33ec79f1  simulations/m2/results/M2-S3/syncs.csv
+IDENTICAL  97b40d49364fc038  simulations/m2/results/M2-S3/slave-model.txt
+IDENTICAL  bc12c00e7c20b802  simulations/m2/results/M2-S3/serializer-probe.txt
+M2-S3: m2s3.sh rerun on the regenerated M2-S1 runs (OVERALL: PASS (24/24)); env.txt and vec.sha256 are not byte-reproducible by design
+IDENTICAL  514b4ebd4c24aa13  simulations/m2/results/M2-S0/check.txt
+IDENTICAL  070072e37f59a832  simulations/m2/results/M2-S0/census.txt
+M2-S0: m2s0.sh rerun; all 314 .pcapng and per-frame log hashes identical to raw-outputs.sha256 at 8c59d4f: YES
+
+M1: every runner that writes a checker output rerun; output compared byte for byte with the record at 8c59d4f (= fbe41a9 for these files):
+IDENTICAL  b55a713aae5ae9a4  simulations/m1/results/S1/check.txt  (OVERALL: PASS)
+IDENTICAL  d40ad5f240687a40  simulations/m1/results/S2/check.txt  (OVERALL: PASS)
+IDENTICAL  d833b6a0be014453  simulations/m1/results/S2-phase/check.txt  (OVERALL: PASS)
+IDENTICAL  09794fa72828e243  simulations/m1/results/S3/check.txt  (OVERALL: PASS)
+IDENTICAL  b493bd3134ce52a2  simulations/m1/results/O-S3-1/check.txt  (OVERALL: PASS)
+IDENTICAL  fe191a656dfffdc5  simulations/m1/results/S4/transport-check.txt  (OVERALL: PASS)
+IDENTICAL  7c28150e4b229f19  simulations/m1/results/S4/clock-check.txt  (OVERALL: PASS)
+IDENTICAL  a30442b7a51dd4cd  simulations/m1/results/O-tail/check.txt  (OVERALL: PASS)
+IDENTICAL  8031717daaf40d11  simulations/m1/results/S5/check.txt  (OVERALL: PASS)
+IDENTICAL  440ff47c88f75c12  simulations/m1/results/upstream-issues/check.txt  (OVERALL (issues reproduced): YES)
+
+Existing configs/runners/checkers unchanged vs 8c59d4f (src/nasctime/tt, simulations/m1, M2 runners m2s0/m2s1/m2s3, check_m2s0/check_m2s1/oracle_m2s3/pcapng, TtTimestamp*): YES
+omnetpp.ini: lines only appended after the M2-S1 section: 0 removed lines
+
+Reruns rewrote env.txt and raw-outputs.sha256 (incl. .sca/.vec hashes, not byte-reproducible) of the rerun stages, and M2-S3 env.txt/vec.sha256; those committed records were restored with git checkout after the comparison.
