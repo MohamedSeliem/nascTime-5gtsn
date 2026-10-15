@@ -10,6 +10,12 @@ from fractions import Fraction
 Q63 = 1 << 63
 NS = 1000  # ps
 
+# INET's Gptp ASSERTs (currentPdelay >= 0, pdelay >= 0) are inactive in the release build
+# that M1/M2 use (-DNDEBUG, OMNeT++ Makefile.inc). True: the model raises on them (M2-S3
+# default, unchanged); False: it continues as the release build does (M2-S4 replays of
+# negative controls that produce a negative link delay).
+STRICT_INET_ASSERTS = True
+
 
 # ---------------------------------------------------------------------------------------
 # NumberNear1 (common/NumberNear1.h): value = 1 - e_q63 / 2^63
@@ -195,7 +201,7 @@ class SlaveModel:
             self.prev_resp = (t3, t4)
             # computePropTime (:461-484): (nRR * (t4 - t1) - (t3 - t2)) / 2, then smoothing
             cur = trunc_div2(mul_round(t4 - self.req["t1"], self.nrr_e) - (t3 - self.resp["t2"]))
-            assert cur >= 0, "INET ASSERT(currentPdelay >= 0)"
+            assert cur >= 0 or not STRICT_INET_ASSERTS, "INET ASSERT(currentPdelay >= 0)"
             if self.pdelay == -1:
                 self.pdelay = cur
             else:
@@ -215,7 +221,7 @@ class SlaveModel:
                 self.sync = None  # :141-142 the SLAVE_NODE resets syncReceiverProcess after every Follow_Up
                 return
             pd = self.pdelay if self.pdelay_override is None else self.pdelay_override
-            assert self.pdelay >= 0, "INET ASSERT(pdelay >= 0) (Gptp.cc:221/422)"
+            assert self.pdelay >= 0 or not STRICT_INET_ASSERTS, "INET ASSERT(pdelay >= 0) (Gptp.cc:221/422)"
             # computeGmRateRatio (:419-437)
             src = pot + cf + pd
             loc = self.sync["ts"]

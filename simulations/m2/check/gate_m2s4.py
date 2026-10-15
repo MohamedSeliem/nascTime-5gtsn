@@ -95,52 +95,63 @@ def last_events(log):
         return re.findall(r"event #(\d+)", "\n".join(l for l in fh if "Simulation time limit reached" in l))
 
 
+def compare_run(runs1, c1, r1, runs4, c4, r4, totals=None):
+    """Problems (empty list = identical) between run (c1, r1) under runs1 and (c4, r4) under runs4."""
+    totals = totals if totals is not None else {"pcapng": 0, "logs": 0, "vectors": 0, "vector lines": 0, "scalar lines": 0}
+    probs = []
+    for kind, sub1, sub4 in (("pcapng", f"pcap/{c1}-{r1}", f"pcap/{c4}-{r4}"), ("logs", f"m2log/{c1}-{r1}", f"m2log/{c4}-{r4}")):
+        f1, f4 = files(os.path.join(runs1, c1, sub1)), files(os.path.join(runs4, c4, sub4))
+        if kind == "logs":   # the engine's own log (active configs only) is not an M2-S1 log
+            f4 = {k: v for k, v in f4.items() if NEW_MODULE not in k}
+        if not f1:
+            probs.append(f"no {kind} in M2-S1")
+        if set(f1) != set(f4):
+            probs.append(f"{kind} file sets differ: {sorted(set(f1) ^ set(f4))[:3]}")
+        for n in sorted(set(f1) & set(f4)):
+            totals[kind] += 1
+            if sha(f1[n]) != sha(f4[n]):
+                probs.append(f"{kind} differs: {n}")
+    v1 = vec_data(os.path.join(runs1, c1, c1, f"{r1}.vec"))
+    v4 = vec_data(os.path.join(runs4, c4, c4, f"{r4}.vec"))
+    if set(v1) != set(v4):
+        probs.append(f"vector sets differ: {sorted(set(v1) ^ set(v4))[:3]}")
+    for k in set(v1) & set(v4):
+        totals["vectors"] += 1
+        totals["vector lines"] += len(v1[k])
+        if v1[k] != v4[k]:
+            probs.append(f"vector differs: {k}")
+    s1 = sca_data(os.path.join(runs1, c1, c1, f"{r1}.sca"), os.path.join(runs1, c1), c1)
+    s4 = sca_data(os.path.join(runs4, c4, c4, f"{r4}.sca"), os.path.join(runs4, c4), c4)
+    totals["scalar lines"] += len(s1)
+    n1 = [x for x in s1 if not x.startswith("par ")]
+    n4 = [x for x in s4 if not x.startswith("par ")]
+    if n1 != n4:
+        d = next((i for i, (a, b) in enumerate(zip(n1, n4)) if a != b), min(len(n1), len(n4)))
+        probs.append(f"scalars differ at line {d}: {n1[d:d+1]} vs {n4[d:d+1]}")
+    p1 = Counter(x for x in s1 if x.startswith("par "))
+    p4 = Counter(x for x in s4 if x.startswith("par "))
+    if p4 - p1 or (p1 - p4) != EXPECTED_PAR_ONLY_M2S1:
+        probs.append(f"recorded parameters differ beyond the expected channel relocation: "
+                     f"only M2S1 {sorted(p1 - p4)[:3]}, only passive {sorted(p4 - p1)[:3]}")
+    e1 = last_events(os.path.join(runs1, f"run-{c1}.log"))
+    e4 = last_events(os.path.join(runs4, f"run-{c4}.log"))
+    reps1 = sorted({int(x[:-4]) for x in os.listdir(os.path.join(runs1, c1, c1)) if x.endswith(".sca")})
+    reps4 = sorted({int(x[:-4]) for x in os.listdir(os.path.join(runs4, c4, c4)) if x.endswith(".sca")})
+    ev1 = e1[reps1.index(r1)] if r1 in reps1 and reps1.index(r1) < len(e1) else None
+    ev4 = e4[reps4.index(r4)] if r4 in reps4 and reps4.index(r4) < len(e4) else None
+    if ev1 is None or ev1 != ev4:
+        probs.append(f"final event number {ev1} vs {ev4}")
+    return probs, ev1
+
+
 def gate(runs1, runs4):
     rows, ok_all = [], True
     totals = {"pcapng": 0, "logs": 0, "vectors": 0, "vector lines": 0, "scalar lines": 0, "runs": 0}
     for c1, c4, reps in PAIRS:
-        ev1, ev4 = last_events(os.path.join(runs1, f"run-{c1}.log")), last_events(os.path.join(runs4, f"run-{c4}.log"))
         for r in reps:
-            probs = []
             totals["runs"] += 1
-            for kind, sub1, sub4 in (("pcapng", f"pcap/{c1}-{r}", f"pcap/{c4}-{r}"), ("logs", f"m2log/{c1}-{r}", f"m2log/{c4}-{r}")):
-                f1, f4 = files(os.path.join(runs1, c1, sub1)), files(os.path.join(runs4, c4, sub4))
-                if not f1:
-                    probs.append(f"no {kind} in M2-S1")
-                if set(f1) != set(f4):
-                    probs.append(f"{kind} file sets differ: {sorted(set(f1) ^ set(f4))[:3]}")
-                for n in sorted(set(f1) & set(f4)):
-                    totals[kind] += 1
-                    if sha(f1[n]) != sha(f4[n]):
-                        probs.append(f"{kind} differs: {n}")
-            v1 = vec_data(os.path.join(runs1, c1, c1, f"{r}.vec"))
-            v4 = vec_data(os.path.join(runs4, c4, c4, f"{r}.vec"))
-            if set(v1) != set(v4):
-                probs.append(f"vector sets differ: {sorted(set(v1) ^ set(v4))[:3]}")
-            for k in set(v1) & set(v4):
-                totals["vectors"] += 1
-                totals["vector lines"] += len(v1[k])
-                if v1[k] != v4[k]:
-                    probs.append(f"vector differs: {k}")
-            s1 = sca_data(os.path.join(runs1, c1, c1, f"{r}.sca"), os.path.join(runs1, c1), c1)
-            s4 = sca_data(os.path.join(runs4, c4, c4, f"{r}.sca"), os.path.join(runs4, c4), c4)
-            totals["scalar lines"] += len(s1)
-            n1 = [x for x in s1 if not x.startswith("par ")]
-            n4 = [x for x in s4 if not x.startswith("par ")]
-            if n1 != n4:
-                d = next((i for i, (a, b) in enumerate(zip(n1, n4)) if a != b), min(len(n1), len(n4)))
-                probs.append(f"scalars differ at line {d}: {n1[d:d+1]} vs {n4[d:d+1]}")
-            p1 = Counter(x for x in s1 if x.startswith("par "))
-            p4 = Counter(x for x in s4 if x.startswith("par "))
-            if p4 - p1 or (p1 - p4) != EXPECTED_PAR_ONLY_M2S1:
-                probs.append(f"recorded parameters differ beyond the expected channel relocation: "
-                             f"only M2S1 {sorted(p1 - p4)[:3]}, only passive {sorted(p4 - p1)[:3]}")
-            i = reps.index(r)
-            e1 = ev1[i] if i < len(ev1) else None
-            e4 = ev4[i] if i < len(ev4) else None
-            if e1 is None or e1 != e4:
-                probs.append(f"final event number {e1} vs {e4}")
-            rows.append((f"{c4}#{r}", not probs, probs[:4], e1))
+            probs, ev = compare_run(runs1, c1, r, runs4, c4, r, totals)
+            rows.append((f"{c4}#{r}", not probs, probs[:4], ev))
             ok_all &= not probs
     return ok_all, rows, totals
 
