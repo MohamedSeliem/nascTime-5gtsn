@@ -388,23 +388,226 @@ void TtPdelayEngine::processRequest(const GptpPdelayReq *req, simtime_t tRxStart
 }
 
 // ---------------------------------------------------------------------------------------
-// requester (design 4.5, 4.6): not in this version
+// requester (design 4.5 state machine, 4.6 calculation)
 
 void TtPdelayEngine::requestTimer()
 {
-    throw cRuntimeError("requester not implemented in this version");
+    // close the exchange of the previous request
+    if (!firstRequest) {
+        if (state == WAIT_RESP || state == WAIT_FU) {
+            if (faultPolicyTest != "noTimeout") {
+                numLost++;
+                consecutiveLost++;
+            }
+            writeLog("lost", 2, seq, nullptr, nullptr, -1, -1, faultPolicyTest == "noTimeout" ? "not counted (TEST noTimeout)" : "");
+        }
+        if (measuring && consecutiveLost > allowedLostResponses) {
+            measuring = false;
+            measuringVector.record(0);
+        }
+    }
+    sendRequest();
+    scheduleAt(simTime() + pdelayInterval, reqTimer);
 }
 
-void TtPdelayEngine::sendRequest() {}
-void TtPdelayEngine::processResponse(const GptpPdelayResp *, simtime_t, simtime_t)
+void TtPdelayEngine::sendRequest()
 {
-    throw cRuntimeError("requester not implemented in this version");
+    if (!firstRequest)
+        seq = (uint16_t)(seq + 1);    // wraps 65535 -> 0
+    firstRequest = false;
+    prevT1 = t1;
+    t1 = t1End = t2 = t3 = t4 = t4End = -1;
+    state = WAIT_RESP;
+    auto req = makeShared<GptpPdelayReq>();
+    req->setDomainNumber(domainNumber);
+    req->setCorrectionField(CLOCKTIME_ZERO);
+    PortIdentity own;
+    own.clockIdentity = clockIdentity;
+    own.portNumber = portNumber;
+    req->setSourcePortIdentity(own);
+    req->setSequenceId(seq);
+    numReqSent++;
+    PortIdentity none;
+    send(buildFrame("TtPdelayReq", req), 2, seq, none);
 }
-void TtPdelayEngine::processResponseFollowUp(const GptpPdelayRespFollowUp *, simtime_t, simtime_t)
+
+static bool samePort(const PortIdentity& a, const PortIdentity& b)
 {
-    throw cRuntimeError("requester not implemented in this version");
+    return a.clockIdentity == b.clockIdentity && a.portNumber == b.portNumber;
 }
-void TtPdelayEngine::publish(bool, const char *) {}
+
+void TtPdelayEngine::processResponse(const GptpPdelayResp *resp, simtime_t tRxStart, simtime_t tRxEnd)
+{
+    const PortIdentity& rp = resp->getRequestingPortIdentity();
+    const PortIdentity& src = resp->getSourcePortIdentity();
+    uint16_t s = resp->getSequenceId();
+    PortIdentity own;
+    own.clockIdentity = clockIdentity;
+    own.portNumber = portNumber;
+    if (!samePort(rp, own)) {
+        numNotForUs++;
+        writeLog("notForUs", 3, s, &src, &rp, tRxStart, tRxEnd, "");
+        return;
+    }
+    if (state == IDLE || s != seq) {
+        numStaleSeq++;
+        writeLog("staleSeq", 3, s, &src, &rp, tRxStart, tRxEnd, "");
+        return;
+    }
+    switch (state) {
+        case WAIT_RESP:
+            t2 = toSim(resp->getRequestReceiptTimestamp());
+            t4 = tRxStart;
+            t4End = tRxEnd;
+            if (haveResponder && !samePort(src, lastResponder))
+                numResponderChanged++;
+            lastResponder = src;
+            haveResponder = true;
+            state = WAIT_FU;
+            writeLog("rx", 3, s, &src, &rp, tRxStart, tRxEnd, "");
+            break;
+        case WAIT_FU:
+            if (faultPolicyTest == "acceptLast") {    // TEST ONLY: wrong policy
+                t2 = toSim(resp->getRequestReceiptTimestamp());
+                t4 = tRxStart;
+                t4End = tRxEnd;
+                writeLog("rx", 3, s, &src, &rp, tRxStart, tRxEnd, "duplicate accepted (TEST acceptLast)");
+            }
+            else {
+                numMultipleResp++;
+                state = FAULTED;
+                writeLog("multipleResp", 3, s, &src, &rp, tRxStart, tRxEnd, "exchange discarded");
+            }
+            break;
+        case DONE:
+            if (faultPolicyTest == "republishLate") {  // TEST ONLY: wrong policy
+                t2 = toSim(resp->getRequestReceiptTimestamp());
+                t4 = tRxStart;
+                t4End = tRxEnd;
+                publish(true, "late duplicate re-published (TEST republishLate)");
+            }
+            else {
+                numLateDuplicateResp++;
+                writeLog("lateDuplicateResp", 3, s, &src, &rp, tRxStart, tRxEnd, "published value unchanged");
+            }
+            break;
+        case FAULTED:
+            numLateAfterFault++;
+            writeLog("lateAfterFault", 3, s, &src, &rp, tRxStart, tRxEnd, "");
+            break;
+        default:
+            break;
+    }
+}
+
+void TtPdelayEngine::processResponseFollowUp(const GptpPdelayRespFollowUp *fu, simtime_t tRxStart, simtime_t tRxEnd)
+{
+    const PortIdentity& rp = fu->getRequestingPortIdentity();
+    const PortIdentity& src = fu->getSourcePortIdentity();
+    uint16_t s = fu->getSequenceId();
+    PortIdentity own;
+    own.clockIdentity = clockIdentity;
+    own.portNumber = portNumber;
+    if (!samePort(rp, own)) {
+        numNotForUs++;
+        writeLog("notForUs", 10, s, &src, &rp, tRxStart, tRxEnd, "");
+        return;
+    }
+    if (state == IDLE || s != seq) {
+        numStaleSeq++;
+        writeLog("staleSeq", 10, s, &src, &rp, tRxStart, tRxEnd, "");
+        return;
+    }
+    switch (state) {
+        case WAIT_RESP:
+            numOrphanFollowUp++;
+            writeLog("orphanFollowUp", 10, s, &src, &rp, tRxStart, tRxEnd, "");
+            break;
+        case WAIT_FU:
+            t3 = toSim(fu->getResponseOriginTimestamp());
+            state = DONE;
+            writeLog("rx", 10, s, &src, &rp, tRxStart, tRxEnd, "");
+            publish(false, "");
+            break;
+        case DONE:
+            numLateDuplicateFU++;
+            writeLog("lateDuplicateFU", 10, s, &src, &rp, tRxStart, tRxEnd, "published value unchanged");
+            break;
+        case FAULTED:
+            numLateAfterFault++;
+            writeLog("lateAfterFault", 10, s, &src, &rp, tRxStart, tRxEnd, "");
+            break;
+        default:
+            break;
+    }
+}
+
+// D = (nRR * (t4 - t1) - (t3 - t2)) / 2 (INET Gptp.cc:476 arithmetic: ClockTimeScale
+// fixed point, C++ truncating division); nRR = (t3 - t3prev) / (t4 - t4prev) from the
+// previous completed exchange (INET Gptp.cc:439-458), 1 until then.
+void TtPdelayEngine::publish(bool republish, const char *note)
+{
+    simtime_t a1 = t1, a2 = t2, a3 = t3, a4 = t4;
+    if (timestampTest == "t4End")                // TEST ONLY
+        a4 = t4End;
+    else if (timestampTest == "t1t4End") {       // TEST ONLY
+        a1 = t1End;
+        a4 = t4End;
+    }
+    if (pairingTest == "previousRequest") {      // TEST ONLY
+        if (prevT1 < SIMTIME_ZERO) {
+            writeLog("noPrevious", 10, seq, nullptr, nullptr, -1, -1, "TEST previousRequest: no earlier request");
+            return;
+        }
+        a1 = prevT1;
+    }
+    if (unitTest == "nsAsPs") {                  // TEST ONLY: wire ns numbers taken as ps
+        a2 = SimTime::fromRaw(t2.raw() / 1000);
+        a3 = SimTime::fromRaw(t3.raw() / 1000);
+    }
+    ClockTimeScale nrr;
+    int64_t num = 1, den = 1;
+    if (havePrevExchange) {
+        num = (t3 - prevT3).raw();
+        den = (t4 - prevT4).raw();
+        nrr = ClockTimeScale::fromRatio(toClock(t3 - prevT3), toClock(t4 - prevT4));
+        int64_t g = std::gcd(num, den);
+        if (g > 1) {
+            num /= g;
+            den /= g;
+        }
+    }
+    clocktime_t rt = nrr * toClock(a4 - a1);
+    clocktime_t turnaround = toClock(a3 - a2);
+    clocktime_t d;
+    if (formulaTest == "noHalf")                 // TEST ONLY
+        d = rt - turnaround;
+    else if (formulaTest == "noTurnaround")      // TEST ONLY
+        d = rt / 2;
+    else
+        d = (rt - turnaround) / 2;
+    simtime_t D = toSim(d);
+    if (!republish) {
+        havePrevExchange = true;
+        prevT3 = t3;
+        prevT4 = t4;
+        numPublished++;
+    }
+    else
+        numRepublished++;
+    consecutiveLost = 0;
+    bool m = D >= SIMTIME_ZERO && D <= neighborPropDelayThresh;
+    if (m != measuring) {
+        measuring = m;
+        measuringVector.record(m ? 1 : 0);
+    }
+    meanLinkDelayVector.record(D);
+    nrrVector.record(nrr.toDouble());
+    if (log.is_open())
+        log << (republish ? "republish" : "measure") << ',' << simTime().raw() << ",10," << seq << ',' << stateName(state)
+            << ",,,,,,," << a1.raw() << ',' << a2.raw() << ',' << a3.raw() << ',' << a4.raw() << ',' << D.raw() << ',' << num << ','
+            << den << ',' << nrr.raw() << ',' << note << '\n';
+}
 
 // ---------------------------------------------------------------------------------------
 
