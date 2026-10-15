@@ -1,0 +1,16 @@
+# G0 recorded at the passive-skeleton commit, before any active Pdelay function; M2-S1 runs = results/M2-S1/runs (hash-identical to raw-outputs.sha256 at 56c8fb3)
+PASS  M2S4-passive#0: final event #102354; identical
+PASS  M2S4-passive#1: final event #102354; identical
+PASS  M2S4-passive#2: final event #102433; identical
+PASS  M2S4-passive#3: final event #102354; identical
+PASS  M2S4-passive#4: final event #102433; identical
+PASS  M2S4-passive#5: final event #102354; identical
+PASS  M2S4-passive#6: final event #102393; identical
+PASS  M2S4-passive#7: final event #102354; identical
+PASS  M2S4-passive#8: final event #102354; identical
+PASS  M2S4-passive#9: final event #102354; identical
+PASS  M2S4-passive-frag#0: final event #106430; identical
+PASS  M2S4-passive-load#0: final event #1344123; identical
+PASS  M2S4-passive-load-harq16#0: final event #1468583; identical
+totals {'pcapng': 117, 'logs': 260, 'vectors': 22460, 'vector lines': 14759425, 'scalar lines': 433660, 'runs': 13}
+G0: PASS
