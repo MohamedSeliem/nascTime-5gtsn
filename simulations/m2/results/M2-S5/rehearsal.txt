@@ -1,0 +1,20 @@
+M2-S5 fresh-clone reproduction from the bundle (2026-10-16, 2026-10-16T17:49:16Z finished)
+
+Repository: new git repository at /root/inv/nascTime-5gtsn holding only the history of
+3726a71f749b0eebc143c31e9e218adedb393f50 (git fetch of that commit; 451c1ae absent before the import).
+Bundle: nascTime-M2-S5.bundle (3726a71..m2/architecture), sha256
+c054d5965c2ce4873d56cc4548d643472bd316345122f377e6e9459f2c1ab1ed; git bundle verify: okay;
+fetched + fast-forward merge -> HEAD 5b4676e81b9e401ac72474fec0fcc1e5d6a3b51e; tree identical to the
+development repository (git ls-tree -r).
+Stack: OMNeT++ 6.4.0, INET 4.7.0, Simu5G 1.8.0 (v1.8.0), clang 18.1.3 (unchanged).
+Runs (simulations/m2): m2s1.sh rc 0, m2s4.sh rc 0, m2s5.sh rc 0 (17:33:35-17:48:46 UTC).
+
+M2-S1 check.txt (28/28), census.txt: byte-identical to the committed records
+M2-S4 check.txt (55/55): byte-identical
+M2-S5 check.txt (71/71): byte-identical
+M2-S1: 632 .pcapng/per-frame log hashes identical; differing only 24 .sca, 24 .vec, 15 opp_scavetool CSV exports
+M2-S4: 1648 .pcapng/per-frame/engine-log hashes identical; differing only 73 .sca, 73 .vec
+M2-S5: 2325 .pcapng/per-frame/engine-log hashes identical; differing only 77 .sca, 77 .vec
+libnasctime_m2.so sha256 ec20b65b303689f646d165052ee137257aeaaedba5e272339fa6ed8284bde9c3 = M2-S5/env.txt
+(built at the recorded path; the M2-S1/M2-S4 env.txt records name the libraries of their own commits).
+env.txt and raw-outputs.sha256 of the three stages restored after the comparison.
