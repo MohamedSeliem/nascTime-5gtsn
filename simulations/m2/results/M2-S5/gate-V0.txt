@@ -1,0 +1,5 @@
+PASS  M2S5-v0#0: {'followUps': 39, 'valid': 35, 'invalid': 4, 'lostIn5GS': [], 'invalidReasons': ['fuMismatch', 'noLinkDelay']}
+PASS  M2S5-v0-frag#0: {'followUps': 39, 'valid': 35, 'invalid': 4, 'lostIn5GS': [], 'invalidReasons': ['fuMismatch', 'noLinkDelay']}
+PASS  M2S5-v0-load#0: {'followUps': 33, 'valid': 30, 'invalid': 3, 'lostIn5GS': [2, 3, 8, 14, 38, 1020], 'invalidReasons': ['fuMismatch', 'noLinkDelay']}
+
+V0: PASS
