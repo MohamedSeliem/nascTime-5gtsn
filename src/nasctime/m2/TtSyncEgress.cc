@@ -282,6 +282,11 @@ void TtSyncEgress::processFollowUp(Packet *packet)
             return;
         }
     }
+    if (!pending.empty()) {
+        // a newer Sync is already queued ahead of this Follow_Up: on the wire the Follow_Up
+        // would follow that Sync, which the slave would pair with it (design 6.3, F8)
+        return discard(packet, numStaleFU, "staleFU", f, "newer Sync " + pending.front().second.key.str() + " already queued");
+    }
     if (lastTx.key.isSet() && lastTx.key == f.key) {
         if (lastTx.ambiguous)
             return discard(packet, numAmbiguousSync, "ambiguousSync", f, "");
