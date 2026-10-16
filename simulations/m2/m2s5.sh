@@ -3,7 +3,7 @@
 # Builds libnasctime_m2 and runs the M2-S5 configs of simulations/m2/omnetpp.ini.
 #   ./m2s5.sh gate   gate G0 only (passive TtPtpPort vs M2-S4); writes results/M2-S5/gate-G0.txt
 #   ./m2s5.sh v0     gate V0 only (INVALID-tag survival NW-TT -> DS-TT); writes results/M2-S5/gate-V0.txt
-#   ./m2s5.sh        everything + check_m2s5.py (written in a later step)
+#   ./m2s5.sh        everything + check_m2s5.py
 # M2-S4 is the timing baseline: needs results/M2-S4/runs (./m2s4.sh, which needs
 # results/M2-S1/runs from ./m2s1.sh). Requires OMNeT++ 6.4.0 / INET 4.7.0 / Simu5G 1.8.0
 # (built); OMNETPP_ROOT, INET_ROOT, SIMU5G_ROOT set (or the defaults below).
@@ -60,5 +60,17 @@ if [ "$MODE" = v0 ]; then
   python3 "$HERE/check/gate_v0.py" "$OUT/runs" M2S5-v0 M2S5-v0-frag M2S5-v0-load | tee "$OUT/gate-V0.txt"
   exit "${PIPESTATUS[0]}"
 fi
-echo "ERROR: only './m2s5.sh gate' and './m2s5.sh v0' exist at this step" >&2
-exit 1
+{
+  gate_configs
+  printf '%s\n' "M2S5-v0 0" "M2S5-v0-frag 0" "M2S5-v0-load 0" \
+    "M2S5-load 0" "M2S5-load-harq16 0" "M2S5 0..9" "M2S5-frag 0" "M2S5-offset 0" "M2S5-lupLate 0" "M2S5-pdelayLoss 0"
+  for c in FS1 FS2 FS3 FS4 FS5 FS6 FS7 FS8 FS9a FS9b FS9c FS9d FS10 FD1 FD2 FD3 FD4 FD5 FD6 FD7 FD8 FD9 FD10 \
+           nc-noLup nc-lupTwice nc-tseEnd nc-tsiEnd nc-bothEnd nc-prevSync nc-tseSlot nc-noFcsDs nc-noFcsNw nc-rr \
+           nc-forwardInvalid nc-syncCf nc-noStrip nc-fwdPdelay; do
+    echo "M2S5-$c 0"; done
+  for c in -hold -subns -expiry -syncloss -nc-noHold -nc-bothEnd; do echo "M2S5U$c 0"; done
+} | xargs -P "$JOBS" -L 1 bash -c 'run "$0" "$1"'
+
+python3 "$HERE/check/check_m2s5.py" "$OUT" "$HERE/results/M2-S4/runs" "$HERE/results/M2-S4/raw-outputs.sha256" | tee "$OUT/check.txt"
+(cd "$OUT/runs" && find . -type f \( -name '*.sca' -o -name '*.vec' -o -name '*.pcapng' -o -name '*.csv' \) \
+   ! -name '*.vci' | LC_ALL=C sort | xargs sha256sum) > "$OUT/raw-outputs.sha256"
