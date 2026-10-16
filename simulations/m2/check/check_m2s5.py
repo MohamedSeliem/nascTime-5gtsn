@@ -639,7 +639,7 @@ def g1(R, R4):
         for f in b:
             kb[(f["dir"], f["type"], hashlib.sha1(gmask(f)).hexdigest())].append(f)
         slave_link = name in ("DS-TT eth[1]", "slave")
-        for k in set(ka) | set(kb):
+        for k in sorted(set(ka) | set(kb), key=repr):  # deterministic output order
             if len(ka[k]) != len(kb[k]):
                 if slave_link and k[1] in PDELAY:
                     counts[f"{name}: Pdelay frames with different content (slave link, F11)"] += abs(len(ka[k]) - len(kb[k]))
@@ -1126,13 +1126,13 @@ def unit_rows(add):
                 f"exact {not any(d)}; NOT timing-neutral (reported, by design)")
         elif cfg == "M2S5U-nc-noHold":
             base_holds = held_counts["M2S5U-hold"][0]
-            add("N-noHold", "N13 (unit): a Follow_Up whose Sync is still queued discarded instead of held: fails H1 (no hold) and "
-                "C7 (steps = N - holds of M2S5U-hold)", holds == 0 and U.dssc("fuNoSync") == base_holds and len(d) == len(sel(U.gm, 2, SYNC)) - base_holds,
+            add("N-noHold", "N13 (unit): a Follow_Up whose Sync is still queued discarded instead of held: signature: no hold, "
+                "fuNoSync = the hold count of M2S5U-hold, slave steps = N - that count (H1 and the delivery rule C7 would fail)", holds == 0 and U.dssc("fuNoSync") == base_holds and len(d) == len(sel(U.gm, 2, SYNC)) - base_holds,
                 f"fuNoSync {U.dssc('fuNoSync')} = M2S5U-hold holds {base_holds}; steps {len(d)}")
         elif cfg == "M2S5U-nc-bothEnd":
             xin, xout = (64 + 8) * 8 * NS, (64 + 8) * 8 * 10 * NS
             add("N-bothEnd-unit", "N4b (unit, 1 Gb/s in, 100 Mb/s out): TSi and TSe at the last bit: error = X_out - X_in at every "
-                "step (does not cancel at different rates); fails C2/S2", bool(d) and all(x == xout - xin for x in d) and probs,
+                "step (does not cancel at different rates); the wire cf differs from enc(Lup + Res) (C2) and the error is non-zero (S2)", bool(d) and all(x == xout - xin for x in d) and probs,
                 f"step corrections {sorted(set(d))} ps (X_out - X_in = {xout - xin})")
     add("H5", "scope: the neutrality result (H2) holds for one unlimited FIFO without shaping or preemption; no other queue model "
         "was tested", True, f"holds per run {held_counts}")
