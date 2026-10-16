@@ -1,0 +1,143 @@
+PASS  G0 passive transparency on the final code: M2S5-passive (seeds 0-9, frag, load, load-harq16) = M2S4, and M2S5U-passive = M2S5U-base: PCAP, per-frame and Pdelay-engine logs, vectors, scalars, parameters (only the compound's typename and its 3 new parameters differ), final event numbers; sensitivity controls detect a different seed and variant
+      14/14 run pairs identical; totals {'pcapng': 123, 'logs': 288, 'vectors': 23461, 'vector lines': 17137766, 'scalar lines': 424454, 'runs': 14}; sensitivity 1070/1094 differences
+PASS  A0 provenance: every M2-S4 PCAP and log used (G0, G1, S3, P1) is hash-identical to M2-S4/raw-outputs.sha256
+      403 files; mismatches none
+PASS  E1 erratum, M2-S4 T1 (N3 part): the M2-S4 checker parsed GTP-U on UDP port 2152 and therefore found no N3 frame (the N3 sub-check was vacuous; the Ethernet points carried T1). Re-check with Simu5G's port 31 on the M2-S4 runs: no Pdelay frame inside any GTP-U tunnel, Sync/Follow_Up present
+      {'GTP-U inner frames': 57076, 'Sync/Follow_Up': 1014, 'Pdelay': 0, 'frames found by the M2-S4 parser': 0}; problems none
+PASS  V1 INVALID/VALID tag survival NW-TT -> DS-TT (gate V0 re-checked on the final code), idle / frag / load
+      M2S5-v0: {'followUps': 39, 'valid': 35, 'invalid': 4, 'lostIn5GS': [], 'invalidReasons': ['fuMismatch', 'noLinkDelay']}; M2S5-v0-frag: {'followUps': 39, 'valid': 35, 'invalid': 4, 'lostIn5GS': [], 'invalidReasons': ['fuMismatch', 'noLinkDelay']}; M2S5-v0-load: {'followUps': 33, 'valid': 30, 'invalid': 3, 'lostIn5GS': [2, 3, 8, 14, 38, 1020], 'invalidReasons': ['fuMismatch', 'noLinkDelay']}
+PASS  C1 NW-TT rewrite on the wire: at NW-TT eth[0], UE eth[0], UPF dnEth, N3 (GTP-U inner) and DS-TT eth[0], every Follow_Up's correctionField = enc(cf_GM + Lup_pcap); all other bytes = the GM's; FCS valid; 94 B [M2S5 seeds 0-9, frag, load, load-harq16]
+      all 13 runs; e.g. M2S5#0: 156 Follow_Ups at 4 Ethernet points + 39 on N3; problems: none
+PASS  C2 DS-TT rewrite on the wire: at DS-TT eth[1] and the slave, correctionField = enc(cf_GM + Lup_pcap + Res_pcap); all other bytes = the GM's; FCS valid; 94 B [M2S5 seeds 0-9, frag, load, load-harq16]
+      all 13 runs; e.g. M2S5#0: 78 Follow_Ups (DS-TT eth[1] + slave); problems: none
+PASS  C3 logged simulation values (ps) = PCAP: TSi, TSe = first bits, Lup = Lup_pcap, Res = TSe - TSi, cf1 = cf_in + Lup, cf2 = cf1 + Res, rr 1 [M2S5 seeds 0-9, frag, load, load-harq16]
+      all 13 runs; e.g. M2S5#0: problems: none
+PASS  C4 Syncs untouched: byte-identical GM -> slave (in order), correctionField 0 at every point [M2S5 seeds 0-9, frag, load, load-harq16]
+      all 13 runs; e.g. M2S5#0: 39 of 39 Syncs delivered byte-identical, cf 0 everywhere; problems: none
+PASS  C5 rateRatio: Follow_Up TLV cumulativeScaledRateOffset 0 on the wire; logged rr_in = rr_out = 1 (not validated through the slave, F9) [M2S5 seeds 0-9, frag, load, load-harq16]
+      all 13 runs; e.g. M2S5#0: Follow_Up TLV csro 0 at NW-TT eth[0], DS-TT eth[1], slave; problems: none
+PASS  C6 FCS: every Sync/Follow_Up valid at every point; INET FCS checkers drop nothing [M2S5 seeds 0-9, frag, load, load-harq16]
+      all 13 runs; e.g. M2S5#0: bad FCS 0; INET FCS-checker drops 0
+PASS  C7 association and delivery: at the slave each Follow_Up right after its own Sync, once; delivered = DS-TT corrected; only the pairs M2-S4 also lost are missing [M2S5 seeds 0-9, frag, load, load-harq16]
+      all 13 runs; e.g. M2S5#0: 39 Follow_Ups delivered, each right after its own Sync, once (GM Syncs 39, expected missing 0); problems: none
+PASS  C8 containment: no TtSyncIngressTag reaches the slave; M2-S0 tag recovery at DS-TT eth[1] as in M2S4, invalid 0 [M2S5 seeds 0-9, frag, load, load-harq16]
+      all 13 runs; e.g. M2S5#0: frames with a TtSyncIngressTag at the slave: 0; DS-TT M2-S0 egress recovered/invalid/untagged 567/0/10 = M2S4: True
+PASS  S1 the M2-S3 slave model (unchanged), fed this run's PCAP and the DS-TT's cf (ps), reproduces every recorded slave value exactly [M2S5 seeds 0-9, frag, load, load-harq16]
+      all 13 runs; e.g. M2S5#0: replay {'pdelay': 5, 'nRR': 4, 'gm': 38, 'comp': 39, 'steps': 39, 'clock samples': 5081, 'step samples': 78}; mismatches 0
+PASS  S2 slave clock error 0 ps exactly: every step correction 0, every recorded 1 ms / step sample after step 1 = GM time, compensation 0, gmRateRatio 1 [M2S5 seeds 0-9, frag, load, load-harq16]
+      all 13 runs; e.g. M2S5#0: 39 steps, error after step 1: 0.000 ns; non-zero step corrections after step 1 0; recorded clock samples after step 1 with error != 0: 0 of 4927; compensation != 0: 0; gmRateRatio != 1: 0
+PASS  S3 online = offline oracle: for every Sync with identical TSi/TSe/POT in M2S4 and M2S5, cf2 = D_NWTT + Res computed from the M2-S4 records; the recorded clock trace = the M2-S3 model's prediction from the M2-S4 records [M2S5 seeds 0-9, frag, load, load-harq16]
+      all 13 runs; e.g. M2S5#0: 39 Syncs with identical (TSi, TSe, POT) in M2S4 and M2S5 (0 differ: []); logged cf2 = M2-S4 prediction D_NWTT + Res for all (0 mismatches []); recorded clock trace = offline prediction at 5081 of 5081 samples
+PASS  P1 Pdelay preserved: NW-TT link delay from PCAP 50 000 ps every exchange; NW-TT Pdelay-engine log byte-identical to M2S4 [M2S5 seeds 0-9, frag, load, load-harq16]
+      all 13 runs; e.g. M2S5#0: NW-TT D from PCAP [50000] ps; engine log byte-identical to M2S4: True; problems: none
+PASS  P2 slave pdelay 50 000 ps every sample; no Pdelay frame in the 5GS [M2S5 seeds 0-9, frag, load, load-harq16]
+      all 13 runs; e.g. M2S5#0: slave pdelay [5e-08] s (5 samples); Pdelay frames in the 5GS: 0
+PASS  G1 M2-S4 is the timing baseline: every frame at 8 points (GM, NW-TT eth[1]/eth[0], UE eth[0], UPF dnEth, DS-TT eth[0]/eth[1], slave) present with the same bytes (except Follow_Up correctionField/FCS downstream of the NW-TT) and the same time, except frames explained by the slave's clock-driven Pdelay timing (F11), each listed
+      all 13 runs; e.g. M2S5#0: 8496 frames matched at 8 points + N3; explained differences {'UE eth[0]: queued behind a slave-link Pdelay frame': 4, 'DS-TT eth[0]: queued behind a slave-link Pdelay frame': 4, 'DS-TT eth[1]: queued behind a slave-link Pdelay frame': 4, 'DS-TT eth[1]: Pdelay frame time (slave link, F11)': 4, 'DS-TT eth[1]: Pdelay frames with different content (slave link, F11)': 16, 'slave: Pdelay frames with different content (slave link, F11)': 16, 'slave: queued behind a slave-link Pdelay frame': 4, 'slave: Pdelay frame time (slave link, F11)': 4, 'N3 records': 1056, 'N3 records with different bytes (Follow_Up)': 39, 'N3 inner frames': 1056}; shifts [736000]; problems: none
+PASS  S4 initial slave offset 1.234567891 ms: error = the offset until step 1, 0 ps from step 1 on (replay exact)
+      152 samples before step 1 at +1234567891 ps; 39 steps, error after step 1: 0.000 ns; non-zero step corrections after step 1 0; recorded clock samples after step 1 with error != 0: 0 of 4927; compensation != 0: 0; gmRateRatio != 1: 0
+PASS  S5 report: slave error before (M2-S4) and after (M2-S5) the correction, seed 0
+      M2-S4: after step 1 -5000626.000 ns, max |error| after step 1 6002226.000 ns; M2-S5: 0 ps at every step and sample (S2)
+PASS  F-FS1 GM Sync 3 dropped: the INET GM sends no Follow_Up 3 either: NW-TT 0, DS-TT 0, 38 slave steps, every step exact, replay exact, no tag at the slave
+      NW 0; DS 0; steps 38; replay True ; non-zero corrections 0; audit 0
+PASS  F-FS2 GM Follow_Up 3 dropped: NW-TT {'syncWithoutFU': 1}, DS-TT 0, 38 slave steps, every step exact, replay exact, no tag at the slave
+      NW {'syncWithoutFU': 1}; DS 0; steps 38; replay True ; non-zero corrections 0; audit 0
+PASS  F-FS3 GM Sync 3 duplicated (the GM sends a Follow_Up per transmitted Sync: two Follow_Ups 3): NW-TT {'duplicateSync': 1, 'ambiguousSync': 1, 'duplicateFU': 1, 'invalid': 2}, DS-TT {'fuInvalidUpstream': 2}, 38 slave steps, every step exact, replay exact, no tag at the slave
+      NW {'duplicateSync': 1, 'ambiguousSync': 1, 'duplicateFU': 1, 'invalid': 2}; DS {'fuInvalidUpstream': 2}; steps 38; replay True ; non-zero corrections 0; audit 0
+PASS  F-FS4 GM Follow_Up 3 duplicated: NW-TT {'duplicateFU': 1, 'invalid': 1}, DS-TT {'fuInvalidUpstream': 1}, 39 slave steps, every step exact, replay exact, no tag at the slave
+      NW {'duplicateFU': 1, 'invalid': 1}; DS {'fuInvalidUpstream': 1}; steps 39; replay True ; non-zero corrections 0; audit 0
+PASS  F-FS5 a Follow_Up 3 ahead of Sync 3 (reordering): NW-TT {'orphanFU': 1, 'invalid': 1}, DS-TT {'fuInvalidUpstream': 1}, 39 slave steps, every step exact, replay exact, no tag at the slave
+      NW {'orphanFU': 1, 'invalid': 1}; DS {'fuInvalidUpstream': 1}; steps 39; replay True ; non-zero corrections 0; audit 0
+PASS  F-FS6 GM Follow_Up 3 after Sync 4: NW-TT {'syncWithoutFU': 1, 'fuMismatch': 1, 'invalid': 1}, DS-TT {'fuInvalidUpstream': 1}, 38 slave steps, every step exact, replay exact, no tag at the slave
+      NW {'syncWithoutFU': 1, 'fuMismatch': 1, 'invalid': 1}; DS {'fuInvalidUpstream': 1}; steps 38; replay True ; non-zero corrections 0; audit 0
+PASS  F-FS7 GM Follow_Up 3 delayed 50 ms: NW-TT 0, DS-TT 0, 39 slave steps, every step exact, replay exact, no tag at the slave
+      NW 0; DS 0; steps 39; replay True ; non-zero corrections 0; audit 0
+PASS  F-FS8 GM Follow_Up 3 with sequenceId 1003: NW-TT {'fuMismatch': 1, 'syncWithoutFU': 1, 'invalid': 1}, DS-TT {'fuInvalidUpstream': 1}, 38 slave steps, every step exact, replay exact, no tag at the slave
+      NW {'syncWithoutFU': 1, 'fuMismatch': 1, 'invalid': 1}; DS {'fuInvalidUpstream': 1}; steps 38; replay True ; non-zero corrections 0; audit 0
+PASS  F-FS9a GM Follow_Up 3 versionPTP 1 (class M: discarded at the NW-TT): NW-TT {'malformedFU': 1, 'syncWithoutFU': 1}, DS-TT 0, 38 slave steps, every step exact, replay exact, no tag at the slave
+      NW {'syncWithoutFU': 1, 'malformedFU': 1}; DS 0; steps 38; replay True ; non-zero corrections 0; audit 0
+PASS  F-FS9b GM Follow_Up 3 messageLength 70 (class M): NW-TT {'malformedFU': 1, 'syncWithoutFU': 1}, DS-TT 0, 38 slave steps, every step exact, replay exact, no tag at the slave
+      NW {'syncWithoutFU': 1, 'malformedFU': 1}; DS 0; steps 38; replay True ; non-zero corrections 0; audit 0
+PASS  F-FS9c Follow_Up 3 as raw bytes at the NW-TT (class M): NW-TT {'unsupportedRepresentation': 1, 'syncWithoutFU': 1}, DS-TT 0, 38 slave steps, every step exact, replay exact, no tag at the slave
+      NW {'syncWithoutFU': 1, 'unsupportedRepresentation': 1}; DS 0; steps 38; replay True ; non-zero corrections 0; audit 0
+PASS  F-FS9d Follow_Up 3 truncated at the NW-TT (class M): NW-TT {'unsupportedRepresentation': 1, 'syncWithoutFU': 1}, DS-TT 0, 38 slave steps, every step exact, replay exact, no tag at the slave
+      NW {'syncWithoutFU': 1, 'unsupportedRepresentation': 1}; DS 0; steps 38; replay True ; non-zero corrections 0; audit 0
+PASS  F-FS10 GM Sync 3 rewritten to domain 1: passed unchanged and ignored by the domain-0 slave (the INET GM sends no Follow_Up for it: it ignores its own transmitted frame of another domain): NW-TT {'otherDomain': 1}, DS-TT {'otherDomain': 1}, 38 slave steps, every step exact, replay exact, no tag at the slave
+      NW {'otherDomain': 1}; DS {'otherDomain': 1}; steps 38; replay True ; non-zero corrections 0; audit 0
+PASS  F-FD1 Sync 3 lost in the 5GS: NW-TT 0, DS-TT {'fuNoSync': 1}, 38 slave steps, every step exact, replay exact, no tag at the slave
+      NW 0; DS {'fuNoSync': 1}; steps 38; replay True ; non-zero corrections 0; audit 0
+PASS  F-FD2 Follow_Up 3 lost in the 5GS: NW-TT 0, DS-TT 0, 38 slave steps, every step exact, replay exact, no tag at the slave
+      NW 0; DS 0; steps 38; replay True ; non-zero corrections 0; audit 0
+PASS  F-FD3 Sync 3 duplicated in the 5GS: NW-TT 0, DS-TT {'ambiguousSync': 1}, 38 slave steps, every step exact, replay exact, no tag at the slave
+      NW 0; DS {'ambiguousSync': 1}; steps 38; replay True ; non-zero corrections 0; audit 0
+PASS  F-FD4 Follow_Up 3 duplicated in the 5GS: NW-TT 0, DS-TT {'duplicateFU': 1}, 39 slave steps, every step exact, replay exact, no tag at the slave
+      NW 0; DS {'duplicateFU': 1}; steps 39; replay True ; non-zero corrections 0; audit 0
+PASS  F-FD5 Follow_Up 3 before Sync 3 at the DS-TT: NW-TT 0, DS-TT {'fuNoSync': 1}, 38 slave steps, every step exact, replay exact, no tag at the slave
+      NW 0; DS {'fuNoSync': 1}; steps 38; replay True ; non-zero corrections 0; audit 0
+PASS  F-FD6 Follow_Up 3 after Sync 4 at the DS-TT: NW-TT 0, DS-TT {'staleFU': 1}, 38 slave steps, every step exact, replay exact, no tag at the slave
+      NW 0; DS {'staleFU': 1}; steps 38; replay True ; non-zero corrections 0; audit 0
+PASS  F-FD7 TtSyncIngressTag removed from Follow_Up 3: NW-TT 0, DS-TT {'fuNoTag': 1}, 38 slave steps, every step exact, replay exact, no tag at the slave
+      NW 0; DS {'fuNoTag': 1}; steps 38; replay True ; non-zero corrections 0; audit 0
+PASS  F-FD8 tag sequenceId of Follow_Up 3 altered: NW-TT 0, DS-TT {'tagMismatch': 1}, 38 slave steps, every step exact, replay exact, no tag at the slave
+      NW 0; DS {'tagMismatch': 1}; steps 38; replay True ; non-zero corrections 0; audit 0
+PASS  F-FD9 tag Sync frame id of Follow_Up 3 altered: NW-TT 0, DS-TT {'associationMismatch': 1}, 38 slave steps, every step exact, replay exact, no tag at the slave
+      NW 0; DS {'associationMismatch': 1}; steps 38; replay True ; non-zero corrections 0; audit 0
+PASS  F-FD10 Follow_Up 3 delayed 50 ms in the 5GS: NW-TT 0, DS-TT 0, 39 slave steps, every step exact, replay exact, no tag at the slave
+      NW 0; DS 0; steps 39; replay True ; non-zero corrections 0; audit 0
+PASS  F-lupLate FL1: NW-TT link delay only from 0.3 s: NW-TT {'noLinkDelay': 2, 'invalid': 2}, DS-TT {'fuInvalidUpstream': 2}, 37 slave steps, every step exact, replay exact, no tag at the slave
+      NW {'noLinkDelay': 2, 'invalid': 2}; DS {'fuInvalidUpstream': 2}; steps 37; replay True ; non-zero corrections 0; audit 0
+PASS  F-pdelayLoss FL2: GM Pdelay_Resp 2-6 dropped: NW-TT {'noLinkDelay': 3, 'invalid': 3}, DS-TT {'fuInvalidUpstream': 3}, 36 slave steps, every step exact, replay exact, no tag at the slave
+      NW {'noLinkDelay': 3, 'invalid': 3}; DS {'fuInvalidUpstream': 3}; steps 36; replay True ; non-zero corrections 0; audit 0; measuring vector [(2116000, 1.0), (1500000000000, 0.0), (1750003010000, 1.0)]; Follow_Ups while not measuring 3
+PASS  S6 synchronization under faults: slave error throughout every interval affected by a lost or discarded Sync/Follow_Up (every 1 ms sample and Sync arrival between the surrounding steps), compensation 0
+      21 affected intervals: FS2 Sync 3: 260000000.000 ns without a step, 260 clock samples and 2 Sync arrivals inside, max |error| 0 ps; FS3 Sync 3: 260000000.000 ns without a step, 260 clock samples and 3 Sync arrivals inside, max |error| 0 ps; FS6 Sync 3: 260000000.000 ns without a step, 260 clock samples and 2 Sync arrivals inside, max |error| 0 ps; FS8 Sync 3: 260000000.000 ns without a step, 260 clock samples and 2 Sync arrivals inside, max |error| 0 ps; FS9a Sync 3: 260000000.000 ns without a step, 260 clock samples and 2 Sync arrivals inside, max |error| 0 ps; FS9b Sync 3: 260000000.000 ns without a step, 260 clock samples and 2 Sync arrivals inside, max |error| 0 ps; FS9c Sync 3: 260000000.000 ns without a step, 260 clock samples and 2 Sync arrivals inside, max |error| 0 ps; FS9d Sync 3: 260000000.000 ns without a step, 260 clock samples and 2 Sync arrivals inside, max |error| 0 ps; FD1 Sync 3: 260000000.000 ns without a step, 260 clock samples and 1 Sync arrivals inside, max |error| 0 ps; FD2 Sync 3: 260000000.000 ns without a step, 260 clock samples and 2 Sync arrivals inside, max |error| 0 ps; FD3 Sync 3: 260000000.000 ns without a step, 260 clock samples and 3 Sync arrivals inside, max |error| 0 ps; FD5 Sync 3: 260000000.000 ns without a step, 260 clock samples and 2 Sync arrivals inside, max |error| 0 ps; FD6 Sync 3: 260000000.000 ns without a step, 260 clock samples and 2 Sync arrivals inside, max |error| 0 ps; FD7 Sync 3: 260000000.000 ns without a step, 260 clock samples and 2 Sync arriv
+PASS  S7 claim separation: the S6 result (0 ps between steps) holds only because both clocks are ideal (IdealOscillator, compensation 0, gmRateRatio 1); it says nothing about holdover with drifting clocks (not modelled, not claimed)
+PASS  N-noLup cf = Res (Lup omitted): error -50 000 ps: fails exactly ['C1', 'C2', 'C3', 'S2', 'S3'] (beyond its base run M2S5)
+      failed ['C1', 'C2', 'C3', 'S2', 'S3']; signature OK: 39/39 delivered Follow_Ups carry exactly the predicted cf ; slave error after each step [(-50000, 39)]
+PASS  N-lupTwice cf = 2 Lup + Res: error +50 000 ps: fails exactly ['C1', 'C2', 'C3', 'S2', 'S3'] (beyond its base run M2S5)
+      failed ['C1', 'C2', 'C3', 'S2', 'S3']; signature OK: 39/39 delivered Follow_Ups carry exactly the predicted cf ; slave error after each step [(50000, 39)]
+PASS  N-tseEnd cf = Lup + Res + X (576 000 ps): fails exactly ['C2', 'C3', 'S2', 'S3'] (beyond its base run M2S5)
+      failed ['C2', 'C3', 'S2', 'S3']; signature OK: 39/39 delivered Follow_Ups carry exactly the predicted cf ; slave error after each step [(576000, 39)]
+PASS  N-tsiEnd cf = Lup + Res - X: fails exactly ['C2', 'C3', 'S2', 'S3'] (beyond its base run M2S5)
+      failed ['C2', 'C3', 'S2', 'S3']; signature OK: 39/39 delivered Follow_Ups carry exactly the predicted cf ; slave error after each step [(-576000, 39)]
+PASS  N-bothEnd cf unchanged (X cancels at equal rates); only the logged TSi/TSe differ from the PCAP first bits: fails exactly ['C3'] (beyond its base run M2S5)
+      failed ['C3']; signature OK: 39/39 delivered Follow_Ups carry exactly the predicted cf ; slave error after each step [(0, 39)]
+PASS  N-prevSync cf = Lup + Res of the previous Sync: fails exactly ['C2', 'C3', 'S2', 'S3'] (beyond its base run M2S5)
+      failed ['C2', 'C3', 'S2', 'S3']; signature OK: 39/39 delivered Follow_Ups carry exactly the predicted cf ; slave error after each step [(0, 21), (-79995648, 4), (841274159, 3)]
+PASS  N-tseSlot cf = Lup + (Sync slot time - TSi): fails exactly ['C2', 'C3', 'S2', 'S3'] (beyond its base run M2S5)
+      failed ['C2', 'C3', 'S2', 'S3']; signature OK: 39/39 delivered Follow_Ups carry exactly the predicted cf ; slave error after each step [(-464000, 37), (0, 1), (-501117, 1)]
+PASS  N-noFcsDs DS-TT FCS stale: the slave's FCS checker drops every Follow_Up (S3 cannot see it: the ideal slave clock, never stepped, stays exact): fails exactly ['C2', 'C6', 'C7', 'S2'] (beyond its base run M2S5)
+      failed ['C2', 'C6', 'C7', 'S2']; signature OK: slave FCS-checker drops 39 = Follow_Ups sent 39; slave steps 0; slave error after each step []
+PASS  N-noFcsNw NW-TT FCS stale: the NW-TT node's FCS checker drops every Follow_Up: fails exactly ['C1', 'C2', 'C6', 'C7', 'C8', 'S2', 'S3'] (beyond its base run M2S5)
+      failed ['C1', 'C2', 'C6', 'C7', 'C8', 'S2', 'S3']; signature OK: NW-TT node FCS-checker drops 39 = Follow_Ups received; Follow_Ups in the 5GS 0; slave error after each step []
+PASS  N-rr cf = rr (x) Lup + rr_out (x) Res, rr = 1.0001: fails exactly ['C1', 'C2', 'C3', 'C5', 'S2', 'S3'] (beyond its base run M2S5)
+      failed ['C1', 'C2', 'C3', 'C5', 'S2', 'S3']; signature OK: 39/39 delivered Follow_Ups carry exactly the predicted cf ; slave error after each step [(500223, 25), (600223, 4), (488127, 3)]
+PASS  N-forwardInvalid INVALID Follow_Ups 0 and 1 delivered with cf 0: fails exactly ['C2', 'C7', 'S2', 'S3'] (beyond its base run M2S5-lupLate)
+      failed ['C2', 'C7', 'S2', 'S3']; signature OK: 39/39 delivered Follow_Ups carry exactly the predicted cf ; slave error after each step [(0, 35), (-5000626000, 1), (-5002226000, 1)]
+PASS  N-syncCf Follow_Ups correct; Sync cf = Lup: only the wire check C4 sees it, slave error 0: fails exactly ['C4'] (beyond its base run M2S5)
+      failed ['C4']; signature OK: 39/39 delivered Follow_Ups carry exactly the predicted cf ; Sync cf on the wire {3276800} (= enc(50 ns)); slave error {0}; slave error after each step [(0, 39)]
+PASS  N-noStrip Follow_Ups correct; the tag reaches the slave on every Follow_Up: fails exactly ['C8'] (beyond its base run M2S5)
+      failed ['C8']; signature OK: 39/39 delivered Follow_Ups carry exactly the predicted cf ; frames with a tag at the slave 39; slave error {0}; slave error after each step [(0, 39)]
+PASS  N-fwdPdelay Pdelay forwarded end to end + reference 50 ns: cf = 50 ns + Res, the slave adds its end-to-end pdelay: fails exactly ['C1', 'C2', 'C3', 'C8', 'P1', 'P2', 'S2', 'S3'] (beyond its base run M2S5)
+      failed ['C1', 'C2', 'C3', 'C8', 'P1', 'P2', 'S2', 'S3']; signature OK: 39/39 delivered Follow_Ups carry exactly the predicted cf ; slave pdelay at step 1 7000050.000 ns = raw end-to-end exchange 0 from PCAP; error after step 1 7000000.000 ns = pdelay - 50 ns; slave error after each step [(7000000000, 8), (8000074240, 7), (8248147180, 7)]
+PASS  H0 FIFO-replay validity (unit base, no correction, no hold): replay from PCAP arrivals = observed DS-TT eth[1] order and first bits for every frame
+      17387 frames; order True; deviations 0
+PASS  H1 unit hold run: Follow_Ups held while their Sync is queued (count > 0) and corrected exactly (cf on the wire, slave replay, 0 ps)
+      holds 22; steps 23, all 0 ps: True; replay True; cf problems 0
+PASS  H2 timing neutrality of the hold (independent FIFO replay from PCAP): observed DS-TT eth[1] order = arrival order (exact FIFO) and every first bit = replay, incl. held Follow_Ups, background frames and Pdelay frames
+      90575 frames; held frames {'-1': 41, '3': 19} (type -1: background, 3: Pdelay_Resp); deviations 0
+PASS  H2b Pdelay interleaving: DS-TT Pdelay_Resps injected during holds, transmitted in FIFO order; the slave's link delay stays exact
+      Pdelay_Resps held 19; slave pdelay [5e-08]
+PASS  W1 sub-ns correction values (unit, non-integer-ns links): the slave uses the ps value (replay exact, 0 ps); the wire carries trunc_ns(cf) << 16; a byte-reading slave would deviate by exactly the truncated residue
+      23 of 23 cf values with a sub-ns part; wire = trunc_ns: True; sim error 0: True; wire-mode slave step corrections [-784] ps; holds 22, FIFO exact True
+PASS  N-bothEnd-unit N4b (unit, 1 Gb/s in, 100 Mb/s out): TSi and TSe at the last bit: error = X_out - X_in at every step (does not cancel at different rates); the wire cf differs from enc(Lup + Res) (C2) and the error is non-zero (S2)
+      step corrections [5184000] ps (X_out - X_in = 5184000)
+PASS  H3 hold expiry (holdTimeout 5 us < queue waits): every held Follow_Up discarded, none reaches the slave; held frames released in order at expiry; each release deviation from the replay reported (not neutral by design)
+      holds 22, expired 22; order kept True; frames held 1; start deviations from the replay 0 ([] ps): the 5 us expiry released every held frame before its FIFO turn, so no transmission time changed in this run
+PASS  H4 Sync loss below the hold point (Sync 5, TEST ONLY): Follow_Up 5 held, discarded at hold expiry (10 ms), not delivered; release deviations reported
+      fuHoldExpired 1; FU 5 delivered False; 829 frames held for 10 ms; the released burst starts 9910.528 us after the replay's start (1 burst start(s); the burst then follows back to back, FIFO order kept True); every other step exact True; NOT timing-neutral (reported, by design)
+PASS  N-noHold N13 (unit): a Follow_Up whose Sync is still queued discarded instead of held: signature: no hold, fuNoSync = the hold count of M2S5U-hold, slave steps = N - that count (H1 and the delivery rule C7 would fail)
+      fuNoSync 22 = M2S5U-hold holds 22; steps 1
+PASS  H5 scope: the neutrality result (H2) holds for one unlimited FIFO without shaping or preemption; no other queue model was tested
+      holds per run {'M2S5U-hold': (22, {'-1': 41, '3': 19}), 'M2S5U-subns': (22, {'-1': 41, '3': 19}), 'M2S5U-nc-bothEnd': (22, {'-1': 42, '3': 19}), 'M2S5U-expiry': (22, {'-1': 1}), 'M2S5U-syncloss': (22, {'-1': 810, '3': 19}), 'M2S5U-nc-noHold': (0, {})}
+
+OVERALL: PASS (71/71)

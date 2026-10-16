@@ -1,0 +1,21 @@
+# gPTP decode census per observation point: (type, majorSdoId, versionPTP, minorVersionPTP, messageLength, domain, minorSdoId, flags, control, logMessageInterval, Follow_Up TLV (type, length, organizationId, subType), csro): count
+DS-TT in	('Pdelay_Req', 0, 2, 1, 54, 0, 0, '0x0000', 0, 0, None, None)	90
+DS-TT out	('Follow_Up', 0, 2, 1, 76, 0, 0, '0x0000', 0, 0, (3, 28, 32962, 1), 0)	572
+DS-TT out	('Pdelay_Resp', 0, 2, 1, 54, 0, 0, '0x0000', 0, 0, None, None)	75
+DS-TT out	('Pdelay_Resp_Follow_Up', 0, 2, 1, 54, 0, 0, '0x0000', 0, 0, None, None)	75
+DS-TT out	('Sync', 0, 2, 1, 44, 0, 0, '0x0002', 0, 0, None, None)	575
+GM in	('Pdelay_Req', 0, 2, 1, 54, 0, 0, '0x0000', 0, 0, None, None)	76
+GM out	('Follow_Up', 0, 2, 1, 76, 0, 0, '0x0000', 0, 0, (3, 28, 32962, 1), 0)	585
+GM out	('Pdelay_Resp', 0, 2, 1, 54, 0, 0, '0x0000', 0, 0, None, None)	76
+GM out	('Pdelay_Resp_Follow_Up', 0, 2, 1, 54, 0, 0, '0x0000', 0, 0, None, None)	76
+GM out	('Sync', 0, 2, 1, 44, 0, 0, '0x0002', 0, 0, None, None)	585
+NW-TT in	('Follow_Up', 0, 2, 1, 76, 0, 0, '0x0000', 0, 0, (3, 28, 32962, 1), 0)	585
+NW-TT in	('Pdelay_Resp', 0, 2, 1, 54, 0, 0, '0x0000', 0, 0, None, None)	76
+NW-TT in	('Pdelay_Resp_Follow_Up', 0, 2, 1, 54, 0, 0, '0x0000', 0, 0, None, None)	76
+NW-TT in	('Sync', 0, 2, 1, 44, 0, 0, '0x0002', 0, 0, None, None)	585
+NW-TT out	('Pdelay_Req', 0, 2, 1, 54, 0, 0, '0x0000', 0, 0, None, None)	76
+slave in	('Follow_Up', 0, 2, 1, 76, 0, 0, '0x0000', 0, 0, (3, 28, 32962, 1), 0)	572
+slave in	('Pdelay_Resp', 0, 2, 1, 54, 0, 0, '0x0000', 0, 0, None, None)	75
+slave in	('Pdelay_Resp_Follow_Up', 0, 2, 1, 54, 0, 0, '0x0000', 0, 0, None, None)	75
+slave in	('Sync', 0, 2, 1, 44, 0, 0, '0x0002', 0, 0, None, None)	575
+slave out	('Pdelay_Req', 0, 2, 1, 54, 0, 0, '0x0000', 0, 0, None, None)	90
