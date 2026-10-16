@@ -9,6 +9,7 @@ package nasctime.m2;
 import inet.protocolelement.measurement.IMeasurementLayer;
 import inet.protocolelement.trafficconditioner.ITrafficConditionerLayer;
 import inet.queueing.base.PacketFlowBase;
+import inet.queueing.contract.IPacketFlow;
 
 //
 // TEST ONLY (M2-S5 fault cases, design 7.5). Fits an empty measurementLayer or
@@ -48,12 +49,13 @@ module SyncFaultInjectorLayer like IMeasurementLayer, ITrafficConditionerLayer
 //   delay           hold for 'delay', then forward
 //   rewrite         field ("sequenceId" += value | "versionPTP" | "messageLength" | "domainNumber" = value), FCS recomputed
 //   truncate        gPTP message replaced by its first truncateTo bytes (raw), padded, FCS recomputed
+//   asBytes         gPTP message replaced by a BytesChunk of its own serialized bytes (same bytes)
 //   fuBefore        (Sync k) a copy of the previous Follow_Up with sequenceId k is sent ahead of the Sync
 //   stripTag        TtSyncIngressTag removed from the Follow_Up
 //   tagSeq          TtSyncIngressTag sequenceId += value
 //   tagFrameId      TtSyncIngressTag syncFrameId += value
 //
-simple SyncFaultInjector extends PacketFlowBase
+simple SyncFaultInjector extends PacketFlowBase like IPacketFlow
 {
     parameters:
         string action = default("");

@@ -37,7 +37,7 @@ void SyncFaultInjector::initialize(int stage)
     PacketFlowBase::initialize(stage);
     if (stage == INITSTAGE_LOCAL) {
         action = par("action").stdstringValue();
-        static const std::set<std::string> known = {"", "drop", "dup", "holdUntilAfter", "delay", "rewrite", "truncate", "fuBefore",
+        static const std::set<std::string> known = {"", "drop", "dup", "holdUntilAfter", "delay", "rewrite", "truncate", "asBytes", "fuBefore",
                                                     "stripTag", "tagSeq", "tagFrameId"};
         if (!known.count(action))
             throw cRuntimeError("Unknown action '%s'", action.c_str());
@@ -104,6 +104,16 @@ Packet *SyncFaultInjector::rewritten(const Packet *packet, int type) const
     gptpframe::collectLeaves(out->peekData(), b(0), leaves);
     if (leaves.size() < 3)
         throw cRuntimeError("rewrite: unexpected frame structure");
+    if (action == "asBytes") {
+        // the gPTP message replaced by a BytesChunk of its own serialized bytes (same length,
+        // same FCS): a valid frame in a representation the corrector does not accept
+        b off = leaves[1].offset;
+        MemoryOutputStream os;
+        Chunk::serialize(os, leaves[1].chunk);
+        auto bytes = makeShared<BytesChunk>(os.getData());
+        out->replaceDataAt(bytes, off, bytes->getChunkLength());
+        return out;
+    }
     if (action == "truncate") {
         // the gPTP message replaced by its first truncateTo bytes (raw); FCS recomputed
         b off = leaves[1].offset;
@@ -220,7 +230,7 @@ void SyncFaultInjector::pushPacket(Packet *packet, const cGate *gate)
         delayed.push_back({msg, packet});
         scheduleAfter(delay, msg);
     }
-    else if (action == "rewrite" || action == "truncate") {
+    else if (action == "rewrite" || action == "truncate" || action == "asBytes") {
         Packet *out = rewritten(packet, type);
         delete packet;
         forward(out);

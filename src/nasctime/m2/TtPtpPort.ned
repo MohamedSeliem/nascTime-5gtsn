@@ -8,6 +8,7 @@ package nasctime.m2;
 
 import inet.protocolelement.trafficconditioner.ITrafficConditionerLayer;
 import inet.queueing.base.PacketFlowBase;
+import inet.queueing.contract.IPacketFlow;
 
 //
 // M2-S5: online downlink two-step gPTP correction at a translator's TSN-facing port
@@ -62,12 +63,20 @@ module TtPtpPort like ITrafficConditionerLayer
             enabled = parent.syncIngress;
             @display("p=350,100");
         }
+        // TEST ONLY (fault cases FS9c/FS9d): a fault injector between the Pdelay engine and
+        // syncIn on the RX path, for frame representations that INET's grandmaster cannot
+        // transmit itself (it parses its own transmitted gPTP frames). Absent by default.
+        rxTest: <default("")> like IPacketFlow if typename != "" {
+            @display("p=450,150");
+        }
     connections:
         upperLayerIn --> { @display("m=n"); } --> tx.in;
         tx.out --> { @display("m=s"); } --> syncOut.in;
         syncOut.out --> lowerLayerOut;
         lowerLayerIn --> { @display("m=s"); } --> rx.in;
-        rx.out --> { @display("m=n"); } --> syncIn.in;
+        rx.out --> { @display("m=n"); } --> syncIn.in if !exists(rxTest);
+        rx.out --> { @display("m=n"); } --> rxTest.in if exists(rxTest);
+        rxTest.out --> syncIn.in if exists(rxTest);
         syncIn.out --> upperLayerOut;
 }
 

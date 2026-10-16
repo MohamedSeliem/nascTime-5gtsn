@@ -107,8 +107,11 @@ void TtSyncEgress::receiveSignal(cComponent *source, simsignal_t signalID, cObje
         return;
     long tree = encapsulatedPacket(obj)->getTreeId();
     if (signalID == transmissionEndedSignal) {
-        if (egressTest == "tseEnd" && tree == lastTx.treeId)   // TEST ONLY (N3)
-            lastTx.tse = simTime();
+        if (egressTest == "tseEnd" && tree == lastTx.treeId) {   // TEST ONLY (N3): TSe = last bit; a held
+            lastTx.tse = simTime();                               // Follow_Up is released only then
+            if (holding && heldKey == lastTx.key && !releaseEvent->isScheduled())
+                scheduleAt(simTime(), releaseEvent);
+        }
         return;
     }
     if (signalID != transmissionStartedSignal)
@@ -131,7 +134,7 @@ void TtSyncEgress::receiveSignal(cComponent *source, simsignal_t signalID, cObje
     pending.erase(it);
     numSyncTransmitted++;
     writeLog("syncTx", 0, t.key, tree, t.frameId, 0, nullptr, simTime(), -1, -1, t.ambiguous ? "ambiguous" : "");
-    if (holding && heldKey == t.key && !releaseEvent->isScheduled())
+    if (holding && heldKey == t.key && !releaseEvent->isScheduled() && egressTest != "tseEnd")
         scheduleAt(simTime(), releaseEvent);   // zero-delay release, behind the Sync in the MAC FIFO
 }
 
