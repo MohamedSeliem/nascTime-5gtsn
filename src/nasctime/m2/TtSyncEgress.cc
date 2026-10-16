@@ -278,8 +278,6 @@ void TtSyncEgress::processFollowUp(Packet *packet)
         if (kv.second.key == f.key) {
             if (egressTest == "noHold")    // TEST ONLY (N13)
                 return discard(packet, numFuNoSync, "fuNoSync", f, "TEST noHold: Sync still queued");
-            // step 5: the FIFO hold is enabled in step 6 (a Follow_Up whose Sync is still queued is an internal error here)
-            throw cRuntimeError("TtSyncEgress: Follow_Up %s reached the slot while its Sync is still queued (FIFO hold: step 6)", f.key.str().c_str());
             startHold(packet, f.key);
             return;
         }
