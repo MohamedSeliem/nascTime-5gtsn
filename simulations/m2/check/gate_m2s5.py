@@ -150,11 +150,22 @@ def gate(runs5, runs4):
     return ok_all, rows, dict(totals)
 
 
+def sensitivity(runs5, runs4):
+    """The comparison must detect real differences: a different seed and a different variant."""
+    a, _ = compare_run(runs4, "M2S4", 0, runs5, "M2S5-passive", 1)
+    b, _ = compare_run(runs4, "M2S4-frag", 0, runs5, "M2S5-passive", 0)
+    return len(a), len(b)
+
+
 if __name__ == "__main__":
     runs5 = sys.argv[1]
     runs4 = sys.argv[2] if len(sys.argv) > 2 else os.path.join(os.path.dirname(runs5.rstrip("/")), "..", "M2-S4", "runs")
     ok, rows, totals = gate(runs5, runs4)
     for name, good, probs, ev in rows:
         print(f"{'PASS' if good else 'FAIL'}  {name}  final event #{ev}" + ("" if good else f"\n      {probs[:6]}"))
+    s1, s2 = sensitivity(runs5, runs4)
+    print(f"sensitivity: M2S4#0 vs M2S5-passive#1 (other seed) {s1} differences; M2S4-frag#0 vs M2S5-passive#0 "
+          f"(other variant) {s2} differences")
+    ok = ok and s1 > 0 and s2 > 0
     print(f"\nG0: {'PASS' if ok else 'FAIL'} ({sum(1 for r in rows if r[1])}/{len(rows)} run pairs identical); totals {totals}")
     sys.exit(0 if ok else 1)

@@ -1,0 +1,34 @@
+M2-S5 prerequisite gates R0 / R1 (fresh container, 2026-10-16). Recorded before any M2-S5 active code.
+
+R0 -- restored environment reproduces the committed M2-S1 and M2-S4 records
+  Git: repository restored from the delivered bundles (m1, m2-s0, m2-s1, m2-s3, m2-s4; each
+       'git bundle verify' okay; m2-s4 bundle SHA-256 889a25a4...f3b8 = delivered value);
+       100 commits, git fsck clean; m2/architecture = 3726a71; master = 9e8bc83.
+  Stack: OMNeT++ 6.4.0 core tarball sha256 db8de41f2503772aa627fbd99901078fd7a9db9942df9f284de40f7704053bbb,
+         INET 4.7.0 src tarball sha256 0de338f8de6acafa054627ed879efb49137973316cddbc161f60968faa8e4878,
+         Simu5G tag v1.8.0 = 1de882bc68024c9d56a7b77ce01643c448597435 (git archive) -- all three equal the
+         values recorded in simulations/m1/results/S0.md; headless, MODE=release for all three;
+         opp_run: "Version: 6.4.0, build: 260506-2cf25223fe, edition: Academic Public License -- NOT FOR COMMERCIAL USE";
+         INET Version file: inet-4.7.0-dfe270b21f; Simu5G Version file: 1.8.0;
+         compiler: Ubuntu clang version 18.1.3 (1ubuntu1) (= M1 S0 record); python: Python 3.13.16.
+  Library: libnasctime_m2.so built from 3726a71 = 63583b6a34bc781f3b7b6b39be6217c0eb01dba761ce5834a36500df4df296b2,
+           byte-identical to the M2-S4 record (env.txt). A first build in a side directory hashed
+           differently (01fa22e2...); cause found: the library embeds its build directory path; built
+           at the original path /root/inv/nascTime-5gtsn it is identical (this also confirms identical
+           compiler, flags and INET headers).
+  m2s1.sh at 3726a71: check.txt (OVERALL: PASS (28/28)) and census.txt byte-identical to the committed
+           files; 216 .pcapng and 416 per-frame logs hash-identical to M2-S1/raw-outputs.sha256.
+           Differing hashes (expected class, investigated): every .sca/.vec (run id, date, process id)
+           and the 15 top-level opp_scavetool exports runs/<config>.csv (derived from .sca/.vec). Control:
+           two runs of M2S1-off #0 in this environment give exports that differ only in the run-id column,
+           the run attributes and the result-directory paths (54 lines, all paths) -- the exports are not
+           reproducible by construction; M2-S1/M2-S4 regressions have always excluded them (632 = 216 + 416).
+  m2s4.sh at 3726a71: check.txt (OVERALL: PASS (55/55)) byte-identical; all 1648 .pcapng / per-frame /
+           engine logs hash-identical to M2-S4/raw-outputs.sha256; only .sca/.vec hashes differ.
+  => R0 PASS. No unexplained difference.
+
+R1 -- step 1 (451c1ae, TtPdelayEngine::linkDelayState accessor) changes no M2-S4 output
+  m2s4.sh at 451c1ae: check.txt byte-identical (PASS 55/55); all 1648 .pcapng / log hashes identical.
+  => R1 PASS. These M2S4 runs are the baseline that gate G0 compares against.
+
+Committed records (env.txt, raw-outputs.sha256 of M2-S1/M2-S4) were restored after each rerun.

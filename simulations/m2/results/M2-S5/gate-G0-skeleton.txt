@@ -1,0 +1,17 @@
+PASS  M2S4#0 vs M2S5-passive#0  final event #101499
+PASS  M2S4#1 vs M2S5-passive#1  final event #101499
+PASS  M2S4#2 vs M2S5-passive#2  final event #101499
+PASS  M2S4#3 vs M2S5-passive#3  final event #101499
+PASS  M2S4#4 vs M2S5-passive#4  final event #101679
+PASS  M2S4#5 vs M2S5-passive#5  final event #101499
+PASS  M2S4#6 vs M2S5-passive#6  final event #101679
+PASS  M2S4#7 vs M2S5-passive#7  final event #101499
+PASS  M2S4#8 vs M2S5-passive#8  final event #101679
+PASS  M2S4#9 vs M2S5-passive#9  final event #101499
+PASS  M2S4-frag#0 vs M2S5-passive-frag#0  final event #105568
+PASS  M2S4-load#0 vs M2S5-passive-load#0  final event #1343219
+PASS  M2S4-load-harq16#0 vs M2S5-passive-load-harq16#0  final event #1467781
+PASS  M2S5U-base#0 vs M2S5U-passive#0  final event #385441
+sensitivity: M2S4#0 vs M2S5-passive#1 (other seed) 1070 differences; M2S4-frag#0 vs M2S5-passive#0 (other variant) 1094 differences
+
+G0: PASS (14/14 run pairs identical); totals {'pcapng': 123, 'logs': 288, 'vectors': 23461, 'vector lines': 17137766, 'scalar lines': 424454, 'runs': 14}
