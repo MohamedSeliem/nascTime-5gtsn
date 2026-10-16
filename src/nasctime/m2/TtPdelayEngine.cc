@@ -628,6 +628,13 @@ void TtPdelayEngine::publish(bool republish, const char *note)
         prevT3 = t3;
         prevT4 = t4;
         numPublished++;
+        lastPublished.valid = true;
+        lastPublished.meanLinkDelay = D;
+        lastPublished.neighborRateRatio = nrr;
+        lastPublished.nrrNum = num;
+        lastPublished.nrrDen = den;
+        lastPublished.sequenceId = seq;
+        lastPublished.publishedAt = simTime();
     }
     else
         numRepublished++;
@@ -643,6 +650,13 @@ void TtPdelayEngine::publish(bool republish, const char *note)
         log << (republish ? "republish" : "measure") << ',' << simTime().raw() << ",10," << seq << ',' << stateName(state)
             << ",,,,,,," << a1.raw() << ',' << a2.raw() << ',' << a3.raw() << ',' << a4.raw() << ',' << D.raw() << ',' << num << ','
             << den << ',' << nrr.raw() << ',' << note << '\n';
+}
+
+TtPdelayEngine::LinkDelayState TtPdelayEngine::linkDelayState() const
+{
+    LinkDelayState s = lastPublished;
+    s.measuring = measuring;
+    return s;
 }
 
 // ---------------------------------------------------------------------------------------

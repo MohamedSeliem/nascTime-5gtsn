@@ -55,6 +55,20 @@ class TtPdelayEngine : public cSimpleModule, public cListener
     enum State { IDLE, WAIT_RESP, WAIT_FU, DONE, FAULTED };
     static const char *stateName(State s);
 
+    // M2-S5 (migration/m2-s5-design.md 2.3): read-only view of the last published link
+    // delay, for the NW-TT Follow_Up correction. valid: at least one publication;
+    // measuring: the record-only flag of design 4.5 (D within [0, neighborPropDelayThresh],
+    // fewer than allowedLostResponses + 1 consecutive losses).
+    struct LinkDelayState {
+        bool valid = false;
+        bool measuring = false;
+        simtime_t meanLinkDelay;
+        ClockTimeScale neighborRateRatio;
+        int64_t nrrNum = 1, nrrDen = 1;
+        uint16_t sequenceId = 0;
+        simtime_t publishedAt;
+    };
+
   protected:
     // configuration
     bool terminate = false;
@@ -108,6 +122,7 @@ class TtPdelayEngine : public cSimpleModule, public cListener
     simtime_t prevT3, prevT4;             // last completed exchange (neighborRateRatio)
     ClockTimeScale lastNrr;               // rate ratio used for the last publication
     int64_t lastNrrNum = 1, lastNrrDen = 1;
+    LinkDelayState lastPublished;         // M2-S5 accessor (assigned in publish(), never read here)
     int consecutiveLost = 0;
     bool measuring = false;
     cOutVector meanLinkDelayVector, nrrVector, measuringVector;
@@ -150,6 +165,8 @@ class TtPdelayEngine : public cSimpleModule, public cListener
   public:
     // rx flow: true if the engine takes the frame (terminated here)
     bool offerReceived(Packet *packet);
+
+    LinkDelayState linkDelayState() const;
 };
 
 } // namespace nasctime
