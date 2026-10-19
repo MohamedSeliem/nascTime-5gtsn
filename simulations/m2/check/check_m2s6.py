@@ -303,7 +303,10 @@ def stats_lines(cfg, items):
     fus = [(rep, f) for rep, E in items for f in E.fus if "skip" not in f]
     cal = [f for r, f in fus if f["nrr_valid"]]
     unc = [f for r, f in fus if not f["nrr_valid"]]
-    ivs = [x for rep, E in items for x in E.iv[2:]]
+    cal_seq = {(rep, f["seq"]) for rep, E in items for f in E.fus if "skip" not in f and f["nrr_valid"]}
+    ivs_all = [(rep, x) for rep, E in items for x in E.iv[2:]]
+    ivs = [x for rep, x in ivs_all if (rep, x["seq"]) in cal_seq]
+    ivs_u = [x for rep, x in ivs_all if (rep, x["seq"]) not in cal_seq]
     lag = [f["sF"] - f["s2"] for r, f in fus]
     res = [f["Res_s"] for r, f in fus]
     out.append(f"{cfg} (reps {[r for r, E in items]}): {len(fus)} Follow_Ups ({len(cal)} calibrated, {len(unc)} uncalibrated); "
@@ -318,12 +321,14 @@ def stats_lines(cfg, items):
             name = {"L": "E_link", "Rr": "E_res", "D": "E_ldn"}[grp]
             out.append(f"    {name}: " + ", ".join(f"{k} {rng([f[grp][k] for f in cal])}" for k in keys
                                                     if any(f[grp][k] != 0 for f in cal)) or f"    {name}: all components 0")
-    if ivs:
-        out.append(f"  after step (k >= 3): e+ {rng([x['e_plus'] for x in ivs])} ns = eps {rng([x['eps'] for x in ivs])} "
-                   f"+ lag {rng([x['lam'] for x in ivs])} + round-up {rng([x['rho'] for x in ivs])}")
-        bt = [x["max_between"] for x in ivs if x["max_between"] is not None]
-        em = [x["e_minus_next"] for x in ivs if x["e_minus_next"] is not None]
-        out.append(f"  between steps (k >= 3): max |e| {max(ns(b) for b in bt) if bt else float('nan'):.3f} ns; "
+    for label, sub in (("calibrated", ivs), ("uncalibrated", ivs_u)):
+        if not sub:
+            continue
+        out.append(f"  after step k >= 3 ({label}): e+ {rng([x['e_plus'] for x in sub])} ns = eps {rng([x['eps'] for x in sub])} "
+                   f"+ lag {rng([x['lam'] for x in sub])} + round-up {rng([x['rho'] for x in sub])}")
+        bt = [x["max_between"] for x in sub if x["max_between"] is not None]
+        em = [x["e_minus_next"] for x in sub if x["e_minus_next"] is not None]
+        out.append(f"  between steps after step k >= 3 ({label}): max |e| {max(ns(b) for b in bt) if bt else float('nan'):.3f} ns; "
                    f"end of interval e- {rng(em)} ns")
     for rep, E in items[:1]:
         t = E.iv[:3]
@@ -389,6 +394,22 @@ def hypotheses(cfg, items):
     return out
 
 
+def aggregate(hs, cfg):
+    """One line per hypothesis and config: held in n of N reps, predicted/observed of every rep."""
+    by = {}
+    for h in hs:
+        by.setdefault(h[0], []).append(h)
+    out = []
+    for hid, lst in by.items():
+        stmt = lst[0][1].split(": ", 1)[1]
+        pred = sorted({h[2] for h in lst})
+        obs = [h[3] for h in lst]
+        n = sum(1 for h in lst if h[4])
+        out.append((hid, f"{cfg} ({len(lst)} reps): {stmt}", " / ".join(pred), " / ".join(obs) if len(obs) <= 3 else
+                    f"{obs[0]} ... {obs[-1]} ({len(obs)} values)", n == len(lst), f"{n}/{len(lst)}"))
+    return out
+
+
 STAGES = {
     "A": ["M2S6U-A1", "M2S6U-A2", "M2S6U-A3", "M2S6U-A4", "M2S6U-A5"],
     "B": ["M2S6U-B-m100", "M2S6U-B-m10", "M2S6U-B-m1", "M2S6U-B-p1", "M2S6U-B-p10", "M2S6U-B-p100",
@@ -422,7 +443,7 @@ def main():
                     items.append((rep, E))
             if items:
                 report += stats_lines(cfg, items)
-                hyp += hypotheses(cfg, items)
+                hyp += aggregate(hypotheses(cfg, items), cfg)
     npass = sum(1 for r in rows if r[2])
     for check, detail, ok, extra in rows:
         print(f"[{'PASS' if ok else 'FAIL'}] {check}: {detail}" + (f" -- {extra}" if extra else ""))
@@ -433,7 +454,7 @@ def main():
             fh.write("Per-config error components (ns; ranges over all Follow_Ups of all reps)\n")
             fh.write("\n".join(report) + "\n\nHypotheses (design 4.6): id | statement | predicted | observed | held\n")
             for h in hyp:
-                fh.write(f"{h[0]} | {h[1]} | {h[2]} | {h[3]} | {'held' if h[4] else 'REFUTED'}\n")
+                fh.write(f"{h[0]} | {h[1]} | {h[2]} | {h[3]} | {'held' if h[4] else 'REFUTED'} ({h[5]})\n")
     return 0 if npass == len(rows) else 1
 
 
