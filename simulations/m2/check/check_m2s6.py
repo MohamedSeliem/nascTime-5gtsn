@@ -16,6 +16,7 @@ import inet_model as M  # noqa: E402
 import clock_model as KM  # noqa: E402
 import slave_m2s6 as O5  # noqa: E402
 import decomp_m2s6 as DC  # noqa: E402
+import ttclock_model as TT  # noqa: E402
 from fractions import Fraction  # noqa: E402
 
 NS = RR.NS
@@ -156,10 +157,23 @@ def attach_reads(nc, queries, drift_vec=None):
 
 # ---------------------------------------------------------------------------------------
 # servo runs: O5 (rows S), O4 (rows R, P), O3 (rows E), intervals (design 4.5)
+def tt_maps(R):
+    """TT stamps by kind and sequenceId from the TtClock logs (A2; validated by the T rows), or None (A1)."""
+    if not R.ttlog:
+        return None
+    m = {}
+    for side, kinds in (("nw", (3, 6)), ("ds", (4, 5))):
+        for k in kinds:
+            m[k] = {r["seq"]: r["tau"] for r in R.ttlog[side] if r["kind"] == k}
+    return {"ds_t2": m[4], "ds_t3": m[5], "nw_t1": m[3], "nw_t4": m[6]}
+
+
 class Eval:
-    """Everything the oracles predict for one run, with the TT timestamp source (A1: simulation time)."""
+    """Everything the oracles predict for one run, with the TT timestamp source (A1: simulation time;
+    A2: the logged TT stamps, each recomputed by the T rows)."""
     def __init__(self, R, tt=None):
         self.R = R
+        tt = tt_maps(R) if tt is None else tt
         c = R.conf
         sel = RR.C5.sel
         self.gnc = gm_clocks(R)
@@ -204,9 +218,12 @@ def r_rows(E, tag):
     attach_reads(G, list(G.reads) + [("U", greq[s]["start"]) for s in greq] + [("U", gresp[s]["start"]) for s in gresp],
                  R.vecv(f"{R.gmn}.clock.oscillator", "driftRateChanged:vector") if R.conf["gm"]["osc"]["rw"] else None)
     bad, n, prev = [], 0, None
+    tm = tt_maps(R)
     for r in [x for x in R.nweng if x["event"] == "measure"]:
         s = int(r["seq"])
         t1, t4 = req[s]["start"], resp[s]["start"]                 # A1: NW-TT timestamps = simulation time
+        if tm:                                                      # A2: the NW-TT's measured stamps (T rows)
+            t1, t4 = tm["nw_t1"][s], tm["nw_t4"][s]
         t2, t3 = G.reads[("U", greq[s]["start"])], G.reads[("U", gresp[s]["start"])]
         e = 0 if prev is None else KM.from_integer_ratio(t3 - prev[0], t4 - prev[1])
         D = M.trunc_div2(KM.mul_round(t4 - t1, e) - (t3 - t2))
@@ -272,8 +289,96 @@ def run_eval(runs, cfg, rep, report):
     s_ok = s_rows(E, tag)
     r_rows(E, tag)
     e_rows(E, tag)
+    if R.ttlog:
+        t_rows(R, tag)
     report.append((cfg, rep, E, s_ok))
     return E
+
+
+# ---------------------------------------------------------------------------------------
+# rows T (stage E): every TT stamp recomputed from the configuration (ttclock_model), at the PCAP time
+# of its event, and used unchanged by the translators and the slave
+def t_rows(R, tag):
+    conf, sel = R.conf["tt"], RR.C5.sel
+    events = {
+        ("nw", 1): [f["start"] for f in sel(R.nw1, 1, RR.SYNC, dom=None)],
+        ("nw", 3): [f["start"] for f in sel(R.nw1, 2, RR.REQ, dom=None)],
+        ("nw", 6): [f["start"] for f in sel(R.nw1, 1, RR.RESP, dom=None)],
+        ("nw", 7): [f["end"] for f in sel(R.nw1, 2, RR.REQ, dom=None)],
+        ("nw", 9): [f["end"] for f in sel(R.nw1, 1, RR.RESP, dom=None)],
+        ("ds", 2): [f["start"] for f in sel(R.ds1, 2, RR.SYNC, dom=None)],
+        ("ds", 4): [f["start"] for f in sel(R.ds1, 1, RR.REQ, dom=None)],
+        ("ds", 5): [f["start"] for f in sel(R.ds1, 2, RR.RESP, dom=None)],
+    }
+    for side in ("nw", "ds"):
+        p, log = conf[side], R.ttlog[side]
+        bad = [r for r in log if r["C"] != TT.clock(p, r["s"]) or r["tau"] != TT.measure(p, r["s"], r["w"])
+               or ((p["sigma"] == 0 or r["kind"] in TT.TEST_KINDS) and r["w"] != 0)]
+        add(f"T {tag}", f"{side.upper()}-TT: every stamp recomputed from the configuration: C_T(s) and tau = Q(C_T(s) + w) "
+            f"({len(log)} stamps; theta0 {p['theta0'] / NS:g} ns, y {p['y']} ppb, D {p['D']} ppb/s, U {p['U'] / 1e9:g} ms, "
+            f"sigma {p['sigma'] / NS:g} ns, L {p['L'] / NS:g} ns)", not bad and len(log) > 0, str(bad[:2]))
+        for (sd, k), ts in events.items():
+            if sd != side:
+                continue
+            got = sorted(r["s"] for r in log if r["kind"] == k)
+            ts = sorted(ts)
+            end = R.conf["end"]
+            # a frame that starts within the last 10 us of the run is stamped but never completes (no PCAP
+            # record); a *_END stamp exists only for completed frames
+            ok = got == ts or (got[:len(ts)] == ts and all(x >= end - 10 ** 7 for x in got[len(ts):]) and len(got) - len(ts) <= 1)
+            add(f"T {tag}", f"{side.upper()}-TT {TT.KINDS[k]}: stamped at the PCAP first/last bit of every such event ({len(got)})", ok,
+                f"{len(got)} stamps vs {len(ts)} events")
+    # values used: DS-TT log TSi/TSe, NW-TT engine t1/t4, what the slave received (wire: whole ns)
+    nwk = {(r["kind"], r["s"]): r["tau"] for r in R.ttlog["nw"]}
+    dsk = {(r["kind"], r["s"]): r["tau"] for r in R.ttlog["ds"]}
+    nws, dss = {f["seq"]: f for f in sel(R.nw1, 1, RR.SYNC)}, {f["seq"]: f for f in sel(R.ds1, 2, RR.SYNC)}
+    nb = n = 0
+    for r in R.dslog:
+        if r["event"] != "corrected":
+            continue
+        q = int(r["seq"])
+        n += 1
+        if int(r["TSi"]) != nwk.get((1, nws[q]["start"])) or int(r["TSe"]) != dsk.get((2, dss[q]["start"])):
+            nb += 1
+    add(f"T {tag}", f"DS-TT correction used TSi = NW-TT stamp and TSe = DS-TT stamp of the Sync ({n} Follow_Ups)", nb == 0 and n > 0, f"{nb}")
+    tm = tt_maps(R)
+    nb = n = 0
+    for r in R.nweng:
+        if r["event"] == "measure":
+            n += 1
+            q = int(r["seq"])
+            if int(r["t1"]) != tm["nw_t1"][q] or int(r["t4"]) != tm["nw_t4"][q]:
+                nb += 1
+    add(f"T {tag}", f"NW-TT link delay used t1 / t4 = NW-TT stamps ({n} exchanges)", nb == 0 and n > 0, f"{nb}")
+    nb = n = 0
+    for f in sel(R.sl, 1, RR.RESP, RR.RFU, dom=None):
+        if f["g"]:
+            q = f["g"]["seq"]
+            v = tm["ds_t2"].get(q) if f["g"]["type"] == RR.RESP else tm["ds_t3"].get(q)
+            n += 1
+            if v is None or M.inet_read_timestamp(*f["g"]["ts"]) != M.inet_read_timestamp(*M.inet_write_timestamp(v)):
+                nb += 1
+    add(f"T {tag}", f"slave received the DS-TT stamps t2 / t3 (wire, whole ns) ({n} frames)", nb == 0 and n > 0, f"{nb}")
+
+
+def tt_components(E):
+    """E_res,TT, E_link,TT and E_ldn,TT split into theta0 / osc / noise / quantization (design 2.3, 4.4)."""
+    R = E.R
+    if not R.ttlog:
+        return []
+    conf = R.conf["tt"]
+    byk = {side: {(r["kind"], r["s"]): r for r in R.ttlog[side]} for side in ("nw", "ds")}
+    out = []
+    for f in E.fus:
+        if "skip" in f:
+            continue
+        ri, re_ = byk["nw"][(1, f["si"])], byk["ds"][(2, f["se"])]
+        ci = TT.components(conf["nw"], f["si"], ri["w"])
+        ce = TT.components(conf["ds"], f["se"], re_["w"])
+        res = {k: f["r"] * (ce[k] - ci[k]) for k in ci}
+        assert sum(res.values()) == f["Rr"]["TT"]
+        out.append({"seq": f["seq"], "nrr_valid": f["nrr_valid"], "res": res, "eps": f["eps"], "link_TT": f["L"]["TT"], "ldn_TT": f["D"]["TT"]})
+    return out
 
 
 # ---------------------------------------------------------------------------------------
@@ -336,6 +441,11 @@ def stats_lines(cfg, items):
         em = [x["e_minus_next"] for x in sub if x["e_minus_next"] is not None]
         out.append(f"  between steps after step k >= 3 ({label}): max |e| {max(ns(b) for b in bt) if bt else float('nan'):.3f} ns; "
                    f"end of interval e- {rng(em)} ns")
+    ttc = [x for rep, E in items for x in tt_components(E) if x["nrr_valid"]]
+    if ttc:
+        out.append("  TT terms (calibrated): E_res,TT = r x [(TSe - s_e) - (TSi - s_i)]: " +
+                   ", ".join(f"{k} {rng([x['res'][k] for x in ttc])}" for k in ("theta0", "osc", "w", "q")) +
+                   f"; E_link,TT {rng([x['link_TT'] for x in ttc])}; E_ldn,TT {rng([x['ldn_TT'] for x in ttc])}")
     for rep, E in items[:1]:
         t = E.iv[:3]
         out.append("  transient (rep %d): " % rep + "; ".join(
@@ -386,6 +496,29 @@ def hypotheses(cfg, items):
             cm = mean(cs)
             out.append(("H2", f"{cfg}-{rep}: GM ramp D = {D * 1e6:g} ppm/s: end-of-interval error of order D T^2 = {D * T * T * 1e9:.3f} ns",
                         "coefficient of order 1", f"mean coefficient {cm:+.3f} (range {min(cs):+.3f}..{max(cs):+.3f})", 0.1 <= abs(cm) <= 10))
+        tt = c["tt"]
+        if tt and all(tt[k]["y"] == 0 and tt[k]["D"] == 0 and tt[k]["sigma"] == 0 and tt[k]["L"] == 1 for k in tt):
+            dth = tt["ds"]["theta0"] - tt["nw"]["theta0"]
+            cal1 = next((f["seq"] for f in fus if f["nrr_valid"]), None)
+            st = [x["e_plus"] for x in iv[2:] if x["seq"] != cal1 and any(f["seq"] == x["seq"] and f["nrr_valid"] for f in fus)]
+            out.append(("H3", f"{cfg}-{rep}: constant Delta theta = theta0_DS - theta0_NW = {dth / NS:g} ns: steady-state e+ = +Delta theta "
+                        "(the common part cancels; within 2 L_S + 2 ns)", f"{dth / NS:+.3f} ns",
+                        f"{mean(st) / NS:+.3f} ns (mean of {len(st)}; {rng(st)})", abs(mean(st) - dth) <= 2 * LS + 2 * NS))
+        if tt and any(tt[k]["sigma"] > 0 for k in tt):
+            sg = tt["nw"]["sigma"]
+            cal1 = next((f["seq"] for f in fus if f["nrr_valid"]), None)
+            epsv = [float(f["eps"]) for f in fus if f["nrr_valid"] and f["seq"] != cal1]
+            st = TT.ci95_std(epsv)
+            if st:
+                out.append(("H4a", f"{cfg}-{rep}: white TT noise sigma = {sg / NS:g} ns: std(eps) = sqrt(2) sigma (TSi, TSe; design 4.6)",
+                            f"{2 ** 0.5 * sg / NS:.3f} ns", f"{st[1] / NS:.3f} ns (95 % CI {st[2] / NS:.3f}..{st[3] / NS:.3f}, n {st[4]})",
+                            st[2] <= 2 ** 0.5 * sg <= st[3]))
+            em = [float(x["e_minus_next"]) for x in iv[3:-1] if x["e_minus_next"] is not None]
+            st2 = TT.ci95_std(em)
+            if st and st2:
+                out.append(("H4b", f"{cfg}-{rep}: end-of-interval error e- ~ 2 eps_k - eps_k-1: std(e-) = sqrt(5) std(eps)",
+                            f"{5 ** 0.5 * st[1] / NS:.3f} ns", f"{st2[1] / NS:.3f} ns (95 % CI {st2[2] / NS:.3f}..{st2[3] / NS:.3f})",
+                            st2[2] <= 5 ** 0.5 * st[1] <= st2[3]))
         if c["notes"] == "fault":
             T = 125 * 10 ** 9
             longs = [(i, x) for i, x in enumerate(iv[:-1]) if fus[i + 1]["sF"] - fus[i]["sF"] > 1.5 * T]
@@ -398,14 +531,14 @@ def hypotheses(cfg, items):
                 out.append(("H7", f"{cfg}-{rep}: affected interval after Follow_Up {x['seq']} ({dur / 1e9:.3f} ms without a step): "
                             "drift over the long interval <= 2 x the largest normal-interval drift + 2 L_S + 2 L_G",
                             f"<= {bound / NS:.3f} ns", f"{ns(d_end):+.3f} ns (max |e| {ns(x['max_between']):.3f} ns)", abs(d_end) <= bound))
-        if const and LS > 1 and len(iv) > 10:          # tick resets occur only for L_S > 1 ps (K7)
+        if const and LS > 1 and len(iv) > 10 and not tt:   # tick resets occur only for L_S > 1 ps (K7); TT error absent
             ds = [iv[k]["e_minus_next"] - iv[k]["e_plus"] for k in range(9, len(iv) - 1) if iv[k]["e_minus_next"] is not None]
             out.append(("H8", f"{cfg}-{rep}: K7 tick resets bias the raw time base by about +L_S/2 per interval, so the mean "
                         f"between-step drift (calibrated intervals) is +L_S/2 within L_S/4 (L_S = {LS / NS:g} ns)",
                         f"+{LS / 2 / NS:.3f} ns", f"{mean(ds) / NS:+.3f} ns (mean of {len(ds)})",
                         abs(mean(ds) - LS / 2) <= LS / 4))
         unc = [f for f in fus if not f["nrr_valid"]]
-        if go["ppm"] != 0 and not go["stair"] and unc:
+        if go["ppm"] != 0 and not go["stair"] and unc and not tt:     # H6: translators on ideal 5G time
             pred = mean([-go["ppm"] * 1e-6 * f["Res_s"] for f in unc])
             obs = mean([f["eps"] for f in unc])
             out.append(("H6a", f"{cfg}-{rep}: uncalibrated Follow_Ups: eps ~ -y_G x Res", f"{pred / NS:+.3f} ns (mean)", f"{obs / NS:+.3f} ns (mean)",
@@ -445,6 +578,8 @@ STAGES = {
           "M2S6-C-FS1", "M2S6-C-FS2", "M2S6-C-FD1", "M2S6-C-FD2"],
     "D": ["M2S6-D-frag", "M2S6-D-load", "M2S6-D-load-harq16", "M2S6-D-nwpd025", "M2S6-D-nwpd8", "M2S6-D-slpd0125",
           "M2S6-D-FS2late", "M2S6-D-FD1late"],
+    "E": ["M2S6U-E-th10", "M2S6U-E-th100", "M2S6U-E-th1000", "M2S6U-E-y", "M2S6U-E-yfree", "M2S6U-E-D", "M2S6U-E-sig1",
+          "M2S6U-E-sig10", "M2S6U-E-sig100", "M2S6U-E-L8", "M2S6-E-all", "M2S6-E-all-load"],
 }
 
 

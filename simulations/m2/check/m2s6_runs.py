@@ -15,6 +15,7 @@ import check_m2s5 as C5  # noqa: E402  (frames, sel, by_seq, read_csv, scalars_a
 sys.argv = _argv
 import clock_model as K  # noqa: E402
 import pcapng  # noqa: E402
+import ttclock_model as TT  # noqa: E402
 
 NS = 1000
 MS = 10 ** 9
@@ -87,6 +88,21 @@ CLOCKS["M2S6-D-nwpd8"] = cfg(False, node(C(100.0)), node(C(-100.0)), 20 * S)
 for f in ("FS2late", "FD1late"):
     CLOCKS[f"M2S6-D-{f}"] = cfg(False, node(C(100.0)), node(C(-100.0)), 5 * S, notes="fault")
 
+# stage E: TT clocks (A2) on the C-a clocks (GM +100 ppm, slave -100 ppm, 1 ns); tt = {"nw": ..., "ds": ...} in ps / ppb
+NSx = NS
+_ca = lambda: (node(C(100.0)), node(C(-100.0)))  # noqa: E731
+for name, dth in (("th10", 10), ("th100", 100), ("th1000", 1000)):
+    CLOCKS[f"M2S6U-E-{name}"] = cfg(True, *_ca(), 10 * S, tt={"nw": TT.tt(theta0=200 * NS), "ds": TT.tt(theta0=(200 + dth) * NS)})
+CLOCKS["M2S6U-E-y"] = cfg(True, *_ca(), 10 * S, tt={"nw": TT.tt(y=100, U=10 * MS), "ds": TT.tt(y=-100, U=10 * MS, phi=3 * MS)})
+CLOCKS["M2S6U-E-yfree"] = cfg(True, *_ca(), 10 * S, tt={"nw": TT.tt(y=100), "ds": TT.tt(y=-100)})
+CLOCKS["M2S6U-E-D"] = cfg(True, *_ca(), 10 * S, tt={"nw": TT.tt(D=1000, U=100 * MS), "ds": TT.tt(D=-1000, U=100 * MS, phi=30 * MS)})
+for name, sg in (("sig1", 1), ("sig10", 10), ("sig100", 100)):
+    CLOCKS[f"M2S6U-E-{name}"] = cfg(True, *_ca(), 10 * S, reps=range(5), tt={"nw": TT.tt(sigma=sg * NS), "ds": TT.tt(sigma=sg * NS)})
+CLOCKS["M2S6U-E-L8"] = cfg(True, *_ca(), 10 * S, tt={"nw": TT.tt(L=8 * NS), "ds": TT.tt(L=8 * NS)})
+_all = {"nw": TT.tt(theta0=200 * NS, y=100, U=10 * MS, sigma=10 * NS), "ds": TT.tt(theta0=300 * NS, y=-100, U=10 * MS, phi=3 * MS, sigma=10 * NS)}
+CLOCKS["M2S6-E-all"] = cfg(False, *_ca(), 5 * S, reps=range(3), tt=_all)
+CLOCKS["M2S6-E-all-load"] = cfg(False, *_ca(), 5 * S, tt=_all)
+
 
 # ---------------------------------------------------------------------------------------
 def read_vectors(path):
@@ -114,6 +130,8 @@ class Run(C5.Run):
         self.conf = CLOCKS[cfgname]
         super().__init__(runs, cfgname, rep, unit=self.conf["unit"])
         self.vec = read_vectors(self.vec_path)
+        tc = lambda tt: os.path.join(self.ldir, f"{self.net}.{tt}.eth[1].trafficConditionerLayer.ttClock.ttclock.csv")  # noqa: E731
+        self.ttlog = {"nw": TT.read_log(tc(self.nwn)), "ds": TT.read_log(tc(self.dsn))} if self.conf["tt"] else None
 
     def vecv(self, module, name):
         return self.vec.get((f"{self.net}.{module}", name), [])
