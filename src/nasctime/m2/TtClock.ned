@@ -22,7 +22,7 @@ package nasctime.m2;
 // timers, hold release and bookkeeping of the port stay in simulation time. Every stamp is logged.
 // All parameters at their defaults: tau = s (event-identical to having no TT clock).
 //
-simple TtClock
+simple TtClock like ITtClock
 {
     parameters:
         double theta0 @unit(s) = default(0s);          // 5G time-reference error (constant)
