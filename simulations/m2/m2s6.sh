@@ -5,7 +5,8 @@
 #   ./m2s6.sh A|B|C|D|E|F runs one stage (raw runs under results/M2-S6/runs/<config>)
 #   ./m2s6.sh E0b         gate E0b (zero-parameter TT clocks = M2-S5); writes results/M2-S6/gate-E0b.txt
 #   ./m2s6.sh check       check_m2s6.py over the runs present; writes results/M2-S6/check.txt
-#   ./m2s6.sh             everything + check
+#   ./m2s6.sh             everything from scratch (gates D0 and E0b, stages A-F, check, raw-output hashes);
+#                         needs results/M2-S5/runs (./m2s5.sh) for the D0c vector rows
 # Gate D0 compares with the committed results/M2-S5/raw-outputs.sha256 and, for the D0c vector rows,
 # with results/M2-S5/runs (./m2s5.sh). Requires OMNeT++ 6.4.0 / INET 4.7.0 / Simu5G 1.8.0 (built);
 # OMNETPP_ROOT, INET_ROOT, SIMU5G_ROOT set (or the defaults below).
@@ -18,6 +19,7 @@ SIMU5G_ROOT=${SIMU5G_ROOT:-/root/stack/simu5g-1.8.0}
 JOBS=${JOBS:-2}
 MODE=${1:-all}
 OUT=$HERE/results/M2-S6
+[ "$MODE" = all ] && rm -rf "$OUT/runs"
 mkdir -p "$OUT/runs"
 "$NASCTIME/src/nasctime/m2/build.sh" > "$OUT/runs/build.log" 2>&1 \
   || { echo "ERROR: build failed, see $OUT/runs/build.log" >&2; exit 1; }
@@ -79,9 +81,16 @@ if [ "$MODE" = check ]; then
   exit "${PIPESTATUS[0]}"
 fi
 if [ "$MODE" = all ]; then
-  for st in gate A B C D E F; do stage_configs "$st"; done | xargs -P "$JOBS" -L 1 bash -c 'run "$0" "$1"'
-  python3 "$HERE/check/gate_m2s6.py" "$OUT/runs" "$HERE/results/M2-S5/raw-outputs.sha256" "$HERE/results/M2-S5/runs" | tee "$OUT/gate-D0.txt"
-  python3 "$HERE/check/check_m2s6.py" "$OUT/runs" --report="$OUT/report.txt" | tee "$OUT/check.txt"
-  exit 0
+  [ -d "$HERE/results/M2-S5/runs/M2S5" ] || { echo "ERROR: results/M2-S5/runs missing (gate D0c); run ./m2s5.sh first" >&2; exit 1; }
+  { for st in gate A B C D E F; do stage_configs "$st"; done; printf '%s\n' "M2S6-E0b 0..9" "M2S6U-E0b 0"; } \
+    | xargs -P "$JOBS" -L 1 bash -c 'run "$0" "$1"'
+  rc=0
+  python3 "$HERE/check/gate_m2s6.py" "$OUT/runs" "$HERE/results/M2-S5/raw-outputs.sha256" "$HERE/results/M2-S5/runs" > "$OUT/gate-D0.txt" || rc=1
+  python3 "$HERE/check/gate_m2s6.py" --e0b "$OUT/runs" "$HERE/results/M2-S5/raw-outputs.sha256" > "$OUT/gate-E0b.txt" || rc=1
+  python3 "$HERE/check/check_m2s6.py" "$OUT/runs" --report="$OUT/report.txt" > "$OUT/check.txt" || rc=1
+  tail -n 1 "$OUT/gate-D0.txt" "$OUT/gate-E0b.txt" "$OUT/check.txt"
+  (cd "$OUT/runs" && find . -type f \( -name '*.sca' -o -name '*.vec' -o -name '*.pcapng' -o -name '*.csv' \) \
+     ! -name '*.vci' | LC_ALL=C sort | xargs sha256sum) > "$OUT/raw-outputs.sha256"
+  exit $rc
 fi
 stage_configs "$MODE" | xargs -P "$JOBS" -L 1 bash -c 'run "$0" "$1"'
