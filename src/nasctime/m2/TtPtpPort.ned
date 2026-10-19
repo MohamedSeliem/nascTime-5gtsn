@@ -34,6 +34,7 @@ module TtPtpPort like ITrafficConditionerLayer
         bool syncIngress = default(false);      // M2-S5 NW-TT role (RX)
         bool syncEgress = default(false);       // M2-S5 DS-TT role (TX)
         bool syncEgressAudit = default(false);  // M2-S5 gate V0: log the tags of transmitted Follow_Ups, change nothing
+        bool hasTtClock = default(false);       // M2-S6: TT clock A2 (absent: TT timestamps = simulation time, A1)
         @display("i=block/layer");
     gates:
         input upperLayerIn;
@@ -68,6 +69,11 @@ module TtPtpPort like ITrafficConditionerLayer
         // transmit itself (it parses its own transmitted gPTP frames). Absent by default.
         rxTest: <default("")> like IPacketFlow if typename != "" {
             @display("p=450,150");
+        }
+        // M2-S6: the port's TT clock (migration/m2-s6-design.md rev. 2, 2.3); read by syncIn, syncOut
+        // and engine through ttStamp(). Absent by default.
+        ttClock: TtClock if hasTtClock {
+            @display("p=450,300");
         }
     connections:
         upperLayerIn --> { @display("m=n"); } --> tx.in;

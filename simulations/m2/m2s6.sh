@@ -3,6 +3,7 @@
 # M2-S6 configs of simulations/m2/omnetpp.ini by stage:
 #   ./m2s6.sh gate        gate D0 (RNG policy, 0 ppm / 1 ps oscillator, tick-reset probe); writes results/M2-S6/gate-D0.txt
 #   ./m2s6.sh A|B|C|D|E|F runs one stage (raw runs under results/M2-S6/runs/<config>)
+#   ./m2s6.sh E0b         gate E0b (zero-parameter TT clocks = M2-S5); writes results/M2-S6/gate-E0b.txt
 #   ./m2s6.sh check       check_m2s6.py over the runs present; writes results/M2-S6/check.txt
 #   ./m2s6.sh             everything + check
 # Gate D0 compares with the committed results/M2-S5/raw-outputs.sha256 and, for the D0c vector rows,
@@ -62,6 +63,11 @@ stage_configs() {
 if [ "$MODE" = gate ]; then
   stage_configs gate | xargs -P "$JOBS" -L 1 bash -c 'run "$0" "$1"'
   python3 "$HERE/check/gate_m2s6.py" "$OUT/runs" "$HERE/results/M2-S5/raw-outputs.sha256" "$HERE/results/M2-S5/runs" | tee "$OUT/gate-D0.txt"
+  exit "${PIPESTATUS[0]}"
+fi
+if [ "$MODE" = E0b ]; then
+  printf '%s\n' "M2S6-E0b 0..9" "M2S6U-E0b 0" | xargs -P "$JOBS" -L 1 bash -c 'run "$0" "$1"'
+  python3 "$HERE/check/gate_m2s6.py" --e0b "$OUT/runs" "$HERE/results/M2-S5/raw-outputs.sha256" | tee "$OUT/gate-E0b.txt"
   exit "${PIPESTATUS[0]}"
 fi
 if [ "$MODE" = check ]; then

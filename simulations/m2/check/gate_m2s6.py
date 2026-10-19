@@ -9,6 +9,9 @@
        reproduces every slave clock and raw-clock sample only when the K7 tick resets are modelled
 
     gate_m2s6.py <M2-S6 runs> <M2-S5 raw-outputs.sha256> <M2-S5 runs (vectors, for D0c)>
+    gate_m2s6.py --e0b <M2-S6 runs> <M2-S5 raw-outputs.sha256>
+  E0b  zero-parameter TT clocks (A2) on both translators: M2S5 seeds 0-9 and M2S5U-hold reproduced
+       (every PCAP and log except the TT clock logs), and every TT stamp = simulation time
 """
 import hashlib
 import os
@@ -20,7 +23,12 @@ import m2s6_runs as RR  # noqa: E402
 import m2s6_clocks as MC  # noqa: E402
 import check_m2s6 as CK  # noqa: E402
 
-RUNS, H5, RUNS5 = sys.argv[1:4]
+E0B = sys.argv[1] == "--e0b"
+if E0B:
+    RUNS, H5 = sys.argv[2:4]
+    RUNS5 = None
+else:
+    RUNS, H5, RUNS5 = sys.argv[1:4]
 rows = []
 
 
@@ -46,13 +54,47 @@ REF = ref_hashes()
 
 
 def run_files(cfg, rep):
-    """Relative paths (as in raw-outputs.sha256) of a run's PCAP and per-frame/engine logs."""
+    """Relative paths (as in raw-outputs.sha256) of a run's PCAP and per-frame/engine logs (the M2-S6 TT
+    clock logs, which no earlier run has, are excluded)."""
     out = []
     for sub in ("pcap", "m2log"):
         d = os.path.join(RUNS, cfg, sub, f"{cfg}-{rep}")
         if os.path.isdir(d):
-            out += [os.path.join(cfg, sub, f"{cfg}-{rep}", f) for f in sorted(os.listdir(d))]
+            out += [os.path.join(cfg, sub, f"{cfg}-{rep}", f) for f in sorted(os.listdir(d)) if not f.endswith(".ttclock.csv")]
     return out
+
+
+def ttclock_logs(cfg, rep):
+    d = os.path.join(RUNS, cfg, "m2log", f"{cfg}-{rep}")
+    return [os.path.join(d, f) for f in sorted(os.listdir(d)) if f.endswith(".ttclock.csv")] if os.path.isdir(d) else []
+
+
+def e0b():
+    import csv
+    tot = same = miss = extra = 0
+    for rep in range(10):
+        n, s, m, e = compare("M2S6-E0b", rep, "M2S5", rep)
+        tot, same, miss, extra = tot + n, same + s, miss + m, extra + e
+    add("E0b zero-parameter TT clocks", f"M2S6-E0b seeds 0-9: {same}/{tot} PCAP/log hashes identical to M2S5 seeds 0-9",
+        same == tot and tot > 0 and not miss and not extra, f"missing {miss}, extra {extra}")
+    n, s, m, e = compare("M2S6U-E0b", 0, "M2S5U-hold", 0)
+    add("E0b zero-parameter TT clocks", f"M2S6U-E0b-0: {s}/{n} PCAP/log hashes identical to M2S5U-hold-0", s == n and n > 0 and not m and not e,
+        f"missing {m}, extra {e}")
+    nst, bad, kinds = 0, 0, {}
+    for cfg, reps in (("M2S6-E0b", range(10)), ("M2S6U-E0b", [0])):
+        for rep in reps:
+            logs = ttclock_logs(cfg, rep)
+            if len(logs) != 2:
+                bad += 1
+            for p in logs:
+                with open(p) as fh:
+                    for r in csv.DictReader(fh):
+                        nst += 1
+                        kinds[r["kind"]] = kinds.get(r["kind"], 0) + 1
+                        if not (r["s"] == r["C"] == r["tau"] and r["w"] == "0"):
+                            bad += 1
+    add("E0b zero-parameter TT clocks", f"every TT stamp = simulation time ({nst} stamps; kinds {dict(sorted(kinds.items()))}; 2 TT clock logs per run)",
+        bad == 0 and nst > 0, f"{bad} mismatches")
 
 
 def compare(cfg, rep, ref_cfg, ref_rep):
@@ -64,6 +106,9 @@ def compare(cfg, rep, ref_cfg, ref_rep):
 
 
 def main():
+    if E0B:
+        e0b()
+        return report()
     # D0b
     tot = same = miss = extra = 0
     for rep in range(10):
@@ -116,6 +161,10 @@ def main():
     ok_u, n_u, bad_u = MC.compare_samples(R.vecv(f"{R.sln}.clock.underlyingClock", "timeChanged:vector"), fixed, alt)
     add("D0d tick-reset probe", "the same replay WITHOUT tick resets does not reproduce the recorded raw-clock samples "
         f"(K7 is real; {len(bad_u)}+ mismatching sample times shown)", not ok_u, str(bad_u[:2]))
+    return report()
+
+
+def report():
     npass = sum(1 for r in rows if r[2])
     for check, detail, ok, extra in rows:
         print(f"[{'PASS' if ok else 'FAIL'}] {check}: {detail}" + (f" -- {extra}" if extra else ""))

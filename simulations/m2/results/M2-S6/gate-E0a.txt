@@ -1,0 +1,5 @@
+M2-S6 gate E0a: ttStamp() accessor without a TT clock (62efd5c): m2s4.sh and m2s5.sh rerun, 2026-10-19 10:48:12-11:00:31 UTC, rc 0 / 0
+M2-S4 check.txt: byte-identical (OVERALL: PASS (55/55)); 1648 .pcapng/per-frame/engine-log hashes identical
+M2-S5 check.txt: byte-identical (OVERALL: PASS (71/71)); 2325 .pcapng/per-frame/engine-log hashes identical
+libnasctime_m2.so sha256 ed32d64e3436c6f3bf06f461aff43a97a9f5ffb2304ec3aa13f17d2b477819b6 (changed by the accessor; behaviour unchanged)
+OVERALL: PASS
