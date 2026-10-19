@@ -103,6 +103,13 @@ _all = {"nw": TT.tt(theta0=200 * NS, y=100, U=10 * MS, sigma=10 * NS), "ds": TT.
 CLOCKS["M2S6-E-all"] = cfg(False, *_ca(), 5 * S, reps=range(3), tt=_all)
 CLOCKS["M2S6-E-all-load"] = cfg(False, *_ca(), 5 * S, tt=_all)
 
+# stage F: negative controls (TEST ONLY knobs) on the C-a clocks; the slave servo of the N-servo controls
+# is the TEST servo (the rows evaluate them with the StepClockServo model and with the TEST model)
+for name in ("rrIgnore", "rrTwice", "nrrInvert", "nrrStale", "lupLocal", "servoNoRate", "servoNegRate"):
+    CLOCKS[f"M2S6U-F-{name}"] = cfg(True, *_ca(), 10 * S, notes="N")
+CLOCKS["M2S6-F-rrIgnore"] = cfg(False, *_ca(), 5 * S, notes="N")
+CLOCKS["M2S6U-F-domain"] = cfg(True, *_ca(), 10 * S, notes="N", tt={"nw": TT.tt(theta0=200 * NS), "ds": TT.tt(theta0=300 * NS)})
+
 
 # ---------------------------------------------------------------------------------------
 def read_vectors(path):

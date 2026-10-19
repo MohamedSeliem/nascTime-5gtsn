@@ -53,7 +53,8 @@ void TtSyncEgress::initialize(int stage)
     selfCheck = par("selfCheck");
     egressTest = par("egressTest").stdstringValue();
     dropSyncSeq = par("dropSyncSeq");
-    static const std::set<std::string> known = {"", "tseEnd", "tseSlot", "prevSync", "noFcs", "noStrip", "forwardInvalid", "noHold"};
+    static const std::set<std::string> known = {"", "tseEnd", "tseSlot", "prevSync", "noFcs", "noStrip", "forwardInvalid", "noHold",
+                                                "rrIgnore", "rrTwice"};
     if (!known.count(egressTest))
         throw cRuntimeError("Unknown TEST ONLY egressTest '%s'", egressTest.c_str());
     if (mode == OFF)
@@ -309,7 +310,11 @@ void TtSyncEgress::processFollowUp(Packet *packet)
             lastCorrectedRes = res;
         }
         clocktime_t cfIn = f.fu->getCorrectionField();
-        clocktime_t cf2 = cfIn + scale(tag->getRateRatioOut(), toClock(resUse));
+        double rrUse = egressTest == "rrIgnore" ? 1.0 : tag->getRateRatioOut();   // TEST ONLY (M2-S6 N-rrIgnore)
+        clocktime_t add = scale(rrUse, toClock(resUse));
+        if (egressTest == "rrTwice")                       // TEST ONLY (M2-S6 N-rrTwice): rate ratio applied twice
+            add = scale(rrUse, add);
+        clocktime_t cf2 = cfIn + add;
         Rewrite r;
         r.correctionField = cf2;
         r.removeSyncTag = egressTest != "noStrip";

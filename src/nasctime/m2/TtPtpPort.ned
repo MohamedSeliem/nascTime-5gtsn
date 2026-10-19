@@ -100,7 +100,7 @@ simple TtSyncIngress extends PacketFlowBase
         bool selfTest = default(false);            // synthetic-frame self-test at initialization
         string logFile = default("");              // ".sync.csv" appended; times in integer ps
         // TEST ONLY (negative controls, design 8.1); "" / -1s = correct behaviour
-        string correctionTest = default("");       // "noLinkDelay" | "lupTwice" | "rr" | "noFcs" | "tsiEnd" | "syncCf"
+        string correctionTest = default("");       // "noLinkDelay" | "lupTwice" | "rr" | "noFcs" | "tsiEnd" | "syncCf"; M2-S6: "nrrInvert" | "nrrStale" | "lupLocal" | "tsiSim"
         double fixedLinkDelay @unit(s) = default(-1s);
         @class(nasctime::TtSyncIngress);
         @display("i=block/timer");
@@ -120,7 +120,7 @@ simple TtSyncEgress extends PacketFlowBase
         bool selfCheck = default(true);
         string logFile = default("");
         // TEST ONLY (negative controls / hold cases, design 7.4, 8.1)
-        string egressTest = default("");           // "tseEnd" | "tseSlot" | "prevSync" | "noFcs" | "noStrip" | "forwardInvalid" | "noHold"
+        string egressTest = default("");           // "tseEnd" | "tseSlot" | "prevSync" | "noFcs" | "noStrip" | "forwardInvalid" | "noHold"; M2-S6: "rrIgnore" | "rrTwice"
         int dropSyncSeq = default(-1);             // the Sync with this sequenceId is lost below the hold point (H4)
         @class(nasctime::TtSyncEgress);
         @display("i=block/timer");

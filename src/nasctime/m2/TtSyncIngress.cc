@@ -50,7 +50,8 @@ void TtSyncIngress::initialize(int stage)
     selfCheck = par("selfCheck");
     correctionTest = par("correctionTest").stdstringValue();
     fixedLinkDelay = par("fixedLinkDelay");
-    static const std::set<std::string> known = {"", "noLinkDelay", "lupTwice", "rr", "noFcs", "tsiEnd", "syncCf"};
+    static const std::set<std::string> known = {"", "noLinkDelay", "lupTwice", "rr", "noFcs", "tsiEnd", "syncCf",
+                                                "nrrInvert", "nrrStale", "lupLocal", "tsiSim"};
     if (!known.count(correctionTest))
         throw cRuntimeError("Unknown TEST ONLY correctionTest '%s'", correctionTest.c_str());
     if (!enabled)
@@ -140,7 +141,9 @@ bool TtSyncIngress::process(Packet *packet)
         if (rxEndTree != packet->getTreeId() || rxEndTime != simTime() || rxStartTree != packet->getTreeId())
             throw cRuntimeError("Sync at the slot (tree id %ld) is not the frame whose reception just ended (%ld/%ld)", packet->getTreeId(),
                     rxStartTree, rxEndTree);
-        processSync(packet, off, ttStamp(ttClock, ITtClock::TSI, correctionTest == "tsiEnd" ? rxEndTime : rxStartTime, -1));   // TEST ONLY tsiEnd
+        simtime_t tsiSim = correctionTest == "tsiEnd" ? rxEndTime : rxStartTime;   // TEST ONLY tsiEnd
+        simtime_t tsi = ttStamp(ttClock, ITtClock::TSI, tsiSim, -1);
+        processSync(packet, off, correctionTest == "tsiSim" ? tsiSim : tsi);   // TEST ONLY (M2-S6 N-domain): TSi in simulation time
         return true;
     }
     return processFollowUp(packet);
@@ -267,6 +270,8 @@ bool TtSyncIngress::processFollowUp(Packet *packet)
             nrr = st.neighborRateRatio;
         }
     }
+    if (correctionTest == "nrrStale")                 // TEST ONLY (M2-S6 N-nrrStale): neighborRateRatio never updated
+        nrr = ClockTimeScale();
     state = IDLE;
     lastKey = f.key;
     if (lup < SIMTIME_ZERO) {
@@ -277,13 +282,17 @@ bool TtSyncIngress::processFollowUp(Packet *packet)
     clocktime_t cfIn = f.fu->getCorrectionField();
     double rrIn = f.fu->getFollowUpInformationTLV().getRateRatio();
     double rrUse = correctionTest == "rr" ? 1.0001 : rrIn;   // TEST ONLY (N9)
-    clocktime_t add = scale(rrUse, toClock(lup));
+    clocktime_t lupUse = toClock(lup);
+    if (correctionTest == "lupLocal")                 // TEST ONLY (M2-S6 N-lupLocal): link delay in the NW-TT's time base
+        lupUse = nrr.div(lupUse);
+    clocktime_t add = scale(rrUse, lupUse);
     if (correctionTest == "noLinkDelay")               // TEST ONLY (N1)
         add = CLOCKTIME_ZERO;
     else if (correctionTest == "lupTwice")             // TEST ONLY (N2)
         add = add + add;
     clocktime_t cf1 = cfIn + add;
-    double rrOut = multiplyRateRatio(rrUse, nrr);
+    double rrOut = multiplyRateRatio(rrUse, correctionTest == "nrrInvert"   // TEST ONLY (M2-S6 N-nrrInvert): 1/nRR
+                                           ? ClockTimeScale::fromDouble(1.0 / nrr.toDouble()) : nrr);
     TtSyncIngressTag tag;
     tag.setValid(true);
     tag.setTtId(ttId);
