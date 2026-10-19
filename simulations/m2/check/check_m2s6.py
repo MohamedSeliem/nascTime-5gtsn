@@ -304,8 +304,14 @@ def stats_lines(cfg, items):
     cal = [f for r, f in fus if f["nrr_valid"]]
     unc = [f for r, f in fus if not f["nrr_valid"]]
     cal_seq = {(rep, f["seq"]) for rep, E in items for f in E.fus if "skip" not in f and f["nrr_valid"]}
+    first_cal = {}
+    for rep, E in items:
+        c1 = [f["seq"] for f in E.fus if "skip" not in f and f["nrr_valid"]]
+        first_cal[rep] = c1[0] if c1 else None
     ivs_all = [(rep, x) for rep, E in items for x in E.iv[2:]]
-    ivs = [x for rep, x in ivs_all if (rep, x["seq"]) in cal_seq]
+    # steady state: calibrated intervals after the first calibrated step (whose interval carries the H6b transition)
+    ivs = [x for rep, x in ivs_all if (rep, x["seq"]) in cal_seq and x["seq"] != first_cal[rep]]
+    ivs_t = [x for rep, x in ivs_all if x["seq"] == first_cal[rep]]
     ivs_u = [x for rep, x in ivs_all if (rep, x["seq"]) not in cal_seq]
     lag = [f["sF"] - f["s2"] for r, f in fus]
     res = [f["Res_s"] for r, f in fus]
@@ -321,7 +327,7 @@ def stats_lines(cfg, items):
             name = {"L": "E_link", "Rr": "E_res", "D": "E_ldn"}[grp]
             out.append(f"    {name}: " + ", ".join(f"{k} {rng([f[grp][k] for f in cal])}" for k in keys
                                                     if any(f[grp][k] != 0 for f in cal)) or f"    {name}: all components 0")
-    for label, sub in (("calibrated", ivs), ("uncalibrated", ivs_u)):
+    for label, sub in (("calibrated, steady state", ivs), ("first calibrated step: transition", ivs_t), ("uncalibrated", ivs_u)):
         if not sub:
             continue
         out.append(f"  after step k >= 3 ({label}): e+ {rng([x['e_plus'] for x in sub])} ns = eps {rng([x['eps'] for x in sub])} "

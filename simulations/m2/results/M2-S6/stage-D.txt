@@ -1,0 +1,145 @@
+[PASS] K M2S6-D-frag-0: listener.clock timeChanged: every recorded sample = O1 (5003 samples; 0 oscillator changes, 0 tick resets)
+[PASS] K M2S6-D-frag-0: listener.clock.underlyingClock timeChanged: every recorded sample = O1 (2 samples; 0 oscillator changes, 0 tick resets)
+[PASS] K M2S6-D-frag-0: listener driftRateChanged = schedule (2 values)
+[PASS] K M2S6-D-frag-0: GM POT on the wire = C_G(Sync first bit) (40 Follow_Ups); Pdelay t2/t3 = U_G (10 values) -- 0 POT, 0 t2/t3 mismatches
+[PASS] K M2S6-D-frag-0: sign: GM +100 ppm -> POT - s changes by 487451.254 ns over the run
+[PASS] S M2S6-D-frag-0: O5 = every recorded slave value: pdelay 6, nrr 5, gm 38, compensation 39, clock 5081, clock.underlyingClock 5003
+[PASS] R M2S6-D-frag-0: NW-TT neighborRateRatio (Q63) and link delay D recomputed from PCAP + O1 = engine log (5 exchanges) -- []
+[PASS] R M2S6-D-frag-0: rr_out = toDouble(fromDouble(rr_in) x nRR) with rr_in = 1.0 from the INET GM (40 Follow_Ups); the DS-TT uses the carried value -- rr [] carry []
+[PASS] R M2S6-D-frag-0: csro on the wire = ceil((rr_out - 1) * 2^41) at NW-TT eth[0] TX, UE eth[0] TX, DS-TT eth[1] TX, slave RX (157 frames) -- 0 mismatches
+[PASS] R M2S6-D-frag-0: direction: GM +100 ppm -> calibrated rr_out 1.000099999955..1.000100000000 (> 1); uncalibrated (rr_out = 1, before the NW-TT's 2nd exchange): Follow_Ups [0, 1, 2, 3, 4, 5, 6, 7]
+[PASS] E M2S6-D-frag-0: C1 eps: exact for every Follow_Up (39) -- 0 failures
+[PASS] E M2S6-D-frag-0: C1 ldn: exact for every Follow_Up (39) -- 0 failures
+[PASS] E M2S6-D-frag-0: C1 link: exact for every Follow_Up (39) -- 0 failures
+[PASS] E M2S6-D-frag-0: C1 res: exact for every Follow_Up (39) -- 0 failures
+[PASS] E M2S6-D-frag-0: C2 cf: exact for every Follow_Up (39) -- 0 failures
+[PASS] E M2S6-D-frag-0: C3 offset: exact for every Follow_Up (39) -- 0 failures
+[PASS] E M2S6-D-frag-0: C4 step: exact for every Follow_Up (39) -- 0 failures
+[PASS] E M2S6-D-frag-0: C5 gmRR: exact for every Follow_Up (38) -- 0 failures
+[PASS] K M2S6-D-load-0: listener.clock timeChanged: every recorded sample = O1 (5003 samples; 0 oscillator changes, 0 tick resets)
+[PASS] K M2S6-D-load-0: listener.clock.underlyingClock timeChanged: every recorded sample = O1 (2 samples; 0 oscillator changes, 0 tick resets)
+[PASS] K M2S6-D-load-0: listener driftRateChanged = schedule (2 values)
+[PASS] K M2S6-D-load-0: GM POT on the wire = C_G(Sync first bit) (40 Follow_Ups); Pdelay t2/t3 = U_G (10 values) -- 0 POT, 0 t2/t3 mismatches
+[PASS] K M2S6-D-load-0: sign: GM +100 ppm -> POT - s changes by 487451.254 ns over the run
+[PASS] S M2S6-D-load-0: O5 = every recorded slave value: pdelay 6, nrr 5, gm 28, compensation 29, clock 5061, clock.underlyingClock 5003
+[PASS] R M2S6-D-load-0: NW-TT neighborRateRatio (Q63) and link delay D recomputed from PCAP + O1 = engine log (5 exchanges) -- []
+[PASS] R M2S6-D-load-0: rr_out = toDouble(fromDouble(rr_in) x nRR) with rr_in = 1.0 from the INET GM (40 Follow_Ups); the DS-TT uses the carried value -- rr [] carry []
+[PASS] R M2S6-D-load-0: csro on the wire = ceil((rr_out - 1) * 2^41) at NW-TT eth[0] TX, UE eth[0] TX, DS-TT eth[1] TX, slave RX (127 frames) -- 0 mismatches
+[PASS] R M2S6-D-load-0: direction: GM +100 ppm -> calibrated rr_out 1.000099999802..1.000100000198 (> 1); uncalibrated (rr_out = 1, before the NW-TT's 2nd exchange): Follow_Ups [0, 4, 5, 6]
+[PASS] E M2S6-D-load-0: C1 eps: exact for every Follow_Up (29) -- 0 failures
+[PASS] E M2S6-D-load-0: C1 ldn: exact for every Follow_Up (29) -- 0 failures
+[PASS] E M2S6-D-load-0: C1 link: exact for every Follow_Up (29) -- 0 failures
+[PASS] E M2S6-D-load-0: C1 res: exact for every Follow_Up (29) -- 0 failures
+[PASS] E M2S6-D-load-0: C2 cf: exact for every Follow_Up (29) -- 0 failures
+[PASS] E M2S6-D-load-0: C3 offset: exact for every Follow_Up (29) -- 0 failures
+[PASS] E M2S6-D-load-0: C4 step: exact for every Follow_Up (29) -- 0 failures
+[PASS] E M2S6-D-load-0: C5 gmRR: exact for every Follow_Up (28) -- 0 failures
+[PASS] K M2S6-D-load-harq16-0: listener.clock timeChanged: every recorded sample = O1 (5003 samples; 0 oscillator changes, 0 tick resets)
+[PASS] K M2S6-D-load-harq16-0: listener.clock.underlyingClock timeChanged: every recorded sample = O1 (2 samples; 0 oscillator changes, 0 tick resets)
+[PASS] K M2S6-D-load-harq16-0: listener driftRateChanged = schedule (2 values)
+[PASS] K M2S6-D-load-harq16-0: GM POT on the wire = C_G(Sync first bit) (40 Follow_Ups); Pdelay t2/t3 = U_G (10 values) -- 0 POT, 0 t2/t3 mismatches
+[PASS] K M2S6-D-load-harq16-0: sign: GM +100 ppm -> POT - s changes by 487451.254 ns over the run
+[PASS] S M2S6-D-load-harq16-0: O5 = every recorded slave value: pdelay 6, nrr 5, gm 37, compensation 38, clock 5079, clock.underlyingClock 5003
+[PASS] R M2S6-D-load-harq16-0: NW-TT neighborRateRatio (Q63) and link delay D recomputed from PCAP + O1 = engine log (5 exchanges) -- []
+[PASS] R M2S6-D-load-harq16-0: rr_out = toDouble(fromDouble(rr_in) x nRR) with rr_in = 1.0 from the INET GM (40 Follow_Ups); the DS-TT uses the carried value -- rr [] carry []
+[PASS] R M2S6-D-load-harq16-0: csro on the wire = ceil((rr_out - 1) * 2^41) at NW-TT eth[0] TX, UE eth[0] TX, DS-TT eth[1] TX, slave RX (154 frames) -- 0 mismatches
+[PASS] R M2S6-D-load-harq16-0: direction: GM +100 ppm -> calibrated rr_out 1.000099999802..1.000100000198 (> 1); uncalibrated (rr_out = 1, before the NW-TT's 2nd exchange): Follow_Ups [0, 1, 2, 3, 4, 5, 6, 7]
+[PASS] E M2S6-D-load-harq16-0: C1 eps: exact for every Follow_Up (38) -- 0 failures
+[PASS] E M2S6-D-load-harq16-0: C1 ldn: exact for every Follow_Up (38) -- 0 failures
+[PASS] E M2S6-D-load-harq16-0: C1 link: exact for every Follow_Up (38) -- 0 failures
+[PASS] E M2S6-D-load-harq16-0: C1 res: exact for every Follow_Up (38) -- 0 failures
+[PASS] E M2S6-D-load-harq16-0: C2 cf: exact for every Follow_Up (38) -- 0 failures
+[PASS] E M2S6-D-load-harq16-0: C3 offset: exact for every Follow_Up (38) -- 0 failures
+[PASS] E M2S6-D-load-harq16-0: C4 step: exact for every Follow_Up (38) -- 0 failures
+[PASS] E M2S6-D-load-harq16-0: C5 gmRR: exact for every Follow_Up (37) -- 0 failures
+[PASS] K M2S6-D-nwpd025-0: listener.clock timeChanged: every recorded sample = O1 (5003 samples; 0 oscillator changes, 0 tick resets)
+[PASS] K M2S6-D-nwpd025-0: listener.clock.underlyingClock timeChanged: every recorded sample = O1 (2 samples; 0 oscillator changes, 0 tick resets)
+[PASS] K M2S6-D-nwpd025-0: listener driftRateChanged = schedule (2 values)
+[PASS] K M2S6-D-nwpd025-0: GM POT on the wire = C_G(Sync first bit) (40 Follow_Ups); Pdelay t2/t3 = U_G (40 values) -- 0 POT, 0 t2/t3 mismatches
+[PASS] K M2S6-D-nwpd025-0: sign: GM +100 ppm -> POT - s changes by 487451.254 ns over the run
+[PASS] S M2S6-D-nwpd025-0: O5 = every recorded slave value: pdelay 6, nrr 5, gm 38, compensation 39, clock 5081, clock.underlyingClock 5003
+[PASS] R M2S6-D-nwpd025-0: NW-TT neighborRateRatio (Q63) and link delay D recomputed from PCAP + O1 = engine log (20 exchanges) -- []
+[PASS] R M2S6-D-nwpd025-0: rr_out = toDouble(fromDouble(rr_in) x nRR) with rr_in = 1.0 from the INET GM (40 Follow_Ups); the DS-TT uses the carried value -- rr [] carry []
+[PASS] R M2S6-D-nwpd025-0: csro on the wire = ceil((rr_out - 1) * 2^41) at NW-TT eth[0] TX, UE eth[0] TX, DS-TT eth[1] TX, slave RX (157 frames) -- 0 mismatches
+[PASS] R M2S6-D-nwpd025-0: direction: GM +100 ppm -> calibrated rr_out 1.000099999822..1.000100000178 (> 1); uncalibrated (rr_out = 1, before the NW-TT's 2nd exchange): Follow_Ups [0, 1]
+[PASS] E M2S6-D-nwpd025-0: C1 eps: exact for every Follow_Up (39) -- 0 failures
+[PASS] E M2S6-D-nwpd025-0: C1 ldn: exact for every Follow_Up (39) -- 0 failures
+[PASS] E M2S6-D-nwpd025-0: C1 link: exact for every Follow_Up (39) -- 0 failures
+[PASS] E M2S6-D-nwpd025-0: C1 res: exact for every Follow_Up (39) -- 0 failures
+[PASS] E M2S6-D-nwpd025-0: C2 cf: exact for every Follow_Up (39) -- 0 failures
+[PASS] E M2S6-D-nwpd025-0: C3 offset: exact for every Follow_Up (39) -- 0 failures
+[PASS] E M2S6-D-nwpd025-0: C4 step: exact for every Follow_Up (39) -- 0 failures
+[PASS] E M2S6-D-nwpd025-0: C5 gmRR: exact for every Follow_Up (38) -- 0 failures
+[PASS] K M2S6-D-nwpd8-0: listener.clock timeChanged: every recorded sample = O1 (20003 samples; 0 oscillator changes, 0 tick resets)
+[PASS] K M2S6-D-nwpd8-0: listener.clock.underlyingClock timeChanged: every recorded sample = O1 (2 samples; 0 oscillator changes, 0 tick resets)
+[PASS] K M2S6-D-nwpd8-0: listener driftRateChanged = schedule (2 values)
+[PASS] K M2S6-D-nwpd8-0: GM POT on the wire = C_G(Sync first bit) (160 Follow_Ups); Pdelay t2/t3 = U_G (6 values) -- 0 POT, 0 t2/t3 mismatches
+[PASS] K M2S6-D-nwpd8-0: sign: GM +100 ppm -> POT - s changes by 1987301.269 ns over the run
+[PASS] S M2S6-D-nwpd8-0: O5 = every recorded slave value: pdelay 21, nrr 20, gm 158, compensation 159, clock 20321, clock.underlyingClock 20003
+[PASS] R M2S6-D-nwpd8-0: NW-TT neighborRateRatio (Q63) and link delay D recomputed from PCAP + O1 = engine log (3 exchanges) -- []
+[PASS] R M2S6-D-nwpd8-0: rr_out = toDouble(fromDouble(rr_in) x nRR) with rr_in = 1.0 from the INET GM (160 Follow_Ups); the DS-TT uses the carried value -- rr [] carry []
+[PASS] R M2S6-D-nwpd8-0: csro on the wire = ceil((rr_out - 1) * 2^41) at NW-TT eth[0] TX, UE eth[0] TX, DS-TT eth[1] TX, slave RX (637 frames) -- 0 mismatches
+[PASS] R M2S6-D-nwpd8-0: direction: GM +100 ppm -> calibrated rr_out 1.000099999994..1.000100000000 (> 1); uncalibrated (rr_out = 1, before the NW-TT's 2nd exchange): Follow_Ups [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 58, 59, 60, 61, 62, 63]
+[PASS] E M2S6-D-nwpd8-0: C1 eps: exact for every Follow_Up (159) -- 0 failures
+[PASS] E M2S6-D-nwpd8-0: C1 ldn: exact for every Follow_Up (159) -- 0 failures
+[PASS] E M2S6-D-nwpd8-0: C1 link: exact for every Follow_Up (159) -- 0 failures
+[PASS] E M2S6-D-nwpd8-0: C1 res: exact for every Follow_Up (159) -- 0 failures
+[PASS] E M2S6-D-nwpd8-0: C2 cf: exact for every Follow_Up (159) -- 0 failures
+[PASS] E M2S6-D-nwpd8-0: C3 offset: exact for every Follow_Up (159) -- 0 failures
+[PASS] E M2S6-D-nwpd8-0: C4 step: exact for every Follow_Up (159) -- 0 failures
+[PASS] E M2S6-D-nwpd8-0: C5 gmRR: exact for every Follow_Up (158) -- 0 failures
+[PASS] K M2S6-D-slpd0125-0: listener.clock timeChanged: every recorded sample = O1 (5003 samples; 0 oscillator changes, 0 tick resets)
+[PASS] K M2S6-D-slpd0125-0: listener.clock.underlyingClock timeChanged: every recorded sample = O1 (2 samples; 0 oscillator changes, 0 tick resets)
+[PASS] K M2S6-D-slpd0125-0: listener driftRateChanged = schedule (2 values)
+[PASS] K M2S6-D-slpd0125-0: GM POT on the wire = C_G(Sync first bit) (40 Follow_Ups); Pdelay t2/t3 = U_G (10 values) -- 0 POT, 0 t2/t3 mismatches
+[PASS] K M2S6-D-slpd0125-0: sign: GM +100 ppm -> POT - s changes by 487451.254 ns over the run
+[PASS] S M2S6-D-slpd0125-0: O5 = every recorded slave value: pdelay 41, nrr 40, gm 38, compensation 39, clock 5081, clock.underlyingClock 5003
+[PASS] R M2S6-D-slpd0125-0: NW-TT neighborRateRatio (Q63) and link delay D recomputed from PCAP + O1 = engine log (5 exchanges) -- []
+[PASS] R M2S6-D-slpd0125-0: rr_out = toDouble(fromDouble(rr_in) x nRR) with rr_in = 1.0 from the INET GM (40 Follow_Ups); the DS-TT uses the carried value -- rr [] carry []
+[PASS] R M2S6-D-slpd0125-0: csro on the wire = ceil((rr_out - 1) * 2^41) at NW-TT eth[0] TX, UE eth[0] TX, DS-TT eth[1] TX, slave RX (157 frames) -- 0 mismatches
+[PASS] R M2S6-D-slpd0125-0: direction: GM +100 ppm -> calibrated rr_out 1.000099999955..1.000100000000 (> 1); uncalibrated (rr_out = 1, before the NW-TT's 2nd exchange): Follow_Ups [0, 1, 2, 3, 4, 5, 6, 7]
+[PASS] E M2S6-D-slpd0125-0: C1 eps: exact for every Follow_Up (39) -- 0 failures
+[PASS] E M2S6-D-slpd0125-0: C1 ldn: exact for every Follow_Up (39) -- 0 failures
+[PASS] E M2S6-D-slpd0125-0: C1 link: exact for every Follow_Up (39) -- 0 failures
+[PASS] E M2S6-D-slpd0125-0: C1 res: exact for every Follow_Up (39) -- 0 failures
+[PASS] E M2S6-D-slpd0125-0: C2 cf: exact for every Follow_Up (39) -- 0 failures
+[PASS] E M2S6-D-slpd0125-0: C3 offset: exact for every Follow_Up (39) -- 0 failures
+[PASS] E M2S6-D-slpd0125-0: C4 step: exact for every Follow_Up (39) -- 0 failures
+[PASS] E M2S6-D-slpd0125-0: C5 gmRR: exact for every Follow_Up (38) -- 0 failures
+[PASS] K M2S6-D-FS2late-0: listener.clock timeChanged: every recorded sample = O1 (5003 samples; 0 oscillator changes, 0 tick resets)
+[PASS] K M2S6-D-FS2late-0: listener.clock.underlyingClock timeChanged: every recorded sample = O1 (2 samples; 0 oscillator changes, 0 tick resets)
+[PASS] K M2S6-D-FS2late-0: listener driftRateChanged = schedule (2 values)
+[PASS] K M2S6-D-FS2late-0: GM POT on the wire = C_G(Sync first bit) (39 Follow_Ups); Pdelay t2/t3 = U_G (10 values) -- 0 POT, 0 t2/t3 mismatches
+[PASS] K M2S6-D-FS2late-0: sign: GM +100 ppm -> POT - s changes by 487451.254 ns over the run
+[PASS] S M2S6-D-FS2late-0: O5 = every recorded slave value: pdelay 6, nrr 5, gm 37, compensation 38, clock 5079, clock.underlyingClock 5003
+[PASS] R M2S6-D-FS2late-0: NW-TT neighborRateRatio (Q63) and link delay D recomputed from PCAP + O1 = engine log (5 exchanges) -- []
+[PASS] R M2S6-D-FS2late-0: rr_out = toDouble(fromDouble(rr_in) x nRR) with rr_in = 1.0 from the INET GM (39 Follow_Ups); the DS-TT uses the carried value -- rr [] carry []
+[PASS] R M2S6-D-FS2late-0: csro on the wire = ceil((rr_out - 1) * 2^41) at NW-TT eth[0] TX, UE eth[0] TX, DS-TT eth[1] TX, slave RX (153 frames) -- 0 mismatches
+[PASS] R M2S6-D-FS2late-0: direction: GM +100 ppm -> calibrated rr_out 1.000099999955..1.000100000000 (> 1); uncalibrated (rr_out = 1, before the NW-TT's 2nd exchange): Follow_Ups [0, 1, 2, 3, 4, 5, 6, 7]
+[PASS] E M2S6-D-FS2late-0: C1 eps: exact for every Follow_Up (38) -- 0 failures
+[PASS] E M2S6-D-FS2late-0: C1 ldn: exact for every Follow_Up (38) -- 0 failures
+[PASS] E M2S6-D-FS2late-0: C1 link: exact for every Follow_Up (38) -- 0 failures
+[PASS] E M2S6-D-FS2late-0: C1 res: exact for every Follow_Up (38) -- 0 failures
+[PASS] E M2S6-D-FS2late-0: C2 cf: exact for every Follow_Up (38) -- 0 failures
+[PASS] E M2S6-D-FS2late-0: C3 offset: exact for every Follow_Up (38) -- 0 failures
+[PASS] E M2S6-D-FS2late-0: C4 step: exact for every Follow_Up (38) -- 0 failures
+[PASS] E M2S6-D-FS2late-0: C5 gmRR: exact for every Follow_Up (37) -- 0 failures
+[PASS] K M2S6-D-FD1late-0: listener.clock timeChanged: every recorded sample = O1 (5003 samples; 0 oscillator changes, 0 tick resets)
+[PASS] K M2S6-D-FD1late-0: listener.clock.underlyingClock timeChanged: every recorded sample = O1 (2 samples; 0 oscillator changes, 0 tick resets)
+[PASS] K M2S6-D-FD1late-0: listener driftRateChanged = schedule (2 values)
+[PASS] K M2S6-D-FD1late-0: GM POT on the wire = C_G(Sync first bit) (40 Follow_Ups); Pdelay t2/t3 = U_G (10 values) -- 0 POT, 0 t2/t3 mismatches
+[PASS] K M2S6-D-FD1late-0: sign: GM +100 ppm -> POT - s changes by 487451.254 ns over the run
+[PASS] S M2S6-D-FD1late-0: O5 = every recorded slave value: pdelay 6, nrr 5, gm 37, compensation 38, clock 5079, clock.underlyingClock 5003
+[PASS] R M2S6-D-FD1late-0: NW-TT neighborRateRatio (Q63) and link delay D recomputed from PCAP + O1 = engine log (5 exchanges) -- []
+[PASS] R M2S6-D-FD1late-0: rr_out = toDouble(fromDouble(rr_in) x nRR) with rr_in = 1.0 from the INET GM (40 Follow_Ups); the DS-TT uses the carried value -- rr [] carry []
+[PASS] R M2S6-D-FD1late-0: csro on the wire = ceil((rr_out - 1) * 2^41) at NW-TT eth[0] TX, UE eth[0] TX, DS-TT eth[1] TX, slave RX (155 frames) -- 0 mismatches
+[PASS] R M2S6-D-FD1late-0: direction: GM +100 ppm -> calibrated rr_out 1.000099999955..1.000100000000 (> 1); uncalibrated (rr_out = 1, before the NW-TT's 2nd exchange): Follow_Ups [0, 1, 2, 3, 4, 5, 6, 7]
+[PASS] E M2S6-D-FD1late-0: C1 eps: exact for every Follow_Up (38) -- 0 failures
+[PASS] E M2S6-D-FD1late-0: C1 ldn: exact for every Follow_Up (38) -- 0 failures
+[PASS] E M2S6-D-FD1late-0: C1 link: exact for every Follow_Up (38) -- 0 failures
+[PASS] E M2S6-D-FD1late-0: C1 res: exact for every Follow_Up (38) -- 0 failures
+[PASS] E M2S6-D-FD1late-0: C2 cf: exact for every Follow_Up (38) -- 0 failures
+[PASS] E M2S6-D-FD1late-0: C3 offset: exact for every Follow_Up (38) -- 0 failures
+[PASS] E M2S6-D-FD1late-0: C4 step: exact for every Follow_Up (38) -- 0 failures
+[PASS] E M2S6-D-FD1late-0: C5 gmRR: exact for every Follow_Up (37) -- 0 failures
+OVERALL: PASS (144/144)
