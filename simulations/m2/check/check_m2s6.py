@@ -72,8 +72,19 @@ def k_rows(R, gnc, snc, tag):
             add(f"K {tag}", f"{mod}.{sub} timeChanged: every recorded sample = O1 ({n} samples; "
                 f"{len(nc.osc.changes)} oscillator changes, {sum(1 for s in nc.steps if s[4])} tick resets)", ok, str(bad) if not ok else "")
         ok, n, bad = MC.compare_drift(R.vecv(f"{mod}.clock.oscillator", "driftRateChanged:vector"), nc)
-        if c[("gm" if nc is gnc else "sl")]["osc"]["kind"] == "drift":
+        o = c[("gm" if nc is gnc else "sl")]["osc"]
+        if o["kind"] == "drift" and not o["rw"]:
             add(f"K {tag}", f"{mod} driftRateChanged = schedule ({n} values)", ok, "" if ok else str(bad))
+        elif o["rw"]:
+            # random walk (RandomDriftOscillator, driftRateChange = uniform(-b, b) every 12.345 ms): the values are
+            # replayed from the recording; checked here: change times k x 12.345 ms and every step within [-b, b]
+            v = [(t, float(x)) for t, x in R.vecv(f"{mod}.clock.oscillator", "driftRateChanged:vector")]
+            ch = v[1:-1]
+            times_ok = all(t == (i + 1) * RR.STAIR_DT for i, (t, x) in enumerate(ch)) and v[0] == (0, o["ppm"])
+            steps = [b - a for (_, a), (_, b) in zip([v[0]] + ch[:-1], ch)]
+            add(f"K {tag}", f"{mod} random-walk drift: {len(ch)} changes at k x 12.345 ms, every step within +-{o['rw']} ppm "
+                f"(largest {max(abs(x) for x in steps):.6f} ppm); final drift {v[-1][1]:+.6f} ppm",
+                times_ok and all(abs(x) <= o["rw"] * (1 + 1e-12) for x in steps) and len(ch) == 810)
         if nc.ties:
             add(f"K {tag}", f"{mod}: no drift change at the time of a step", False, f"{nc.ties} ties")
     # GM timestamps on the wire: POT = C_G(Sync TX first bit); Pdelay t2 = U_G(Req RX first bit), t3 = U_G(Resp TX first bit)

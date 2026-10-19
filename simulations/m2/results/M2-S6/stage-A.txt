@@ -1,0 +1,53 @@
+[PASS] K M2S6U-A1-0: gm.clock timeChanged: every recorded sample = O1 (10003 samples; 0 oscillator changes, 0 tick resets)
+[PASS] K M2S6U-A1-0: gm.clock.underlyingClock timeChanged: every recorded sample = O1 (2 samples; 0 oscillator changes, 0 tick resets)
+[PASS] K M2S6U-A1-0: gm driftRateChanged = schedule (2 values)
+[PASS] K M2S6U-A1-0: slave.clock timeChanged: every recorded sample = O1 (10003 samples; 0 oscillator changes, 0 tick resets)
+[PASS] K M2S6U-A1-0: slave.clock.underlyingClock timeChanged: every recorded sample = O1 (10003 samples; 0 oscillator changes, 0 tick resets)
+[PASS] K M2S6U-A1-0: slave driftRateChanged = schedule (2 values)
+[PASS] K M2S6U-A1-0: GM POT on the wire = C_G(Sync first bit) (80 Follow_Ups); Pdelay t2/t3 = U_G (20 values) -- 0 POT, 0 t2/t3 mismatches
+[PASS] K M2S6U-A1-0: sign: GM +100 ppm -> POT - s changes by 987401.259 ns over the run
+[PASS] K M2S6U-A2-0: gm.clock timeChanged: every recorded sample = O1 (10003 samples; 0 oscillator changes, 0 tick resets)
+[PASS] K M2S6U-A2-0: gm.clock.underlyingClock timeChanged: every recorded sample = O1 (2 samples; 0 oscillator changes, 0 tick resets)
+[PASS] K M2S6U-A2-0: gm driftRateChanged = schedule (2 values)
+[PASS] K M2S6U-A2-0: slave.clock timeChanged: every recorded sample = O1 (10003 samples; 0 oscillator changes, 0 tick resets)
+[PASS] K M2S6U-A2-0: slave.clock.underlyingClock timeChanged: every recorded sample = O1 (10003 samples; 0 oscillator changes, 0 tick resets)
+[PASS] K M2S6U-A2-0: slave driftRateChanged = schedule (2 values)
+[PASS] K M2S6U-A2-0: GM POT on the wire = C_G(Sync first bit) (80 Follow_Ups); Pdelay t2/t3 = U_G (20 values) -- 0 POT, 0 t2/t3 mismatches
+[PASS] K M2S6U-A2-0: sign: GM +100 ppm -> POT - s changes by 987401.259 ns over the run
+[PASS] K M2S6U-A3-0: gm.clock timeChanged: every recorded sample = O1 (10813 samples; 810 oscillator changes, 0 tick resets)
+[PASS] K M2S6U-A3-0: gm.clock.underlyingClock timeChanged: every recorded sample = O1 (812 samples; 810 oscillator changes, 0 tick resets)
+[PASS] K M2S6U-A3-0: gm driftRateChanged = schedule (812 values)
+[PASS] K M2S6U-A3-0: slave.clock timeChanged: every recorded sample = O1 (10813 samples; 810 oscillator changes, 0 tick resets)
+[PASS] K M2S6U-A3-0: slave.clock.underlyingClock timeChanged: every recorded sample = O1 (10813 samples; 810 oscillator changes, 0 tick resets)
+[PASS] K M2S6U-A3-0: slave driftRateChanged = schedule (812 values)
+[PASS] K M2S6U-A3-0: GM POT on the wire = C_G(Sync first bit) (80 Follow_Ups); Pdelay t2/t3 = U_G (20 values) -- 0 POT, 0 t2/t3 mismatches
+[PASS] K M2S6U-A4-0: gm.clock timeChanged: every recorded sample = O1 (10813 samples; 810 oscillator changes, 0 tick resets)
+[PASS] K M2S6U-A4-0: gm.clock.underlyingClock timeChanged: every recorded sample = O1 (812 samples; 810 oscillator changes, 0 tick resets)
+[PASS] K M2S6U-A4-0: gm random-walk drift: 810 changes at k x 12.345 ms, every step within +-0.01 ppm (largest 0.009998 ppm); final drift +19.801126 ppm
+[PASS] K M2S6U-A4-0: slave.clock timeChanged: every recorded sample = O1 (10813 samples; 810 oscillator changes, 0 tick resets)
+[PASS] K M2S6U-A4-0: slave.clock.underlyingClock timeChanged: every recorded sample = O1 (10813 samples; 810 oscillator changes, 0 tick resets)
+[PASS] K M2S6U-A4-0: slave random-walk drift: 810 changes at k x 12.345 ms, every step within +-0.02 ppm (largest 0.019978 ppm); final drift -20.076634 ppm
+[PASS] K M2S6U-A4-0: GM POT on the wire = C_G(Sync first bit) (80 Follow_Ups); Pdelay t2/t3 = U_G (20 values) -- 0 POT, 0 t2/t3 mismatches
+[PASS] K M2S6U-A4-1: gm.clock timeChanged: every recorded sample = O1 (10813 samples; 810 oscillator changes, 0 tick resets)
+[PASS] K M2S6U-A4-1: gm.clock.underlyingClock timeChanged: every recorded sample = O1 (812 samples; 810 oscillator changes, 0 tick resets)
+[PASS] K M2S6U-A4-1: gm random-walk drift: 810 changes at k x 12.345 ms, every step within +-0.01 ppm (largest 0.009999 ppm); final drift +19.855698 ppm
+[PASS] K M2S6U-A4-1: slave.clock timeChanged: every recorded sample = O1 (10813 samples; 810 oscillator changes, 0 tick resets)
+[PASS] K M2S6U-A4-1: slave.clock.underlyingClock timeChanged: every recorded sample = O1 (10813 samples; 810 oscillator changes, 0 tick resets)
+[PASS] K M2S6U-A4-1: slave random-walk drift: 810 changes at k x 12.345 ms, every step within +-0.02 ppm (largest 0.019946 ppm); final drift -20.233085 ppm
+[PASS] K M2S6U-A4-1: GM POT on the wire = C_G(Sync first bit) (80 Follow_Ups); Pdelay t2/t3 = U_G (20 values) -- 0 POT, 0 t2/t3 mismatches
+[PASS] K M2S6U-A4-2: gm.clock timeChanged: every recorded sample = O1 (10813 samples; 810 oscillator changes, 0 tick resets)
+[PASS] K M2S6U-A4-2: gm.clock.underlyingClock timeChanged: every recorded sample = O1 (812 samples; 810 oscillator changes, 0 tick resets)
+[PASS] K M2S6U-A4-2: gm random-walk drift: 810 changes at k x 12.345 ms, every step within +-0.01 ppm (largest 0.009998 ppm); final drift +19.766013 ppm
+[PASS] K M2S6U-A4-2: slave.clock timeChanged: every recorded sample = O1 (10813 samples; 810 oscillator changes, 0 tick resets)
+[PASS] K M2S6U-A4-2: slave.clock.underlyingClock timeChanged: every recorded sample = O1 (10813 samples; 810 oscillator changes, 0 tick resets)
+[PASS] K M2S6U-A4-2: slave random-walk drift: 810 changes at k x 12.345 ms, every step within +-0.02 ppm (largest 0.019987 ppm); final drift -20.218420 ppm
+[PASS] K M2S6U-A4-2: GM POT on the wire = C_G(Sync first bit) (80 Follow_Ups); Pdelay t2/t3 = U_G (20 values) -- 0 POT, 0 t2/t3 mismatches
+[PASS] K M2S6U-A5-0: gm.clock timeChanged: every recorded sample = O1 (10003 samples; 0 oscillator changes, 0 tick resets)
+[PASS] K M2S6U-A5-0: gm.clock.underlyingClock timeChanged: every recorded sample = O1 (2 samples; 0 oscillator changes, 0 tick resets)
+[PASS] K M2S6U-A5-0: gm driftRateChanged = schedule (2 values)
+[PASS] K M2S6U-A5-0: slave.clock timeChanged: every recorded sample = O1 (10003 samples; 0 oscillator changes, 0 tick resets)
+[PASS] K M2S6U-A5-0: slave.clock.underlyingClock timeChanged: every recorded sample = O1 (10003 samples; 0 oscillator changes, 0 tick resets)
+[PASS] K M2S6U-A5-0: slave driftRateChanged = schedule (2 values)
+[PASS] K M2S6U-A5-0: GM POT on the wire = C_G(Sync first bit) (80 Follow_Ups); Pdelay t2/t3 = U_G (20 values) -- 0 POT, 0 t2/t3 mismatches
+[PASS] K M2S6U-A5-0: sign: GM +100 ppm -> POT - s changes by 987401.259 ns over the run
+OVERALL: PASS (52/52)
