@@ -47,6 +47,7 @@ export HERE NASCTIME SIMU5G_ROOT OUT
 stage_configs() {
   case "$1" in
     gate) printf '%s\n' "M2S6-d0-rng 0..9" "M2S6-d0-rngUnpinned 1" "M2S6-d0-osc0 0" "M2S6U-d0-osc0 0" "M2S6U-Q10 0" ;;
+    A) printf '%s\n' "M2S6U-A1 0" "M2S6U-A2 0" "M2S6U-A3 0" "M2S6U-A4 0..2" "M2S6U-A5 0" ;;
     *) echo "unknown stage $1" >&2; return 1 ;;
   esac
 }
@@ -61,7 +62,7 @@ if [ "$MODE" = check ]; then
   exit "${PIPESTATUS[0]}"
 fi
 if [ "$MODE" = all ]; then
-  for st in gate; do stage_configs "$st"; done | xargs -P "$JOBS" -L 1 bash -c 'run "$0" "$1"'
+  for st in gate A; do stage_configs "$st"; done | xargs -P "$JOBS" -L 1 bash -c 'run "$0" "$1"'
   python3 "$HERE/check/gate_m2s6.py" "$OUT/runs" "$HERE/results/M2-S5/raw-outputs.sha256" "$HERE/results/M2-S5/runs" | tee "$OUT/gate-D0.txt"
   python3 "$HERE/check/check_m2s6.py" "$OUT/runs" | tee "$OUT/check.txt"
   exit 0

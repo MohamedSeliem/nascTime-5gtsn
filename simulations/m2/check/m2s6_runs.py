@@ -47,6 +47,14 @@ def C(ppm, L=NS):
 CLOCKS = {}
 # gate D0
 CLOCKS["M2S6U-Q10"] = cfg(True, node(C(100.0, 10 * NS)), node(C(-100.0, 10 * NS)), 10 * S)
+# stage A: free-running (NoClockServo)
+CLOCKS["M2S6U-A1"] = cfg(True, node(C(100.0)), node(C(-100.0), initial=1234567 * NS, servo="none"), 10 * S)
+CLOCKS["M2S6U-A2"] = cfg(True, node(C(100.0, 10 * NS)), node(C(-100.0, 10 * NS), initial=1234560 * NS, servo="none"), 10 * S)
+CLOCKS["M2S6U-A3"] = cfg(True, node(osc("drift", NS, 10.0, stair=(10.0, 0.012345))),
+                         node(osc("drift", NS, -10.0, stair=(-10.0, -0.0012345)), initial=1234567 * NS, servo="none"), 10 * S)
+CLOCKS["M2S6U-A4"] = cfg(True, node(osc("drift", NS, 20.0, rw=True)),
+                         node(osc("drift", NS, -20.0, rw=True), initial=1234567 * NS, servo="none"), 10 * S, reps=(0, 1, 2))
+CLOCKS["M2S6U-A5"] = cfg(True, node(C(100.0, 1)), node(C(-100.0, 1), initial=1234567 * NS, servo="none"), 10 * S)
 
 
 # ---------------------------------------------------------------------------------------
