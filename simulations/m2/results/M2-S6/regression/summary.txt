@@ -1,0 +1,29 @@
+Regressions at fe8997b (final M2-S6 code), 2026-10-19 (start 12:09:34Z); runner order m2s1, m2s3, m2s0, m2s4, m2s5, then M1 s0, s1, s2, s2_phase, s3, o_s3_1, s4, o_tail, s5, upstream-issues; every runner rc 0.
+M2-S0: all 314 .pcapng and per-frame/engine log hashes identical to the committed raw-outputs.sha256: YES
+M2-S1: all 632 .pcapng and per-frame/engine log hashes identical to the committed raw-outputs.sha256: YES
+M2-S4: all 1648 .pcapng and per-frame/engine log hashes identical to the committed raw-outputs.sha256: YES
+M2-S5: all 2325 .pcapng and per-frame/engine log hashes identical to the committed raw-outputs.sha256: YES
+IDENTICAL  070072e37f59a832  simulations/m2/results/M2-S0/census.txt  ()
+IDENTICAL  514b4ebd4c24aa13  simulations/m2/results/M2-S0/check.txt  (OVERALL: PASS (21/21))
+IDENTICAL  ac8d881d27ab4fdd  simulations/m2/results/M2-S1/census.txt  ()
+IDENTICAL  2c2705f82c21ac8f  simulations/m2/results/M2-S1/check.txt  (OVERALL: PASS (28/28))
+IDENTICAL  22d4cd6305ed59de  simulations/m2/results/M2-S3/census.txt  ()
+IDENTICAL  0ba5c36c0c95dd88  simulations/m2/results/M2-S3/check.txt  (OVERALL: PASS (24/24))
+IDENTICAL  bc12c00e7c20b802  simulations/m2/results/M2-S3/serializer-probe.txt  ()
+IDENTICAL  97b40d49364fc038  simulations/m2/results/M2-S3/slave-model.txt  ()
+IDENTICAL  c7fc366d33ec79f1  simulations/m2/results/M2-S3/syncs.csv  ()
+IDENTICAL  4b5973f9af97c43c  simulations/m2/results/M2-S4/check.txt  (OVERALL: PASS (55/55))
+IDENTICAL  495268f51265fc82  simulations/m2/results/M2-S5/check.txt  (OVERALL: PASS (71/71))
+IDENTICAL  b493bd3134ce52a2  simulations/m1/results/O-S3-1/check.txt  (OVERALL: PASS)
+IDENTICAL  a30442b7a51dd4cd  simulations/m1/results/O-tail/check.txt  (OVERALL: PASS)
+IDENTICAL  1a5a1518ecebe283  simulations/m1/results/S0/check.txt  (OVERALL: PASS)
+IDENTICAL  b55a713aae5ae9a4  simulations/m1/results/S1/check.txt  (OVERALL: PASS)
+IDENTICAL  d833b6a0be014453  simulations/m1/results/S2-phase/check.txt  (OVERALL: PASS)
+IDENTICAL  d40ad5f240687a40  simulations/m1/results/S2/check.txt  (OVERALL: PASS)
+IDENTICAL  09794fa72828e243  simulations/m1/results/S3/check.txt  (OVERALL: PASS)
+IDENTICAL  7c28150e4b229f19  simulations/m1/results/S4/clock-check.txt  (OVERALL: PASS)
+IDENTICAL  fe191a656dfffdc5  simulations/m1/results/S4/transport-check.txt  (OVERALL: PASS)
+IDENTICAL  8031717daaf40d11  simulations/m1/results/S5/check.txt  (OVERALL: PASS)
+IDENTICAL  440ff47c88f75c12  simulations/m1/results/upstream-issues/check.txt  (OVERALL (issues reproduced): YES)
+M1-S0 fingerprints.log: 2 changed lines: -Ran 4 tests in 3.007s +Ran 4 tests in 3.309s (unittest wall-clock line only)
+M1 O-tail: o_tail_investigation.sh deletes the committed raw-outputs.sha256 (.sca/.vci/.vec hashes, not byte-reproducible): pre-existing runner behaviour, file restored.
