@@ -1,0 +1,833 @@
+[PASS] K M2S6U-E-th10-0: gm.clock timeChanged: every recorded sample = O1 (10003 samples; 0 oscillator changes, 0 tick resets)
+[PASS] K M2S6U-E-th10-0: gm.clock.underlyingClock timeChanged: every recorded sample = O1 (2 samples; 0 oscillator changes, 0 tick resets)
+[PASS] K M2S6U-E-th10-0: gm driftRateChanged = schedule (2 values)
+[PASS] K M2S6U-E-th10-0: GM POT on the wire = C_G(Sync first bit) (80 Follow_Ups); Pdelay t2/t3 = U_G (20 values) -- 0 POT, 0 t2/t3 mismatches
+[PASS] K M2S6U-E-th10-0: sign: GM +100 ppm -> POT - s changes by 987401.259 ns over the run
+[PASS] S M2S6U-E-th10-0: O5 = every recorded slave value: pdelay 81, nrr 80, gm 79, compensation 80, clock 10163, clock.underlyingClock 10003
+[PASS] R M2S6U-E-th10-0: NW-TT neighborRateRatio (Q63) and link delay D recomputed from PCAP + O1 = engine log (10 exchanges) -- []
+[PASS] R M2S6U-E-th10-0: rr_out = toDouble(fromDouble(rr_in) x nRR) with rr_in = 1.0 from the INET GM (80 Follow_Ups); the DS-TT uses the carried value -- rr [] carry []
+[PASS] R M2S6U-E-th10-0: csro on the wire = ceil((rr_out - 1) * 2^41) at NW-TT eth[0] TX, DS-TT eth[1] TX, slave RX (240 frames) -- 0 mismatches
+[PASS] R M2S6U-E-th10-0: direction: GM +100 ppm -> calibrated rr_out 1.000100000000..1.000100000000 (> 1); uncalibrated (rr_out = 1, before the NW-TT's 2nd exchange): Follow_Ups [0, 1, 2, 3, 4, 5, 6, 7]
+[PASS] E M2S6U-E-th10-0: C1 eps: exact for every Follow_Up (80) -- 0 failures
+[PASS] E M2S6U-E-th10-0: C1 ldn: exact for every Follow_Up (80) -- 0 failures
+[PASS] E M2S6U-E-th10-0: C1 link: exact for every Follow_Up (80) -- 0 failures
+[PASS] E M2S6U-E-th10-0: C1 res: exact for every Follow_Up (80) -- 0 failures
+[PASS] E M2S6U-E-th10-0: C2 cf: exact for every Follow_Up (80) -- 0 failures
+[PASS] E M2S6U-E-th10-0: C3 offset: exact for every Follow_Up (80) -- 0 failures
+[PASS] E M2S6U-E-th10-0: C4 step: exact for every Follow_Up (80) -- 0 failures
+[PASS] E M2S6U-E-th10-0: C5 gmRR: exact for every Follow_Up (79) -- 0 failures
+[PASS] T M2S6U-E-th10-0: NW-TT: every stamp recomputed from the configuration: C_T(s) and tau = Q(C_T(s) + w) (121 stamps; theta0 200 ns, y 0 ppb, D 0 ppb/s, U 0 ms, sigma 0 ns, L 0.001 ns) -- []
+[PASS] T M2S6U-E-th10-0: NW-TT TSi: stamped at the PCAP first/last bit of every such event (80) -- 80 stamps vs 80 events
+[PASS] T M2S6U-E-th10-0: NW-TT t1: stamped at the PCAP first/last bit of every such event (11) -- 11 stamps vs 10 events
+[PASS] T M2S6U-E-th10-0: NW-TT t4: stamped at the PCAP first/last bit of every such event (10) -- 10 stamps vs 10 events
+[PASS] T M2S6U-E-th10-0: NW-TT t1End: stamped at the PCAP first/last bit of every such event (10) -- 10 stamps vs 10 events
+[PASS] T M2S6U-E-th10-0: NW-TT t4End: stamped at the PCAP first/last bit of every such event (10) -- 10 stamps vs 10 events
+[PASS] T M2S6U-E-th10-0: DS-TT: every stamp recomputed from the configuration: C_T(s) and tau = Q(C_T(s) + w) (242 stamps; theta0 210 ns, y 0 ppb, D 0 ppb/s, U 0 ms, sigma 0 ns, L 0.001 ns) -- []
+[PASS] T M2S6U-E-th10-0: DS-TT TSe: stamped at the PCAP first/last bit of every such event (80) -- 80 stamps vs 80 events
+[PASS] T M2S6U-E-th10-0: DS-TT t2: stamped at the PCAP first/last bit of every such event (81) -- 81 stamps vs 81 events
+[PASS] T M2S6U-E-th10-0: DS-TT t3: stamped at the PCAP first/last bit of every such event (81) -- 81 stamps vs 81 events
+[PASS] T M2S6U-E-th10-0: DS-TT correction used TSi = NW-TT stamp and TSe = DS-TT stamp of the Sync (80 Follow_Ups) -- 0
+[PASS] T M2S6U-E-th10-0: NW-TT link delay used t1 / t4 = NW-TT stamps (10 exchanges) -- 0
+[PASS] T M2S6U-E-th10-0: slave received the DS-TT stamps t2 / t3 (wire, whole ns) (162 frames) -- 0
+[PASS] T M2S6U-E-th10-0: E_res,TT = sum of the TT components (theta0, osc, w, q) of the NW-TT and DS-TT stamps of the Sync (80 Follow_Ups) -- 0 mismatches
+[PASS] K M2S6U-E-th100-0: gm.clock timeChanged: every recorded sample = O1 (10003 samples; 0 oscillator changes, 0 tick resets)
+[PASS] K M2S6U-E-th100-0: gm.clock.underlyingClock timeChanged: every recorded sample = O1 (2 samples; 0 oscillator changes, 0 tick resets)
+[PASS] K M2S6U-E-th100-0: gm driftRateChanged = schedule (2 values)
+[PASS] K M2S6U-E-th100-0: GM POT on the wire = C_G(Sync first bit) (80 Follow_Ups); Pdelay t2/t3 = U_G (20 values) -- 0 POT, 0 t2/t3 mismatches
+[PASS] K M2S6U-E-th100-0: sign: GM +100 ppm -> POT - s changes by 987401.259 ns over the run
+[PASS] S M2S6U-E-th100-0: O5 = every recorded slave value: pdelay 81, nrr 80, gm 79, compensation 80, clock 10163, clock.underlyingClock 10003
+[PASS] R M2S6U-E-th100-0: NW-TT neighborRateRatio (Q63) and link delay D recomputed from PCAP + O1 = engine log (10 exchanges) -- []
+[PASS] R M2S6U-E-th100-0: rr_out = toDouble(fromDouble(rr_in) x nRR) with rr_in = 1.0 from the INET GM (80 Follow_Ups); the DS-TT uses the carried value -- rr [] carry []
+[PASS] R M2S6U-E-th100-0: csro on the wire = ceil((rr_out - 1) * 2^41) at NW-TT eth[0] TX, DS-TT eth[1] TX, slave RX (240 frames) -- 0 mismatches
+[PASS] R M2S6U-E-th100-0: direction: GM +100 ppm -> calibrated rr_out 1.000100000000..1.000100000000 (> 1); uncalibrated (rr_out = 1, before the NW-TT's 2nd exchange): Follow_Ups [0, 1, 2, 3, 4, 5, 6, 7]
+[PASS] E M2S6U-E-th100-0: C1 eps: exact for every Follow_Up (80) -- 0 failures
+[PASS] E M2S6U-E-th100-0: C1 ldn: exact for every Follow_Up (80) -- 0 failures
+[PASS] E M2S6U-E-th100-0: C1 link: exact for every Follow_Up (80) -- 0 failures
+[PASS] E M2S6U-E-th100-0: C1 res: exact for every Follow_Up (80) -- 0 failures
+[PASS] E M2S6U-E-th100-0: C2 cf: exact for every Follow_Up (80) -- 0 failures
+[PASS] E M2S6U-E-th100-0: C3 offset: exact for every Follow_Up (80) -- 0 failures
+[PASS] E M2S6U-E-th100-0: C4 step: exact for every Follow_Up (80) -- 0 failures
+[PASS] E M2S6U-E-th100-0: C5 gmRR: exact for every Follow_Up (79) -- 0 failures
+[PASS] T M2S6U-E-th100-0: NW-TT: every stamp recomputed from the configuration: C_T(s) and tau = Q(C_T(s) + w) (121 stamps; theta0 200 ns, y 0 ppb, D 0 ppb/s, U 0 ms, sigma 0 ns, L 0.001 ns) -- []
+[PASS] T M2S6U-E-th100-0: NW-TT TSi: stamped at the PCAP first/last bit of every such event (80) -- 80 stamps vs 80 events
+[PASS] T M2S6U-E-th100-0: NW-TT t1: stamped at the PCAP first/last bit of every such event (11) -- 11 stamps vs 10 events
+[PASS] T M2S6U-E-th100-0: NW-TT t4: stamped at the PCAP first/last bit of every such event (10) -- 10 stamps vs 10 events
+[PASS] T M2S6U-E-th100-0: NW-TT t1End: stamped at the PCAP first/last bit of every such event (10) -- 10 stamps vs 10 events
+[PASS] T M2S6U-E-th100-0: NW-TT t4End: stamped at the PCAP first/last bit of every such event (10) -- 10 stamps vs 10 events
+[PASS] T M2S6U-E-th100-0: DS-TT: every stamp recomputed from the configuration: C_T(s) and tau = Q(C_T(s) + w) (242 stamps; theta0 300 ns, y 0 ppb, D 0 ppb/s, U 0 ms, sigma 0 ns, L 0.001 ns) -- []
+[PASS] T M2S6U-E-th100-0: DS-TT TSe: stamped at the PCAP first/last bit of every such event (80) -- 80 stamps vs 80 events
+[PASS] T M2S6U-E-th100-0: DS-TT t2: stamped at the PCAP first/last bit of every such event (81) -- 81 stamps vs 81 events
+[PASS] T M2S6U-E-th100-0: DS-TT t3: stamped at the PCAP first/last bit of every such event (81) -- 81 stamps vs 81 events
+[PASS] T M2S6U-E-th100-0: DS-TT correction used TSi = NW-TT stamp and TSe = DS-TT stamp of the Sync (80 Follow_Ups) -- 0
+[PASS] T M2S6U-E-th100-0: NW-TT link delay used t1 / t4 = NW-TT stamps (10 exchanges) -- 0
+[PASS] T M2S6U-E-th100-0: slave received the DS-TT stamps t2 / t3 (wire, whole ns) (162 frames) -- 0
+[PASS] T M2S6U-E-th100-0: E_res,TT = sum of the TT components (theta0, osc, w, q) of the NW-TT and DS-TT stamps of the Sync (80 Follow_Ups) -- 0 mismatches
+[PASS] K M2S6U-E-th1000-0: gm.clock timeChanged: every recorded sample = O1 (10003 samples; 0 oscillator changes, 0 tick resets)
+[PASS] K M2S6U-E-th1000-0: gm.clock.underlyingClock timeChanged: every recorded sample = O1 (2 samples; 0 oscillator changes, 0 tick resets)
+[PASS] K M2S6U-E-th1000-0: gm driftRateChanged = schedule (2 values)
+[PASS] K M2S6U-E-th1000-0: GM POT on the wire = C_G(Sync first bit) (80 Follow_Ups); Pdelay t2/t3 = U_G (20 values) -- 0 POT, 0 t2/t3 mismatches
+[PASS] K M2S6U-E-th1000-0: sign: GM +100 ppm -> POT - s changes by 987401.259 ns over the run
+[PASS] S M2S6U-E-th1000-0: O5 = every recorded slave value: pdelay 81, nrr 80, gm 79, compensation 80, clock 10163, clock.underlyingClock 10003
+[PASS] R M2S6U-E-th1000-0: NW-TT neighborRateRatio (Q63) and link delay D recomputed from PCAP + O1 = engine log (10 exchanges) -- []
+[PASS] R M2S6U-E-th1000-0: rr_out = toDouble(fromDouble(rr_in) x nRR) with rr_in = 1.0 from the INET GM (80 Follow_Ups); the DS-TT uses the carried value -- rr [] carry []
+[PASS] R M2S6U-E-th1000-0: csro on the wire = ceil((rr_out - 1) * 2^41) at NW-TT eth[0] TX, DS-TT eth[1] TX, slave RX (240 frames) -- 0 mismatches
+[PASS] R M2S6U-E-th1000-0: direction: GM +100 ppm -> calibrated rr_out 1.000100000000..1.000100000000 (> 1); uncalibrated (rr_out = 1, before the NW-TT's 2nd exchange): Follow_Ups [0, 1, 2, 3, 4, 5, 6, 7]
+[PASS] E M2S6U-E-th1000-0: C1 eps: exact for every Follow_Up (80) -- 0 failures
+[PASS] E M2S6U-E-th1000-0: C1 ldn: exact for every Follow_Up (80) -- 0 failures
+[PASS] E M2S6U-E-th1000-0: C1 link: exact for every Follow_Up (80) -- 0 failures
+[PASS] E M2S6U-E-th1000-0: C1 res: exact for every Follow_Up (80) -- 0 failures
+[PASS] E M2S6U-E-th1000-0: C2 cf: exact for every Follow_Up (80) -- 0 failures
+[PASS] E M2S6U-E-th1000-0: C3 offset: exact for every Follow_Up (80) -- 0 failures
+[PASS] E M2S6U-E-th1000-0: C4 step: exact for every Follow_Up (80) -- 0 failures
+[PASS] E M2S6U-E-th1000-0: C5 gmRR: exact for every Follow_Up (79) -- 0 failures
+[PASS] T M2S6U-E-th1000-0: NW-TT: every stamp recomputed from the configuration: C_T(s) and tau = Q(C_T(s) + w) (121 stamps; theta0 200 ns, y 0 ppb, D 0 ppb/s, U 0 ms, sigma 0 ns, L 0.001 ns) -- []
+[PASS] T M2S6U-E-th1000-0: NW-TT TSi: stamped at the PCAP first/last bit of every such event (80) -- 80 stamps vs 80 events
+[PASS] T M2S6U-E-th1000-0: NW-TT t1: stamped at the PCAP first/last bit of every such event (11) -- 11 stamps vs 10 events
+[PASS] T M2S6U-E-th1000-0: NW-TT t4: stamped at the PCAP first/last bit of every such event (10) -- 10 stamps vs 10 events
+[PASS] T M2S6U-E-th1000-0: NW-TT t1End: stamped at the PCAP first/last bit of every such event (10) -- 10 stamps vs 10 events
+[PASS] T M2S6U-E-th1000-0: NW-TT t4End: stamped at the PCAP first/last bit of every such event (10) -- 10 stamps vs 10 events
+[PASS] T M2S6U-E-th1000-0: DS-TT: every stamp recomputed from the configuration: C_T(s) and tau = Q(C_T(s) + w) (242 stamps; theta0 1200 ns, y 0 ppb, D 0 ppb/s, U 0 ms, sigma 0 ns, L 0.001 ns) -- []
+[PASS] T M2S6U-E-th1000-0: DS-TT TSe: stamped at the PCAP first/last bit of every such event (80) -- 80 stamps vs 80 events
+[PASS] T M2S6U-E-th1000-0: DS-TT t2: stamped at the PCAP first/last bit of every such event (81) -- 81 stamps vs 81 events
+[PASS] T M2S6U-E-th1000-0: DS-TT t3: stamped at the PCAP first/last bit of every such event (81) -- 81 stamps vs 81 events
+[PASS] T M2S6U-E-th1000-0: DS-TT correction used TSi = NW-TT stamp and TSe = DS-TT stamp of the Sync (80 Follow_Ups) -- 0
+[PASS] T M2S6U-E-th1000-0: NW-TT link delay used t1 / t4 = NW-TT stamps (10 exchanges) -- 0
+[PASS] T M2S6U-E-th1000-0: slave received the DS-TT stamps t2 / t3 (wire, whole ns) (162 frames) -- 0
+[PASS] T M2S6U-E-th1000-0: E_res,TT = sum of the TT components (theta0, osc, w, q) of the NW-TT and DS-TT stamps of the Sync (80 Follow_Ups) -- 0 mismatches
+[PASS] K M2S6U-E-y-0: gm.clock timeChanged: every recorded sample = O1 (10003 samples; 0 oscillator changes, 0 tick resets)
+[PASS] K M2S6U-E-y-0: gm.clock.underlyingClock timeChanged: every recorded sample = O1 (2 samples; 0 oscillator changes, 0 tick resets)
+[PASS] K M2S6U-E-y-0: gm driftRateChanged = schedule (2 values)
+[PASS] K M2S6U-E-y-0: GM POT on the wire = C_G(Sync first bit) (80 Follow_Ups); Pdelay t2/t3 = U_G (20 values) -- 0 POT, 0 t2/t3 mismatches
+[PASS] K M2S6U-E-y-0: sign: GM +100 ppm -> POT - s changes by 987401.259 ns over the run
+[PASS] S M2S6U-E-y-0: O5 = every recorded slave value: pdelay 81, nrr 80, gm 79, compensation 80, clock 10163, clock.underlyingClock 10003
+[PASS] R M2S6U-E-y-0: NW-TT neighborRateRatio (Q63) and link delay D recomputed from PCAP + O1 = engine log (10 exchanges) -- []
+[PASS] R M2S6U-E-y-0: rr_out = toDouble(fromDouble(rr_in) x nRR) with rr_in = 1.0 from the INET GM (80 Follow_Ups); the DS-TT uses the carried value -- rr [] carry []
+[PASS] R M2S6U-E-y-0: csro on the wire = ceil((rr_out - 1) * 2^41) at NW-TT eth[0] TX, DS-TT eth[1] TX, slave RX (240 frames) -- 0 mismatches
+[PASS] R M2S6U-E-y-0: direction: GM +100 ppm -> calibrated rr_out 1.000100000000..1.000100000000 (> 1); uncalibrated (rr_out = 1, before the NW-TT's 2nd exchange): Follow_Ups [0, 1, 2, 3, 4, 5, 6, 7]
+[PASS] E M2S6U-E-y-0: C1 eps: exact for every Follow_Up (80) -- 0 failures
+[PASS] E M2S6U-E-y-0: C1 ldn: exact for every Follow_Up (80) -- 0 failures
+[PASS] E M2S6U-E-y-0: C1 link: exact for every Follow_Up (80) -- 0 failures
+[PASS] E M2S6U-E-y-0: C1 res: exact for every Follow_Up (80) -- 0 failures
+[PASS] E M2S6U-E-y-0: C2 cf: exact for every Follow_Up (80) -- 0 failures
+[PASS] E M2S6U-E-y-0: C3 offset: exact for every Follow_Up (80) -- 0 failures
+[PASS] E M2S6U-E-y-0: C4 step: exact for every Follow_Up (80) -- 0 failures
+[PASS] E M2S6U-E-y-0: C5 gmRR: exact for every Follow_Up (79) -- 0 failures
+[PASS] T M2S6U-E-y-0: NW-TT: every stamp recomputed from the configuration: C_T(s) and tau = Q(C_T(s) + w) (121 stamps; theta0 0 ns, y 100 ppb, D 0 ppb/s, U 10 ms, sigma 0 ns, L 0.001 ns) -- []
+[PASS] T M2S6U-E-y-0: NW-TT TSi: stamped at the PCAP first/last bit of every such event (80) -- 80 stamps vs 80 events
+[PASS] T M2S6U-E-y-0: NW-TT t1: stamped at the PCAP first/last bit of every such event (11) -- 11 stamps vs 10 events
+[PASS] T M2S6U-E-y-0: NW-TT t4: stamped at the PCAP first/last bit of every such event (10) -- 10 stamps vs 10 events
+[PASS] T M2S6U-E-y-0: NW-TT t1End: stamped at the PCAP first/last bit of every such event (10) -- 10 stamps vs 10 events
+[PASS] T M2S6U-E-y-0: NW-TT t4End: stamped at the PCAP first/last bit of every such event (10) -- 10 stamps vs 10 events
+[PASS] T M2S6U-E-y-0: DS-TT: every stamp recomputed from the configuration: C_T(s) and tau = Q(C_T(s) + w) (242 stamps; theta0 0 ns, y -100 ppb, D 0 ppb/s, U 10 ms, sigma 0 ns, L 0.001 ns) -- []
+[PASS] T M2S6U-E-y-0: DS-TT TSe: stamped at the PCAP first/last bit of every such event (80) -- 80 stamps vs 80 events
+[PASS] T M2S6U-E-y-0: DS-TT t2: stamped at the PCAP first/last bit of every such event (81) -- 81 stamps vs 81 events
+[PASS] T M2S6U-E-y-0: DS-TT t3: stamped at the PCAP first/last bit of every such event (81) -- 81 stamps vs 81 events
+[PASS] T M2S6U-E-y-0: DS-TT correction used TSi = NW-TT stamp and TSe = DS-TT stamp of the Sync (80 Follow_Ups) -- 0
+[PASS] T M2S6U-E-y-0: NW-TT link delay used t1 / t4 = NW-TT stamps (10 exchanges) -- 0
+[PASS] T M2S6U-E-y-0: slave received the DS-TT stamps t2 / t3 (wire, whole ns) (162 frames) -- 0
+[PASS] T M2S6U-E-y-0: E_res,TT = sum of the TT components (theta0, osc, w, q) of the NW-TT and DS-TT stamps of the Sync (80 Follow_Ups) -- 0 mismatches
+[PASS] K M2S6U-E-yfree-0: gm.clock timeChanged: every recorded sample = O1 (10003 samples; 0 oscillator changes, 0 tick resets)
+[PASS] K M2S6U-E-yfree-0: gm.clock.underlyingClock timeChanged: every recorded sample = O1 (2 samples; 0 oscillator changes, 0 tick resets)
+[PASS] K M2S6U-E-yfree-0: gm driftRateChanged = schedule (2 values)
+[PASS] K M2S6U-E-yfree-0: GM POT on the wire = C_G(Sync first bit) (80 Follow_Ups); Pdelay t2/t3 = U_G (20 values) -- 0 POT, 0 t2/t3 mismatches
+[PASS] K M2S6U-E-yfree-0: sign: GM +100 ppm -> POT - s changes by 987401.259 ns over the run
+[PASS] S M2S6U-E-yfree-0: O5 = every recorded slave value: pdelay 81, nrr 80, gm 79, compensation 80, clock 10163, clock.underlyingClock 10003
+[PASS] R M2S6U-E-yfree-0: NW-TT neighborRateRatio (Q63) and link delay D recomputed from PCAP + O1 = engine log (10 exchanges) -- []
+[PASS] R M2S6U-E-yfree-0: rr_out = toDouble(fromDouble(rr_in) x nRR) with rr_in = 1.0 from the INET GM (80 Follow_Ups); the DS-TT uses the carried value -- rr [] carry []
+[PASS] R M2S6U-E-yfree-0: csro on the wire = ceil((rr_out - 1) * 2^41) at NW-TT eth[0] TX, DS-TT eth[1] TX, slave RX (240 frames) -- 0 mismatches
+[PASS] R M2S6U-E-yfree-0: direction: GM +100 ppm -> calibrated rr_out 1.000099899990..1.000099899990 (> 1); uncalibrated (rr_out = 1, before the NW-TT's 2nd exchange): Follow_Ups [0, 1, 2, 3, 4, 5, 6, 7]
+[PASS] E M2S6U-E-yfree-0: C1 eps: exact for every Follow_Up (80) -- 0 failures
+[PASS] E M2S6U-E-yfree-0: C1 ldn: exact for every Follow_Up (80) -- 0 failures
+[PASS] E M2S6U-E-yfree-0: C1 link: exact for every Follow_Up (80) -- 0 failures
+[PASS] E M2S6U-E-yfree-0: C1 res: exact for every Follow_Up (80) -- 0 failures
+[PASS] E M2S6U-E-yfree-0: C2 cf: exact for every Follow_Up (80) -- 0 failures
+[PASS] E M2S6U-E-yfree-0: C3 offset: exact for every Follow_Up (80) -- 0 failures
+[PASS] E M2S6U-E-yfree-0: C4 step: exact for every Follow_Up (80) -- 0 failures
+[PASS] E M2S6U-E-yfree-0: C5 gmRR: exact for every Follow_Up (79) -- 0 failures
+[PASS] T M2S6U-E-yfree-0: NW-TT: every stamp recomputed from the configuration: C_T(s) and tau = Q(C_T(s) + w) (121 stamps; theta0 0 ns, y 100 ppb, D 0 ppb/s, U 0 ms, sigma 0 ns, L 0.001 ns) -- []
+[PASS] T M2S6U-E-yfree-0: NW-TT TSi: stamped at the PCAP first/last bit of every such event (80) -- 80 stamps vs 80 events
+[PASS] T M2S6U-E-yfree-0: NW-TT t1: stamped at the PCAP first/last bit of every such event (11) -- 11 stamps vs 10 events
+[PASS] T M2S6U-E-yfree-0: NW-TT t4: stamped at the PCAP first/last bit of every such event (10) -- 10 stamps vs 10 events
+[PASS] T M2S6U-E-yfree-0: NW-TT t1End: stamped at the PCAP first/last bit of every such event (10) -- 10 stamps vs 10 events
+[PASS] T M2S6U-E-yfree-0: NW-TT t4End: stamped at the PCAP first/last bit of every such event (10) -- 10 stamps vs 10 events
+[PASS] T M2S6U-E-yfree-0: DS-TT: every stamp recomputed from the configuration: C_T(s) and tau = Q(C_T(s) + w) (242 stamps; theta0 0 ns, y -100 ppb, D 0 ppb/s, U 0 ms, sigma 0 ns, L 0.001 ns) -- []
+[PASS] T M2S6U-E-yfree-0: DS-TT TSe: stamped at the PCAP first/last bit of every such event (80) -- 80 stamps vs 80 events
+[PASS] T M2S6U-E-yfree-0: DS-TT t2: stamped at the PCAP first/last bit of every such event (81) -- 81 stamps vs 81 events
+[PASS] T M2S6U-E-yfree-0: DS-TT t3: stamped at the PCAP first/last bit of every such event (81) -- 81 stamps vs 81 events
+[PASS] T M2S6U-E-yfree-0: DS-TT correction used TSi = NW-TT stamp and TSe = DS-TT stamp of the Sync (80 Follow_Ups) -- 0
+[PASS] T M2S6U-E-yfree-0: NW-TT link delay used t1 / t4 = NW-TT stamps (10 exchanges) -- 0
+[PASS] T M2S6U-E-yfree-0: slave received the DS-TT stamps t2 / t3 (wire, whole ns) (162 frames) -- 0
+[PASS] T M2S6U-E-yfree-0: E_res,TT = sum of the TT components (theta0, osc, w, q) of the NW-TT and DS-TT stamps of the Sync (80 Follow_Ups) -- 0 mismatches
+[PASS] K M2S6U-E-D-0: gm.clock timeChanged: every recorded sample = O1 (10003 samples; 0 oscillator changes, 0 tick resets)
+[PASS] K M2S6U-E-D-0: gm.clock.underlyingClock timeChanged: every recorded sample = O1 (2 samples; 0 oscillator changes, 0 tick resets)
+[PASS] K M2S6U-E-D-0: gm driftRateChanged = schedule (2 values)
+[PASS] K M2S6U-E-D-0: GM POT on the wire = C_G(Sync first bit) (80 Follow_Ups); Pdelay t2/t3 = U_G (20 values) -- 0 POT, 0 t2/t3 mismatches
+[PASS] K M2S6U-E-D-0: sign: GM +100 ppm -> POT - s changes by 987401.259 ns over the run
+[PASS] S M2S6U-E-D-0: O5 = every recorded slave value: pdelay 81, nrr 80, gm 79, compensation 80, clock 10163, clock.underlyingClock 10003
+[PASS] R M2S6U-E-D-0: NW-TT neighborRateRatio (Q63) and link delay D recomputed from PCAP + O1 = engine log (10 exchanges) -- []
+[PASS] R M2S6U-E-D-0: rr_out = toDouble(fromDouble(rr_in) x nRR) with rr_in = 1.0 from the INET GM (80 Follow_Ups); the DS-TT uses the carried value -- rr [] carry []
+[PASS] R M2S6U-E-D-0: csro on the wire = ceil((rr_out - 1) * 2^41) at NW-TT eth[0] TX, DS-TT eth[1] TX, slave RX (240 frames) -- 0 mismatches
+[PASS] R M2S6U-E-D-0: direction: GM +100 ppm -> calibrated rr_out 1.000100000000..1.000100000000 (> 1); uncalibrated (rr_out = 1, before the NW-TT's 2nd exchange): Follow_Ups [0, 1, 2, 3, 4, 5, 6, 7]
+[PASS] E M2S6U-E-D-0: C1 eps: exact for every Follow_Up (80) -- 0 failures
+[PASS] E M2S6U-E-D-0: C1 ldn: exact for every Follow_Up (80) -- 0 failures
+[PASS] E M2S6U-E-D-0: C1 link: exact for every Follow_Up (80) -- 0 failures
+[PASS] E M2S6U-E-D-0: C1 res: exact for every Follow_Up (80) -- 0 failures
+[PASS] E M2S6U-E-D-0: C2 cf: exact for every Follow_Up (80) -- 0 failures
+[PASS] E M2S6U-E-D-0: C3 offset: exact for every Follow_Up (80) -- 0 failures
+[PASS] E M2S6U-E-D-0: C4 step: exact for every Follow_Up (80) -- 0 failures
+[PASS] E M2S6U-E-D-0: C5 gmRR: exact for every Follow_Up (79) -- 0 failures
+[PASS] T M2S6U-E-D-0: NW-TT: every stamp recomputed from the configuration: C_T(s) and tau = Q(C_T(s) + w) (121 stamps; theta0 0 ns, y 0 ppb, D 1000 ppb/s, U 100 ms, sigma 0 ns, L 0.001 ns) -- []
+[PASS] T M2S6U-E-D-0: NW-TT TSi: stamped at the PCAP first/last bit of every such event (80) -- 80 stamps vs 80 events
+[PASS] T M2S6U-E-D-0: NW-TT t1: stamped at the PCAP first/last bit of every such event (11) -- 11 stamps vs 10 events
+[PASS] T M2S6U-E-D-0: NW-TT t4: stamped at the PCAP first/last bit of every such event (10) -- 10 stamps vs 10 events
+[PASS] T M2S6U-E-D-0: NW-TT t1End: stamped at the PCAP first/last bit of every such event (10) -- 10 stamps vs 10 events
+[PASS] T M2S6U-E-D-0: NW-TT t4End: stamped at the PCAP first/last bit of every such event (10) -- 10 stamps vs 10 events
+[PASS] T M2S6U-E-D-0: DS-TT: every stamp recomputed from the configuration: C_T(s) and tau = Q(C_T(s) + w) (242 stamps; theta0 0 ns, y 0 ppb, D -1000 ppb/s, U 100 ms, sigma 0 ns, L 0.001 ns) -- []
+[PASS] T M2S6U-E-D-0: DS-TT TSe: stamped at the PCAP first/last bit of every such event (80) -- 80 stamps vs 80 events
+[PASS] T M2S6U-E-D-0: DS-TT t2: stamped at the PCAP first/last bit of every such event (81) -- 81 stamps vs 81 events
+[PASS] T M2S6U-E-D-0: DS-TT t3: stamped at the PCAP first/last bit of every such event (81) -- 81 stamps vs 81 events
+[PASS] T M2S6U-E-D-0: DS-TT correction used TSi = NW-TT stamp and TSe = DS-TT stamp of the Sync (80 Follow_Ups) -- 0
+[PASS] T M2S6U-E-D-0: NW-TT link delay used t1 / t4 = NW-TT stamps (10 exchanges) -- 0
+[PASS] T M2S6U-E-D-0: slave received the DS-TT stamps t2 / t3 (wire, whole ns) (162 frames) -- 0
+[PASS] T M2S6U-E-D-0: E_res,TT = sum of the TT components (theta0, osc, w, q) of the NW-TT and DS-TT stamps of the Sync (80 Follow_Ups) -- 0 mismatches
+[PASS] K M2S6U-E-sig1-0: gm.clock timeChanged: every recorded sample = O1 (10003 samples; 0 oscillator changes, 0 tick resets)
+[PASS] K M2S6U-E-sig1-0: gm.clock.underlyingClock timeChanged: every recorded sample = O1 (2 samples; 0 oscillator changes, 0 tick resets)
+[PASS] K M2S6U-E-sig1-0: gm driftRateChanged = schedule (2 values)
+[PASS] K M2S6U-E-sig1-0: GM POT on the wire = C_G(Sync first bit) (80 Follow_Ups); Pdelay t2/t3 = U_G (20 values) -- 0 POT, 0 t2/t3 mismatches
+[PASS] K M2S6U-E-sig1-0: sign: GM +100 ppm -> POT - s changes by 987401.259 ns over the run
+[PASS] S M2S6U-E-sig1-0: O5 = every recorded slave value: pdelay 81, nrr 80, gm 79, compensation 80, clock 10163, clock.underlyingClock 10003
+[PASS] R M2S6U-E-sig1-0: NW-TT neighborRateRatio (Q63) and link delay D recomputed from PCAP + O1 = engine log (10 exchanges) -- []
+[PASS] R M2S6U-E-sig1-0: rr_out = toDouble(fromDouble(rr_in) x nRR) with rr_in = 1.0 from the INET GM (80 Follow_Ups); the DS-TT uses the carried value -- rr [] carry []
+[PASS] R M2S6U-E-sig1-0: csro on the wire = ceil((rr_out - 1) * 2^41) at NW-TT eth[0] TX, DS-TT eth[1] TX, slave RX (240 frames) -- 0 mismatches
+[PASS] R M2S6U-E-sig1-0: direction: GM +100 ppm -> calibrated rr_out 1.000099998319..1.000100001622 (> 1); uncalibrated (rr_out = 1, before the NW-TT's 2nd exchange): Follow_Ups [0, 1, 2, 3, 4, 5, 6, 7]
+[PASS] E M2S6U-E-sig1-0: C1 eps: exact for every Follow_Up (80) -- 0 failures
+[PASS] E M2S6U-E-sig1-0: C1 ldn: exact for every Follow_Up (80) -- 0 failures
+[PASS] E M2S6U-E-sig1-0: C1 link: exact for every Follow_Up (80) -- 0 failures
+[PASS] E M2S6U-E-sig1-0: C1 res: exact for every Follow_Up (80) -- 0 failures
+[PASS] E M2S6U-E-sig1-0: C2 cf: exact for every Follow_Up (80) -- 0 failures
+[PASS] E M2S6U-E-sig1-0: C3 offset: exact for every Follow_Up (80) -- 0 failures
+[PASS] E M2S6U-E-sig1-0: C4 step: exact for every Follow_Up (80) -- 0 failures
+[PASS] E M2S6U-E-sig1-0: C5 gmRR: exact for every Follow_Up (79) -- 0 failures
+[PASS] T M2S6U-E-sig1-0: NW-TT: every stamp recomputed from the configuration: C_T(s) and tau = Q(C_T(s) + w) (121 stamps; theta0 0 ns, y 0 ppb, D 0 ppb/s, U 0 ms, sigma 1 ns, L 0.001 ns) -- []
+[PASS] T M2S6U-E-sig1-0: NW-TT TSi: stamped at the PCAP first/last bit of every such event (80) -- 80 stamps vs 80 events
+[PASS] T M2S6U-E-sig1-0: NW-TT t1: stamped at the PCAP first/last bit of every such event (11) -- 11 stamps vs 10 events
+[PASS] T M2S6U-E-sig1-0: NW-TT t4: stamped at the PCAP first/last bit of every such event (10) -- 10 stamps vs 10 events
+[PASS] T M2S6U-E-sig1-0: NW-TT t1End: stamped at the PCAP first/last bit of every such event (10) -- 10 stamps vs 10 events
+[PASS] T M2S6U-E-sig1-0: NW-TT t4End: stamped at the PCAP first/last bit of every such event (10) -- 10 stamps vs 10 events
+[PASS] T M2S6U-E-sig1-0: DS-TT: every stamp recomputed from the configuration: C_T(s) and tau = Q(C_T(s) + w) (242 stamps; theta0 0 ns, y 0 ppb, D 0 ppb/s, U 0 ms, sigma 1 ns, L 0.001 ns) -- []
+[PASS] T M2S6U-E-sig1-0: DS-TT TSe: stamped at the PCAP first/last bit of every such event (80) -- 80 stamps vs 80 events
+[PASS] T M2S6U-E-sig1-0: DS-TT t2: stamped at the PCAP first/last bit of every such event (81) -- 81 stamps vs 81 events
+[PASS] T M2S6U-E-sig1-0: DS-TT t3: stamped at the PCAP first/last bit of every such event (81) -- 81 stamps vs 81 events
+[PASS] T M2S6U-E-sig1-0: DS-TT correction used TSi = NW-TT stamp and TSe = DS-TT stamp of the Sync (80 Follow_Ups) -- 0
+[PASS] T M2S6U-E-sig1-0: NW-TT link delay used t1 / t4 = NW-TT stamps (10 exchanges) -- 0
+[PASS] T M2S6U-E-sig1-0: slave received the DS-TT stamps t2 / t3 (wire, whole ns) (162 frames) -- 0
+[PASS] T M2S6U-E-sig1-0: E_res,TT = sum of the TT components (theta0, osc, w, q) of the NW-TT and DS-TT stamps of the Sync (80 Follow_Ups) -- 0 mismatches
+[PASS] K M2S6U-E-sig1-1: gm.clock timeChanged: every recorded sample = O1 (10003 samples; 0 oscillator changes, 0 tick resets)
+[PASS] K M2S6U-E-sig1-1: gm.clock.underlyingClock timeChanged: every recorded sample = O1 (2 samples; 0 oscillator changes, 0 tick resets)
+[PASS] K M2S6U-E-sig1-1: gm driftRateChanged = schedule (2 values)
+[PASS] K M2S6U-E-sig1-1: GM POT on the wire = C_G(Sync first bit) (80 Follow_Ups); Pdelay t2/t3 = U_G (20 values) -- 0 POT, 0 t2/t3 mismatches
+[PASS] K M2S6U-E-sig1-1: sign: GM +100 ppm -> POT - s changes by 987401.259 ns over the run
+[PASS] S M2S6U-E-sig1-1: O5 = every recorded slave value: pdelay 81, nrr 80, gm 79, compensation 80, clock 10163, clock.underlyingClock 10003
+[PASS] R M2S6U-E-sig1-1: NW-TT neighborRateRatio (Q63) and link delay D recomputed from PCAP + O1 = engine log (10 exchanges) -- []
+[PASS] R M2S6U-E-sig1-1: rr_out = toDouble(fromDouble(rr_in) x nRR) with rr_in = 1.0 from the INET GM (80 Follow_Ups); the DS-TT uses the carried value -- rr [] carry []
+[PASS] R M2S6U-E-sig1-1: csro on the wire = ceil((rr_out - 1) * 2^41) at NW-TT eth[0] TX, DS-TT eth[1] TX, slave RX (240 frames) -- 0 mismatches
+[PASS] R M2S6U-E-sig1-1: direction: GM +100 ppm -> calibrated rr_out 1.000099998015..1.000100003227 (> 1); uncalibrated (rr_out = 1, before the NW-TT's 2nd exchange): Follow_Ups [0, 1, 2, 3, 4, 5, 6, 7]
+[PASS] E M2S6U-E-sig1-1: C1 eps: exact for every Follow_Up (80) -- 0 failures
+[PASS] E M2S6U-E-sig1-1: C1 ldn: exact for every Follow_Up (80) -- 0 failures
+[PASS] E M2S6U-E-sig1-1: C1 link: exact for every Follow_Up (80) -- 0 failures
+[PASS] E M2S6U-E-sig1-1: C1 res: exact for every Follow_Up (80) -- 0 failures
+[PASS] E M2S6U-E-sig1-1: C2 cf: exact for every Follow_Up (80) -- 0 failures
+[PASS] E M2S6U-E-sig1-1: C3 offset: exact for every Follow_Up (80) -- 0 failures
+[PASS] E M2S6U-E-sig1-1: C4 step: exact for every Follow_Up (80) -- 0 failures
+[PASS] E M2S6U-E-sig1-1: C5 gmRR: exact for every Follow_Up (79) -- 0 failures
+[PASS] T M2S6U-E-sig1-1: NW-TT: every stamp recomputed from the configuration: C_T(s) and tau = Q(C_T(s) + w) (121 stamps; theta0 0 ns, y 0 ppb, D 0 ppb/s, U 0 ms, sigma 1 ns, L 0.001 ns) -- []
+[PASS] T M2S6U-E-sig1-1: NW-TT TSi: stamped at the PCAP first/last bit of every such event (80) -- 80 stamps vs 80 events
+[PASS] T M2S6U-E-sig1-1: NW-TT t1: stamped at the PCAP first/last bit of every such event (11) -- 11 stamps vs 10 events
+[PASS] T M2S6U-E-sig1-1: NW-TT t4: stamped at the PCAP first/last bit of every such event (10) -- 10 stamps vs 10 events
+[PASS] T M2S6U-E-sig1-1: NW-TT t1End: stamped at the PCAP first/last bit of every such event (10) -- 10 stamps vs 10 events
+[PASS] T M2S6U-E-sig1-1: NW-TT t4End: stamped at the PCAP first/last bit of every such event (10) -- 10 stamps vs 10 events
+[PASS] T M2S6U-E-sig1-1: DS-TT: every stamp recomputed from the configuration: C_T(s) and tau = Q(C_T(s) + w) (242 stamps; theta0 0 ns, y 0 ppb, D 0 ppb/s, U 0 ms, sigma 1 ns, L 0.001 ns) -- []
+[PASS] T M2S6U-E-sig1-1: DS-TT TSe: stamped at the PCAP first/last bit of every such event (80) -- 80 stamps vs 80 events
+[PASS] T M2S6U-E-sig1-1: DS-TT t2: stamped at the PCAP first/last bit of every such event (81) -- 81 stamps vs 81 events
+[PASS] T M2S6U-E-sig1-1: DS-TT t3: stamped at the PCAP first/last bit of every such event (81) -- 81 stamps vs 81 events
+[PASS] T M2S6U-E-sig1-1: DS-TT correction used TSi = NW-TT stamp and TSe = DS-TT stamp of the Sync (80 Follow_Ups) -- 0
+[PASS] T M2S6U-E-sig1-1: NW-TT link delay used t1 / t4 = NW-TT stamps (10 exchanges) -- 0
+[PASS] T M2S6U-E-sig1-1: slave received the DS-TT stamps t2 / t3 (wire, whole ns) (162 frames) -- 0
+[PASS] T M2S6U-E-sig1-1: E_res,TT = sum of the TT components (theta0, osc, w, q) of the NW-TT and DS-TT stamps of the Sync (80 Follow_Ups) -- 0 mismatches
+[PASS] K M2S6U-E-sig1-2: gm.clock timeChanged: every recorded sample = O1 (10003 samples; 0 oscillator changes, 0 tick resets)
+[PASS] K M2S6U-E-sig1-2: gm.clock.underlyingClock timeChanged: every recorded sample = O1 (2 samples; 0 oscillator changes, 0 tick resets)
+[PASS] K M2S6U-E-sig1-2: gm driftRateChanged = schedule (2 values)
+[PASS] K M2S6U-E-sig1-2: GM POT on the wire = C_G(Sync first bit) (80 Follow_Ups); Pdelay t2/t3 = U_G (20 values) -- 0 POT, 0 t2/t3 mismatches
+[PASS] K M2S6U-E-sig1-2: sign: GM +100 ppm -> POT - s changes by 987401.259 ns over the run
+[PASS] S M2S6U-E-sig1-2: O5 = every recorded slave value: pdelay 81, nrr 80, gm 79, compensation 80, clock 10163, clock.underlyingClock 10003
+[PASS] R M2S6U-E-sig1-2: NW-TT neighborRateRatio (Q63) and link delay D recomputed from PCAP + O1 = engine log (10 exchanges) -- []
+[PASS] R M2S6U-E-sig1-2: rr_out = toDouble(fromDouble(rr_in) x nRR) with rr_in = 1.0 from the INET GM (80 Follow_Ups); the DS-TT uses the carried value -- rr [] carry []
+[PASS] R M2S6U-E-sig1-2: csro on the wire = ceil((rr_out - 1) * 2^41) at NW-TT eth[0] TX, DS-TT eth[1] TX, slave RX (240 frames) -- 0 mismatches
+[PASS] R M2S6U-E-sig1-2: direction: GM +100 ppm -> calibrated rr_out 1.000099998326..1.000100002724 (> 1); uncalibrated (rr_out = 1, before the NW-TT's 2nd exchange): Follow_Ups [0, 1, 2, 3, 4, 5, 6, 7]
+[PASS] E M2S6U-E-sig1-2: C1 eps: exact for every Follow_Up (80) -- 0 failures
+[PASS] E M2S6U-E-sig1-2: C1 ldn: exact for every Follow_Up (80) -- 0 failures
+[PASS] E M2S6U-E-sig1-2: C1 link: exact for every Follow_Up (80) -- 0 failures
+[PASS] E M2S6U-E-sig1-2: C1 res: exact for every Follow_Up (80) -- 0 failures
+[PASS] E M2S6U-E-sig1-2: C2 cf: exact for every Follow_Up (80) -- 0 failures
+[PASS] E M2S6U-E-sig1-2: C3 offset: exact for every Follow_Up (80) -- 0 failures
+[PASS] E M2S6U-E-sig1-2: C4 step: exact for every Follow_Up (80) -- 0 failures
+[PASS] E M2S6U-E-sig1-2: C5 gmRR: exact for every Follow_Up (79) -- 0 failures
+[PASS] T M2S6U-E-sig1-2: NW-TT: every stamp recomputed from the configuration: C_T(s) and tau = Q(C_T(s) + w) (121 stamps; theta0 0 ns, y 0 ppb, D 0 ppb/s, U 0 ms, sigma 1 ns, L 0.001 ns) -- []
+[PASS] T M2S6U-E-sig1-2: NW-TT TSi: stamped at the PCAP first/last bit of every such event (80) -- 80 stamps vs 80 events
+[PASS] T M2S6U-E-sig1-2: NW-TT t1: stamped at the PCAP first/last bit of every such event (11) -- 11 stamps vs 10 events
+[PASS] T M2S6U-E-sig1-2: NW-TT t4: stamped at the PCAP first/last bit of every such event (10) -- 10 stamps vs 10 events
+[PASS] T M2S6U-E-sig1-2: NW-TT t1End: stamped at the PCAP first/last bit of every such event (10) -- 10 stamps vs 10 events
+[PASS] T M2S6U-E-sig1-2: NW-TT t4End: stamped at the PCAP first/last bit of every such event (10) -- 10 stamps vs 10 events
+[PASS] T M2S6U-E-sig1-2: DS-TT: every stamp recomputed from the configuration: C_T(s) and tau = Q(C_T(s) + w) (242 stamps; theta0 0 ns, y 0 ppb, D 0 ppb/s, U 0 ms, sigma 1 ns, L 0.001 ns) -- []
+[PASS] T M2S6U-E-sig1-2: DS-TT TSe: stamped at the PCAP first/last bit of every such event (80) -- 80 stamps vs 80 events
+[PASS] T M2S6U-E-sig1-2: DS-TT t2: stamped at the PCAP first/last bit of every such event (81) -- 81 stamps vs 81 events
+[PASS] T M2S6U-E-sig1-2: DS-TT t3: stamped at the PCAP first/last bit of every such event (81) -- 81 stamps vs 81 events
+[PASS] T M2S6U-E-sig1-2: DS-TT correction used TSi = NW-TT stamp and TSe = DS-TT stamp of the Sync (80 Follow_Ups) -- 0
+[PASS] T M2S6U-E-sig1-2: NW-TT link delay used t1 / t4 = NW-TT stamps (10 exchanges) -- 0
+[PASS] T M2S6U-E-sig1-2: slave received the DS-TT stamps t2 / t3 (wire, whole ns) (162 frames) -- 0
+[PASS] T M2S6U-E-sig1-2: E_res,TT = sum of the TT components (theta0, osc, w, q) of the NW-TT and DS-TT stamps of the Sync (80 Follow_Ups) -- 0 mismatches
+[PASS] K M2S6U-E-sig1-3: gm.clock timeChanged: every recorded sample = O1 (10003 samples; 0 oscillator changes, 0 tick resets)
+[PASS] K M2S6U-E-sig1-3: gm.clock.underlyingClock timeChanged: every recorded sample = O1 (2 samples; 0 oscillator changes, 0 tick resets)
+[PASS] K M2S6U-E-sig1-3: gm driftRateChanged = schedule (2 values)
+[PASS] K M2S6U-E-sig1-3: GM POT on the wire = C_G(Sync first bit) (80 Follow_Ups); Pdelay t2/t3 = U_G (20 values) -- 0 POT, 0 t2/t3 mismatches
+[PASS] K M2S6U-E-sig1-3: sign: GM +100 ppm -> POT - s changes by 987401.259 ns over the run
+[PASS] S M2S6U-E-sig1-3: O5 = every recorded slave value: pdelay 81, nrr 80, gm 79, compensation 80, clock 10163, clock.underlyingClock 10003
+[PASS] R M2S6U-E-sig1-3: NW-TT neighborRateRatio (Q63) and link delay D recomputed from PCAP + O1 = engine log (10 exchanges) -- []
+[PASS] R M2S6U-E-sig1-3: rr_out = toDouble(fromDouble(rr_in) x nRR) with rr_in = 1.0 from the INET GM (80 Follow_Ups); the DS-TT uses the carried value -- rr [] carry []
+[PASS] R M2S6U-E-sig1-3: csro on the wire = ceil((rr_out - 1) * 2^41) at NW-TT eth[0] TX, DS-TT eth[1] TX, slave RX (240 frames) -- 0 mismatches
+[PASS] R M2S6U-E-sig1-3: direction: GM +100 ppm -> calibrated rr_out 1.000099998665..1.000100001872 (> 1); uncalibrated (rr_out = 1, before the NW-TT's 2nd exchange): Follow_Ups [0, 1, 2, 3, 4, 5, 6, 7]
+[PASS] E M2S6U-E-sig1-3: C1 eps: exact for every Follow_Up (80) -- 0 failures
+[PASS] E M2S6U-E-sig1-3: C1 ldn: exact for every Follow_Up (80) -- 0 failures
+[PASS] E M2S6U-E-sig1-3: C1 link: exact for every Follow_Up (80) -- 0 failures
+[PASS] E M2S6U-E-sig1-3: C1 res: exact for every Follow_Up (80) -- 0 failures
+[PASS] E M2S6U-E-sig1-3: C2 cf: exact for every Follow_Up (80) -- 0 failures
+[PASS] E M2S6U-E-sig1-3: C3 offset: exact for every Follow_Up (80) -- 0 failures
+[PASS] E M2S6U-E-sig1-3: C4 step: exact for every Follow_Up (80) -- 0 failures
+[PASS] E M2S6U-E-sig1-3: C5 gmRR: exact for every Follow_Up (79) -- 0 failures
+[PASS] T M2S6U-E-sig1-3: NW-TT: every stamp recomputed from the configuration: C_T(s) and tau = Q(C_T(s) + w) (121 stamps; theta0 0 ns, y 0 ppb, D 0 ppb/s, U 0 ms, sigma 1 ns, L 0.001 ns) -- []
+[PASS] T M2S6U-E-sig1-3: NW-TT TSi: stamped at the PCAP first/last bit of every such event (80) -- 80 stamps vs 80 events
+[PASS] T M2S6U-E-sig1-3: NW-TT t1: stamped at the PCAP first/last bit of every such event (11) -- 11 stamps vs 10 events
+[PASS] T M2S6U-E-sig1-3: NW-TT t4: stamped at the PCAP first/last bit of every such event (10) -- 10 stamps vs 10 events
+[PASS] T M2S6U-E-sig1-3: NW-TT t1End: stamped at the PCAP first/last bit of every such event (10) -- 10 stamps vs 10 events
+[PASS] T M2S6U-E-sig1-3: NW-TT t4End: stamped at the PCAP first/last bit of every such event (10) -- 10 stamps vs 10 events
+[PASS] T M2S6U-E-sig1-3: DS-TT: every stamp recomputed from the configuration: C_T(s) and tau = Q(C_T(s) + w) (242 stamps; theta0 0 ns, y 0 ppb, D 0 ppb/s, U 0 ms, sigma 1 ns, L 0.001 ns) -- []
+[PASS] T M2S6U-E-sig1-3: DS-TT TSe: stamped at the PCAP first/last bit of every such event (80) -- 80 stamps vs 80 events
+[PASS] T M2S6U-E-sig1-3: DS-TT t2: stamped at the PCAP first/last bit of every such event (81) -- 81 stamps vs 81 events
+[PASS] T M2S6U-E-sig1-3: DS-TT t3: stamped at the PCAP first/last bit of every such event (81) -- 81 stamps vs 81 events
+[PASS] T M2S6U-E-sig1-3: DS-TT correction used TSi = NW-TT stamp and TSe = DS-TT stamp of the Sync (80 Follow_Ups) -- 0
+[PASS] T M2S6U-E-sig1-3: NW-TT link delay used t1 / t4 = NW-TT stamps (10 exchanges) -- 0
+[PASS] T M2S6U-E-sig1-3: slave received the DS-TT stamps t2 / t3 (wire, whole ns) (162 frames) -- 0
+[PASS] T M2S6U-E-sig1-3: E_res,TT = sum of the TT components (theta0, osc, w, q) of the NW-TT and DS-TT stamps of the Sync (80 Follow_Ups) -- 0 mismatches
+[PASS] K M2S6U-E-sig1-4: gm.clock timeChanged: every recorded sample = O1 (10003 samples; 0 oscillator changes, 0 tick resets)
+[PASS] K M2S6U-E-sig1-4: gm.clock.underlyingClock timeChanged: every recorded sample = O1 (2 samples; 0 oscillator changes, 0 tick resets)
+[PASS] K M2S6U-E-sig1-4: gm driftRateChanged = schedule (2 values)
+[PASS] K M2S6U-E-sig1-4: GM POT on the wire = C_G(Sync first bit) (80 Follow_Ups); Pdelay t2/t3 = U_G (20 values) -- 0 POT, 0 t2/t3 mismatches
+[PASS] K M2S6U-E-sig1-4: sign: GM +100 ppm -> POT - s changes by 987401.259 ns over the run
+[PASS] S M2S6U-E-sig1-4: O5 = every recorded slave value: pdelay 81, nrr 80, gm 79, compensation 80, clock 10163, clock.underlyingClock 10003
+[PASS] R M2S6U-E-sig1-4: NW-TT neighborRateRatio (Q63) and link delay D recomputed from PCAP + O1 = engine log (10 exchanges) -- []
+[PASS] R M2S6U-E-sig1-4: rr_out = toDouble(fromDouble(rr_in) x nRR) with rr_in = 1.0 from the INET GM (80 Follow_Ups); the DS-TT uses the carried value -- rr [] carry []
+[PASS] R M2S6U-E-sig1-4: csro on the wire = ceil((rr_out - 1) * 2^41) at NW-TT eth[0] TX, DS-TT eth[1] TX, slave RX (240 frames) -- 0 mismatches
+[PASS] R M2S6U-E-sig1-4: direction: GM +100 ppm -> calibrated rr_out 1.000099998201..1.000100001370 (> 1); uncalibrated (rr_out = 1, before the NW-TT's 2nd exchange): Follow_Ups [0, 1, 2, 3, 4, 5, 6, 7]
+[PASS] E M2S6U-E-sig1-4: C1 eps: exact for every Follow_Up (80) -- 0 failures
+[PASS] E M2S6U-E-sig1-4: C1 ldn: exact for every Follow_Up (80) -- 0 failures
+[PASS] E M2S6U-E-sig1-4: C1 link: exact for every Follow_Up (80) -- 0 failures
+[PASS] E M2S6U-E-sig1-4: C1 res: exact for every Follow_Up (80) -- 0 failures
+[PASS] E M2S6U-E-sig1-4: C2 cf: exact for every Follow_Up (80) -- 0 failures
+[PASS] E M2S6U-E-sig1-4: C3 offset: exact for every Follow_Up (80) -- 0 failures
+[PASS] E M2S6U-E-sig1-4: C4 step: exact for every Follow_Up (80) -- 0 failures
+[PASS] E M2S6U-E-sig1-4: C5 gmRR: exact for every Follow_Up (79) -- 0 failures
+[PASS] T M2S6U-E-sig1-4: NW-TT: every stamp recomputed from the configuration: C_T(s) and tau = Q(C_T(s) + w) (121 stamps; theta0 0 ns, y 0 ppb, D 0 ppb/s, U 0 ms, sigma 1 ns, L 0.001 ns) -- []
+[PASS] T M2S6U-E-sig1-4: NW-TT TSi: stamped at the PCAP first/last bit of every such event (80) -- 80 stamps vs 80 events
+[PASS] T M2S6U-E-sig1-4: NW-TT t1: stamped at the PCAP first/last bit of every such event (11) -- 11 stamps vs 10 events
+[PASS] T M2S6U-E-sig1-4: NW-TT t4: stamped at the PCAP first/last bit of every such event (10) -- 10 stamps vs 10 events
+[PASS] T M2S6U-E-sig1-4: NW-TT t1End: stamped at the PCAP first/last bit of every such event (10) -- 10 stamps vs 10 events
+[PASS] T M2S6U-E-sig1-4: NW-TT t4End: stamped at the PCAP first/last bit of every such event (10) -- 10 stamps vs 10 events
+[PASS] T M2S6U-E-sig1-4: DS-TT: every stamp recomputed from the configuration: C_T(s) and tau = Q(C_T(s) + w) (242 stamps; theta0 0 ns, y 0 ppb, D 0 ppb/s, U 0 ms, sigma 1 ns, L 0.001 ns) -- []
+[PASS] T M2S6U-E-sig1-4: DS-TT TSe: stamped at the PCAP first/last bit of every such event (80) -- 80 stamps vs 80 events
+[PASS] T M2S6U-E-sig1-4: DS-TT t2: stamped at the PCAP first/last bit of every such event (81) -- 81 stamps vs 81 events
+[PASS] T M2S6U-E-sig1-4: DS-TT t3: stamped at the PCAP first/last bit of every such event (81) -- 81 stamps vs 81 events
+[PASS] T M2S6U-E-sig1-4: DS-TT correction used TSi = NW-TT stamp and TSe = DS-TT stamp of the Sync (80 Follow_Ups) -- 0
+[PASS] T M2S6U-E-sig1-4: NW-TT link delay used t1 / t4 = NW-TT stamps (10 exchanges) -- 0
+[PASS] T M2S6U-E-sig1-4: slave received the DS-TT stamps t2 / t3 (wire, whole ns) (162 frames) -- 0
+[PASS] T M2S6U-E-sig1-4: E_res,TT = sum of the TT components (theta0, osc, w, q) of the NW-TT and DS-TT stamps of the Sync (80 Follow_Ups) -- 0 mismatches
+[PASS] K M2S6U-E-sig10-0: gm.clock timeChanged: every recorded sample = O1 (10003 samples; 0 oscillator changes, 0 tick resets)
+[PASS] K M2S6U-E-sig10-0: gm.clock.underlyingClock timeChanged: every recorded sample = O1 (2 samples; 0 oscillator changes, 0 tick resets)
+[PASS] K M2S6U-E-sig10-0: gm driftRateChanged = schedule (2 values)
+[PASS] K M2S6U-E-sig10-0: GM POT on the wire = C_G(Sync first bit) (80 Follow_Ups); Pdelay t2/t3 = U_G (20 values) -- 0 POT, 0 t2/t3 mismatches
+[PASS] K M2S6U-E-sig10-0: sign: GM +100 ppm -> POT - s changes by 987401.259 ns over the run
+[PASS] S M2S6U-E-sig10-0: O5 = every recorded slave value: pdelay 81, nrr 80, gm 79, compensation 80, clock 10163, clock.underlyingClock 10003
+[PASS] R M2S6U-E-sig10-0: NW-TT neighborRateRatio (Q63) and link delay D recomputed from PCAP + O1 = engine log (10 exchanges) -- []
+[PASS] R M2S6U-E-sig10-0: rr_out = toDouble(fromDouble(rr_in) x nRR) with rr_in = 1.0 from the INET GM (80 Follow_Ups); the DS-TT uses the carried value -- rr [] carry []
+[PASS] R M2S6U-E-sig10-0: csro on the wire = ceil((rr_out - 1) * 2^41) at NW-TT eth[0] TX, DS-TT eth[1] TX, slave RX (240 frames) -- 0 mismatches
+[PASS] R M2S6U-E-sig10-0: direction: GM +100 ppm -> calibrated rr_out 1.000099983191..1.000100016222 (> 1); uncalibrated (rr_out = 1, before the NW-TT's 2nd exchange): Follow_Ups [0, 1, 2, 3, 4, 5, 6, 7]
+[PASS] E M2S6U-E-sig10-0: C1 eps: exact for every Follow_Up (80) -- 0 failures
+[PASS] E M2S6U-E-sig10-0: C1 ldn: exact for every Follow_Up (80) -- 0 failures
+[PASS] E M2S6U-E-sig10-0: C1 link: exact for every Follow_Up (80) -- 0 failures
+[PASS] E M2S6U-E-sig10-0: C1 res: exact for every Follow_Up (80) -- 0 failures
+[PASS] E M2S6U-E-sig10-0: C2 cf: exact for every Follow_Up (80) -- 0 failures
+[PASS] E M2S6U-E-sig10-0: C3 offset: exact for every Follow_Up (80) -- 0 failures
+[PASS] E M2S6U-E-sig10-0: C4 step: exact for every Follow_Up (80) -- 0 failures
+[PASS] E M2S6U-E-sig10-0: C5 gmRR: exact for every Follow_Up (79) -- 0 failures
+[PASS] T M2S6U-E-sig10-0: NW-TT: every stamp recomputed from the configuration: C_T(s) and tau = Q(C_T(s) + w) (121 stamps; theta0 0 ns, y 0 ppb, D 0 ppb/s, U 0 ms, sigma 10 ns, L 0.001 ns) -- []
+[PASS] T M2S6U-E-sig10-0: NW-TT TSi: stamped at the PCAP first/last bit of every such event (80) -- 80 stamps vs 80 events
+[PASS] T M2S6U-E-sig10-0: NW-TT t1: stamped at the PCAP first/last bit of every such event (11) -- 11 stamps vs 10 events
+[PASS] T M2S6U-E-sig10-0: NW-TT t4: stamped at the PCAP first/last bit of every such event (10) -- 10 stamps vs 10 events
+[PASS] T M2S6U-E-sig10-0: NW-TT t1End: stamped at the PCAP first/last bit of every such event (10) -- 10 stamps vs 10 events
+[PASS] T M2S6U-E-sig10-0: NW-TT t4End: stamped at the PCAP first/last bit of every such event (10) -- 10 stamps vs 10 events
+[PASS] T M2S6U-E-sig10-0: DS-TT: every stamp recomputed from the configuration: C_T(s) and tau = Q(C_T(s) + w) (242 stamps; theta0 0 ns, y 0 ppb, D 0 ppb/s, U 0 ms, sigma 10 ns, L 0.001 ns) -- []
+[PASS] T M2S6U-E-sig10-0: DS-TT TSe: stamped at the PCAP first/last bit of every such event (80) -- 80 stamps vs 80 events
+[PASS] T M2S6U-E-sig10-0: DS-TT t2: stamped at the PCAP first/last bit of every such event (81) -- 81 stamps vs 81 events
+[PASS] T M2S6U-E-sig10-0: DS-TT t3: stamped at the PCAP first/last bit of every such event (81) -- 81 stamps vs 81 events
+[PASS] T M2S6U-E-sig10-0: DS-TT correction used TSi = NW-TT stamp and TSe = DS-TT stamp of the Sync (80 Follow_Ups) -- 0
+[PASS] T M2S6U-E-sig10-0: NW-TT link delay used t1 / t4 = NW-TT stamps (10 exchanges) -- 0
+[PASS] T M2S6U-E-sig10-0: slave received the DS-TT stamps t2 / t3 (wire, whole ns) (162 frames) -- 0
+[PASS] T M2S6U-E-sig10-0: E_res,TT = sum of the TT components (theta0, osc, w, q) of the NW-TT and DS-TT stamps of the Sync (80 Follow_Ups) -- 0 mismatches
+[PASS] K M2S6U-E-sig10-1: gm.clock timeChanged: every recorded sample = O1 (10003 samples; 0 oscillator changes, 0 tick resets)
+[PASS] K M2S6U-E-sig10-1: gm.clock.underlyingClock timeChanged: every recorded sample = O1 (2 samples; 0 oscillator changes, 0 tick resets)
+[PASS] K M2S6U-E-sig10-1: gm driftRateChanged = schedule (2 values)
+[PASS] K M2S6U-E-sig10-1: GM POT on the wire = C_G(Sync first bit) (80 Follow_Ups); Pdelay t2/t3 = U_G (20 values) -- 0 POT, 0 t2/t3 mismatches
+[PASS] K M2S6U-E-sig10-1: sign: GM +100 ppm -> POT - s changes by 987401.259 ns over the run
+[PASS] S M2S6U-E-sig10-1: O5 = every recorded slave value: pdelay 81, nrr 80, gm 79, compensation 80, clock 10163, clock.underlyingClock 10003
+[PASS] R M2S6U-E-sig10-1: NW-TT neighborRateRatio (Q63) and link delay D recomputed from PCAP + O1 = engine log (10 exchanges) -- []
+[PASS] R M2S6U-E-sig10-1: rr_out = toDouble(fromDouble(rr_in) x nRR) with rr_in = 1.0 from the INET GM (80 Follow_Ups); the DS-TT uses the carried value -- rr [] carry []
+[PASS] R M2S6U-E-sig10-1: csro on the wire = ceil((rr_out - 1) * 2^41) at NW-TT eth[0] TX, DS-TT eth[1] TX, slave RX (240 frames) -- 0 mismatches
+[PASS] R M2S6U-E-sig10-1: direction: GM +100 ppm -> calibrated rr_out 1.000099980143..1.000100032279 (> 1); uncalibrated (rr_out = 1, before the NW-TT's 2nd exchange): Follow_Ups [0, 1, 2, 3, 4, 5, 6, 7]
+[PASS] E M2S6U-E-sig10-1: C1 eps: exact for every Follow_Up (80) -- 0 failures
+[PASS] E M2S6U-E-sig10-1: C1 ldn: exact for every Follow_Up (80) -- 0 failures
+[PASS] E M2S6U-E-sig10-1: C1 link: exact for every Follow_Up (80) -- 0 failures
+[PASS] E M2S6U-E-sig10-1: C1 res: exact for every Follow_Up (80) -- 0 failures
+[PASS] E M2S6U-E-sig10-1: C2 cf: exact for every Follow_Up (80) -- 0 failures
+[PASS] E M2S6U-E-sig10-1: C3 offset: exact for every Follow_Up (80) -- 0 failures
+[PASS] E M2S6U-E-sig10-1: C4 step: exact for every Follow_Up (80) -- 0 failures
+[PASS] E M2S6U-E-sig10-1: C5 gmRR: exact for every Follow_Up (79) -- 0 failures
+[PASS] T M2S6U-E-sig10-1: NW-TT: every stamp recomputed from the configuration: C_T(s) and tau = Q(C_T(s) + w) (121 stamps; theta0 0 ns, y 0 ppb, D 0 ppb/s, U 0 ms, sigma 10 ns, L 0.001 ns) -- []
+[PASS] T M2S6U-E-sig10-1: NW-TT TSi: stamped at the PCAP first/last bit of every such event (80) -- 80 stamps vs 80 events
+[PASS] T M2S6U-E-sig10-1: NW-TT t1: stamped at the PCAP first/last bit of every such event (11) -- 11 stamps vs 10 events
+[PASS] T M2S6U-E-sig10-1: NW-TT t4: stamped at the PCAP first/last bit of every such event (10) -- 10 stamps vs 10 events
+[PASS] T M2S6U-E-sig10-1: NW-TT t1End: stamped at the PCAP first/last bit of every such event (10) -- 10 stamps vs 10 events
+[PASS] T M2S6U-E-sig10-1: NW-TT t4End: stamped at the PCAP first/last bit of every such event (10) -- 10 stamps vs 10 events
+[PASS] T M2S6U-E-sig10-1: DS-TT: every stamp recomputed from the configuration: C_T(s) and tau = Q(C_T(s) + w) (242 stamps; theta0 0 ns, y 0 ppb, D 0 ppb/s, U 0 ms, sigma 10 ns, L 0.001 ns) -- []
+[PASS] T M2S6U-E-sig10-1: DS-TT TSe: stamped at the PCAP first/last bit of every such event (80) -- 80 stamps vs 80 events
+[PASS] T M2S6U-E-sig10-1: DS-TT t2: stamped at the PCAP first/last bit of every such event (81) -- 81 stamps vs 81 events
+[PASS] T M2S6U-E-sig10-1: DS-TT t3: stamped at the PCAP first/last bit of every such event (81) -- 81 stamps vs 81 events
+[PASS] T M2S6U-E-sig10-1: DS-TT correction used TSi = NW-TT stamp and TSe = DS-TT stamp of the Sync (80 Follow_Ups) -- 0
+[PASS] T M2S6U-E-sig10-1: NW-TT link delay used t1 / t4 = NW-TT stamps (10 exchanges) -- 0
+[PASS] T M2S6U-E-sig10-1: slave received the DS-TT stamps t2 / t3 (wire, whole ns) (162 frames) -- 0
+[PASS] T M2S6U-E-sig10-1: E_res,TT = sum of the TT components (theta0, osc, w, q) of the NW-TT and DS-TT stamps of the Sync (80 Follow_Ups) -- 0 mismatches
+[PASS] K M2S6U-E-sig10-2: gm.clock timeChanged: every recorded sample = O1 (10003 samples; 0 oscillator changes, 0 tick resets)
+[PASS] K M2S6U-E-sig10-2: gm.clock.underlyingClock timeChanged: every recorded sample = O1 (2 samples; 0 oscillator changes, 0 tick resets)
+[PASS] K M2S6U-E-sig10-2: gm driftRateChanged = schedule (2 values)
+[PASS] K M2S6U-E-sig10-2: GM POT on the wire = C_G(Sync first bit) (80 Follow_Ups); Pdelay t2/t3 = U_G (20 values) -- 0 POT, 0 t2/t3 mismatches
+[PASS] K M2S6U-E-sig10-2: sign: GM +100 ppm -> POT - s changes by 987401.259 ns over the run
+[PASS] S M2S6U-E-sig10-2: O5 = every recorded slave value: pdelay 81, nrr 80, gm 79, compensation 80, clock 10163, clock.underlyingClock 10003
+[PASS] R M2S6U-E-sig10-2: NW-TT neighborRateRatio (Q63) and link delay D recomputed from PCAP + O1 = engine log (10 exchanges) -- []
+[PASS] R M2S6U-E-sig10-2: rr_out = toDouble(fromDouble(rr_in) x nRR) with rr_in = 1.0 from the INET GM (80 Follow_Ups); the DS-TT uses the carried value -- rr [] carry []
+[PASS] R M2S6U-E-sig10-2: csro on the wire = ceil((rr_out - 1) * 2^41) at NW-TT eth[0] TX, DS-TT eth[1] TX, slave RX (240 frames) -- 0 mismatches
+[PASS] R M2S6U-E-sig10-2: direction: GM +100 ppm -> calibrated rr_out 1.000099983259..1.000100027242 (> 1); uncalibrated (rr_out = 1, before the NW-TT's 2nd exchange): Follow_Ups [0, 1, 2, 3, 4, 5, 6, 7]
+[PASS] E M2S6U-E-sig10-2: C1 eps: exact for every Follow_Up (80) -- 0 failures
+[PASS] E M2S6U-E-sig10-2: C1 ldn: exact for every Follow_Up (80) -- 0 failures
+[PASS] E M2S6U-E-sig10-2: C1 link: exact for every Follow_Up (80) -- 0 failures
+[PASS] E M2S6U-E-sig10-2: C1 res: exact for every Follow_Up (80) -- 0 failures
+[PASS] E M2S6U-E-sig10-2: C2 cf: exact for every Follow_Up (80) -- 0 failures
+[PASS] E M2S6U-E-sig10-2: C3 offset: exact for every Follow_Up (80) -- 0 failures
+[PASS] E M2S6U-E-sig10-2: C4 step: exact for every Follow_Up (80) -- 0 failures
+[PASS] E M2S6U-E-sig10-2: C5 gmRR: exact for every Follow_Up (79) -- 0 failures
+[PASS] T M2S6U-E-sig10-2: NW-TT: every stamp recomputed from the configuration: C_T(s) and tau = Q(C_T(s) + w) (121 stamps; theta0 0 ns, y 0 ppb, D 0 ppb/s, U 0 ms, sigma 10 ns, L 0.001 ns) -- []
+[PASS] T M2S6U-E-sig10-2: NW-TT TSi: stamped at the PCAP first/last bit of every such event (80) -- 80 stamps vs 80 events
+[PASS] T M2S6U-E-sig10-2: NW-TT t1: stamped at the PCAP first/last bit of every such event (11) -- 11 stamps vs 10 events
+[PASS] T M2S6U-E-sig10-2: NW-TT t4: stamped at the PCAP first/last bit of every such event (10) -- 10 stamps vs 10 events
+[PASS] T M2S6U-E-sig10-2: NW-TT t1End: stamped at the PCAP first/last bit of every such event (10) -- 10 stamps vs 10 events
+[PASS] T M2S6U-E-sig10-2: NW-TT t4End: stamped at the PCAP first/last bit of every such event (10) -- 10 stamps vs 10 events
+[PASS] T M2S6U-E-sig10-2: DS-TT: every stamp recomputed from the configuration: C_T(s) and tau = Q(C_T(s) + w) (242 stamps; theta0 0 ns, y 0 ppb, D 0 ppb/s, U 0 ms, sigma 10 ns, L 0.001 ns) -- []
+[PASS] T M2S6U-E-sig10-2: DS-TT TSe: stamped at the PCAP first/last bit of every such event (80) -- 80 stamps vs 80 events
+[PASS] T M2S6U-E-sig10-2: DS-TT t2: stamped at the PCAP first/last bit of every such event (81) -- 81 stamps vs 81 events
+[PASS] T M2S6U-E-sig10-2: DS-TT t3: stamped at the PCAP first/last bit of every such event (81) -- 81 stamps vs 81 events
+[PASS] T M2S6U-E-sig10-2: DS-TT correction used TSi = NW-TT stamp and TSe = DS-TT stamp of the Sync (80 Follow_Ups) -- 0
+[PASS] T M2S6U-E-sig10-2: NW-TT link delay used t1 / t4 = NW-TT stamps (10 exchanges) -- 0
+[PASS] T M2S6U-E-sig10-2: slave received the DS-TT stamps t2 / t3 (wire, whole ns) (162 frames) -- 0
+[PASS] T M2S6U-E-sig10-2: E_res,TT = sum of the TT components (theta0, osc, w, q) of the NW-TT and DS-TT stamps of the Sync (80 Follow_Ups) -- 0 mismatches
+[PASS] K M2S6U-E-sig10-3: gm.clock timeChanged: every recorded sample = O1 (10003 samples; 0 oscillator changes, 0 tick resets)
+[PASS] K M2S6U-E-sig10-3: gm.clock.underlyingClock timeChanged: every recorded sample = O1 (2 samples; 0 oscillator changes, 0 tick resets)
+[PASS] K M2S6U-E-sig10-3: gm driftRateChanged = schedule (2 values)
+[PASS] K M2S6U-E-sig10-3: GM POT on the wire = C_G(Sync first bit) (80 Follow_Ups); Pdelay t2/t3 = U_G (20 values) -- 0 POT, 0 t2/t3 mismatches
+[PASS] K M2S6U-E-sig10-3: sign: GM +100 ppm -> POT - s changes by 987401.259 ns over the run
+[PASS] S M2S6U-E-sig10-3: O5 = every recorded slave value: pdelay 81, nrr 80, gm 79, compensation 80, clock 10163, clock.underlyingClock 10003
+[PASS] R M2S6U-E-sig10-3: NW-TT neighborRateRatio (Q63) and link delay D recomputed from PCAP + O1 = engine log (10 exchanges) -- []
+[PASS] R M2S6U-E-sig10-3: rr_out = toDouble(fromDouble(rr_in) x nRR) with rr_in = 1.0 from the INET GM (80 Follow_Ups); the DS-TT uses the carried value -- rr [] carry []
+[PASS] R M2S6U-E-sig10-3: csro on the wire = ceil((rr_out - 1) * 2^41) at NW-TT eth[0] TX, DS-TT eth[1] TX, slave RX (240 frames) -- 0 mismatches
+[PASS] R M2S6U-E-sig10-3: direction: GM +100 ppm -> calibrated rr_out 1.000099986648..1.000100018728 (> 1); uncalibrated (rr_out = 1, before the NW-TT's 2nd exchange): Follow_Ups [0, 1, 2, 3, 4, 5, 6, 7]
+[PASS] E M2S6U-E-sig10-3: C1 eps: exact for every Follow_Up (80) -- 0 failures
+[PASS] E M2S6U-E-sig10-3: C1 ldn: exact for every Follow_Up (80) -- 0 failures
+[PASS] E M2S6U-E-sig10-3: C1 link: exact for every Follow_Up (80) -- 0 failures
+[PASS] E M2S6U-E-sig10-3: C1 res: exact for every Follow_Up (80) -- 0 failures
+[PASS] E M2S6U-E-sig10-3: C2 cf: exact for every Follow_Up (80) -- 0 failures
+[PASS] E M2S6U-E-sig10-3: C3 offset: exact for every Follow_Up (80) -- 0 failures
+[PASS] E M2S6U-E-sig10-3: C4 step: exact for every Follow_Up (80) -- 0 failures
+[PASS] E M2S6U-E-sig10-3: C5 gmRR: exact for every Follow_Up (79) -- 0 failures
+[PASS] T M2S6U-E-sig10-3: NW-TT: every stamp recomputed from the configuration: C_T(s) and tau = Q(C_T(s) + w) (121 stamps; theta0 0 ns, y 0 ppb, D 0 ppb/s, U 0 ms, sigma 10 ns, L 0.001 ns) -- []
+[PASS] T M2S6U-E-sig10-3: NW-TT TSi: stamped at the PCAP first/last bit of every such event (80) -- 80 stamps vs 80 events
+[PASS] T M2S6U-E-sig10-3: NW-TT t1: stamped at the PCAP first/last bit of every such event (11) -- 11 stamps vs 10 events
+[PASS] T M2S6U-E-sig10-3: NW-TT t4: stamped at the PCAP first/last bit of every such event (10) -- 10 stamps vs 10 events
+[PASS] T M2S6U-E-sig10-3: NW-TT t1End: stamped at the PCAP first/last bit of every such event (10) -- 10 stamps vs 10 events
+[PASS] T M2S6U-E-sig10-3: NW-TT t4End: stamped at the PCAP first/last bit of every such event (10) -- 10 stamps vs 10 events
+[PASS] T M2S6U-E-sig10-3: DS-TT: every stamp recomputed from the configuration: C_T(s) and tau = Q(C_T(s) + w) (242 stamps; theta0 0 ns, y 0 ppb, D 0 ppb/s, U 0 ms, sigma 10 ns, L 0.001 ns) -- []
+[PASS] T M2S6U-E-sig10-3: DS-TT TSe: stamped at the PCAP first/last bit of every such event (80) -- 80 stamps vs 80 events
+[PASS] T M2S6U-E-sig10-3: DS-TT t2: stamped at the PCAP first/last bit of every such event (81) -- 81 stamps vs 81 events
+[PASS] T M2S6U-E-sig10-3: DS-TT t3: stamped at the PCAP first/last bit of every such event (81) -- 81 stamps vs 81 events
+[PASS] T M2S6U-E-sig10-3: DS-TT correction used TSi = NW-TT stamp and TSe = DS-TT stamp of the Sync (80 Follow_Ups) -- 0
+[PASS] T M2S6U-E-sig10-3: NW-TT link delay used t1 / t4 = NW-TT stamps (10 exchanges) -- 0
+[PASS] T M2S6U-E-sig10-3: slave received the DS-TT stamps t2 / t3 (wire, whole ns) (162 frames) -- 0
+[PASS] T M2S6U-E-sig10-3: E_res,TT = sum of the TT components (theta0, osc, w, q) of the NW-TT and DS-TT stamps of the Sync (80 Follow_Ups) -- 0 mismatches
+[PASS] K M2S6U-E-sig10-4: gm.clock timeChanged: every recorded sample = O1 (10003 samples; 0 oscillator changes, 0 tick resets)
+[PASS] K M2S6U-E-sig10-4: gm.clock.underlyingClock timeChanged: every recorded sample = O1 (2 samples; 0 oscillator changes, 0 tick resets)
+[PASS] K M2S6U-E-sig10-4: gm driftRateChanged = schedule (2 values)
+[PASS] K M2S6U-E-sig10-4: GM POT on the wire = C_G(Sync first bit) (80 Follow_Ups); Pdelay t2/t3 = U_G (20 values) -- 0 POT, 0 t2/t3 mismatches
+[PASS] K M2S6U-E-sig10-4: sign: GM +100 ppm -> POT - s changes by 987401.259 ns over the run
+[PASS] S M2S6U-E-sig10-4: O5 = every recorded slave value: pdelay 81, nrr 80, gm 79, compensation 80, clock 10163, clock.underlyingClock 10003
+[PASS] R M2S6U-E-sig10-4: NW-TT neighborRateRatio (Q63) and link delay D recomputed from PCAP + O1 = engine log (10 exchanges) -- []
+[PASS] R M2S6U-E-sig10-4: rr_out = toDouble(fromDouble(rr_in) x nRR) with rr_in = 1.0 from the INET GM (80 Follow_Ups); the DS-TT uses the carried value -- rr [] carry []
+[PASS] R M2S6U-E-sig10-4: csro on the wire = ceil((rr_out - 1) * 2^41) at NW-TT eth[0] TX, DS-TT eth[1] TX, slave RX (240 frames) -- 0 mismatches
+[PASS] R M2S6U-E-sig10-4: direction: GM +100 ppm -> calibrated rr_out 1.000099982008..1.000100013707 (> 1); uncalibrated (rr_out = 1, before the NW-TT's 2nd exchange): Follow_Ups [0, 1, 2, 3, 4, 5, 6, 7]
+[PASS] E M2S6U-E-sig10-4: C1 eps: exact for every Follow_Up (80) -- 0 failures
+[PASS] E M2S6U-E-sig10-4: C1 ldn: exact for every Follow_Up (80) -- 0 failures
+[PASS] E M2S6U-E-sig10-4: C1 link: exact for every Follow_Up (80) -- 0 failures
+[PASS] E M2S6U-E-sig10-4: C1 res: exact for every Follow_Up (80) -- 0 failures
+[PASS] E M2S6U-E-sig10-4: C2 cf: exact for every Follow_Up (80) -- 0 failures
+[PASS] E M2S6U-E-sig10-4: C3 offset: exact for every Follow_Up (80) -- 0 failures
+[PASS] E M2S6U-E-sig10-4: C4 step: exact for every Follow_Up (80) -- 0 failures
+[PASS] E M2S6U-E-sig10-4: C5 gmRR: exact for every Follow_Up (79) -- 0 failures
+[PASS] T M2S6U-E-sig10-4: NW-TT: every stamp recomputed from the configuration: C_T(s) and tau = Q(C_T(s) + w) (121 stamps; theta0 0 ns, y 0 ppb, D 0 ppb/s, U 0 ms, sigma 10 ns, L 0.001 ns) -- []
+[PASS] T M2S6U-E-sig10-4: NW-TT TSi: stamped at the PCAP first/last bit of every such event (80) -- 80 stamps vs 80 events
+[PASS] T M2S6U-E-sig10-4: NW-TT t1: stamped at the PCAP first/last bit of every such event (11) -- 11 stamps vs 10 events
+[PASS] T M2S6U-E-sig10-4: NW-TT t4: stamped at the PCAP first/last bit of every such event (10) -- 10 stamps vs 10 events
+[PASS] T M2S6U-E-sig10-4: NW-TT t1End: stamped at the PCAP first/last bit of every such event (10) -- 10 stamps vs 10 events
+[PASS] T M2S6U-E-sig10-4: NW-TT t4End: stamped at the PCAP first/last bit of every such event (10) -- 10 stamps vs 10 events
+[PASS] T M2S6U-E-sig10-4: DS-TT: every stamp recomputed from the configuration: C_T(s) and tau = Q(C_T(s) + w) (242 stamps; theta0 0 ns, y 0 ppb, D 0 ppb/s, U 0 ms, sigma 10 ns, L 0.001 ns) -- []
+[PASS] T M2S6U-E-sig10-4: DS-TT TSe: stamped at the PCAP first/last bit of every such event (80) -- 80 stamps vs 80 events
+[PASS] T M2S6U-E-sig10-4: DS-TT t2: stamped at the PCAP first/last bit of every such event (81) -- 81 stamps vs 81 events
+[PASS] T M2S6U-E-sig10-4: DS-TT t3: stamped at the PCAP first/last bit of every such event (81) -- 81 stamps vs 81 events
+[PASS] T M2S6U-E-sig10-4: DS-TT correction used TSi = NW-TT stamp and TSe = DS-TT stamp of the Sync (80 Follow_Ups) -- 0
+[PASS] T M2S6U-E-sig10-4: NW-TT link delay used t1 / t4 = NW-TT stamps (10 exchanges) -- 0
+[PASS] T M2S6U-E-sig10-4: slave received the DS-TT stamps t2 / t3 (wire, whole ns) (162 frames) -- 0
+[PASS] T M2S6U-E-sig10-4: E_res,TT = sum of the TT components (theta0, osc, w, q) of the NW-TT and DS-TT stamps of the Sync (80 Follow_Ups) -- 0 mismatches
+[PASS] K M2S6U-E-sig100-0: gm.clock timeChanged: every recorded sample = O1 (10003 samples; 0 oscillator changes, 0 tick resets)
+[PASS] K M2S6U-E-sig100-0: gm.clock.underlyingClock timeChanged: every recorded sample = O1 (2 samples; 0 oscillator changes, 0 tick resets)
+[PASS] K M2S6U-E-sig100-0: gm driftRateChanged = schedule (2 values)
+[PASS] K M2S6U-E-sig100-0: GM POT on the wire = C_G(Sync first bit) (80 Follow_Ups); Pdelay t2/t3 = U_G (20 values) -- 0 POT, 0 t2/t3 mismatches
+[PASS] K M2S6U-E-sig100-0: sign: GM +100 ppm -> POT - s changes by 987401.259 ns over the run
+[PASS] S M2S6U-E-sig100-0: O5 = every recorded slave value: pdelay 81, nrr 80, gm 63, compensation 64, clock 10131, clock.underlyingClock 10003
+[PASS] R M2S6U-E-sig100-0: NW-TT neighborRateRatio (Q63) and link delay D recomputed from PCAP + O1 = engine log (10 exchanges) -- []
+[PASS] R M2S6U-E-sig100-0: rr_out = toDouble(fromDouble(rr_in) x nRR) with rr_in = 1.0 from the INET GM (64 Follow_Ups); the DS-TT uses the carried value -- rr [] carry []
+[PASS] R M2S6U-E-sig100-0: csro on the wire = ceil((rr_out - 1) * 2^41) at NW-TT eth[0] TX, DS-TT eth[1] TX, slave RX (192 frames) -- 0 mismatches
+[PASS] R M2S6U-E-sig100-0: direction: GM +100 ppm -> calibrated rr_out 1.000099831919..1.000100063869 (> 1); uncalibrated (rr_out = 1, before the NW-TT's 2nd exchange): Follow_Ups [0, 1, 2, 3, 4, 5, 6, 7]
+[PASS] E M2S6U-E-sig100-0: C1 eps: exact for every Follow_Up (64) -- 0 failures
+[PASS] E M2S6U-E-sig100-0: C1 ldn: exact for every Follow_Up (64) -- 0 failures
+[PASS] E M2S6U-E-sig100-0: C1 link: exact for every Follow_Up (64) -- 0 failures
+[PASS] E M2S6U-E-sig100-0: C1 res: exact for every Follow_Up (64) -- 0 failures
+[PASS] E M2S6U-E-sig100-0: C2 cf: exact for every Follow_Up (64) -- 0 failures
+[PASS] E M2S6U-E-sig100-0: C3 offset: exact for every Follow_Up (64) -- 0 failures
+[PASS] E M2S6U-E-sig100-0: C4 step: exact for every Follow_Up (64) -- 0 failures
+[PASS] E M2S6U-E-sig100-0: C5 gmRR: exact for every Follow_Up (63) -- 0 failures
+[PASS] T M2S6U-E-sig100-0: NW-TT: every stamp recomputed from the configuration: C_T(s) and tau = Q(C_T(s) + w) (121 stamps; theta0 0 ns, y 0 ppb, D 0 ppb/s, U 0 ms, sigma 100 ns, L 0.001 ns) -- []
+[PASS] T M2S6U-E-sig100-0: NW-TT TSi: stamped at the PCAP first/last bit of every such event (80) -- 80 stamps vs 80 events
+[PASS] T M2S6U-E-sig100-0: NW-TT t1: stamped at the PCAP first/last bit of every such event (11) -- 11 stamps vs 10 events
+[PASS] T M2S6U-E-sig100-0: NW-TT t4: stamped at the PCAP first/last bit of every such event (10) -- 10 stamps vs 10 events
+[PASS] T M2S6U-E-sig100-0: NW-TT t1End: stamped at the PCAP first/last bit of every such event (10) -- 10 stamps vs 10 events
+[PASS] T M2S6U-E-sig100-0: NW-TT t4End: stamped at the PCAP first/last bit of every such event (10) -- 10 stamps vs 10 events
+[PASS] T M2S6U-E-sig100-0: DS-TT: every stamp recomputed from the configuration: C_T(s) and tau = Q(C_T(s) + w) (242 stamps; theta0 0 ns, y 0 ppb, D 0 ppb/s, U 0 ms, sigma 100 ns, L 0.001 ns) -- []
+[PASS] T M2S6U-E-sig100-0: DS-TT TSe: stamped at the PCAP first/last bit of every such event (80) -- 80 stamps vs 80 events
+[PASS] T M2S6U-E-sig100-0: DS-TT t2: stamped at the PCAP first/last bit of every such event (81) -- 81 stamps vs 81 events
+[PASS] T M2S6U-E-sig100-0: DS-TT t3: stamped at the PCAP first/last bit of every such event (81) -- 81 stamps vs 81 events
+[PASS] T M2S6U-E-sig100-0: DS-TT correction used TSi = NW-TT stamp and TSe = DS-TT stamp of the Sync (64 Follow_Ups) -- 0
+[PASS] T M2S6U-E-sig100-0: NW-TT link delay used t1 / t4 = NW-TT stamps (10 exchanges) -- 0
+[PASS] T M2S6U-E-sig100-0: slave received the DS-TT stamps t2 / t3 (wire, whole ns) (162 frames) -- 0
+[PASS] T M2S6U-E-sig100-0: E_res,TT = sum of the TT components (theta0, osc, w, q) of the NW-TT and DS-TT stamps of the Sync (64 Follow_Ups) -- 0 mismatches
+[PASS] K M2S6U-E-sig100-1: gm.clock timeChanged: every recorded sample = O1 (10003 samples; 0 oscillator changes, 0 tick resets)
+[PASS] K M2S6U-E-sig100-1: gm.clock.underlyingClock timeChanged: every recorded sample = O1 (2 samples; 0 oscillator changes, 0 tick resets)
+[PASS] K M2S6U-E-sig100-1: gm driftRateChanged = schedule (2 values)
+[PASS] K M2S6U-E-sig100-1: GM POT on the wire = C_G(Sync first bit) (80 Follow_Ups); Pdelay t2/t3 = U_G (20 values) -- 0 POT, 0 t2/t3 mismatches
+[PASS] K M2S6U-E-sig100-1: sign: GM +100 ppm -> POT - s changes by 987401.259 ns over the run
+[PASS] S M2S6U-E-sig100-1: O5 = every recorded slave value: pdelay 81, nrr 80, gm 63, compensation 64, clock 10131, clock.underlyingClock 10003
+[PASS] R M2S6U-E-sig100-1: NW-TT neighborRateRatio (Q63) and link delay D recomputed from PCAP + O1 = engine log (10 exchanges) -- []
+[PASS] R M2S6U-E-sig100-1: rr_out = toDouble(fromDouble(rr_in) x nRR) with rr_in = 1.0 from the INET GM (64 Follow_Ups); the DS-TT uses the carried value -- rr [] carry []
+[PASS] R M2S6U-E-sig100-1: csro on the wire = ceil((rr_out - 1) * 2^41) at NW-TT eth[0] TX, DS-TT eth[1] TX, slave RX (192 frames) -- 0 mismatches
+[PASS] R M2S6U-E-sig100-1: direction: GM +100 ppm -> calibrated rr_out 1.000099801431..1.000100322786 (> 1); uncalibrated (rr_out = 1, before the NW-TT's 2nd exchange): Follow_Ups [0, 1, 2, 3, 4, 5, 6, 7]
+[PASS] E M2S6U-E-sig100-1: C1 eps: exact for every Follow_Up (64) -- 0 failures
+[PASS] E M2S6U-E-sig100-1: C1 ldn: exact for every Follow_Up (64) -- 0 failures
+[PASS] E M2S6U-E-sig100-1: C1 link: exact for every Follow_Up (64) -- 0 failures
+[PASS] E M2S6U-E-sig100-1: C1 res: exact for every Follow_Up (64) -- 0 failures
+[PASS] E M2S6U-E-sig100-1: C2 cf: exact for every Follow_Up (64) -- 0 failures
+[PASS] E M2S6U-E-sig100-1: C3 offset: exact for every Follow_Up (64) -- 0 failures
+[PASS] E M2S6U-E-sig100-1: C4 step: exact for every Follow_Up (64) -- 0 failures
+[PASS] E M2S6U-E-sig100-1: C5 gmRR: exact for every Follow_Up (63) -- 0 failures
+[PASS] T M2S6U-E-sig100-1: NW-TT: every stamp recomputed from the configuration: C_T(s) and tau = Q(C_T(s) + w) (121 stamps; theta0 0 ns, y 0 ppb, D 0 ppb/s, U 0 ms, sigma 100 ns, L 0.001 ns) -- []
+[PASS] T M2S6U-E-sig100-1: NW-TT TSi: stamped at the PCAP first/last bit of every such event (80) -- 80 stamps vs 80 events
+[PASS] T M2S6U-E-sig100-1: NW-TT t1: stamped at the PCAP first/last bit of every such event (11) -- 11 stamps vs 10 events
+[PASS] T M2S6U-E-sig100-1: NW-TT t4: stamped at the PCAP first/last bit of every such event (10) -- 10 stamps vs 10 events
+[PASS] T M2S6U-E-sig100-1: NW-TT t1End: stamped at the PCAP first/last bit of every such event (10) -- 10 stamps vs 10 events
+[PASS] T M2S6U-E-sig100-1: NW-TT t4End: stamped at the PCAP first/last bit of every such event (10) -- 10 stamps vs 10 events
+[PASS] T M2S6U-E-sig100-1: DS-TT: every stamp recomputed from the configuration: C_T(s) and tau = Q(C_T(s) + w) (242 stamps; theta0 0 ns, y 0 ppb, D 0 ppb/s, U 0 ms, sigma 100 ns, L 0.001 ns) -- []
+[PASS] T M2S6U-E-sig100-1: DS-TT TSe: stamped at the PCAP first/last bit of every such event (80) -- 80 stamps vs 80 events
+[PASS] T M2S6U-E-sig100-1: DS-TT t2: stamped at the PCAP first/last bit of every such event (81) -- 81 stamps vs 81 events
+[PASS] T M2S6U-E-sig100-1: DS-TT t3: stamped at the PCAP first/last bit of every such event (81) -- 81 stamps vs 81 events
+[PASS] T M2S6U-E-sig100-1: DS-TT correction used TSi = NW-TT stamp and TSe = DS-TT stamp of the Sync (64 Follow_Ups) -- 0
+[PASS] T M2S6U-E-sig100-1: NW-TT link delay used t1 / t4 = NW-TT stamps (10 exchanges) -- 0
+[PASS] T M2S6U-E-sig100-1: slave received the DS-TT stamps t2 / t3 (wire, whole ns) (162 frames) -- 0
+[PASS] T M2S6U-E-sig100-1: E_res,TT = sum of the TT components (theta0, osc, w, q) of the NW-TT and DS-TT stamps of the Sync (64 Follow_Ups) -- 0 mismatches
+[PASS] K M2S6U-E-sig100-2: gm.clock timeChanged: every recorded sample = O1 (10003 samples; 0 oscillator changes, 0 tick resets)
+[PASS] K M2S6U-E-sig100-2: gm.clock.underlyingClock timeChanged: every recorded sample = O1 (2 samples; 0 oscillator changes, 0 tick resets)
+[PASS] K M2S6U-E-sig100-2: gm driftRateChanged = schedule (2 values)
+[PASS] K M2S6U-E-sig100-2: GM POT on the wire = C_G(Sync first bit) (80 Follow_Ups); Pdelay t2/t3 = U_G (20 values) -- 0 POT, 0 t2/t3 mismatches
+[PASS] K M2S6U-E-sig100-2: sign: GM +100 ppm -> POT - s changes by 987401.259 ns over the run
+[PASS] S M2S6U-E-sig100-2: O5 = every recorded slave value: pdelay 81, nrr 80, gm 63, compensation 64, clock 10131, clock.underlyingClock 10003
+[PASS] R M2S6U-E-sig100-2: NW-TT neighborRateRatio (Q63) and link delay D recomputed from PCAP + O1 = engine log (10 exchanges) -- []
+[PASS] R M2S6U-E-sig100-2: rr_out = toDouble(fromDouble(rr_in) x nRR) with rr_in = 1.0 from the INET GM (64 Follow_Ups); the DS-TT uses the carried value -- rr [] carry []
+[PASS] R M2S6U-E-sig100-2: csro on the wire = ceil((rr_out - 1) * 2^41) at NW-TT eth[0] TX, DS-TT eth[1] TX, slave RX (192 frames) -- 0 mismatches
+[PASS] R M2S6U-E-sig100-2: direction: GM +100 ppm -> calibrated rr_out 1.000099832592..1.000100049668 (> 1); uncalibrated (rr_out = 1, before the NW-TT's 2nd exchange): Follow_Ups [0, 1, 2, 3, 4, 5, 6, 7]
+[PASS] E M2S6U-E-sig100-2: C1 eps: exact for every Follow_Up (64) -- 0 failures
+[PASS] E M2S6U-E-sig100-2: C1 ldn: exact for every Follow_Up (64) -- 0 failures
+[PASS] E M2S6U-E-sig100-2: C1 link: exact for every Follow_Up (64) -- 0 failures
+[PASS] E M2S6U-E-sig100-2: C1 res: exact for every Follow_Up (64) -- 0 failures
+[PASS] E M2S6U-E-sig100-2: C2 cf: exact for every Follow_Up (64) -- 0 failures
+[PASS] E M2S6U-E-sig100-2: C3 offset: exact for every Follow_Up (64) -- 0 failures
+[PASS] E M2S6U-E-sig100-2: C4 step: exact for every Follow_Up (64) -- 0 failures
+[PASS] E M2S6U-E-sig100-2: C5 gmRR: exact for every Follow_Up (63) -- 0 failures
+[PASS] T M2S6U-E-sig100-2: NW-TT: every stamp recomputed from the configuration: C_T(s) and tau = Q(C_T(s) + w) (121 stamps; theta0 0 ns, y 0 ppb, D 0 ppb/s, U 0 ms, sigma 100 ns, L 0.001 ns) -- []
+[PASS] T M2S6U-E-sig100-2: NW-TT TSi: stamped at the PCAP first/last bit of every such event (80) -- 80 stamps vs 80 events
+[PASS] T M2S6U-E-sig100-2: NW-TT t1: stamped at the PCAP first/last bit of every such event (11) -- 11 stamps vs 10 events
+[PASS] T M2S6U-E-sig100-2: NW-TT t4: stamped at the PCAP first/last bit of every such event (10) -- 10 stamps vs 10 events
+[PASS] T M2S6U-E-sig100-2: NW-TT t1End: stamped at the PCAP first/last bit of every such event (10) -- 10 stamps vs 10 events
+[PASS] T M2S6U-E-sig100-2: NW-TT t4End: stamped at the PCAP first/last bit of every such event (10) -- 10 stamps vs 10 events
+[PASS] T M2S6U-E-sig100-2: DS-TT: every stamp recomputed from the configuration: C_T(s) and tau = Q(C_T(s) + w) (242 stamps; theta0 0 ns, y 0 ppb, D 0 ppb/s, U 0 ms, sigma 100 ns, L 0.001 ns) -- []
+[PASS] T M2S6U-E-sig100-2: DS-TT TSe: stamped at the PCAP first/last bit of every such event (80) -- 80 stamps vs 80 events
+[PASS] T M2S6U-E-sig100-2: DS-TT t2: stamped at the PCAP first/last bit of every such event (81) -- 81 stamps vs 81 events
+[PASS] T M2S6U-E-sig100-2: DS-TT t3: stamped at the PCAP first/last bit of every such event (81) -- 81 stamps vs 81 events
+[PASS] T M2S6U-E-sig100-2: DS-TT correction used TSi = NW-TT stamp and TSe = DS-TT stamp of the Sync (64 Follow_Ups) -- 0
+[PASS] T M2S6U-E-sig100-2: NW-TT link delay used t1 / t4 = NW-TT stamps (10 exchanges) -- 0
+[PASS] T M2S6U-E-sig100-2: slave received the DS-TT stamps t2 / t3 (wire, whole ns) (162 frames) -- 0
+[PASS] T M2S6U-E-sig100-2: E_res,TT = sum of the TT components (theta0, osc, w, q) of the NW-TT and DS-TT stamps of the Sync (64 Follow_Ups) -- 0 mismatches
+[PASS] K M2S6U-E-sig100-3: gm.clock timeChanged: every recorded sample = O1 (10003 samples; 0 oscillator changes, 0 tick resets)
+[PASS] K M2S6U-E-sig100-3: gm.clock.underlyingClock timeChanged: every recorded sample = O1 (2 samples; 0 oscillator changes, 0 tick resets)
+[PASS] K M2S6U-E-sig100-3: gm driftRateChanged = schedule (2 values)
+[PASS] K M2S6U-E-sig100-3: GM POT on the wire = C_G(Sync first bit) (80 Follow_Ups); Pdelay t2/t3 = U_G (20 values) -- 0 POT, 0 t2/t3 mismatches
+[PASS] K M2S6U-E-sig100-3: sign: GM +100 ppm -> POT - s changes by 987401.259 ns over the run
+[PASS] S M2S6U-E-sig100-3: O5 = every recorded slave value: pdelay 81, nrr 80, gm 47, compensation 48, clock 10099, clock.underlyingClock 10003
+[PASS] R M2S6U-E-sig100-3: NW-TT neighborRateRatio (Q63) and link delay D recomputed from PCAP + O1 = engine log (10 exchanges) -- []
+[PASS] R M2S6U-E-sig100-3: rr_out = toDouble(fromDouble(rr_in) x nRR) with rr_in = 1.0 from the INET GM (48 Follow_Ups); the DS-TT uses the carried value -- rr [] carry []
+[PASS] R M2S6U-E-sig100-3: csro on the wire = ceil((rr_out - 1) * 2^41) at NW-TT eth[0] TX, DS-TT eth[1] TX, slave RX (144 frames) -- 0 mismatches
+[PASS] R M2S6U-E-sig100-3: direction: GM +100 ppm -> calibrated rr_out 1.000099739544..1.000100090039 (> 1); uncalibrated (rr_out = 1, before the NW-TT's 2nd exchange): Follow_Ups []
+[PASS] E M2S6U-E-sig100-3: C1 eps: exact for every Follow_Up (48) -- 0 failures
+[PASS] E M2S6U-E-sig100-3: C1 ldn: exact for every Follow_Up (48) -- 0 failures
+[PASS] E M2S6U-E-sig100-3: C1 link: exact for every Follow_Up (48) -- 0 failures
+[PASS] E M2S6U-E-sig100-3: C1 res: exact for every Follow_Up (48) -- 0 failures
+[PASS] E M2S6U-E-sig100-3: C2 cf: exact for every Follow_Up (48) -- 0 failures
+[PASS] E M2S6U-E-sig100-3: C3 offset: exact for every Follow_Up (48) -- 0 failures
+[PASS] E M2S6U-E-sig100-3: C4 step: exact for every Follow_Up (48) -- 0 failures
+[PASS] E M2S6U-E-sig100-3: C5 gmRR: exact for every Follow_Up (47) -- 0 failures
+[PASS] T M2S6U-E-sig100-3: NW-TT: every stamp recomputed from the configuration: C_T(s) and tau = Q(C_T(s) + w) (121 stamps; theta0 0 ns, y 0 ppb, D 0 ppb/s, U 0 ms, sigma 100 ns, L 0.001 ns) -- []
+[PASS] T M2S6U-E-sig100-3: NW-TT TSi: stamped at the PCAP first/last bit of every such event (80) -- 80 stamps vs 80 events
+[PASS] T M2S6U-E-sig100-3: NW-TT t1: stamped at the PCAP first/last bit of every such event (11) -- 11 stamps vs 10 events
+[PASS] T M2S6U-E-sig100-3: NW-TT t4: stamped at the PCAP first/last bit of every such event (10) -- 10 stamps vs 10 events
+[PASS] T M2S6U-E-sig100-3: NW-TT t1End: stamped at the PCAP first/last bit of every such event (10) -- 10 stamps vs 10 events
+[PASS] T M2S6U-E-sig100-3: NW-TT t4End: stamped at the PCAP first/last bit of every such event (10) -- 10 stamps vs 10 events
+[PASS] T M2S6U-E-sig100-3: DS-TT: every stamp recomputed from the configuration: C_T(s) and tau = Q(C_T(s) + w) (242 stamps; theta0 0 ns, y 0 ppb, D 0 ppb/s, U 0 ms, sigma 100 ns, L 0.001 ns) -- []
+[PASS] T M2S6U-E-sig100-3: DS-TT TSe: stamped at the PCAP first/last bit of every such event (80) -- 80 stamps vs 80 events
+[PASS] T M2S6U-E-sig100-3: DS-TT t2: stamped at the PCAP first/last bit of every such event (81) -- 81 stamps vs 81 events
+[PASS] T M2S6U-E-sig100-3: DS-TT t3: stamped at the PCAP first/last bit of every such event (81) -- 81 stamps vs 81 events
+[PASS] T M2S6U-E-sig100-3: DS-TT correction used TSi = NW-TT stamp and TSe = DS-TT stamp of the Sync (48 Follow_Ups) -- 0
+[PASS] T M2S6U-E-sig100-3: NW-TT link delay used t1 / t4 = NW-TT stamps (10 exchanges) -- 0
+[PASS] T M2S6U-E-sig100-3: slave received the DS-TT stamps t2 / t3 (wire, whole ns) (162 frames) -- 0
+[PASS] T M2S6U-E-sig100-3: E_res,TT = sum of the TT components (theta0, osc, w, q) of the NW-TT and DS-TT stamps of the Sync (48 Follow_Ups) -- 0 mismatches
+[PASS] K M2S6U-E-sig100-4: gm.clock timeChanged: every recorded sample = O1 (10003 samples; 0 oscillator changes, 0 tick resets)
+[PASS] K M2S6U-E-sig100-4: gm.clock.underlyingClock timeChanged: every recorded sample = O1 (2 samples; 0 oscillator changes, 0 tick resets)
+[PASS] K M2S6U-E-sig100-4: gm driftRateChanged = schedule (2 values)
+[PASS] K M2S6U-E-sig100-4: GM POT on the wire = C_G(Sync first bit) (80 Follow_Ups); Pdelay t2/t3 = U_G (20 values) -- 0 POT, 0 t2/t3 mismatches
+[PASS] K M2S6U-E-sig100-4: sign: GM +100 ppm -> POT - s changes by 987401.259 ns over the run
+[PASS] S M2S6U-E-sig100-4: O5 = every recorded slave value: pdelay 81, nrr 80, gm 63, compensation 64, clock 10131, clock.underlyingClock 10003
+[PASS] R M2S6U-E-sig100-4: NW-TT neighborRateRatio (Q63) and link delay D recomputed from PCAP + O1 = engine log (10 exchanges) -- []
+[PASS] R M2S6U-E-sig100-4: rr_out = toDouble(fromDouble(rr_in) x nRR) with rr_in = 1.0 from the INET GM (64 Follow_Ups); the DS-TT uses the carried value -- rr [] carry []
+[PASS] R M2S6U-E-sig100-4: csro on the wire = ceil((rr_out - 1) * 2^41) at NW-TT eth[0] TX, DS-TT eth[1] TX, slave RX (192 frames) -- 0 mismatches
+[PASS] R M2S6U-E-sig100-4: direction: GM +100 ppm -> calibrated rr_out 1.000099812370..1.000100115460 (> 1); uncalibrated (rr_out = 1, before the NW-TT's 2nd exchange): Follow_Ups []
+[PASS] E M2S6U-E-sig100-4: C1 eps: exact for every Follow_Up (64) -- 0 failures
+[PASS] E M2S6U-E-sig100-4: C1 ldn: exact for every Follow_Up (64) -- 0 failures
+[PASS] E M2S6U-E-sig100-4: C1 link: exact for every Follow_Up (64) -- 0 failures
+[PASS] E M2S6U-E-sig100-4: C1 res: exact for every Follow_Up (64) -- 0 failures
+[PASS] E M2S6U-E-sig100-4: C2 cf: exact for every Follow_Up (64) -- 0 failures
+[PASS] E M2S6U-E-sig100-4: C3 offset: exact for every Follow_Up (64) -- 0 failures
+[PASS] E M2S6U-E-sig100-4: C4 step: exact for every Follow_Up (64) -- 0 failures
+[PASS] E M2S6U-E-sig100-4: C5 gmRR: exact for every Follow_Up (63) -- 0 failures
+[PASS] T M2S6U-E-sig100-4: NW-TT: every stamp recomputed from the configuration: C_T(s) and tau = Q(C_T(s) + w) (121 stamps; theta0 0 ns, y 0 ppb, D 0 ppb/s, U 0 ms, sigma 100 ns, L 0.001 ns) -- []
+[PASS] T M2S6U-E-sig100-4: NW-TT TSi: stamped at the PCAP first/last bit of every such event (80) -- 80 stamps vs 80 events
+[PASS] T M2S6U-E-sig100-4: NW-TT t1: stamped at the PCAP first/last bit of every such event (11) -- 11 stamps vs 10 events
+[PASS] T M2S6U-E-sig100-4: NW-TT t4: stamped at the PCAP first/last bit of every such event (10) -- 10 stamps vs 10 events
+[PASS] T M2S6U-E-sig100-4: NW-TT t1End: stamped at the PCAP first/last bit of every such event (10) -- 10 stamps vs 10 events
+[PASS] T M2S6U-E-sig100-4: NW-TT t4End: stamped at the PCAP first/last bit of every such event (10) -- 10 stamps vs 10 events
+[PASS] T M2S6U-E-sig100-4: DS-TT: every stamp recomputed from the configuration: C_T(s) and tau = Q(C_T(s) + w) (242 stamps; theta0 0 ns, y 0 ppb, D 0 ppb/s, U 0 ms, sigma 100 ns, L 0.001 ns) -- []
+[PASS] T M2S6U-E-sig100-4: DS-TT TSe: stamped at the PCAP first/last bit of every such event (80) -- 80 stamps vs 80 events
+[PASS] T M2S6U-E-sig100-4: DS-TT t2: stamped at the PCAP first/last bit of every such event (81) -- 81 stamps vs 81 events
+[PASS] T M2S6U-E-sig100-4: DS-TT t3: stamped at the PCAP first/last bit of every such event (81) -- 81 stamps vs 81 events
+[PASS] T M2S6U-E-sig100-4: DS-TT correction used TSi = NW-TT stamp and TSe = DS-TT stamp of the Sync (64 Follow_Ups) -- 0
+[PASS] T M2S6U-E-sig100-4: NW-TT link delay used t1 / t4 = NW-TT stamps (10 exchanges) -- 0
+[PASS] T M2S6U-E-sig100-4: slave received the DS-TT stamps t2 / t3 (wire, whole ns) (162 frames) -- 0
+[PASS] T M2S6U-E-sig100-4: E_res,TT = sum of the TT components (theta0, osc, w, q) of the NW-TT and DS-TT stamps of the Sync (64 Follow_Ups) -- 0 mismatches
+[PASS] K M2S6U-E-L8-0: gm.clock timeChanged: every recorded sample = O1 (10003 samples; 0 oscillator changes, 0 tick resets)
+[PASS] K M2S6U-E-L8-0: gm.clock.underlyingClock timeChanged: every recorded sample = O1 (2 samples; 0 oscillator changes, 0 tick resets)
+[PASS] K M2S6U-E-L8-0: gm driftRateChanged = schedule (2 values)
+[PASS] K M2S6U-E-L8-0: GM POT on the wire = C_G(Sync first bit) (80 Follow_Ups); Pdelay t2/t3 = U_G (20 values) -- 0 POT, 0 t2/t3 mismatches
+[PASS] K M2S6U-E-L8-0: sign: GM +100 ppm -> POT - s changes by 987401.259 ns over the run
+[PASS] S M2S6U-E-L8-0: O5 = every recorded slave value: pdelay 81, nrr 80, gm 79, compensation 80, clock 10163, clock.underlyingClock 10003
+[PASS] R M2S6U-E-L8-0: NW-TT neighborRateRatio (Q63) and link delay D recomputed from PCAP + O1 = engine log (10 exchanges) -- []
+[PASS] R M2S6U-E-L8-0: rr_out = toDouble(fromDouble(rr_in) x nRR) with rr_in = 1.0 from the INET GM (80 Follow_Ups); the DS-TT uses the carried value -- rr [] carry []
+[PASS] R M2S6U-E-L8-0: csro on the wire = ceil((rr_out - 1) * 2^41) at NW-TT eth[0] TX, DS-TT eth[1] TX, slave RX (240 frames) -- 0 mismatches
+[PASS] R M2S6U-E-L8-0: direction: GM +100 ppm -> calibrated rr_out 1.000100000000..1.000100000000 (> 1); uncalibrated (rr_out = 1, before the NW-TT's 2nd exchange): Follow_Ups [0, 1, 2, 3, 4, 5, 6, 7]
+[PASS] E M2S6U-E-L8-0: C1 eps: exact for every Follow_Up (80) -- 0 failures
+[PASS] E M2S6U-E-L8-0: C1 ldn: exact for every Follow_Up (80) -- 0 failures
+[PASS] E M2S6U-E-L8-0: C1 link: exact for every Follow_Up (80) -- 0 failures
+[PASS] E M2S6U-E-L8-0: C1 res: exact for every Follow_Up (80) -- 0 failures
+[PASS] E M2S6U-E-L8-0: C2 cf: exact for every Follow_Up (80) -- 0 failures
+[PASS] E M2S6U-E-L8-0: C3 offset: exact for every Follow_Up (80) -- 0 failures
+[PASS] E M2S6U-E-L8-0: C4 step: exact for every Follow_Up (80) -- 0 failures
+[PASS] E M2S6U-E-L8-0: C5 gmRR: exact for every Follow_Up (79) -- 0 failures
+[PASS] T M2S6U-E-L8-0: NW-TT: every stamp recomputed from the configuration: C_T(s) and tau = Q(C_T(s) + w) (121 stamps; theta0 0 ns, y 0 ppb, D 0 ppb/s, U 0 ms, sigma 0 ns, L 8 ns) -- []
+[PASS] T M2S6U-E-L8-0: NW-TT TSi: stamped at the PCAP first/last bit of every such event (80) -- 80 stamps vs 80 events
+[PASS] T M2S6U-E-L8-0: NW-TT t1: stamped at the PCAP first/last bit of every such event (11) -- 11 stamps vs 10 events
+[PASS] T M2S6U-E-L8-0: NW-TT t4: stamped at the PCAP first/last bit of every such event (10) -- 10 stamps vs 10 events
+[PASS] T M2S6U-E-L8-0: NW-TT t1End: stamped at the PCAP first/last bit of every such event (10) -- 10 stamps vs 10 events
+[PASS] T M2S6U-E-L8-0: NW-TT t4End: stamped at the PCAP first/last bit of every such event (10) -- 10 stamps vs 10 events
+[PASS] T M2S6U-E-L8-0: DS-TT: every stamp recomputed from the configuration: C_T(s) and tau = Q(C_T(s) + w) (242 stamps; theta0 0 ns, y 0 ppb, D 0 ppb/s, U 0 ms, sigma 0 ns, L 8 ns) -- []
+[PASS] T M2S6U-E-L8-0: DS-TT TSe: stamped at the PCAP first/last bit of every such event (80) -- 80 stamps vs 80 events
+[PASS] T M2S6U-E-L8-0: DS-TT t2: stamped at the PCAP first/last bit of every such event (81) -- 81 stamps vs 81 events
+[PASS] T M2S6U-E-L8-0: DS-TT t3: stamped at the PCAP first/last bit of every such event (81) -- 81 stamps vs 81 events
+[PASS] T M2S6U-E-L8-0: DS-TT correction used TSi = NW-TT stamp and TSe = DS-TT stamp of the Sync (80 Follow_Ups) -- 0
+[PASS] T M2S6U-E-L8-0: NW-TT link delay used t1 / t4 = NW-TT stamps (10 exchanges) -- 0
+[PASS] T M2S6U-E-L8-0: slave received the DS-TT stamps t2 / t3 (wire, whole ns) (162 frames) -- 0
+[PASS] T M2S6U-E-L8-0: E_res,TT = sum of the TT components (theta0, osc, w, q) of the NW-TT and DS-TT stamps of the Sync (80 Follow_Ups) -- 0 mismatches
+[PASS] K M2S6-E-all-0: listener.clock timeChanged: every recorded sample = O1 (5003 samples; 0 oscillator changes, 0 tick resets)
+[PASS] K M2S6-E-all-0: listener.clock.underlyingClock timeChanged: every recorded sample = O1 (2 samples; 0 oscillator changes, 0 tick resets)
+[PASS] K M2S6-E-all-0: listener driftRateChanged = schedule (2 values)
+[PASS] K M2S6-E-all-0: GM POT on the wire = C_G(Sync first bit) (40 Follow_Ups); Pdelay t2/t3 = U_G (10 values) -- 0 POT, 0 t2/t3 mismatches
+[PASS] K M2S6-E-all-0: sign: GM +100 ppm -> POT - s changes by 487451.254 ns over the run
+[PASS] S M2S6-E-all-0: O5 = every recorded slave value: pdelay 6, nrr 5, gm 38, compensation 39, clock 5081, clock.underlyingClock 5003
+[PASS] R M2S6-E-all-0: NW-TT neighborRateRatio (Q63) and link delay D recomputed from PCAP + O1 = engine log (5 exchanges) -- []
+[PASS] R M2S6-E-all-0: rr_out = toDouble(fromDouble(rr_in) x nRR) with rr_in = 1.0 from the INET GM (40 Follow_Ups); the DS-TT uses the carried value -- rr [] carry []
+[PASS] R M2S6-E-all-0: csro on the wire = ceil((rr_out - 1) * 2^41) at NW-TT eth[0] TX, UE eth[0] TX, DS-TT eth[1] TX, slave RX (157 frames) -- 0 mismatches
+[PASS] R M2S6-E-all-0: direction: GM +100 ppm -> calibrated rr_out 1.000099991590..1.000100025444 (> 1); uncalibrated (rr_out = 1, before the NW-TT's 2nd exchange): Follow_Ups [0, 1, 2, 3, 4, 5, 6, 7]
+[PASS] E M2S6-E-all-0: C1 eps: exact for every Follow_Up (39) -- 0 failures
+[PASS] E M2S6-E-all-0: C1 ldn: exact for every Follow_Up (39) -- 0 failures
+[PASS] E M2S6-E-all-0: C1 link: exact for every Follow_Up (39) -- 0 failures
+[PASS] E M2S6-E-all-0: C1 res: exact for every Follow_Up (39) -- 0 failures
+[PASS] E M2S6-E-all-0: C2 cf: exact for every Follow_Up (39) -- 0 failures
+[PASS] E M2S6-E-all-0: C3 offset: exact for every Follow_Up (39) -- 0 failures
+[PASS] E M2S6-E-all-0: C4 step: exact for every Follow_Up (39) -- 0 failures
+[PASS] E M2S6-E-all-0: C5 gmRR: exact for every Follow_Up (38) -- 0 failures
+[PASS] T M2S6-E-all-0: NW-TT: every stamp recomputed from the configuration: C_T(s) and tau = Q(C_T(s) + w) (61 stamps; theta0 200 ns, y 100 ppb, D 0 ppb/s, U 10 ms, sigma 10 ns, L 0.001 ns) -- []
+[PASS] T M2S6-E-all-0: NW-TT TSi: stamped at the PCAP first/last bit of every such event (40) -- 40 stamps vs 40 events
+[PASS] T M2S6-E-all-0: NW-TT t1: stamped at the PCAP first/last bit of every such event (6) -- 6 stamps vs 5 events
+[PASS] T M2S6-E-all-0: NW-TT t4: stamped at the PCAP first/last bit of every such event (5) -- 5 stamps vs 5 events
+[PASS] T M2S6-E-all-0: NW-TT t1End: stamped at the PCAP first/last bit of every such event (5) -- 5 stamps vs 5 events
+[PASS] T M2S6-E-all-0: NW-TT t4End: stamped at the PCAP first/last bit of every such event (5) -- 5 stamps vs 5 events
+[PASS] T M2S6-E-all-0: DS-TT: every stamp recomputed from the configuration: C_T(s) and tau = Q(C_T(s) + w) (51 stamps; theta0 300 ns, y -100 ppb, D 0 ppb/s, U 10 ms, sigma 10 ns, L 0.001 ns) -- []
+[PASS] T M2S6-E-all-0: DS-TT TSe: stamped at the PCAP first/last bit of every such event (39) -- 39 stamps vs 39 events
+[PASS] T M2S6-E-all-0: DS-TT t2: stamped at the PCAP first/last bit of every such event (6) -- 6 stamps vs 6 events
+[PASS] T M2S6-E-all-0: DS-TT t3: stamped at the PCAP first/last bit of every such event (6) -- 6 stamps vs 6 events
+[PASS] T M2S6-E-all-0: DS-TT correction used TSi = NW-TT stamp and TSe = DS-TT stamp of the Sync (39 Follow_Ups) -- 0
+[PASS] T M2S6-E-all-0: NW-TT link delay used t1 / t4 = NW-TT stamps (5 exchanges) -- 0
+[PASS] T M2S6-E-all-0: slave received the DS-TT stamps t2 / t3 (wire, whole ns) (12 frames) -- 0
+[PASS] T M2S6-E-all-0: E_res,TT = sum of the TT components (theta0, osc, w, q) of the NW-TT and DS-TT stamps of the Sync (39 Follow_Ups) -- 0 mismatches
+[PASS] K M2S6-E-all-1: listener.clock timeChanged: every recorded sample = O1 (5003 samples; 0 oscillator changes, 0 tick resets)
+[PASS] K M2S6-E-all-1: listener.clock.underlyingClock timeChanged: every recorded sample = O1 (2 samples; 0 oscillator changes, 0 tick resets)
+[PASS] K M2S6-E-all-1: listener driftRateChanged = schedule (2 values)
+[PASS] K M2S6-E-all-1: GM POT on the wire = C_G(Sync first bit) (40 Follow_Ups); Pdelay t2/t3 = U_G (10 values) -- 0 POT, 0 t2/t3 mismatches
+[PASS] K M2S6-E-all-1: sign: GM +100 ppm -> POT - s changes by 487451.254 ns over the run
+[PASS] S M2S6-E-all-1: O5 = every recorded slave value: pdelay 6, nrr 5, gm 38, compensation 39, clock 5081, clock.underlyingClock 5003
+[PASS] R M2S6-E-all-1: NW-TT neighborRateRatio (Q63) and link delay D recomputed from PCAP + O1 = engine log (5 exchanges) -- []
+[PASS] R M2S6-E-all-1: rr_out = toDouble(fromDouble(rr_in) x nRR) with rr_in = 1.0 from the INET GM (40 Follow_Ups); the DS-TT uses the carried value -- rr [] carry []
+[PASS] R M2S6-E-all-1: csro on the wire = ceil((rr_out - 1) * 2^41) at NW-TT eth[0] TX, UE eth[0] TX, DS-TT eth[1] TX, slave RX (157 frames) -- 0 mismatches
+[PASS] R M2S6-E-all-1: direction: GM +100 ppm -> calibrated rr_out 1.000099980899..1.000100020524 (> 1); uncalibrated (rr_out = 1, before the NW-TT's 2nd exchange): Follow_Ups [0, 1, 2, 3, 4, 5, 6, 7]
+[PASS] E M2S6-E-all-1: C1 eps: exact for every Follow_Up (39) -- 0 failures
+[PASS] E M2S6-E-all-1: C1 ldn: exact for every Follow_Up (39) -- 0 failures
+[PASS] E M2S6-E-all-1: C1 link: exact for every Follow_Up (39) -- 0 failures
+[PASS] E M2S6-E-all-1: C1 res: exact for every Follow_Up (39) -- 0 failures
+[PASS] E M2S6-E-all-1: C2 cf: exact for every Follow_Up (39) -- 0 failures
+[PASS] E M2S6-E-all-1: C3 offset: exact for every Follow_Up (39) -- 0 failures
+[PASS] E M2S6-E-all-1: C4 step: exact for every Follow_Up (39) -- 0 failures
+[PASS] E M2S6-E-all-1: C5 gmRR: exact for every Follow_Up (38) -- 0 failures
+[PASS] T M2S6-E-all-1: NW-TT: every stamp recomputed from the configuration: C_T(s) and tau = Q(C_T(s) + w) (61 stamps; theta0 200 ns, y 100 ppb, D 0 ppb/s, U 10 ms, sigma 10 ns, L 0.001 ns) -- []
+[PASS] T M2S6-E-all-1: NW-TT TSi: stamped at the PCAP first/last bit of every such event (40) -- 40 stamps vs 40 events
+[PASS] T M2S6-E-all-1: NW-TT t1: stamped at the PCAP first/last bit of every such event (6) -- 6 stamps vs 5 events
+[PASS] T M2S6-E-all-1: NW-TT t4: stamped at the PCAP first/last bit of every such event (5) -- 5 stamps vs 5 events
+[PASS] T M2S6-E-all-1: NW-TT t1End: stamped at the PCAP first/last bit of every such event (5) -- 5 stamps vs 5 events
+[PASS] T M2S6-E-all-1: NW-TT t4End: stamped at the PCAP first/last bit of every such event (5) -- 5 stamps vs 5 events
+[PASS] T M2S6-E-all-1: DS-TT: every stamp recomputed from the configuration: C_T(s) and tau = Q(C_T(s) + w) (51 stamps; theta0 300 ns, y -100 ppb, D 0 ppb/s, U 10 ms, sigma 10 ns, L 0.001 ns) -- []
+[PASS] T M2S6-E-all-1: DS-TT TSe: stamped at the PCAP first/last bit of every such event (39) -- 39 stamps vs 39 events
+[PASS] T M2S6-E-all-1: DS-TT t2: stamped at the PCAP first/last bit of every such event (6) -- 6 stamps vs 6 events
+[PASS] T M2S6-E-all-1: DS-TT t3: stamped at the PCAP first/last bit of every such event (6) -- 6 stamps vs 6 events
+[PASS] T M2S6-E-all-1: DS-TT correction used TSi = NW-TT stamp and TSe = DS-TT stamp of the Sync (39 Follow_Ups) -- 0
+[PASS] T M2S6-E-all-1: NW-TT link delay used t1 / t4 = NW-TT stamps (5 exchanges) -- 0
+[PASS] T M2S6-E-all-1: slave received the DS-TT stamps t2 / t3 (wire, whole ns) (12 frames) -- 0
+[PASS] T M2S6-E-all-1: E_res,TT = sum of the TT components (theta0, osc, w, q) of the NW-TT and DS-TT stamps of the Sync (39 Follow_Ups) -- 0 mismatches
+[PASS] K M2S6-E-all-2: listener.clock timeChanged: every recorded sample = O1 (5003 samples; 0 oscillator changes, 0 tick resets)
+[PASS] K M2S6-E-all-2: listener.clock.underlyingClock timeChanged: every recorded sample = O1 (2 samples; 0 oscillator changes, 0 tick resets)
+[PASS] K M2S6-E-all-2: listener driftRateChanged = schedule (2 values)
+[PASS] K M2S6-E-all-2: GM POT on the wire = C_G(Sync first bit) (40 Follow_Ups); Pdelay t2/t3 = U_G (10 values) -- 0 POT, 0 t2/t3 mismatches
+[PASS] K M2S6-E-all-2: sign: GM +100 ppm -> POT - s changes by 487451.254 ns over the run
+[PASS] S M2S6-E-all-2: O5 = every recorded slave value: pdelay 6, nrr 5, gm 38, compensation 39, clock 5081, clock.underlyingClock 5003
+[PASS] R M2S6-E-all-2: NW-TT neighborRateRatio (Q63) and link delay D recomputed from PCAP + O1 = engine log (5 exchanges) -- []
+[PASS] R M2S6-E-all-2: rr_out = toDouble(fromDouble(rr_in) x nRR) with rr_in = 1.0 from the INET GM (40 Follow_Ups); the DS-TT uses the carried value -- rr [] carry []
+[PASS] R M2S6-E-all-2: csro on the wire = ceil((rr_out - 1) * 2^41) at NW-TT eth[0] TX, UE eth[0] TX, DS-TT eth[1] TX, slave RX (157 frames) -- 0 mismatches
+[PASS] R M2S6-E-all-2: direction: GM +100 ppm -> calibrated rr_out 1.000099980030..1.000100020846 (> 1); uncalibrated (rr_out = 1, before the NW-TT's 2nd exchange): Follow_Ups [0, 1, 2, 3, 4, 5, 6, 7]
+[PASS] E M2S6-E-all-2: C1 eps: exact for every Follow_Up (39) -- 0 failures
+[PASS] E M2S6-E-all-2: C1 ldn: exact for every Follow_Up (39) -- 0 failures
+[PASS] E M2S6-E-all-2: C1 link: exact for every Follow_Up (39) -- 0 failures
+[PASS] E M2S6-E-all-2: C1 res: exact for every Follow_Up (39) -- 0 failures
+[PASS] E M2S6-E-all-2: C2 cf: exact for every Follow_Up (39) -- 0 failures
+[PASS] E M2S6-E-all-2: C3 offset: exact for every Follow_Up (39) -- 0 failures
+[PASS] E M2S6-E-all-2: C4 step: exact for every Follow_Up (39) -- 0 failures
+[PASS] E M2S6-E-all-2: C5 gmRR: exact for every Follow_Up (38) -- 0 failures
+[PASS] T M2S6-E-all-2: NW-TT: every stamp recomputed from the configuration: C_T(s) and tau = Q(C_T(s) + w) (61 stamps; theta0 200 ns, y 100 ppb, D 0 ppb/s, U 10 ms, sigma 10 ns, L 0.001 ns) -- []
+[PASS] T M2S6-E-all-2: NW-TT TSi: stamped at the PCAP first/last bit of every such event (40) -- 40 stamps vs 40 events
+[PASS] T M2S6-E-all-2: NW-TT t1: stamped at the PCAP first/last bit of every such event (6) -- 6 stamps vs 5 events
+[PASS] T M2S6-E-all-2: NW-TT t4: stamped at the PCAP first/last bit of every such event (5) -- 5 stamps vs 5 events
+[PASS] T M2S6-E-all-2: NW-TT t1End: stamped at the PCAP first/last bit of every such event (5) -- 5 stamps vs 5 events
+[PASS] T M2S6-E-all-2: NW-TT t4End: stamped at the PCAP first/last bit of every such event (5) -- 5 stamps vs 5 events
+[PASS] T M2S6-E-all-2: DS-TT: every stamp recomputed from the configuration: C_T(s) and tau = Q(C_T(s) + w) (51 stamps; theta0 300 ns, y -100 ppb, D 0 ppb/s, U 10 ms, sigma 10 ns, L 0.001 ns) -- []
+[PASS] T M2S6-E-all-2: DS-TT TSe: stamped at the PCAP first/last bit of every such event (39) -- 39 stamps vs 39 events
+[PASS] T M2S6-E-all-2: DS-TT t2: stamped at the PCAP first/last bit of every such event (6) -- 6 stamps vs 6 events
+[PASS] T M2S6-E-all-2: DS-TT t3: stamped at the PCAP first/last bit of every such event (6) -- 6 stamps vs 6 events
+[PASS] T M2S6-E-all-2: DS-TT correction used TSi = NW-TT stamp and TSe = DS-TT stamp of the Sync (39 Follow_Ups) -- 0
+[PASS] T M2S6-E-all-2: NW-TT link delay used t1 / t4 = NW-TT stamps (5 exchanges) -- 0
+[PASS] T M2S6-E-all-2: slave received the DS-TT stamps t2 / t3 (wire, whole ns) (12 frames) -- 0
+[PASS] T M2S6-E-all-2: E_res,TT = sum of the TT components (theta0, osc, w, q) of the NW-TT and DS-TT stamps of the Sync (39 Follow_Ups) -- 0 mismatches
+[PASS] K M2S6-E-all-load-0: listener.clock timeChanged: every recorded sample = O1 (5003 samples; 0 oscillator changes, 0 tick resets)
+[PASS] K M2S6-E-all-load-0: listener.clock.underlyingClock timeChanged: every recorded sample = O1 (2 samples; 0 oscillator changes, 0 tick resets)
+[PASS] K M2S6-E-all-load-0: listener driftRateChanged = schedule (2 values)
+[PASS] K M2S6-E-all-load-0: GM POT on the wire = C_G(Sync first bit) (40 Follow_Ups); Pdelay t2/t3 = U_G (10 values) -- 0 POT, 0 t2/t3 mismatches
+[PASS] K M2S6-E-all-load-0: sign: GM +100 ppm -> POT - s changes by 487451.254 ns over the run
+[PASS] S M2S6-E-all-load-0: O5 = every recorded slave value: pdelay 6, nrr 5, gm 28, compensation 29, clock 5061, clock.underlyingClock 5003
+[PASS] R M2S6-E-all-load-0: NW-TT neighborRateRatio (Q63) and link delay D recomputed from PCAP + O1 = engine log (5 exchanges) -- []
+[PASS] R M2S6-E-all-load-0: rr_out = toDouble(fromDouble(rr_in) x nRR) with rr_in = 1.0 from the INET GM (40 Follow_Ups); the DS-TT uses the carried value -- rr [] carry []
+[PASS] R M2S6-E-all-load-0: csro on the wire = ceil((rr_out - 1) * 2^41) at NW-TT eth[0] TX, UE eth[0] TX, DS-TT eth[1] TX, slave RX (127 frames) -- 0 mismatches
+[PASS] R M2S6-E-all-load-0: direction: GM +100 ppm -> calibrated rr_out 1.000099976003..1.000100020090 (> 1); uncalibrated (rr_out = 1, before the NW-TT's 2nd exchange): Follow_Ups [0, 4, 5, 6]
+[PASS] E M2S6-E-all-load-0: C1 eps: exact for every Follow_Up (29) -- 0 failures
+[PASS] E M2S6-E-all-load-0: C1 ldn: exact for every Follow_Up (29) -- 0 failures
+[PASS] E M2S6-E-all-load-0: C1 link: exact for every Follow_Up (29) -- 0 failures
+[PASS] E M2S6-E-all-load-0: C1 res: exact for every Follow_Up (29) -- 0 failures
+[PASS] E M2S6-E-all-load-0: C2 cf: exact for every Follow_Up (29) -- 0 failures
+[PASS] E M2S6-E-all-load-0: C3 offset: exact for every Follow_Up (29) -- 0 failures
+[PASS] E M2S6-E-all-load-0: C4 step: exact for every Follow_Up (29) -- 0 failures
+[PASS] E M2S6-E-all-load-0: C5 gmRR: exact for every Follow_Up (28) -- 0 failures
+[PASS] T M2S6-E-all-load-0: NW-TT: every stamp recomputed from the configuration: C_T(s) and tau = Q(C_T(s) + w) (61 stamps; theta0 200 ns, y 100 ppb, D 0 ppb/s, U 10 ms, sigma 10 ns, L 0.001 ns) -- []
+[PASS] T M2S6-E-all-load-0: NW-TT TSi: stamped at the PCAP first/last bit of every such event (40) -- 40 stamps vs 40 events
+[PASS] T M2S6-E-all-load-0: NW-TT t1: stamped at the PCAP first/last bit of every such event (6) -- 6 stamps vs 5 events
+[PASS] T M2S6-E-all-load-0: NW-TT t4: stamped at the PCAP first/last bit of every such event (5) -- 5 stamps vs 5 events
+[PASS] T M2S6-E-all-load-0: NW-TT t1End: stamped at the PCAP first/last bit of every such event (5) -- 5 stamps vs 5 events
+[PASS] T M2S6-E-all-load-0: NW-TT t4End: stamped at the PCAP first/last bit of every such event (5) -- 5 stamps vs 5 events
+[PASS] T M2S6-E-all-load-0: DS-TT: every stamp recomputed from the configuration: C_T(s) and tau = Q(C_T(s) + w) (45 stamps; theta0 300 ns, y -100 ppb, D 0 ppb/s, U 10 ms, sigma 10 ns, L 0.001 ns) -- []
+[PASS] T M2S6-E-all-load-0: DS-TT TSe: stamped at the PCAP first/last bit of every such event (33) -- 33 stamps vs 33 events
+[PASS] T M2S6-E-all-load-0: DS-TT t2: stamped at the PCAP first/last bit of every such event (6) -- 6 stamps vs 6 events
+[PASS] T M2S6-E-all-load-0: DS-TT t3: stamped at the PCAP first/last bit of every such event (6) -- 6 stamps vs 6 events
+[PASS] T M2S6-E-all-load-0: DS-TT correction used TSi = NW-TT stamp and TSe = DS-TT stamp of the Sync (29 Follow_Ups) -- 0
+[PASS] T M2S6-E-all-load-0: NW-TT link delay used t1 / t4 = NW-TT stamps (5 exchanges) -- 0
+[PASS] T M2S6-E-all-load-0: slave received the DS-TT stamps t2 / t3 (wire, whole ns) (12 frames) -- 0
+[PASS] T M2S6-E-all-load-0: E_res,TT = sum of the TT components (theta0, osc, w, q) of the NW-TT and DS-TT stamps of the Sync (29 Follow_Ups) -- 0 mismatches
+OVERALL: PASS (832/832)

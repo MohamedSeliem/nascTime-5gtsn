@@ -291,6 +291,10 @@ def run_eval(runs, cfg, rep, report):
     e_rows(E, tag)
     if R.ttlog:
         t_rows(R, tag)
+        tc = tt_components(E)
+        nb = sum(1 for x in tc if not x["sum_ok"])
+        add(f"T {tag}", f"E_res,TT = sum of the TT components (theta0, osc, w, q) of the NW-TT and DS-TT stamps of the Sync "
+            f"({len(tc)} Follow_Ups)", nb == 0 and tc, f"{nb} mismatches")
     report.append((cfg, rep, E, s_ok))
     return E
 
@@ -376,9 +380,132 @@ def tt_components(E):
         ci = TT.components(conf["nw"], f["si"], ri["w"])
         ce = TT.components(conf["ds"], f["se"], re_["w"])
         res = {k: f["r"] * (ce[k] - ci[k]) for k in ci}
-        assert sum(res.values()) == f["Rr"]["TT"]
-        out.append({"seq": f["seq"], "nrr_valid": f["nrr_valid"], "res": res, "eps": f["eps"], "link_TT": f["L"]["TT"], "ldn_TT": f["D"]["TT"]})
+        out.append({"seq": f["seq"], "nrr_valid": f["nrr_valid"], "res": res, "eps": f["eps"], "link_TT": f["L"]["TT"], "ldn_TT": f["D"]["TT"],
+                    "sum_ok": sum(res.values()) == f["Rr"]["TT"]})
     return out
+
+
+# ---------------------------------------------------------------------------------------
+# rows N (stage F, design 6.4): each negative control fails exactly its predicted rows, with an exact
+# per-Follow_Up signature computed by the oracles
+def row_key(r):
+    fam, d = r[0].split()[0], r[1]
+    if fam == "E":
+        return "E " + d.split(":")[0]
+    if fam == "R":
+        return "R " + d.split()[0].rstrip(":")
+    if fam == "T":
+        return "T " + " ".join(d.split()[:4])
+    return fam
+
+
+N_EXPECT = {
+    "M2S6U-F-rrIgnore": {"E C2 cf", "E C1 eps"},
+    "M2S6-F-rrIgnore": {"E C2 cf", "E C1 eps"},
+    "M2S6U-F-rrTwice": {"E C2 cf", "E C1 eps"},
+    "M2S6U-F-nrrInvert": {"R rr_out", "R direction"},
+    "M2S6U-F-nrrStale": {"R rr_out", "R direction"},
+    "M2S6U-F-lupLocal": {"E C2 cf", "E C1 eps"},
+    "M2S6U-F-domain": {"T DS-TT correction used TSi", "T E_res,TT = sum of"},
+    "M2S6U-F-servoNoRate": {"S"},
+    "M2S6U-F-servoNegRate": {"S"},
+}
+N_SERVO = {"M2S6U-F-servoNoRate": "testNoRate", "M2S6U-F-servoNegRate": "testNegRate"}
+
+
+def n_rows(runs, cfg, report):
+    rep = 0
+    before = len(rows)
+    R = RR.Run(runs, cfg, rep)
+    E = Eval(R)
+    k_rows(R, E.gnc, None, f"{cfg}-{rep}")
+    s_rows(E, f"{cfg}-{rep}")
+    r_rows(E, f"{cfg}-{rep}")
+    e_rows(E, f"{cfg}-{rep}")
+    if R.ttlog:
+        t_rows(R, f"{cfg}-{rep}")
+        tc = tt_components(E)
+        nb = sum(1 for x in tc if not x["sum_ok"])
+        add(f"T {cfg}-{rep}", "E_res,TT = sum of the TT components (theta0, osc, w, q) of the NW-TT and DS-TT stamps of the Sync", nb == 0)
+    mine = rows[before:]
+    del rows[before:]
+    failed = {row_key(r) for r in mine if not r[2]}
+    exp = N_EXPECT[cfg]
+    tag = f"N {cfg}-{rep}"
+    add(tag, f"fails exactly its predicted rows {sorted(exp)} ({len(mine)} rows evaluated)", failed == exp, f"failed {sorted(failed)}")
+    fus = [f for f in E.fus if "skip" not in f]
+    dsc = {int(x["seq"]): x for x in R.dslog if x["event"] == "corrected"}
+    nwc = {int(x["seq"]): x for x in R.nwlog if x["event"] == "corrected"}
+    y = R.conf["gm"]["osc"]["ppm"] * 1e-6
+    if cfg.endswith("rrIgnore") or cfg.endswith("rrTwice"):
+        nb, d = 0, []
+        for f in fus:
+            R_, r_e = f["Rm"], KM.from_double(f["rr_out"])
+            exp_add = R_ if cfg.endswith("rrIgnore") else KM.mul_round(KM.mul_round(R_, r_e), r_e)
+            if f["cf2"] - f["cf1"] != exp_add:
+                nb += 1
+            d.append(f["cf2"] - f["cf1"] - KM.mul_round(R_, r_e))
+        add(tag, f"signature: cf2 - cf1 = {'Res (r = 1)' if cfg.endswith('rrIgnore') else 'r (x) (r (x) Res)'} for every Follow_Up ({len(fus)}); "
+            f"offset vs the correct composition {rng(d)} ns (predicted {'-' if cfg.endswith('rrIgnore') else '+'}y_G x Res = "
+            f"{rng([(-y if cfg.endswith('rrIgnore') else y) * f['Rm'] for f in fus if f['nrr_valid']])} ns for calibrated)", nb == 0)
+        if cfg == "M2S6-F-rrIgnore":
+            # H5 (reported): with r ignored the rate term of every Follow_Up is (1 - rho_res) Res ~ -y_G Res
+            cal = [f for f in fus if f["nrr_valid"]]
+            obs = mean([float(f["eps"]) for f in cal])
+            report.append(("H5", f"{cfg}-0: the DS-TT ignoring rr makes eps ~ -y_G x Res for every calibrated Follow_Up",
+                           f"{mean([-y * f['Res_s'] for f in cal]) / NS:+.3f} ns (mean)", f"{obs / NS:+.3f} ns (mean)",
+                           abs(obs - mean([-y * f["Res_s"] for f in cal])) <= 0.02 * abs(y) * mean([f["Res_s"] for f in cal]) + 2 * NS, "1/1"))
+    elif cfg.endswith("nrrInvert") or cfg.endswith("nrrStale"):
+        meas = [x for x in R.nweng if x["event"] == "measure"]
+        nb = 0
+        for q, x in nwc.items():
+            ex = [m for m in meas if int(m["t"]) < int(x["t"])][-1]
+            e = int(ex["nrrQ63"])
+            if cfg.endswith("nrrInvert"):
+                inv = KM.from_double(1.0 / KM.to_double(e))
+                expv = KM.to_double(KM.product(KM.from_double(float(x["rrIn"])), inv))
+            else:
+                expv = float(x["rrIn"])
+            nb += float(x["rrOut"]) != expv
+        rate = [f["Rr"]["carriage"] + f["Rr"]["nrr"] + f["Rr"]["window"] + f["Rr"]["uncal"] for f in fus if f["nrr_valid"]]
+        pred = "-2 y_G x Res" if cfg.endswith("nrrInvert") else "-y_G x Res"
+        add(tag, f"signature: rr_out = rr_in x {'1/nRR' if cfg.endswith('nrrInvert') else '1'} for every Follow_Up ({len(nwc)}); rate term "
+            f"E_res,rate {rng(rate)} ns (predicted {pred} = "
+            f"{rng([(-2 if cfg.endswith('nrrInvert') else -1) * y * f['Res_s'] for f in fus if f['nrr_valid']])} ns)", nb == 0)
+    elif cfg.endswith("lupLocal"):
+        meas = [x for x in R.nweng if x["event"] == "measure"]
+        nb, d = 0, []
+        for f in fus:
+            x = nwc[f["seq"]]
+            ex = [m for m in meas if int(m["t"]) < int(x["t"])][-1]
+            exp_add = KM.mul_round(KM.div_round(f["lup"], int(ex["nrrQ63"])), KM.from_double(float(x["rrIn"])))
+            nb += f["cf1"] != exp_add
+            d.append(f["cf1"] - f["add_link"])
+        add(tag, f"signature: cf1 = rr_in (x) (Lup / nRR) for every Follow_Up ({len(fus)}); offset vs the correct composition "
+            f"{', '.join(sorted({f'{v} ps' for v in d}))} (predicted -y_G x Lup = {-y * fus[-1]['lup']:.1f} ps)", nb == 0)
+    elif cfg.endswith("domain"):
+        nws = {f["seq"]: f for f in RR.C5.sel(R.nw1, 1, RR.SYNC)}
+        nb = sum(1 for q, x in dsc.items() if int(x["TSi"]) != nws[q]["start"])
+        tt = R.conf["tt"]
+        cal1 = next((f["seq"] for f in fus if f["nrr_valid"]), None)
+        st = [x["e_plus"] for x in E.iv[2:] if x["seq"] != cal1 and any(f["seq"] == x["seq"] and f["nrr_valid"] for f in fus)]
+        add(tag, f"signature: TSi = simulation time for every Follow_Up ({len(dsc)}); steady e+ {mean(st) / NS:+.3f} ns = theta_DS "
+            f"({tt['ds']['theta0'] / NS:g} ns) instead of Delta theta ({(tt['ds']['theta0'] - tt['nw']['theta0']) / NS:g} ns)",
+            nb == 0 and abs(mean(st) - tt["ds"]["theta0"]) <= 4 * NS)
+    elif cfg in N_SERVO:
+        conf = dict(R.conf)
+        conf["sl"] = dict(conf["sl"], servo=N_SERVO[cfg])
+        R.conf = conf
+        E2 = Eval(R)
+        res = O5.compare(E2.o5, R, R.sln)
+        ok = all(v[0] for v in res.values())
+        d = [x["e_minus_next"] - x["e_plus"] for x in E2.iv[3:-1] if x["e_minus_next"] is not None]
+        dy = (R.conf["sl"]["osc"]["ppm"] - R.conf["gm"]["osc"]["ppm"]) * 1e-6
+        k = 1 if N_SERVO[cfg] == "testNoRate" else 2
+        pred = k * dy * 125e9
+        add(tag, f"signature: O5 with the TEST servo model reproduces every recorded slave value; between-step drift {rng(d)} ns "
+            f"(predicted {k} (y_S - y_G) x T = {pred / NS:+.0f} ns)", ok and all(abs(v - pred) <= 0.02 * abs(pred) for v in d),
+            "; ".join(f"{a}: {b[2]}" for a, b in res.items() if not b[0]))
 
 
 # ---------------------------------------------------------------------------------------
@@ -422,6 +549,10 @@ def stats_lines(cfg, items):
     res = [f["Res_s"] for r, f in fus]
     out.append(f"{cfg} (reps {[r for r, E in items]}): {len(fus)} Follow_Ups ({len(cal)} calibrated, {len(unc)} uncalibrated); "
                f"Res {rng(res)} ns; Follow_Up lag at the slave {rng(lag)} ns")
+    from collections import Counter
+    inv = Counter(r["note"] for rep, E in items for r in E.R.nwlog if r["event"] == "invalid")
+    if inv:
+        out.append(f"  NW-TT INVALID Follow_Ups (discarded by the DS-TT, no step): {dict(inv)} over {len(items)} reps")
     for label, sub in (("calibrated", cal), ("uncalibrated", unc)):
         if not sub:
             continue
@@ -513,7 +644,11 @@ def hypotheses(cfg, items):
                 out.append(("H4a", f"{cfg}-{rep}: white TT noise sigma = {sg / NS:g} ns: std(eps) = sqrt(2) sigma (TSi, TSe; design 4.6)",
                             f"{2 ** 0.5 * sg / NS:.3f} ns", f"{st[1] / NS:.3f} ns (95 % CI {st[2] / NS:.3f}..{st[3] / NS:.3f}, n {st[4]})",
                             st[2] <= 2 ** 0.5 * sg <= st[3]))
-            em = [float(x["e_minus_next"]) for x in iv[3:-1] if x["e_minus_next"] is not None]
+            # steady state only: calibrated intervals after the first calibrated step, of normal length (< 1.5 T)
+            calset = {f["seq"] for f in fus if f["nrr_valid"] and f["seq"] != cal1}
+            sF = {f["seq"]: f["sF"] for f in fus}
+            em = [float(x["e_minus_next"]) for i, x in enumerate(iv[:-1]) if x["e_minus_next"] is not None and x["seq"] in calset
+                  and iv[i + 1]["seq"] in calset and sF[iv[i + 1]["seq"]] - sF[x["seq"]] < 1.5 * 125 * 10 ** 9]
             st2 = TT.ci95_std(em)
             if st and st2:
                 out.append(("H4b", f"{cfg}-{rep}: end-of-interval error e- ~ 2 eps_k - eps_k-1: std(e-) = sqrt(5) std(eps)",
@@ -580,6 +715,7 @@ STAGES = {
           "M2S6-D-FS2late", "M2S6-D-FD1late"],
     "E": ["M2S6U-E-th10", "M2S6U-E-th100", "M2S6U-E-th1000", "M2S6U-E-y", "M2S6U-E-yfree", "M2S6U-E-D", "M2S6U-E-sig1",
           "M2S6U-E-sig10", "M2S6U-E-sig100", "M2S6U-E-L8", "M2S6-E-all", "M2S6-E-all-load"],
+    "F": list(N_EXPECT),
 }
 
 
@@ -594,6 +730,9 @@ def main():
             if not present(cfg):
                 continue
             items = []
+            if st == "F":
+                n_rows(runs, cfg, hyp)
+                continue
             for rep in RR.CLOCKS[cfg]["reps"]:
                 if st == "A":
                     R = RR.Run(runs, cfg, rep)
