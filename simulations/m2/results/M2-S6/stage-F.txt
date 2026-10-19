@@ -1,0 +1,20 @@
+[PASS] N M2S6U-F-rrIgnore-0: fails exactly its predicted rows ['E C1 eps', 'E C2 cf'] (18 rows evaluated) -- failed ['E C1 eps', 'E C2 cf']
+[PASS] N M2S6U-F-rrIgnore-0: signature: cf2 - cf1 = Res (r = 1) for every Follow_Up (80); offset vs the correct composition -14.139..+0.000 ns (predicted -y_G x Res = -14.139..-2.532 ns for calibrated)
+[PASS] N M2S6-F-rrIgnore-0: fails exactly its predicted rows ['E C1 eps', 'E C2 cf'] (18 rows evaluated) -- failed ['E C1 eps', 'E C2 cf']
+[PASS] N M2S6-F-rrIgnore-0: signature: cf2 - cf1 = Res (r = 1) for every Follow_Up (39); offset vs the correct composition -448.803..+0.000 ns (predicted -y_G x Res = -448.803..-411.306 ns for calibrated)
+[PASS] N M2S6U-F-rrTwice-0: fails exactly its predicted rows ['E C1 eps', 'E C2 cf'] (18 rows evaluated) -- failed ['E C1 eps', 'E C2 cf']
+[PASS] N M2S6U-F-rrTwice-0: signature: cf2 - cf1 = r (x) (r (x) Res) for every Follow_Up (80); offset vs the correct composition +0.000..+14.141 ns (predicted +y_G x Res = +2.532..+14.139 ns for calibrated)
+[PASS] N M2S6U-F-nrrInvert-0: fails exactly its predicted rows ['R direction', 'R rr_out'] (18 rows evaluated) -- failed ['R direction', 'R rr_out']
+[PASS] N M2S6U-F-nrrInvert-0: signature: rr_out = rr_in x 1/nRR for every Follow_Up (80); rate term E_res,rate -28.277..-5.065 ns (predicted -2 y_G x Res = -28.278..-5.065 ns)
+[PASS] N M2S6U-F-nrrStale-0: fails exactly its predicted rows ['R direction', 'R rr_out'] (18 rows evaluated) -- failed ['R direction', 'R rr_out']
+[PASS] N M2S6U-F-nrrStale-0: signature: rr_out = rr_in x 1 for every Follow_Up (80); rate term E_res,rate -14.139..-2.532 ns (predicted -y_G x Res = -14.139..-2.532 ns)
+[PASS] N M2S6U-F-lupLocal-0: fails exactly its predicted rows ['E C1 eps', 'E C2 cf'] (18 rows evaluated) -- failed ['E C1 eps', 'E C2 cf']
+[PASS] N M2S6U-F-lupLocal-0: signature: cf1 = rr_in (x) (Lup / nRR) for every Follow_Up (80); offset vs the correct composition -5 ps, 0 ps (predicted -y_G x Lup = -5.0 ps)
+[PASS] N M2S6U-F-domain-0: fails exactly its predicted rows ['T DS-TT correction used TSi', 'T E_res,TT = sum of'] (32 rows evaluated) -- failed ['T DS-TT correction used TSi', 'T E_res,TT = sum of']
+[PASS] N M2S6U-F-domain-0: signature: TSi = simulation time for every Follow_Up (80); steady e+ +300.817 ns = theta_DS (300 ns) instead of Delta theta (100 ns)
+[PASS] N M2S6U-F-servoNoRate-0: fails exactly its predicted rows ['S'] (18 rows evaluated) -- failed ['S']
+[PASS] N M2S6U-F-servoNoRate-0: signature: O5 with the TEST servo model reproduces every recorded slave value; between-step drift -25014.000..-24982.000 ns (predicted 1 (y_S - y_G) x T = -25000 ns)
+[PASS] N M2S6U-F-servoNegRate-0: fails exactly its predicted rows ['S'] (18 rows evaluated) -- failed ['S']
+[PASS] N M2S6U-F-servoNegRate-0: signature: O5 with the TEST servo model reproduces every recorded slave value; between-step drift -50030.000..-49960.000 ns (predicted 2 (y_S - y_G) x T = -50000 ns)
+[PASS] N M2S6U-A1-0 oracleSign: O1 with the GM drift sign inverted fails the GM K rows: ['GM POT on the wire = C_G(Sync first bit)', 'gm driftRateChanged = schedule', 'gm.clock timeChanged', 'gm.clock.underlyingClock timeChanged', 'sign'] (5 of 8 rows fail; slave rows unaffected)
+OVERALL: PASS (19/19)

@@ -388,6 +388,26 @@ def tt_components(E):
 # ---------------------------------------------------------------------------------------
 # rows N (stage F, design 6.4): each negative control fails exactly its predicted rows, with an exact
 # per-Follow_Up signature computed by the oracles
+def n_oracle_sign(runs):
+    """N-oracleSign (oracle sensitivity): O1 given the wrong sign of the GM drift must fail the K rows of
+    stage A1 (GM clock samples, POT on the wire, sign row)."""
+    R = RR.Run(runs, "M2S6U-A1", 0)
+    conf = dict(R.conf)
+    g = dict(conf["gm"])
+    g["osc"] = dict(g["osc"], ppm=-g["osc"]["ppm"])
+    conf["gm"] = g
+    R.conf = conf
+    before = len(rows)
+    k_rows(R, gm_clocks(R), slave_clocks(R, []), "M2S6U-A1-0 (GM drift sign inverted)")
+    mine = rows[before:]
+    del rows[before:]
+    failed = sorted({r[1].split(":")[0].split(" (")[0] for r in mine if not r[2]})
+    add("N M2S6U-A1-0 oracleSign", f"O1 with the GM drift sign inverted fails the GM K rows: {failed} "
+        f"({sum(1 for r in mine if not r[2])} of {len(mine)} rows fail; slave rows unaffected)",
+        any("gm.clock timeChanged" in f for f in failed) and any("GM POT" in f for f in failed)
+        and all(r[2] for r in mine if "slave" in r[1].split(":")[0]))
+
+
 def row_key(r):
     fam, d = r[0].split()[0], r[1]
     if fam == "E":
@@ -745,6 +765,8 @@ def main():
             if items:
                 report += stats_lines(cfg, items)
                 hyp += aggregate(hypotheses(cfg, items), cfg)
+    if "F" in stages and present("M2S6U-A1"):
+        n_oracle_sign(runs)
     npass = sum(1 for r in rows if r[2])
     for check, detail, ok, extra in rows:
         print(f"[{'PASS' if ok else 'FAIL'}] {check}: {detail}" + (f" -- {extra}" if extra else ""))

@@ -1,0 +1,7 @@
+M2-S6 reported results (not gating; every run listed here passed its S rows)
+
+Per-config error components (ns; ranges over all Follow_Ups of all reps)
+
+
+Hypotheses (design 4.6): id | statement | predicted | observed | held
+H5 | M2S6-F-rrIgnore-0: the DS-TT ignoring rr makes eps ~ -y_G x Res for every calibrated Follow_Up | -430.055 ns (mean) | -430.429 ns (mean) | held (1/1)
