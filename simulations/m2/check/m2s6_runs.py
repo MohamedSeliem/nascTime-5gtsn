@@ -80,6 +80,13 @@ CLOCKS["M2S6-C-r1"] = cfg(False, node(osc("drift", NS, 0.0, stair=(0.0, 0.012345
 for f in ("FS1", "FS2", "FD1", "FD2"):
     CLOCKS[f"M2S6-C-{f}"] = cfg(False, node(C(100.0)), node(C(-100.0)), 5 * S, notes="fault")
 
+# stage D
+for name in ("frag", "load", "load-harq16", "nwpd025", "slpd0125"):
+    CLOCKS[f"M2S6-D-{name}"] = cfg(False, node(C(100.0)), node(C(-100.0)), 5 * S)
+CLOCKS["M2S6-D-nwpd8"] = cfg(False, node(C(100.0)), node(C(-100.0)), 20 * S)
+for f in ("FS2late", "FD1late"):
+    CLOCKS[f"M2S6-D-{f}"] = cfg(False, node(C(100.0)), node(C(-100.0)), 5 * S, notes="fault")
+
 
 # ---------------------------------------------------------------------------------------
 def read_vectors(path):

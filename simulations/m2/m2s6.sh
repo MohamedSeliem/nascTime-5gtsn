@@ -53,6 +53,8 @@ stage_configs() {
     C) printf '%s\n' "M2S6U-C-sp100 0" "M2S6U-C-sm100 0" "M2S6U-C-a 0" "M2S6U-C-b 0" "M2S6U-C-r001 0" "M2S6U-C-r01 0" \
          "M2S6U-C-r1 0" "M2S6U-C-rs1 0" "M2S6U-C-off 0" "M2S6U-C-1ps 0" "M2S6U-C-1psr 0" \
          "M2S6-C-a 0..9" "M2S6-C-off 0" "M2S6-C-r1 0" "M2S6-C-FS1 0" "M2S6-C-FS2 0" "M2S6-C-FD1 0" "M2S6-C-FD2 0" ;;
+    D) printf '%s\n' "M2S6-D-frag 0" "M2S6-D-load 0" "M2S6-D-load-harq16 0" "M2S6-D-nwpd025 0" "M2S6-D-nwpd8 0" \
+         "M2S6-D-slpd0125 0" "M2S6-D-FS2late 0" "M2S6-D-FD1late 0" ;;
     *) echo "unknown stage $1" >&2; return 1 ;;
   esac
 }
@@ -67,7 +69,7 @@ if [ "$MODE" = check ]; then
   exit "${PIPESTATUS[0]}"
 fi
 if [ "$MODE" = all ]; then
-  for st in gate A B C; do stage_configs "$st"; done | xargs -P "$JOBS" -L 1 bash -c 'run "$0" "$1"'
+  for st in gate A B C D; do stage_configs "$st"; done | xargs -P "$JOBS" -L 1 bash -c 'run "$0" "$1"'
   python3 "$HERE/check/gate_m2s6.py" "$OUT/runs" "$HERE/results/M2-S5/raw-outputs.sha256" "$HERE/results/M2-S5/runs" | tee "$OUT/gate-D0.txt"
   python3 "$HERE/check/check_m2s6.py" "$OUT/runs" --report="$OUT/report.txt" | tee "$OUT/check.txt"
   exit 0

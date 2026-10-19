@@ -437,7 +437,8 @@ STAGES = {
     "C": ["M2S6U-Q10", "M2S6U-C-sp100", "M2S6U-C-sm100", "M2S6U-C-a", "M2S6U-C-b", "M2S6U-C-r001", "M2S6U-C-r01", "M2S6U-C-r1",
           "M2S6U-C-rs1", "M2S6U-C-off", "M2S6U-C-1ps", "M2S6U-C-1psr", "M2S6-C-a", "M2S6-C-off", "M2S6-C-r1",
           "M2S6-C-FS1", "M2S6-C-FS2", "M2S6-C-FD1", "M2S6-C-FD2"],
-    "D": ["M2S6-D-frag", "M2S6-D-load", "M2S6-D-load-harq16", "M2S6-D-nwpd025", "M2S6-D-nwpd8", "M2S6-D-slpd0125"],
+    "D": ["M2S6-D-frag", "M2S6-D-load", "M2S6-D-load-harq16", "M2S6-D-nwpd025", "M2S6-D-nwpd8", "M2S6-D-slpd0125",
+          "M2S6-D-FS2late", "M2S6-D-FD1late"],
 }
 
 
