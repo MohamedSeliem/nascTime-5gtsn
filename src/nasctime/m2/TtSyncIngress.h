@@ -14,6 +14,7 @@
 #include "inet/common/packet/Packet.h"
 #include "inet/queueing/base/PacketFlowBase.h"
 
+#include "TtClockAccess.h"
 #include "TtGptpFrame.h"
 
 namespace nasctime {
@@ -51,6 +52,7 @@ class TtSyncIngress : public queueing::PacketFlowBase, public TransparentProtoco
 
     TtPdelayEngine *engine = nullptr;
     cModule *interfaceModule = nullptr;
+    ITtClock *ttClock = nullptr;           // M2-S6: TT clock (nullptr: simulation time)
     cModule *receiverModule = nullptr;
     long rxStartTree = -1, rxEndTree = -1;
     simtime_t rxStartTime = -1, rxEndTime = -1;

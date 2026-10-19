@@ -16,6 +16,7 @@
 #include "inet/common/packet/Packet.h"
 #include "inet/queueing/base/PacketFlowBase.h"
 
+#include "TtClockAccess.h"
 #include "TtGptpFrame.h"
 
 namespace nasctime {
@@ -53,6 +54,7 @@ class TtSyncEgress : public queueing::PacketFlowBase, public TransparentProtocol
     int dropSyncSeq = -1;            // TEST ONLY (H4): this Sync is registered, then lost below the hold point
 
     cModule *interfaceModule = nullptr;
+    ITtClock *ttClock = nullptr;           // M2-S6: TT clock (nullptr: simulation time)
     cModule *transmitterModule = nullptr;
     std::ofstream log;
 

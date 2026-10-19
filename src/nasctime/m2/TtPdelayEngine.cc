@@ -59,6 +59,7 @@ TtPdelayEngine::~TtPdelayEngine()
 
 void TtPdelayEngine::initialize()
 {
+    ttClock = findTtClock(this);
     terminate = par("terminate");
     requester = par("requester");
     responder = par("responder");
@@ -255,20 +256,21 @@ void TtPdelayEngine::receiveSignal(cComponent *source, simsignal_t signalID, cOb
     if (signalID == transmissionStartedSignal) {
         r.tTxStart = simTime();
         if (r.messageType == 2) {
-            t1 = simTime();
+            t1 = ttStamp(ttClock, ITtClock::T1, simTime(), r.seq);
             writeLog("tx", 2, r.seq, nullptr, nullptr, r.tTxStart, -1, "");
         }
     }
     else {
         r.tTxEnd = simTime();
         if (r.messageType == 2) {
-            t1End = simTime();
+            t1End = ttStamp(ttClock, ITtClock::T1_END, simTime(), r.seq);
             writeLog("txEnd", 2, r.seq, nullptr, nullptr, r.tTxStart, r.tTxEnd, "");
         }
         else if (r.messageType == 3) {
             // Pdelay_Resp fully sent: send the Pdelay_Resp_Follow_Up with its first-bit time
             // (as INET Gptp.cc:661-670)
-            simtime_t t3own = timestampTest == "t3End" ? r.tTxEnd : r.tTxStart;   // TEST ONLY t3End
+            simtime_t t3own = timestampTest == "t3End" ? ttStamp(ttClock, ITtClock::T3_END, r.tTxEnd, r.seq)   // TEST ONLY t3End
+                                                       : ttStamp(ttClock, ITtClock::T3, r.tTxStart, r.seq);
             writeLog("tx", 3, r.seq, nullptr, &r.requesting, r.tTxStart, r.tTxEnd, "");
             auto fu = makeShared<GptpPdelayRespFollowUp>();
             fu->setDomainNumber(domainNumber);
@@ -408,7 +410,7 @@ void TtPdelayEngine::processRequest(const GptpPdelayReq *req, simtime_t tRxStart
     resp->setSourcePortIdentity(own);
     resp->setRequestingPortIdentity(answerTo);
     resp->setSequenceId(answerSeq);
-    resp->setRequestReceiptTimestamp(toClock(tRxStart));     // t2 = first bit of the request
+    resp->setRequestReceiptTimestamp(toClock(ttStamp(ttClock, ITtClock::T2, tRxStart, answerSeq)));     // t2 = first bit of the request
     numReqAnswered++;
     numRespSent++;
     send(buildFrame("TtPdelayResp", resp), 3, answerSeq, answerTo);
@@ -484,8 +486,8 @@ void TtPdelayEngine::processResponse(const GptpPdelayResp *resp, simtime_t tRxSt
     switch (state) {
         case WAIT_RESP:
             t2 = toSim(resp->getRequestReceiptTimestamp());
-            t4 = tRxStart;
-            t4End = tRxEnd;
+            t4 = ttStamp(ttClock, ITtClock::T4, tRxStart, s);
+            t4End = ttStamp(ttClock, ITtClock::T4_END, tRxEnd, s);
             if (haveResponder && !samePort(src, lastResponder))
                 numResponderChanged++;
             lastResponder = src;
@@ -496,8 +498,8 @@ void TtPdelayEngine::processResponse(const GptpPdelayResp *resp, simtime_t tRxSt
         case WAIT_FU:
             if (faultPolicyTest == "acceptLast") {    // TEST ONLY: wrong policy
                 t2 = toSim(resp->getRequestReceiptTimestamp());
-                t4 = tRxStart;
-                t4End = tRxEnd;
+                t4 = ttStamp(ttClock, ITtClock::T4, tRxStart, s);
+                t4End = ttStamp(ttClock, ITtClock::T4_END, tRxEnd, s);
                 writeLog("rx", 3, s, &src, &rp, tRxStart, tRxEnd, "duplicate accepted (TEST acceptLast)");
             }
             else {
@@ -510,8 +512,8 @@ void TtPdelayEngine::processResponse(const GptpPdelayResp *resp, simtime_t tRxSt
             if (faultPolicyTest == "republishLate") {  // TEST ONLY: wrong policy
                 writeLog("rx", 3, s, &src, &rp, tRxStart, tRxEnd, "late duplicate (TEST republishLate)");
                 t2 = toSim(resp->getRequestReceiptTimestamp());
-                t4 = tRxStart;
-                t4End = tRxEnd;
+                t4 = ttStamp(ttClock, ITtClock::T4, tRxStart, s);
+                t4End = ttStamp(ttClock, ITtClock::T4_END, tRxEnd, s);
                 publish(true, "late duplicate re-published (TEST republishLate)");
             }
             else {

@@ -36,6 +36,7 @@ void TtSyncEgress::initialize(int stage)
     PacketFlowBase::initialize(stage);
     if (stage != INITSTAGE_LOCAL)
         return;
+    ttClock = findTtClock(this);
     std::string m = par("mode").stdstringValue();
     if (m == "off")
         mode = OFF;
@@ -108,7 +109,7 @@ void TtSyncEgress::receiveSignal(cComponent *source, simsignal_t signalID, cObje
     long tree = encapsulatedPacket(obj)->getTreeId();
     if (signalID == transmissionEndedSignal) {
         if (egressTest == "tseEnd" && tree == lastTx.treeId) {   // TEST ONLY (N3): TSe = last bit; a held
-            lastTx.tse = simTime();                               // Follow_Up is released only then
+            lastTx.tse = ttStamp(ttClock, ITtClock::TSE, simTime(), -1);   // Follow_Up is released only then
             if (holding && heldKey == lastTx.key && !releaseEvent->isScheduled())
                 scheduleAt(simTime(), releaseEvent);
         }
@@ -125,7 +126,7 @@ void TtSyncEgress::receiveSignal(cComponent *source, simsignal_t signalID, cObje
     t.key = it->second.key;
     t.frameId = it->second.frameId;
     t.treeId = tree;
-    t.tse = egressTest == "tseSlot" ? it->second.slotTime : simTime();   // TEST ONLY (N6)
+    t.tse = ttStamp(ttClock, ITtClock::TSE, egressTest == "tseSlot" ? it->second.slotTime : simTime(), -1);   // TEST ONLY (N6)
     t.ambiguous = lastTx.key.isSet() && lastTx.key == t.key;
     lastTx = t;
     recentTx.push_back(t.key);

@@ -45,6 +45,7 @@ void TtSyncIngress::initialize(int stage)
         return;
     enabled = par("enabled");
     ttId = par("ttId");
+    ttClock = findTtClock(this);
     domainNumber = par("domainNumber");
     selfCheck = par("selfCheck");
     correctionTest = par("correctionTest").stdstringValue();
@@ -139,7 +140,7 @@ bool TtSyncIngress::process(Packet *packet)
         if (rxEndTree != packet->getTreeId() || rxEndTime != simTime() || rxStartTree != packet->getTreeId())
             throw cRuntimeError("Sync at the slot (tree id %ld) is not the frame whose reception just ended (%ld/%ld)", packet->getTreeId(),
                     rxStartTree, rxEndTree);
-        processSync(packet, off, correctionTest == "tsiEnd" ? rxEndTime : rxStartTime);   // TEST ONLY tsiEnd
+        processSync(packet, off, ttStamp(ttClock, ITtClock::TSI, correctionTest == "tsiEnd" ? rxEndTime : rxStartTime, -1));   // TEST ONLY tsiEnd
         return true;
     }
     return processFollowUp(packet);

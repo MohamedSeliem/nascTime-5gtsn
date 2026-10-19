@@ -17,6 +17,8 @@
 #include "inet/linklayer/common/MacAddress.h"
 #include "inet/linklayer/ieee8021as/GptpPacket_m.h"
 
+#include "TtClockAccess.h"
+
 namespace nasctime {
 
 using namespace inet;
@@ -94,6 +96,7 @@ class TtPdelayEngine : public cSimpleModule, public cListener
     // PHY observation (first-bit timestamps)
     long rxStartTree = -1, rxEndTree = -1;
     simtime_t rxStartTime = -1, rxEndTime = -1;
+    ITtClock *ttClock = nullptr;           // M2-S6: TT clock (nullptr: simulation time)
     struct TxRecord {
         int messageType = -1;
         uint16_t seq = 0;
