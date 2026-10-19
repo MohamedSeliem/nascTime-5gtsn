@@ -371,13 +371,33 @@ def hypotheses(cfg, items):
                 held &= abs(d_end) <= bound
             out.append(("H1c", f"{cfg}-{rep}: from step 3, between-step drift |delta| <= 1.5 |eps_k - eps_k-1| + 2 L_S + 2 L_G (leakage + quantization)",
                         "<= 0 ns excess", f"max excess {ns(worst):+.3f} ns", held))
-        if go["stair"] and not so["stair"] and go["stair"][1] != 0:
+        if go["stair"] and not so["stair"] and go["stair"][1] != 0 and \
+                abs(go["stair"][1] / (RR.STAIR_DT / 1e12) * 1e-6) * 0.125 ** 2 * 1e12 >= 4 * max(LS, LG):
+            # evaluated only where D T^2 is at least 4 ticks (below that the coefficient is quantization noise)
             D = go["stair"][1] / (RR.STAIR_DT / 1e12) * 1e-6        # 1/s
             T = 0.125
             cs = [ns(x["e_minus_next"]) / (D * T * T * 1e9) for x in iv[3:-1] if x["e_minus_next"] is not None]
             cm = mean(cs)
             out.append(("H2", f"{cfg}-{rep}: GM ramp D = {D * 1e6:g} ppm/s: end-of-interval error of order D T^2 = {D * T * T * 1e9:.3f} ns",
                         "coefficient of order 1", f"mean coefficient {cm:+.3f} (range {min(cs):+.3f}..{max(cs):+.3f})", 0.1 <= abs(cm) <= 10))
+        if c["notes"] == "fault":
+            T = 125 * 10 ** 9
+            longs = [(i, x) for i, x in enumerate(iv[:-1]) if fus[i + 1]["sF"] - fus[i]["sF"] > 1.5 * T]
+            for i, x in longs:
+                dur = fus[i + 1]["sF"] - fus[i]["sF"]
+                d_end = x["e_minus_next"] - x["e_plus"]
+                ref = [iv[k]["e_minus_next"] - iv[k]["e_plus"] for k in range(3, len(iv) - 1)
+                       if k != i and iv[k]["e_minus_next"] is not None and fus[k + 1]["sF"] - fus[k]["sF"] < 1.5 * T]
+                bound = 2 * max(abs(v) for v in ref) + 2 * LS + 2 * LG
+                out.append(("H7", f"{cfg}-{rep}: affected interval after Follow_Up {x['seq']} ({dur / 1e9:.3f} ms without a step): "
+                            "drift over the long interval <= 2 x the largest normal-interval drift + 2 L_S + 2 L_G",
+                            f"<= {bound / NS:.3f} ns", f"{ns(d_end):+.3f} ns (max |e| {ns(x['max_between']):.3f} ns)", abs(d_end) <= bound))
+        if const and LS > 1 and len(iv) > 10:          # tick resets occur only for L_S > 1 ps (K7)
+            ds = [iv[k]["e_minus_next"] - iv[k]["e_plus"] for k in range(9, len(iv) - 1) if iv[k]["e_minus_next"] is not None]
+            out.append(("H8", f"{cfg}-{rep}: K7 tick resets bias the raw time base by about +L_S/2 per interval, so the mean "
+                        f"between-step drift (calibrated intervals) is +L_S/2 within L_S/4 (L_S = {LS / NS:g} ns)",
+                        f"+{LS / 2 / NS:.3f} ns", f"{mean(ds) / NS:+.3f} ns (mean of {len(ds)})",
+                        abs(mean(ds) - LS / 2) <= LS / 4))
         unc = [f for f in fus if not f["nrr_valid"]]
         if go["ppm"] != 0 and not go["stair"] and unc:
             pred = mean([-go["ppm"] * 1e-6 * f["Res_s"] for f in unc])

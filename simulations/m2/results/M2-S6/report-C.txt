@@ -1,0 +1,294 @@
+M2-S6 reported results (not gating; every run listed here passed its S rows)
+
+Per-config error components (ns; ranges over all Follow_Ups of all reps)
+M2S6U-Q10 (reps [0]): 80 Follow_Ups (72 calibrated, 8 uncalibrated); Res +25324.752..+141490.999 ns; Follow_Up lag at the slave +14880.000..+14880.000 ns
+  epsilon (calibrated) -9.623..+4.581 ns: E_link +0.032..+0.032, E_res -0.000..+0.000, E_ldn -5.556..-4.450, E_qG -4.375..+9.662
+  epsilon (uncalibrated) -23.027..+0.641 ns: E_link -0.005..-0.005, E_res -14.149..-2.685, E_ldn -5.431..-5.005, E_qG -3.851..+8.886
+    E_link: mul -0.000..-0.000, qG +0.032..+0.032
+    E_res: mul -0.000..+0.000, carriage -0.000..-0.000
+    E_ldn: smooth -2.571..+2.818, trunc -0.001..+0.000, mul -0.000..+0.000, nrrS -3.858..+0.003, qS -4.400..-2.144, base -0.005..-0.005
+  after step k >= 3 (calibrated): e+ +0.000..+20.000 ns = eps -9.623..+4.581 + lag -10.000..+10.000 + round-up +0.551..+9.864
+  between steps after step k >= 3 (calibrated): max |e| 20.000 ns; end of interval e- -20.000..+20.000 ns
+  after step k >= 3 (uncalibrated): e+ -20.000..+10.000 ns = eps -23.027..+0.641 + lag -10.000..+10.000 + round-up +3.027..+9.359
+  between steps after step k >= 3 (uncalibrated): max |e| 30.000 ns; end of interval e- -30.000..+10.000 ns
+  transient (rep 0): step 1: e+ -20.000, max between 25000.000, e- -25030.000 ns; step 2: e+ -10.000, max between 20.000, e- -20.000 ns; step 3: e+ +0.000, max between 10.000, e- +10.000 ns
+M2S6U-C-sp100 (reps [0]): 79 Follow_Ups (71 calibrated, 8 uncalibrated); Res +19616.000..+144496.000 ns; Follow_Up lag at the slave +14880.000..+145280.000 ns
+  epsilon (calibrated) -0.307..+0.082 ns: E_link +0.000..+0.000, E_res +0.000..+0.000, E_ldn -0.307..-0.171, E_qG +0.000..+0.253
+  epsilon (uncalibrated) -0.182..+0.335 ns: E_link +0.000..+0.000, E_res +0.000..+0.000, E_ldn -0.182..+0.000, E_qG +0.000..+0.502
+    E_link: 
+    E_res: 
+    E_ldn: smooth -0.220..+0.261, trunc -0.001..+0.000, mul -0.000..+0.000, nrrS -0.234..+0.000, qS -0.500..-0.002
+  after step k >= 3 (calibrated): e+ -1.000..+1.000 ns = eps -0.307..+0.082 + lag -1.000..+1.000 + round-up +0.178..+0.918
+  between steps after step k >= 3 (calibrated): max |e| 2.000 ns; end of interval e- -2.000..+2.000 ns
+  after step k >= 3 (uncalibrated): e+ -1.000..+2.000 ns = eps -0.182..+0.335 + lag -1.000..+1.000 + round-up +0.047..+0.665
+  between steps after step k >= 3 (uncalibrated): max |e| 2.000 ns; end of interval e- -1.000..+2.000 ns
+  transient (rep 0): step 1: e+ +1.000, max between 12493.000, e- +12507.000 ns; step 2: e+ +3.000, max between 3.000, e- +4.000 ns; step 3: e+ +1.000, max between 1.000, e- +1.000 ns
+M2S6U-C-sm100 (reps [0]): 79 Follow_Ups (71 calibrated, 8 uncalibrated); Res +19616.000..+144496.000 ns; Follow_Up lag at the slave +14880.000..+137920.000 ns
+  epsilon (calibrated) -0.406..-0.229 ns: E_link +0.000..+0.000, E_res +0.000..+0.000, E_ldn -0.406..-0.229, E_qG +0.000..+0.000
+  epsilon (uncalibrated) -0.500..-0.399 ns: E_link +0.000..+0.000, E_res +0.000..+0.000, E_ldn -0.500..-0.399, E_qG +0.000..+0.000
+    E_link: 
+    E_res: 
+    E_ldn: smooth -0.297..+0.218, trunc -0.001..+0.000, mul -0.000..+0.000, nrrS -0.000..+0.000, qS -0.476..-0.006
+  after step k >= 3 (calibrated): e+ -1.000..+1.000 ns = eps -0.406..-0.229 + lag -1.000..+1.000 + round-up +0.229..+0.406
+  between steps after step k >= 3 (calibrated): max |e| 2.000 ns; end of interval e- -2.000..+2.000 ns
+  after step k >= 3 (uncalibrated): e+ -1.000..+1.000 ns = eps -0.447..-0.399 + lag -1.000..+1.000 + round-up +0.399..+0.447
+  between steps after step k >= 3 (uncalibrated): max |e| 2.000 ns; end of interval e- -1.000..+1.000 ns
+  transient (rep 0): step 1: e+ -1.000, max between 12493.000, e- -12507.000 ns; step 2: e+ -3.000, max between 3.000, e- -4.000 ns; step 3: e+ -1.000, max between 1.000, e- -1.000 ns
+M2S6U-C-a (reps [0]): 80 Follow_Ups (72 calibrated, 8 uncalibrated); Res +25324.753..+141491.000 ns; Follow_Up lag at the slave +14880.000..+14880.000 ns
+  epsilon (calibrated) -0.809..+0.816 ns: E_link +0.032..+0.032, E_res -0.000..+0.000, E_ldn -0.353..-0.187, E_qG -0.519..+0.983
+  epsilon (uncalibrated) -15.379..-2.354 ns: E_link -0.005..-0.005, E_res -14.149..-2.685, E_ldn -0.505..-0.352, E_qG -0.851..+0.967
+    E_link: mul -0.000..-0.000, qG +0.032..+0.032
+    E_res: mul -0.000..+0.000, carriage -0.000..-0.000
+    E_ldn: smooth -0.259..+0.213, trunc -0.001..+0.000, mul -0.000..+0.000, nrrS -0.000..+0.000, qS -0.476..-0.006, base -0.005..-0.005
+  after step k >= 3 (calibrated): e+ -1.000..+2.000 ns = eps -0.809..+0.816 + lag -2.000..+1.000 + round-up +0.003..+0.987
+  between steps after step k >= 3 (calibrated): max |e| 4.000 ns; end of interval e- -2.000..+3.000 ns
+  after step k >= 3 (uncalibrated): e+ -14.000..-3.000 ns = eps -15.379..-2.354 + lag -1.000..+1.000 + round-up +0.097..+0.652
+  between steps after step k >= 3 (uncalibrated): max |e| 20.000 ns; end of interval e- -21.000..+2.000 ns
+  transient (rep 0): step 1: e+ -9.000, max between 24995.000, e- -25021.000 ns; step 2: e+ -16.000, max between 21.000, e- -22.000 ns; step 3: e+ -7.000, max between 6.000, e- +0.000 ns
+M2S6U-C-b (reps [0]): 79 Follow_Ups (72 calibrated, 7 uncalibrated); Res +27429.745..+155008.000 ns; Follow_Up lag at the slave +14880.000..+25920.000 ns
+  epsilon (calibrated) -0.844..+0.735 ns: E_link -0.032..-0.032, E_res -0.000..+0.000, E_ldn -0.316..-0.125, E_qG -0.517..+0.996
+  epsilon (uncalibrated) +4.427..+14.932 ns: E_link +0.005..+0.005, E_res +3.617..+14.295, E_ldn -0.080..+0.005, E_qG +0.204..+0.928
+    E_link: mul +0.000..+0.000, qG -0.032..-0.032
+    E_res: mul -0.000..+0.000, carriage +0.000..+0.000
+    E_ldn: smooth -0.257..+0.294, trunc -0.001..+0.000, mul -0.000..+0.000, nrrS -0.000..+0.000, qS -0.498..-0.024, base +0.005..+0.005
+  after step k >= 3 (calibrated): e+ +0.000..+2.000 ns = eps -0.844..+0.735 + lag -1.000..+2.000 + round-up +0.001..+0.989
+  between steps after step k >= 3 (calibrated): max |e| 9.000 ns; end of interval e- -8.000..+3.000 ns
+  after step k >= 3 (uncalibrated): e+ +4.000..+15.000 ns = eps +4.427..+14.932 + lag -1.000..+1.000 + round-up +0.067..+0.836
+  between steps after step k >= 3 (uncalibrated): max |e| 18.000 ns; end of interval e- -5.000..+18.000 ns
+  transient (rep 0): step 1: e+ +8.000, max between 24992.000, e- +25020.000 ns; step 2: e+ +13.000, max between 19.000, e- +20.000 ns; step 3: e+ +15.000, max between 18.000, e- +18.000 ns
+M2S6U-C-r001 (reps [0]): 79 Follow_Ups (71 calibrated, 8 uncalibrated); Res +19616.072..+144496.157 ns; Follow_Up lag at the slave +14880.000..+25920.000 ns
+  epsilon (calibrated) -0.018..+0.938 ns: E_link -0.022..-0.000, E_res -0.011..-0.000, E_ldn -0.000..-0.000, E_qG +0.002..+0.962
+  epsilon (uncalibrated) +0.000..+0.068 ns: E_link -0.000..-0.000, E_res -0.001..-0.000, E_ldn -0.000..-0.000, E_qG +0.001..+0.069
+    E_link: trunc -0.001..+0.000, mul -0.000..+0.000, nrr -0.000..-0.000, qG -0.022..+0.000, stale -0.000..-0.000
+    E_res: mul -0.000..+0.000, carriage -0.000..+0.000, nrr -0.000..+0.000, window -0.011..-0.000
+    E_ldn: base -0.000..-0.000
+  after step k >= 3 (calibrated): e+ +0.000..+1.000 ns = eps -0.018..+0.938 + lag +0.000..+0.000 + round-up +0.000..+0.998
+  between steps after step k >= 3 (calibrated): max |e| 8.000 ns; end of interval e- -8.000..+2.000 ns
+  after step k >= 3 (uncalibrated): e+ +0.000..+1.000 ns = eps +0.000..+0.068 + lag +0.000..+0.000 + round-up +0.000..+0.983
+  between steps after step k >= 3 (uncalibrated): max |e| 1.000 ns; end of interval e- +0.000..+1.000 ns
+  transient (rep 0): step 1: e+ +1.000, max between 1.000, e- +1.000 ns; step 2: e+ +1.000, max between 1.000, e- +1.000 ns; step 3: e+ +1.000, max between 1.000, e- +1.000 ns
+M2S6U-C-r01 (reps [0]): 79 Follow_Ups (71 calibrated, 8 uncalibrated); Res +19782.721..+144708.573 ns; Follow_Up lag at the slave +14880.000..+25920.000 ns
+  epsilon (calibrated) -0.904..+0.969 ns: E_link -0.044..-0.000, E_res -0.025..-0.002, E_ldn -0.000..-0.000, E_qG -0.888..+0.978
+  epsilon (uncalibrated) +0.000..+0.688 ns: E_link -0.000..-0.000, E_res -0.012..-0.001, E_ldn -0.000..-0.000, E_qG +0.012..+0.695
+    E_link: trunc -0.001..+0.000, mul -0.000..+0.000, nrr -0.000..-0.000, qG -0.043..+0.000, stale -0.000..-0.000
+    E_res: mul -0.000..+0.000, carriage -0.000..+0.000, nrr -0.000..+0.000, window -0.025..-0.002
+    E_ldn: base -0.000..-0.000
+  after step k >= 3 (calibrated): e+ +0.000..+2.000 ns = eps -0.904..+0.969 + lag +0.000..+1.000 + round-up +0.001..+0.997
+  between steps after step k >= 3 (calibrated): max |e| 9.000 ns; end of interval e- -9.000..+2.000 ns
+  after step k >= 3 (uncalibrated): e+ +0.000..+1.000 ns = eps +0.000..+0.688 + lag +0.000..+0.000 + round-up +0.000..+0.995
+  between steps after step k >= 3 (uncalibrated): max |e| 7.000 ns; end of interval e- -7.000..+3.000 ns
+  transient (rep 0): step 1: e+ +1.000, max between 1.000, e- +1.000 ns; step 2: e+ +1.000, max between 1.000, e- +1.000 ns; step 3: e+ +1.000, max between 1.000, e- +1.000 ns
+M2S6U-C-r1 (reps [0]): 79 Follow_Ups (71 calibrated, 8 uncalibrated); Res +22043.206..+146088.000 ns; Follow_Up lag at the slave +14880.000..+25920.000 ns
+  epsilon (calibrated) -0.908..+0.886 ns: E_link -0.027..+0.003, E_res -0.208..-0.018, E_ldn -0.000..-0.000, E_qG -0.722..+0.991
+  epsilon (uncalibrated) +0.000..+0.888 ns: E_link -0.000..-0.000, E_res -0.118..-0.007, E_ldn -0.000..-0.000, E_qG +0.112..+0.957
+    E_link: trunc -0.001..+0.000, mul -0.000..+0.000, nrr -0.000..-0.000, qG -0.026..+0.003, stale -0.000..-0.000
+    E_res: mul -0.000..+0.000, carriage -0.000..+0.000, nrr -0.000..+0.000, window -0.208..-0.017
+    E_ldn: base -0.000..-0.000
+  after step k >= 3 (calibrated): e+ +0.000..+2.000 ns = eps -0.908..+0.886 + lag -1.000..+1.000 + round-up +0.000..+0.968
+  between steps after step k >= 3 (calibrated): max |e| 17.000 ns; end of interval e- -17.000..-12.000 ns
+  after step k >= 3 (uncalibrated): e+ +0.000..+1.000 ns = eps +0.000..+0.888 + lag +0.000..+0.000 + round-up +0.000..+0.946
+  between steps after step k >= 3 (uncalibrated): max |e| 17.000 ns; end of interval e- -17.000..-12.000 ns
+  transient (rep 0): step 1: e+ +1.000, max between 15.000, e- -15.000 ns; step 2: e+ +1.000, max between 17.000, e- -16.000 ns; step 3: e+ +1.000, max between 14.000, e- -14.000 ns
+M2S6U-C-rs1 (reps [0]): 79 Follow_Ups (71 calibrated, 8 uncalibrated); Res +19616.000..+144496.000 ns; Follow_Up lag at the slave +14880.000..+137920.000 ns
+  epsilon (calibrated) -0.258..-0.117 ns: E_link +0.000..+0.000, E_res +0.000..+0.000, E_ldn -0.258..-0.117, E_qG +0.000..+0.000
+  epsilon (uncalibrated) -0.097..+0.000 ns: E_link +0.000..+0.000, E_res +0.000..+0.000, E_ldn -0.097..+0.000, E_qG +0.000..+0.000
+    E_link: 
+    E_res: 
+    E_ldn: smooth -0.194..+0.322, trunc -0.001..+0.000, mul -0.000..+0.000, nrrS -0.002..-0.000, qS -0.494..-0.004
+  after step k >= 3 (calibrated): e+ -1.000..+1.000 ns = eps -0.258..-0.117 + lag -1.000..+1.000 + round-up +0.117..+0.258
+  between steps after step k >= 3 (calibrated): max |e| 19.000 ns; end of interval e- -19.000..-12.000 ns
+  after step k >= 3 (uncalibrated): e+ +0.000..+0.000 ns = eps -0.097..-0.046 + lag +0.000..+0.000 + round-up +0.046..+0.097
+  between steps after step k >= 3 (uncalibrated): max |e| 19.000 ns; end of interval e- -18.000..-14.000 ns
+  transient (rep 0): step 1: e+ +0.000, max between 26.000, e- -26.000 ns; step 2: e+ +0.000, max between 18.000, e- -18.000 ns; step 3: e+ +0.000, max between 15.000, e- -15.000 ns
+M2S6U-C-off (reps [0]): 80 Follow_Ups (72 calibrated, 8 uncalibrated); Res +25324.753..+141491.000 ns; Follow_Up lag at the slave +14880.000..+14880.000 ns
+  epsilon (calibrated) -0.809..+0.816 ns: E_link +0.032..+0.032, E_res -0.000..+0.000, E_ldn -0.353..-0.187, E_qG -0.519..+0.983
+  epsilon (uncalibrated) -15.379..-2.354 ns: E_link -0.005..-0.005, E_res -14.149..-2.685, E_ldn -0.505..-0.352, E_qG -0.851..+0.967
+    E_link: mul -0.000..-0.000, qG +0.032..+0.032
+    E_res: mul -0.000..+0.000, carriage -0.000..-0.000
+    E_ldn: smooth -0.259..+0.213, trunc -0.001..+0.000, mul -0.000..+0.000, nrrS -0.000..+0.000, qS -0.476..-0.006, base -0.005..-0.005
+  after step k >= 3 (calibrated): e+ -1.000..+2.000 ns = eps -0.809..+0.816 + lag -2.000..+1.000 + round-up +0.003..+0.987
+  between steps after step k >= 3 (calibrated): max |e| 4.000 ns; end of interval e- -2.000..+3.000 ns
+  after step k >= 3 (uncalibrated): e+ -14.000..-3.000 ns = eps -15.379..-2.354 + lag -1.000..+1.000 + round-up +0.097..+0.652
+  between steps after step k >= 3 (uncalibrated): max |e| 20.000 ns; end of interval e- -21.000..+2.000 ns
+  transient (rep 0): step 1: e+ -9.000, max between 24995.000, e- -25021.000 ns; step 2: e+ -16.000, max between 21.000, e- -22.000 ns; step 3: e+ -7.000, max between 6.000, e- +0.000 ns
+M2S6U-C-1ps (reps [0]): 80 Follow_Ups (72 calibrated, 8 uncalibrated); Res +25324.753..+141491.000 ns; Follow_Up lag at the slave +14880.000..+14880.000 ns
+  epsilon (calibrated) -0.145..-0.009 ns: E_link -0.000..-0.000, E_res -0.000..+0.000, E_ldn -0.145..-0.009, E_qG -0.000..+0.000
+  epsilon (uncalibrated) -14.428..-2.883 ns: E_link -0.037..-0.037, E_res -14.149..-2.685, E_ldn -0.330..-0.161, E_qG -0.000..+0.000
+    E_link: mul -0.000..-0.000, qG +0.000..+0.000
+    E_res: mul -0.000..+0.000, carriage -0.000..-0.000
+    E_ldn: smooth -0.140..-0.004, trunc -0.001..+0.000, mul -0.000..+0.000, nrrS -0.000..-0.000, qS -0.000..+0.000, base -0.005..-0.005
+  after step k >= 3 (calibrated): e+ -0.144..-0.009 ns = eps -0.145..-0.009 + lag +0.000..+0.001 + round-up +0.000..+0.000
+  between steps after step k >= 3 (calibrated): max |e| 2.571 ns; end of interval e- -0.116..+2.591 ns
+  after step k >= 3 (uncalibrated): e+ -14.427..-2.882 ns = eps -14.428..-2.883 + lag -0.001..+0.001 + round-up +0.000..+0.000
+  between steps after step k >= 3 (uncalibrated): max |e| 21.913 ns; end of interval e- -21.915..+2.558 ns
+  transient (rep 0): step 1: e+ -9.550, max between 24996.638, e- -25020.934 ns; step 2: e+ -16.459, max between 23.357, e- -23.360 ns; step 3: e+ -6.933, max between 6.883, e- -0.375 ns
+M2S6U-C-1psr (reps [0]): 80 Follow_Ups (72 calibrated, 8 uncalibrated); Res +23743.600..+146088.000 ns; Follow_Up lag at the slave +14880.000..+25920.000 ns
+  epsilon (calibrated) -0.234..-0.026 ns: E_link -0.000..-0.000, E_res -0.194..-0.017, E_ldn -0.145..-0.009, E_qG -0.001..+0.001
+  epsilon (uncalibrated) -14.510..-2.959 ns: E_link -0.037..-0.037, E_res -14.244..-2.761, E_ldn -0.330..-0.161, E_qG -0.000..+0.000
+    E_link: trunc -0.001..+0.000, mul -0.000..+0.000, nrr -0.000..-0.000, qG -0.000..+0.000, stale -0.000..-0.000
+    E_res: mul -0.000..+0.000, carriage -0.000..+0.000, nrr -0.000..+0.000, window -0.194..-0.017
+    E_ldn: smooth -0.140..-0.004, trunc -0.001..+0.000, mul -0.000..+0.000, nrrS -0.000..-0.000, qS -0.000..+0.000, base -0.005..-0.005
+  after step k >= 3 (calibrated): e+ -0.237..-0.029 ns = eps -0.234..-0.026 + lag -0.004..-0.002 + round-up +0.000..+0.000
+  between steps after step k >= 3 (calibrated): max |e| 15.896 ns; end of interval e- -15.948..-13.066 ns
+  after step k >= 3 (uncalibrated): e+ -14.512..-2.962 ns = eps -14.510..-2.959 + lag -0.004..-0.002 + round-up +0.000..+0.000
+  between steps after step k >= 3 (uncalibrated): max |e| 37.656 ns; end of interval e- -37.663..-13.138 ns
+  transient (rep 0): step 1: e+ -9.560, max between 25019.307, e- -25043.632 ns; step 2: e+ -16.498, max between 39.030, e- -39.040 ns; step 3: e+ -6.967, max between 16.023, e- -16.037 ns
+M2S6-C-a (reps [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]): 390 Follow_Ups (310 calibrated, 80 uncalibrated); Res +4013074.750..+4488027.254 ns; Follow_Up lag at the slave +1728.000..+1728.000 ns
+  epsilon (calibrated) -0.380..-0.370 ns: E_link +0.054..+0.054, E_res -0.001..+0.000, E_ldn -0.501..-0.491, E_qG +0.067..+0.067
+  epsilon (uncalibrated) -410.496..-401.750 ns: E_link -0.005..-0.005, E_res -410.057..-401.307, E_ldn -0.505..-0.501, E_qG +0.067..+0.067
+    E_link: trunc -0.001..-0.001, mul +0.000..+0.000, nrr -0.000..+0.000, qG +0.054..+0.054
+    E_res: mul -0.000..+0.000, carriage -0.000..+0.000, nrr -0.000..+0.000
+    E_ldn: smooth -0.033..-0.023, mul +0.000..+0.000, nrrS -0.000..+0.000, qS -0.463..-0.463, base -0.005..-0.005
+  after step k >= 3 (calibrated): e+ +0.000..+1.000 ns = eps -0.380..-0.370 + lag +0.000..+1.000 + round-up +0.370..+0.380
+  between steps after step k >= 3 (calibrated): max |e| 412.000 ns; end of interval e- +0.000..+411.000 ns
+  after step k >= 3 (uncalibrated): e+ -409.000..-404.000 ns = eps -410.496..-404.250 + lag +0.000..+1.000 + round-up +0.000..+0.750
+  between steps after step k >= 3 (uncalibrated): max |e| 409.000 ns; end of interval e- -410.000..-405.000 ns
+  transient (rep 0): step 1: e+ -401.000, max between 25399.000, e- -25401.000 ns; step 2: e+ -403.000, max between 402.000, e- -404.000 ns; step 3: e+ -404.000, max between 404.000, e- -405.000 ns
+M2S6-C-off (reps [0]): 39 Follow_Ups (31 calibrated, 8 uncalibrated); Res +4013074.750..+4488027.254 ns; Follow_Up lag at the slave +1728.000..+1728.000 ns
+  epsilon (calibrated) -0.380..-0.370 ns: E_link +0.054..+0.054, E_res -0.001..+0.000, E_ldn -0.501..-0.491, E_qG +0.067..+0.067
+  epsilon (uncalibrated) -410.496..-401.750 ns: E_link -0.005..-0.005, E_res -410.057..-401.307, E_ldn -0.505..-0.501, E_qG +0.067..+0.067
+    E_link: trunc -0.001..-0.001, mul +0.000..+0.000, nrr -0.000..+0.000, qG +0.054..+0.054
+    E_res: mul -0.000..+0.000, carriage -0.000..+0.000, nrr -0.000..+0.000
+    E_ldn: smooth -0.033..-0.023, mul +0.000..+0.000, nrrS -0.000..+0.000, qS -0.463..-0.463, base -0.005..-0.005
+  after step k >= 3 (calibrated): e+ +0.000..+1.000 ns = eps -0.380..-0.370 + lag +0.000..+1.000 + round-up +0.370..+0.380
+  between steps after step k >= 3 (calibrated): max |e| 412.000 ns; end of interval e- +0.000..+411.000 ns
+  after step k >= 3 (uncalibrated): e+ -409.000..-404.000 ns = eps -410.496..-404.250 + lag +0.000..+1.000 + round-up +0.000..+0.750
+  between steps after step k >= 3 (uncalibrated): max |e| 409.000 ns; end of interval e- -410.000..-405.000 ns
+  transient (rep 0): step 1: e+ -401.000, max between 25399.000, e- -25401.000 ns; step 2: e+ -403.000, max between 402.000, e- -404.000 ns; step 3: e+ -404.000, max between 404.000, e- -405.000 ns
+M2S6-C-r1 (reps [0]): 39 Follow_Ups (31 calibrated, 8 uncalibrated); Res +4004886.275..+6002630.054 ns; Follow_Up lag at the slave +1488.000..+15999456.000 ns
+  epsilon (calibrated) -9.086..-1.833 ns: E_link -0.027..+0.002, E_res -9.279..-2.684, E_ldn -0.000..-0.000, E_qG +0.045..+0.937
+  epsilon (uncalibrated) -5.946..+0.191 ns: E_link -0.000..-0.000, E_res -6.002..-0.617, E_ldn -0.000..-0.000, E_qG +0.000..+0.808
+    E_link: trunc -0.001..+0.000, mul -0.000..+0.000, nrr -0.001..-0.000, qG -0.026..+0.002, stale -0.000..-0.000
+    E_res: mul -0.000..+0.000, carriage -0.000..+0.000, nrr -0.002..-0.000, window -9.279..-2.682
+    E_ldn: base -0.000..-0.000
+  after step k >= 3 (calibrated): e+ -10.000..-1.000 ns = eps -9.086..-1.833 + lag -4.000..+1.000 + round-up +0.060..+0.964
+  between steps after step k >= 3 (calibrated): max |e| 26.000 ns; end of interval e- -26.000..-15.000 ns
+  after step k >= 3 (uncalibrated): e+ -6.000..-2.000 ns = eps -5.946..-1.278 + lag -3.000..+0.000 + round-up +0.112..+0.946
+  between steps after step k >= 3 (uncalibrated): max |e| 24.000 ns; end of interval e- -24.000..-18.000 ns
+  transient (rep 0): step 1: e+ +1.000, max between 20.000, e- -20.000 ns; step 2: e+ -4.000, max between 22.000, e- -22.000 ns; step 3: e+ -3.000, max between 19.000, e- -19.000 ns
+M2S6-C-FS1 (reps [0]): 38 Follow_Ups (31 calibrated, 7 uncalibrated); Res +4013074.750..+4488027.254 ns; Follow_Up lag at the slave +1728.000..+1728.000 ns
+  epsilon (calibrated) -0.380..-0.370 ns: E_link +0.054..+0.054, E_res -0.001..+0.000, E_ldn -0.501..-0.491, E_qG +0.067..+0.067
+  epsilon (uncalibrated) -410.496..-401.750 ns: E_link -0.005..-0.005, E_res -410.057..-401.307, E_ldn -0.505..-0.501, E_qG +0.067..+0.067
+    E_link: trunc -0.001..-0.001, mul +0.000..+0.000, nrr -0.000..+0.000, qG +0.054..+0.054
+    E_res: mul -0.000..+0.000, carriage -0.000..+0.000, nrr -0.000..+0.000
+    E_ldn: smooth -0.033..-0.023, mul +0.000..+0.000, nrrS -0.000..+0.000, qS -0.463..-0.463, base -0.005..-0.005
+  after step k >= 3 (calibrated): e+ +0.000..+1.000 ns = eps -0.380..-0.370 + lag +0.000..+1.000 + round-up +0.370..+0.380
+  between steps after step k >= 3 (calibrated): max |e| 412.000 ns; end of interval e- +0.000..+411.000 ns
+  after step k >= 3 (uncalibrated): e+ -409.000..-404.000 ns = eps -410.496..-404.250 + lag +0.000..+1.000 + round-up +0.000..+0.750
+  between steps after step k >= 3 (uncalibrated): max |e| 409.000 ns; end of interval e- -410.000..-407.000 ns
+  transient (rep 0): step 1: e+ -401.000, max between 25399.000, e- -25401.000 ns; step 2: e+ -403.000, max between 402.000, e- -404.000 ns; step 3: e+ -404.000, max between 405.000, e- -407.000 ns
+M2S6-C-FS2 (reps [0]): 38 Follow_Ups (31 calibrated, 7 uncalibrated); Res +4013074.750..+4488027.254 ns; Follow_Up lag at the slave +1728.000..+1728.000 ns
+  epsilon (calibrated) -0.380..-0.370 ns: E_link +0.054..+0.054, E_res -0.001..+0.000, E_ldn -0.501..-0.491, E_qG +0.067..+0.067
+  epsilon (uncalibrated) -410.496..-401.750 ns: E_link -0.005..-0.005, E_res -410.057..-401.307, E_ldn -0.505..-0.501, E_qG +0.067..+0.067
+    E_link: trunc -0.001..-0.001, mul +0.000..+0.000, nrr -0.000..+0.000, qG +0.054..+0.054
+    E_res: mul -0.000..+0.000, carriage -0.000..+0.000, nrr -0.000..+0.000
+    E_ldn: smooth -0.033..-0.023, mul +0.000..+0.000, nrrS -0.000..+0.000, qS -0.463..-0.463, base -0.005..-0.005
+  after step k >= 3 (calibrated): e+ +0.000..+1.000 ns = eps -0.380..-0.370 + lag +0.000..+1.000 + round-up +0.370..+0.380
+  between steps after step k >= 3 (calibrated): max |e| 412.000 ns; end of interval e- +0.000..+411.000 ns
+  after step k >= 3 (uncalibrated): e+ -409.000..-404.000 ns = eps -410.496..-404.250 + lag +0.000..+1.000 + round-up +0.000..+0.750
+  between steps after step k >= 3 (uncalibrated): max |e| 409.000 ns; end of interval e- -410.000..-407.000 ns
+  transient (rep 0): step 1: e+ -401.000, max between 25399.000, e- -25401.000 ns; step 2: e+ -403.000, max between 402.000, e- -404.000 ns; step 3: e+ -404.000, max between 405.000, e- -407.000 ns
+M2S6-C-FD1 (reps [0]): 38 Follow_Ups (31 calibrated, 7 uncalibrated); Res +4013074.750..+4488027.254 ns; Follow_Up lag at the slave +1728.000..+1728.000 ns
+  epsilon (calibrated) -0.380..-0.370 ns: E_link +0.054..+0.054, E_res -0.001..+0.000, E_ldn -0.501..-0.491, E_qG +0.067..+0.067
+  epsilon (uncalibrated) -410.496..-401.750 ns: E_link -0.005..-0.005, E_res -410.057..-401.307, E_ldn -0.505..-0.501, E_qG +0.067..+0.067
+    E_link: trunc -0.001..-0.001, mul +0.000..+0.000, nrr -0.000..+0.000, qG +0.054..+0.054
+    E_res: mul -0.000..+0.000, carriage -0.000..+0.000, nrr -0.000..+0.000
+    E_ldn: smooth -0.033..-0.023, mul +0.000..+0.000, nrrS -0.000..+0.000, qS -0.463..-0.463, base -0.005..-0.005
+  after step k >= 3 (calibrated): e+ +0.000..+1.000 ns = eps -0.380..-0.370 + lag +0.000..+1.000 + round-up +0.370..+0.380
+  between steps after step k >= 3 (calibrated): max |e| 412.000 ns; end of interval e- +0.000..+411.000 ns
+  after step k >= 3 (uncalibrated): e+ -409.000..-404.000 ns = eps -410.496..-404.250 + lag +0.000..+1.000 + round-up +0.000..+0.750
+  between steps after step k >= 3 (uncalibrated): max |e| 409.000 ns; end of interval e- -410.000..-407.000 ns
+  transient (rep 0): step 1: e+ -401.000, max between 25399.000, e- -25401.000 ns; step 2: e+ -403.000, max between 402.000, e- -404.000 ns; step 3: e+ -404.000, max between 405.000, e- -407.000 ns
+M2S6-C-FD2 (reps [0]): 38 Follow_Ups (31 calibrated, 7 uncalibrated); Res +4013074.750..+4488027.254 ns; Follow_Up lag at the slave +1728.000..+1728.000 ns
+  epsilon (calibrated) -0.380..-0.370 ns: E_link +0.054..+0.054, E_res -0.001..+0.000, E_ldn -0.501..-0.491, E_qG +0.067..+0.067
+  epsilon (uncalibrated) -410.496..-401.750 ns: E_link -0.005..-0.005, E_res -410.057..-401.307, E_ldn -0.505..-0.501, E_qG +0.067..+0.067
+    E_link: trunc -0.001..-0.001, mul +0.000..+0.000, nrr -0.000..+0.000, qG +0.054..+0.054
+    E_res: mul -0.000..+0.000, carriage -0.000..+0.000, nrr -0.000..+0.000
+    E_ldn: smooth -0.033..-0.023, mul +0.000..+0.000, nrrS -0.000..+0.000, qS -0.463..-0.463, base -0.005..-0.005
+  after step k >= 3 (calibrated): e+ +0.000..+1.000 ns = eps -0.380..-0.370 + lag +0.000..+1.000 + round-up +0.370..+0.380
+  between steps after step k >= 3 (calibrated): max |e| 412.000 ns; end of interval e- +0.000..+411.000 ns
+  after step k >= 3 (uncalibrated): e+ -409.000..-404.000 ns = eps -410.496..-404.250 + lag +0.000..+1.000 + round-up +0.000..+0.750
+  between steps after step k >= 3 (uncalibrated): max |e| 409.000 ns; end of interval e- -410.000..-407.000 ns
+  transient (rep 0): step 1: e+ -401.000, max between 25399.000, e- -25401.000 ns; step 2: e+ -403.000, max between 402.000, e- -404.000 ns; step 3: e+ -404.000, max between 405.000, e- -407.000 ns
+
+Hypotheses (design 4.6): id | statement | predicted | observed | held
+H1a | M2S6U-Q10 (1 reps): compensation 0 until step 2, so the error grows at y_S - y_G between steps 1 and 2 | -25011.384 ns | -25010.000 ns | held (1/1)
+H1b | M2S6U-Q10 (1 reps): lag term of step 2 = (y_S - y_G) x Follow_Up lag | -2.976 ns | +0.000 ns | held (1/1)
+H1c | M2S6U-Q10 (1 reps): from step 3, between-step drift |delta| <= 1.5 |eps_k - eps_k-1| + 2 L_S + 2 L_G (leakage + quantization) | <= 0 ns excess | max excess +0.000 ns | held (1/1)
+H8 | M2S6U-Q10 (1 reps): K7 tick resets bias the raw time base by about +L_S/2 per interval, so the mean between-step drift (calibrated intervals) is +L_S/2 within L_S/4 (L_S = 10 ns) | +5.000 ns | -0.143 ns (mean of 70) | REFUTED (0/1)
+H6a | M2S6U-Q10 (1 reps): uncalibrated Follow_Ups: eps ~ -y_G x Res | -9.020 ns (mean) | -9.379 ns (mean) | held (1/1)
+H6b | M2S6U-Q10 (1 reps): first calibrated step (Follow_Up 8): one-interval excursion of order y_G x Res | 9.020 ns | 10.000 ns | held (1/1)
+H1a | M2S6U-C-sp100 (1 reps): compensation 0 until step 2, so the error grows at y_S - y_G between steps 1 and 2 | +12505.692 ns | +12506.000 ns | held (1/1)
+H1b | M2S6U-C-sp100 (1 reps): lag term of step 2 = (y_S - y_G) x Follow_Up lag | +2.592 ns | +3.000 ns | held (1/1)
+H1c | M2S6U-C-sp100 (1 reps): from step 3, between-step drift |delta| <= 1.5 |eps_k - eps_k-1| + 2 L_S + 2 L_G (leakage + quantization) | <= 0 ns excess | max excess +0.000 ns | held (1/1)
+H8 | M2S6U-C-sp100 (1 reps): K7 tick resets bias the raw time base by about +L_S/2 per interval, so the mean between-step drift (calibrated intervals) is +L_S/2 within L_S/4 (L_S = 1 ns) | +0.500 ns | -0.188 ns (mean of 69) | REFUTED (0/1)
+H1a | M2S6U-C-sm100 (1 reps): compensation 0 until step 2, so the error grows at y_S - y_G between steps 1 and 2 | -12505.692 ns | -12506.000 ns | held (1/1)
+H1b | M2S6U-C-sm100 (1 reps): lag term of step 2 = (y_S - y_G) x Follow_Up lag | -2.592 ns | -3.000 ns | held (1/1)
+H1c | M2S6U-C-sm100 (1 reps): from step 3, between-step drift |delta| <= 1.5 |eps_k - eps_k-1| + 2 L_S + 2 L_G (leakage + quantization) | <= 0 ns excess | max excess +0.000 ns | held (1/1)
+H8 | M2S6U-C-sm100 (1 reps): K7 tick resets bias the raw time base by about +L_S/2 per interval, so the mean between-step drift (calibrated intervals) is +L_S/2 within L_S/4 (L_S = 1 ns) | +0.500 ns | -0.217 ns (mean of 69) | REFUTED (0/1)
+H1a | M2S6U-C-a (1 reps): compensation 0 until step 2, so the error grows at y_S - y_G between steps 1 and 2 | -25011.384 ns | -25012.000 ns | held (1/1)
+H1b | M2S6U-C-a (1 reps): lag term of step 2 = (y_S - y_G) x Follow_Up lag | -2.976 ns | -4.000 ns | held (1/1)
+H1c | M2S6U-C-a (1 reps): from step 3, between-step drift |delta| <= 1.5 |eps_k - eps_k-1| + 2 L_S + 2 L_G (leakage + quantization) | <= 0 ns excess | max excess +0.000 ns | held (1/1)
+H8 | M2S6U-C-a (1 reps): K7 tick resets bias the raw time base by about +L_S/2 per interval, so the mean between-step drift (calibrated intervals) is +L_S/2 within L_S/4 (L_S = 1 ns) | +0.500 ns | +0.014 ns (mean of 70) | REFUTED (0/1)
+H6a | M2S6U-C-a (1 reps): uncalibrated Follow_Ups: eps ~ -y_G x Res | -9.020 ns (mean) | -8.979 ns (mean) | held (1/1)
+H6b | M2S6U-C-a (1 reps): first calibrated step (Follow_Up 8): one-interval excursion of order y_G x Res | 9.020 ns | 4.000 ns | held (1/1)
+H1a | M2S6U-C-b (1 reps): compensation 0 until step 2, so the error grows at y_S - y_G between steps 1 and 2 | +25012.856 ns | +25012.000 ns | held (1/1)
+H1b | M2S6U-C-b (1 reps): lag term of step 2 = (y_S - y_G) x Follow_Up lag | +2.976 ns | +2.000 ns | held (1/1)
+H1c | M2S6U-C-b (1 reps): from step 3, between-step drift |delta| <= 1.5 |eps_k - eps_k-1| + 2 L_S + 2 L_G (leakage + quantization) | <= 0 ns excess | max excess +0.000 ns | held (1/1)
+H8 | M2S6U-C-b (1 reps): K7 tick resets bias the raw time base by about +L_S/2 per interval, so the mean between-step drift (calibrated intervals) is +L_S/2 within L_S/4 (L_S = 1 ns) | +0.500 ns | +0.029 ns (mean of 69) | REFUTED (0/1)
+H6a | M2S6U-C-b (1 reps): uncalibrated Follow_Ups: eps ~ -y_G x Res | +8.726 ns (mean) | +9.335 ns (mean) | held (1/1)
+H6b | M2S6U-C-b (1 reps): first calibrated step (Follow_Up 7): one-interval excursion of order y_G x Res | 8.726 ns | 9.000 ns | held (1/1)
+H2 | M2S6U-C-r1 (1 reps): GM ramp D = 1 ppm/s: end-of-interval error of order D T^2 = 15.625 ns | coefficient of order 1 | mean coefficient -0.953 (range -1.088..-0.768) | held (1/1)
+H1a | M2S6U-C-off (1 reps): compensation 0 until step 2, so the error grows at y_S - y_G between steps 1 and 2 | -25011.384 ns | -25012.000 ns | held (1/1)
+H1b | M2S6U-C-off (1 reps): lag term of step 2 = (y_S - y_G) x Follow_Up lag | -2.976 ns | -4.000 ns | held (1/1)
+H1c | M2S6U-C-off (1 reps): from step 3, between-step drift |delta| <= 1.5 |eps_k - eps_k-1| + 2 L_S + 2 L_G (leakage + quantization) | <= 0 ns excess | max excess +0.000 ns | held (1/1)
+H8 | M2S6U-C-off (1 reps): K7 tick resets bias the raw time base by about +L_S/2 per interval, so the mean between-step drift (calibrated intervals) is +L_S/2 within L_S/4 (L_S = 1 ns) | +0.500 ns | +0.014 ns (mean of 70) | REFUTED (0/1)
+H6a | M2S6U-C-off (1 reps): uncalibrated Follow_Ups: eps ~ -y_G x Res | -9.020 ns (mean) | -8.979 ns (mean) | held (1/1)
+H6b | M2S6U-C-off (1 reps): first calibrated step (Follow_Up 8): one-interval excursion of order y_G x Res | 9.020 ns | 4.000 ns | held (1/1)
+H1a | M2S6U-C-1ps (1 reps): compensation 0 until step 2, so the error grows at y_S - y_G between steps 1 and 2 | -25011.384 ns | -25011.384 ns | held (1/1)
+H1b | M2S6U-C-1ps (1 reps): lag term of step 2 = (y_S - y_G) x Follow_Up lag | -2.976 ns | -2.976 ns | held (1/1)
+H1c | M2S6U-C-1ps (1 reps): from step 3, between-step drift |delta| <= 1.5 |eps_k - eps_k-1| + 2 L_S + 2 L_G (leakage + quantization) | <= 0 ns excess | max excess +0.000 ns | held (1/1)
+H6a | M2S6U-C-1ps (1 reps): uncalibrated Follow_Ups: eps ~ -y_G x Res | -9.020 ns (mean) | -9.294 ns (mean) | held (1/1)
+H6b | M2S6U-C-1ps (1 reps): first calibrated step (Follow_Up 8): one-interval excursion of order y_G x Res | 9.020 ns | 2.571 ns | held (1/1)
+H2 | M2S6U-C-1psr (1 reps): GM ramp D = 1 ppm/s: end-of-interval error of order D T^2 = 15.625 ns | coefficient of order 1 | mean coefficient -1.041 (range -2.410..-0.836) | held (1/1)
+H1a | M2S6-C-a (10 reps): compensation 0 until step 2, so the error grows at y_S - y_G between steps 1 and 2 | -25000.000 ns | -25000.000 ns ... -25000.000 ns (10 values) | held (10/10)
+H1b | M2S6-C-a (10 reps): lag term of step 2 = (y_S - y_G) x Follow_Up lag | -0.346 ns | +0.000 ns ... +0.000 ns (10 values) | held (10/10)
+H1c | M2S6-C-a (10 reps): from step 3, between-step drift |delta| <= 1.5 |eps_k - eps_k-1| + 2 L_S + 2 L_G (leakage + quantization) | <= 0 ns excess | max excess +0.000 ns ... max excess +0.000 ns (10 values) | held (10/10)
+H8 | M2S6-C-a (10 reps): K7 tick resets bias the raw time base by about +L_S/2 per interval, so the mean between-step drift (calibrated intervals) is +L_S/2 within L_S/4 (L_S = 1 ns) | +0.500 ns | +0.000 ns (mean of 29) ... +0.000 ns (mean of 29) (10 values) | REFUTED (0/10)
+H6a | M2S6-C-a (10 reps): uncalibrated Follow_Ups: eps ~ -y_G x Res | -405.682 ns (mean) | -406.125 ns (mean) ... -406.125 ns (mean) (10 values) | held (10/10)
+H6b | M2S6-C-a (10 reps): first calibrated step (Follow_Up 8): one-interval excursion of order y_G x Res | 405.682 ns | 412.000 ns ... 412.000 ns (10 values) | held (10/10)
+H1a | M2S6-C-off (1 reps): compensation 0 until step 2, so the error grows at y_S - y_G between steps 1 and 2 | -25000.000 ns | -25000.000 ns | held (1/1)
+H1b | M2S6-C-off (1 reps): lag term of step 2 = (y_S - y_G) x Follow_Up lag | -0.346 ns | +0.000 ns | held (1/1)
+H1c | M2S6-C-off (1 reps): from step 3, between-step drift |delta| <= 1.5 |eps_k - eps_k-1| + 2 L_S + 2 L_G (leakage + quantization) | <= 0 ns excess | max excess +0.000 ns | held (1/1)
+H8 | M2S6-C-off (1 reps): K7 tick resets bias the raw time base by about +L_S/2 per interval, so the mean between-step drift (calibrated intervals) is +L_S/2 within L_S/4 (L_S = 1 ns) | +0.500 ns | +0.000 ns (mean of 29) | REFUTED (0/1)
+H6a | M2S6-C-off (1 reps): uncalibrated Follow_Ups: eps ~ -y_G x Res | -405.682 ns (mean) | -406.125 ns (mean) | held (1/1)
+H6b | M2S6-C-off (1 reps): first calibrated step (Follow_Up 8): one-interval excursion of order y_G x Res | 405.682 ns | 412.000 ns | held (1/1)
+H2 | M2S6-C-r1 (1 reps): GM ramp D = 1 ppm/s: end-of-interval error of order D T^2 = 15.625 ns | coefficient of order 1 | mean coefficient -1.373 (range -1.664..-0.960) | held (1/1)
+H1a | M2S6-C-FS1 (1 reps): compensation 0 until step 2, so the error grows at y_S - y_G between steps 1 and 2 | -25000.000 ns | -25000.000 ns | held (1/1)
+H1b | M2S6-C-FS1 (1 reps): lag term of step 2 = (y_S - y_G) x Follow_Up lag | -0.346 ns | +0.000 ns | held (1/1)
+H1c | M2S6-C-FS1 (1 reps): from step 3, between-step drift |delta| <= 1.5 |eps_k - eps_k-1| + 2 L_S + 2 L_G (leakage + quantization) | <= 0 ns excess | max excess +0.000 ns | held (1/1)
+H7 | M2S6-C-FS1 (1 reps): affected interval after Follow_Up 2 (250.000 ms without a step): drift over the long interval <= 2 x the largest normal-interval drift + 2 L_S + 2 L_G | <= 824.000 ns | -3.000 ns (max |e| 405.000 ns) | held (1/1)
+H8 | M2S6-C-FS1 (1 reps): K7 tick resets bias the raw time base by about +L_S/2 per interval, so the mean between-step drift (calibrated intervals) is +L_S/2 within L_S/4 (L_S = 1 ns) | +0.500 ns | +0.000 ns (mean of 28) | REFUTED (0/1)
+H6a | M2S6-C-FS1 (1 reps): uncalibrated Follow_Ups: eps ~ -y_G x Res | -405.771 ns (mean) | -406.214 ns (mean) | held (1/1)
+H6b | M2S6-C-FS1 (1 reps): first calibrated step (Follow_Up 8): one-interval excursion of order y_G x Res | 405.771 ns | 412.000 ns | held (1/1)
+H1a | M2S6-C-FS2 (1 reps): compensation 0 until step 2, so the error grows at y_S - y_G between steps 1 and 2 | -25000.000 ns | -25000.000 ns | held (1/1)
+H1b | M2S6-C-FS2 (1 reps): lag term of step 2 = (y_S - y_G) x Follow_Up lag | -0.346 ns | +0.000 ns | held (1/1)
+H1c | M2S6-C-FS2 (1 reps): from step 3, between-step drift |delta| <= 1.5 |eps_k - eps_k-1| + 2 L_S + 2 L_G (leakage + quantization) | <= 0 ns excess | max excess +0.000 ns | held (1/1)
+H7 | M2S6-C-FS2 (1 reps): affected interval after Follow_Up 2 (250.000 ms without a step): drift over the long interval <= 2 x the largest normal-interval drift + 2 L_S + 2 L_G | <= 824.000 ns | -3.000 ns (max |e| 405.000 ns) | held (1/1)
+H8 | M2S6-C-FS2 (1 reps): K7 tick resets bias the raw time base by about +L_S/2 per interval, so the mean between-step drift (calibrated intervals) is +L_S/2 within L_S/4 (L_S = 1 ns) | +0.500 ns | +0.000 ns (mean of 28) | REFUTED (0/1)
+H6a | M2S6-C-FS2 (1 reps): uncalibrated Follow_Ups: eps ~ -y_G x Res | -405.771 ns (mean) | -406.214 ns (mean) | held (1/1)
+H6b | M2S6-C-FS2 (1 reps): first calibrated step (Follow_Up 8): one-interval excursion of order y_G x Res | 405.771 ns | 412.000 ns | held (1/1)
+H1a | M2S6-C-FD1 (1 reps): compensation 0 until step 2, so the error grows at y_S - y_G between steps 1 and 2 | -25000.000 ns | -25000.000 ns | held (1/1)
+H1b | M2S6-C-FD1 (1 reps): lag term of step 2 = (y_S - y_G) x Follow_Up lag | -0.346 ns | +0.000 ns | held (1/1)
+H1c | M2S6-C-FD1 (1 reps): from step 3, between-step drift |delta| <= 1.5 |eps_k - eps_k-1| + 2 L_S + 2 L_G (leakage + quantization) | <= 0 ns excess | max excess +0.000 ns | held (1/1)
+H7 | M2S6-C-FD1 (1 reps): affected interval after Follow_Up 2 (250.000 ms without a step): drift over the long interval <= 2 x the largest normal-interval drift + 2 L_S + 2 L_G | <= 824.000 ns | -3.000 ns (max |e| 405.000 ns) | held (1/1)
+H8 | M2S6-C-FD1 (1 reps): K7 tick resets bias the raw time base by about +L_S/2 per interval, so the mean between-step drift (calibrated intervals) is +L_S/2 within L_S/4 (L_S = 1 ns) | +0.500 ns | +0.000 ns (mean of 28) | REFUTED (0/1)
+H6a | M2S6-C-FD1 (1 reps): uncalibrated Follow_Ups: eps ~ -y_G x Res | -405.771 ns (mean) | -406.214 ns (mean) | held (1/1)
+H6b | M2S6-C-FD1 (1 reps): first calibrated step (Follow_Up 8): one-interval excursion of order y_G x Res | 405.771 ns | 412.000 ns | held (1/1)
+H1a | M2S6-C-FD2 (1 reps): compensation 0 until step 2, so the error grows at y_S - y_G between steps 1 and 2 | -25000.000 ns | -25000.000 ns | held (1/1)
+H1b | M2S6-C-FD2 (1 reps): lag term of step 2 = (y_S - y_G) x Follow_Up lag | -0.346 ns | +0.000 ns | held (1/1)
+H1c | M2S6-C-FD2 (1 reps): from step 3, between-step drift |delta| <= 1.5 |eps_k - eps_k-1| + 2 L_S + 2 L_G (leakage + quantization) | <= 0 ns excess | max excess +0.000 ns | held (1/1)
+H7 | M2S6-C-FD2 (1 reps): affected interval after Follow_Up 2 (250.000 ms without a step): drift over the long interval <= 2 x the largest normal-interval drift + 2 L_S + 2 L_G | <= 824.000 ns | -3.000 ns (max |e| 405.000 ns) | held (1/1)
+H8 | M2S6-C-FD2 (1 reps): K7 tick resets bias the raw time base by about +L_S/2 per interval, so the mean between-step drift (calibrated intervals) is +L_S/2 within L_S/4 (L_S = 1 ns) | +0.500 ns | +0.000 ns (mean of 28) | REFUTED (0/1)
+H6a | M2S6-C-FD2 (1 reps): uncalibrated Follow_Ups: eps ~ -y_G x Res | -405.771 ns (mean) | -406.214 ns (mean) | held (1/1)
+H6b | M2S6-C-FD2 (1 reps): first calibrated step (Follow_Up 8): one-interval excursion of order y_G x Res | 405.771 ns | 412.000 ns | held (1/1)
