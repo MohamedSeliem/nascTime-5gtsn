@@ -1,0 +1,4 @@
+M2-S6 gate D0a: m2s5.sh rerun at 51def6c (M2-S6 gate configs appended to omnetpp.ini), 2026-10-19 10:13:56-10:19:45 UTC, rc 0
+M2-S5 check.txt: byte-identical (OVERALL: PASS (71/71))
+M2-S5: 2325 .pcapng/per-frame/engine-log hashes identical
+OVERALL: PASS

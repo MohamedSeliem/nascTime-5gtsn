@@ -1,0 +1,9 @@
+[PASS] D0b RNG policy: M2S6-d0-rng seeds 0-9 (num-rngs 2, seed-0-mt pinned, oscillators on RNG 1): 330/330 PCAP/log hashes identical to M2S5 seeds 0-9 -- missing 0, extra 0
+[PASS] N-rng sensitivity: M2S6-d0-rngUnpinned seed set 1 (RNG 0 not pinned): 16/33 PCAP/log hashes differ from M2S5-1 (the gate detects a changed RNG 0 stream)
+[PASS] D0c 0 ppm / 1 ps oscillator: M2S6-d0-osc0-0: 33/33 PCAP/log hashes identical to M2S5-0 -- missing 0, extra 0
+[PASS] D0c 0 ppm / 1 ps oscillator: M2S6-d0-osc0-0: slave clock, compensation, pdelay, gmRateRatio, neighborRateRatio vectors identical to M2S5-0 (5168 values) -- []
+[PASS] D0c 0 ppm / 1 ps oscillator: M2S6U-d0-osc0-0: 10/10 PCAP/log hashes identical to M2S5U-hold-0 -- missing 0, extra 0
+[PASS] D0c 0 ppm / 1 ps oscillator: M2S6U-d0-osc0-0: slave clock, compensation, pdelay, gmRateRatio, neighborRateRatio vectors identical to M2S5U-hold-0 (3142 values) -- []
+[PASS] D0d tick-reset probe: M2S6U-Q10-0 (10 ns, StepClockServo): O1 with K7 tick resets, replaying the 80 recorded steps, reproduces every GM, slave and slave raw clock sample; 80 of 80 steps reset the tick phase (elapsed phase 795..9546 ps)
+[PASS] D0d tick-reset probe: the same replay WITHOUT tick resets does not reproduce the recorded raw-clock samples (K7 is real; 5+ mismatching sample times shown) -- [(125064556000, 'unexpected', 0.12505204), (126000000000, 'missing', 125987400000)]
+OVERALL: PASS (8/8)
