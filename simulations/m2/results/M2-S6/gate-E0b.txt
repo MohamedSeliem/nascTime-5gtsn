@@ -1,0 +1,4 @@
+[PASS] E0b zero-parameter TT clocks: M2S6-E0b seeds 0-9: 330/330 PCAP/log hashes identical to M2S5 seeds 0-9 -- missing 0, extra 0
+[PASS] E0b zero-parameter TT clocks: M2S6U-E0b-0: 10/10 PCAP/log hashes identical to M2S5U-hold-0 -- missing 0, extra 0
+[PASS] E0b zero-parameter TT clocks: every TT stamp = simulation time (1197 stamps; kinds {'1': 413, '2': 413, '3': 64, '4': 74, '5': 74, '6': 53, '7': 53, '9': 53}; 2 TT clock logs per run) -- 0 mismatches
+OVERALL: PASS (3/3)
