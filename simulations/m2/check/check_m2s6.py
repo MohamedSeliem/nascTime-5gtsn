@@ -529,6 +529,45 @@ def n_rows(runs, cfg, report):
 
 
 # ---------------------------------------------------------------------------------------
+# R-INET cross-check (design 6.3; reported, not gating except the GM clock row that validates O1 there)
+def slave_error_samples(V, net, sln, gnc, t_from):
+    """e(s) = C_S(s) - C_G(s) at the 1 ms samples from t_from (recorded slave clock; O1 GM clock). At a
+    1 ms time that coincides with a step the last recorded value is used."""
+    last = {}
+    for t, v in V.get((f"{net}.{sln}.clock", "timeChanged:vector"), []):
+        if t % MC.MS == 0:
+            last[t] = M_ps(v)
+    gm = dict(gnc.C.ms_values)
+    return [last[t] - gm[t] for t in sorted(last) if t >= t_from and t in gm]
+
+
+def r_inet(runs, report):
+    cfg = "M2S6U-R-inet"
+    net = "M2S6InetBridgeTest"
+    V = RR.read_vectors(os.path.join(runs, cfg, cfg, "0.vec"))
+    conf = RR.CLOCKS[cfg]
+    gnc = MC.NodeClocks(conf["gm"], conf["end"], None, "gm")
+    MC.replay(gnc)
+    fixed, alt = MC.predicted_samples(gnc, gnc.C, True)
+    ok, n, bad = MC.compare_samples(V.get((f"{net}.gm.clock", "timeChanged:vector"), []), fixed, alt)
+    add(f"K {cfg}-0", f"GM clock samples = O1 in the INET bridge network ({n} samples)", ok, str(bad))
+    e_r = slave_error_samples(V, net, "slave", gnc, 2 * RR.S)
+    lines = [f"{cfg} (cross-check, not ground truth): slave error e(s) = C_S - C_G at the 1 ms samples from 2 s: "
+             f"{rng(e_r)} ns, mean {mean(e_r) / NS:+.3f} ns, max |e| {max(abs(x) for x in e_r) / NS:.3f} ns ({len(e_r)} samples)"]
+    ref = "M2S6U-C-a"
+    if os.path.isdir(os.path.join(runs, ref)):
+        R = RR.Run(runs, ref, 0)
+        g2 = gm_clocks(R)
+        e_t = slave_error_samples(R.vec, R.net, R.sln, g2, 2 * RR.S)
+        lines.append(f"  {ref} (the M2-S6 translators, A1, same clocks and traffic): {rng(e_t)} ns, mean {mean(e_t) / NS:+.3f} ns, "
+                     f"max |e| {max(abs(x) for x in e_t) / NS:.3f} ns ({len(e_t)} samples)")
+    comp = [(t, float(v)) for t, v in V.get((f"{net}.slave.clock", "oscillatorCompensationChanged:vector"), [])][1:]
+    lines.append(f"  R-INET slave compensation from step 3: {min(c for t, c in comp[2:]):+.6f}..{max(c for t, c in comp[2:]):+.6f} ppm "
+                 f"({len(comp)} steps; the true ratio is +200.02 ppm)")
+    report += lines
+
+
+# ---------------------------------------------------------------------------------------
 # reported statistics (W) and hypotheses (H, design 4.6): computed only from runs whose S rows passed
 def ns(x):
     return float(x) / NS
@@ -736,6 +775,7 @@ STAGES = {
     "E": ["M2S6U-E-th10", "M2S6U-E-th100", "M2S6U-E-th1000", "M2S6U-E-y", "M2S6U-E-yfree", "M2S6U-E-D", "M2S6U-E-sig1",
           "M2S6U-E-sig10", "M2S6U-E-sig100", "M2S6U-E-L8", "M2S6-E-all", "M2S6-E-all-load"],
     "F": list(N_EXPECT),
+    "R": [],
 }
 
 
@@ -767,6 +807,8 @@ def main():
                 hyp += aggregate(hypotheses(cfg, items), cfg)
     if "F" in stages and present("M2S6U-A1"):
         n_oracle_sign(runs)
+    if "R" in stages and present("M2S6U-R-inet"):
+        r_inet(runs, report)
     npass = sum(1 for r in rows if r[2])
     for check, detail, ok, extra in rows:
         print(f"[{'PASS' if ok else 'FAIL'}] {check}: {detail}" + (f" -- {extra}" if extra else ""))

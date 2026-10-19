@@ -62,6 +62,7 @@ stage_configs() {
          "M2S6U-E-sig1 0..4" "M2S6U-E-sig10 0..4" "M2S6U-E-sig100 0..4" "M2S6U-E-L8 0" "M2S6-E-all 0..2" "M2S6-E-all-load 0" ;;
     F) printf '%s\n' "M2S6U-F-rrIgnore 0" "M2S6-F-rrIgnore 0" "M2S6U-F-rrTwice 0" "M2S6U-F-nrrInvert 0" "M2S6U-F-nrrStale 0" \
          "M2S6U-F-lupLocal 0" "M2S6U-F-domain 0" "M2S6U-F-servoNoRate 0" "M2S6U-F-servoNegRate 0" ;;
+    R) printf '%s\n' "M2S6U-R-inet 0" ;;
     *) echo "unknown stage $1" >&2; return 1 ;;
   esac
 }
@@ -82,7 +83,7 @@ if [ "$MODE" = check ]; then
 fi
 if [ "$MODE" = all ]; then
   [ -d "$HERE/results/M2-S5/runs/M2S5" ] || { echo "ERROR: results/M2-S5/runs missing (gate D0c); run ./m2s5.sh first" >&2; exit 1; }
-  { for st in gate A B C D E F; do stage_configs "$st"; done; printf '%s\n' "M2S6-E0b 0..9" "M2S6U-E0b 0"; } \
+  { for st in gate A B C D E F R; do stage_configs "$st"; done; printf '%s\n' "M2S6-E0b 0..9" "M2S6U-E0b 0"; } \
     | xargs -P "$JOBS" -L 1 bash -c 'run "$0" "$1"'
   rc=0
   python3 "$HERE/check/gate_m2s6.py" "$OUT/runs" "$HERE/results/M2-S5/raw-outputs.sha256" "$HERE/results/M2-S5/runs" > "$OUT/gate-D0.txt" || rc=1

@@ -108,6 +108,7 @@ CLOCKS["M2S6-E-all-load"] = cfg(False, *_ca(), 5 * S, tt=_all)
 for name in ("rrIgnore", "rrTwice", "nrrInvert", "nrrStale", "lupLocal", "servoNoRate", "servoNegRate"):
     CLOCKS[f"M2S6U-F-{name}"] = cfg(True, *_ca(), 10 * S, notes="N")
 CLOCKS["M2S6-F-rrIgnore"] = cfg(False, *_ca(), 5 * S, notes="N")
+CLOCKS["M2S6U-R-inet"] = cfg(True, *_ca(), 10 * S, notes="R")
 CLOCKS["M2S6U-F-domain"] = cfg(True, *_ca(), 10 * S, notes="N", tt={"nw": TT.tt(theta0=200 * NS), "ds": TT.tt(theta0=300 * NS)})
 
 
