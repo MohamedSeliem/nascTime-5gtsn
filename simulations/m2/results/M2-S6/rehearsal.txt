@@ -1,0 +1,193 @@
+M2-S6 fresh-clone reproduction (2026-10-19)
+
+Setup:
+- A new repository at /root/inv/nascTime-5gtsn holding only the history of 2ea9a03 (a83e501 absent).
+- Bundle 2ea9a03..m2/architecture (sha256 cce91d435c936d29b102990a7aaec99b851fda1df349364ce0db064fb3859235): verified, pulled --ff-only to cdae12a, tree identical to the development repository.
+- Upstream stack unchanged: OMNeT++ 6.4.0, INET 4.7.0, Simu5G 1.8.0.
+
+Phase 1 (m2s1, m2s4, m2s5, m2s6) and phase 2 (m2s1 again, because its raw runs had been deleted after phase 1 and m2s3 reads them; then m2s3, m2s0 and all M1 runners). Driver log:
+  start 13:32:12 at cdae12a058c6f1d88ad1ad4d87ab8248d29c9124
+  run m2s1.sh 13:32:12
+  rc m2s1 0 13:35:13
+  run m2s4.sh 13:35:13
+  rc m2s4 0 13:41:33
+  run m2s5.sh 13:41:33
+  rc m2s5 0 13:48:03
+  run m2s6.sh 13:48:03
+  rc m2s6 0 14:33:01
+  done 14:33:01
+  start2 14:33:28 at cdae12a058c6f1d88ad1ad4d87ab8248d29c9124
+  run simulations/m2/m2s1.sh 14:33:28
+  rc m2s1 0 14:36:14
+  run simulations/m2/m2s3.sh 14:36:14
+  rc m2s3 0 14:36:27
+  run simulations/m2/m2s0.sh 14:36:27
+  rc m2s0 0 14:38:45
+  run simulations/m1/s0_vanilla_reference.sh 14:38:45
+  rc s0_vanilla_reference 0 14:39:06
+  run simulations/m1/s1_owned_scenario.sh 14:39:06
+  rc s1_owned_scenario 0 14:39:21
+  run simulations/m1/s2_passthrough_tts.sh 14:39:21
+  rc s2_passthrough_tts 0 14:39:50
+  run simulations/m1/s2_phase_offset.sh 14:39:50
+  rc s2_phase_offset 0 14:40:28
+  run simulations/m1/s3_qfi_drb.sh 14:40:28
+  rc s3_qfi_drb 0 14:45:31
+  run simulations/m1/o_s3_1_investigation.sh 14:45:31
+  rc o_s3_1_investigation 0 14:51:08
+  run simulations/m1/s4_gptp_transport.sh 14:51:08
+  rc s4_gptp_transport 0 14:51:39
+  run simulations/m1/o_tail_investigation.sh 14:51:39
+  rc o_tail_investigation 0 14:52:50
+  run simulations/m1/s5_metadata.sh 14:52:50
+  rc s5_metadata 0 14:53:23
+  run simulations/m1/upstream-issues/run_issues.sh 14:53:23
+  rc run_issues 0 14:54:03
+  done2 14:54:03
+
+== Phase 1 comparison
+  fresh clone HEAD cdae12a058c6f1d88ad1ad4d87ab8248d29c9124
+  == tracked files changed by the rehearsal:
+   M simulations/m2/results/M2-S1/env.txt
+   M simulations/m2/results/M2-S1/raw-outputs.sha256
+   M simulations/m2/results/M2-S4/env.txt
+   M simulations/m2/results/M2-S4/raw-outputs.sha256
+   M simulations/m2/results/M2-S5/env.txt
+   M simulations/m2/results/M2-S5/raw-outputs.sha256
+   M simulations/m2/results/M2-S6/env-all.txt
+   M simulations/m2/results/M2-S6/raw-outputs.sha256
+  M2-S1: 647 pcapng/log/csv hashes in record; differing lines: 30
+     M2-S1 differing by extension:      30 csv
+     M2-S1 differing by extension:      48 sca
+     M2-S1 differing by extension:      48 vec
+  M2-S4: 1648 pcapng/log/csv hashes in record; differing lines: 0
+     M2-S4 differing by extension:     146 sca
+     M2-S4 differing by extension:     146 vec
+  M2-S5: 2325 pcapng/log/csv hashes in record; differing lines: 0
+     M2-S5 differing by extension:     154 sca
+     M2-S5 differing by extension:     154 vec
+  M2-S6: 2727 pcapng/log/csv hashes in record; differing lines: 0
+     M2-S6 differing by extension:     242 sca
+     M2-S6 differing by extension:     242 vec
+  identical: simulations/m2/results/M2-S1/check.txt (OVERALL: PASS (28/28))
+  identical: simulations/m2/results/M2-S1/census.txt ()
+  identical: simulations/m2/results/M2-S4/check.txt (OVERALL: PASS (55/55))
+  identical: simulations/m2/results/M2-S5/check.txt (OVERALL: PASS (71/71))
+  identical: simulations/m2/results/M2-S6/check.txt (OVERALL: PASS (1863/1863))
+  identical: simulations/m2/results/M2-S6/report.txt ()
+  identical: simulations/m2/results/M2-S6/gate-D0.txt (OVERALL: PASS (8/8))
+  identical: simulations/m2/results/M2-S6/gate-E0b.txt (OVERALL: PASS (3/3))
+  lib M2-S5/env.txt: rec libnasctime_m2_sha256: ec20b65b303689f646d165052ee137257aeaaedba5e272339fa6ed8284bde9c3 new libnasctime_m2_sha256: e504eba8f4a402339dd4f012c536bfd9d1e4f694cdfb45cafed202c338e5c358
+  lib M2-S6/env-all.txt: rec libnasctime_m2_sha256: e504eba8f4a402339dd4f012c536bfd9d1e4f694cdfb45cafed202c338e5c358 new libnasctime_m2_sha256: e504eba8f4a402339dd4f012c536bfd9d1e4f694cdfb45cafed202c338e5c358
+
+== Phase 2 comparison
+  fresh clone HEAD cdae12a058c6f1d88ad1ad4d87ab8248d29c9124
+  == tracked record files changed (M1, M2-S0, M2-S1, M2-S3), excluding env*.txt:
+   D simulations/m1/results/O-tail/raw-outputs.sha256
+   M simulations/m1/results/S0/fingerprints.log
+   M simulations/m2/results/M2-S0/raw-outputs.sha256
+   M simulations/m2/results/M2-S1/raw-outputs.sha256
+   M simulations/m2/results/M2-S3/vec.sha256
+  == raw-output hash files: lines per extension, and differing lines per extension
+  simulations/m1/results/O-S3-1/raw-outputs.sha256: record [4 csv, 2 log, 12 sca, 12 vci, 12 vec, ] differing [none]
+  simulations/m1/results/O-tail/raw-outputs.sha256: DELETED by its runner
+  simulations/m1/results/S0/raw-outputs.sha256: record [2 csv, 14 sca, 14 vci, 14 vec, ] differing [none]
+  simulations/m1/results/S1/raw-outputs.sha256: record [1 csv, 10 sca, 10 vci, 10 vec, ] differing [none]
+  simulations/m1/results/S2-phase/raw-outputs.sha256: record [1 json, 46 sca, 46 vec, ] differing [none]
+  simulations/m1/results/S2/raw-outputs.sha256: record [2 csv, 4 pcap, 11 sca, 11 vci, 11 vec, ] differing [none]
+  simulations/m1/results/S3/raw-outputs.sha256: record [7 csv, 15 pcap, 20 sca, 20 vci, 20 vec, ] differing [none]
+  simulations/m1/results/S4/raw-outputs.sha256: record [2 csv, 5 pcap, 11 sca, 11 vci, 11 vec, ] differing [none]
+  simulations/m1/results/S5/raw-outputs.sha256: record [3 csv, 4 pcap, 12 sca, 12 vci, 12 vec, ] differing [none]
+  simulations/m1/results/upstream-issues/raw-outputs.sha256: record [5 csv, 1 log, 6 sca, 6 vci, 6 vec, ] differing [none]
+  simulations/m2/results/M2-S0/raw-outputs.sha256: record [173 csv, 154 pcapng, 22 sca, 22 vec, ] differing [13 csv, 22 sca, 22 vec, ]
+  simulations/m2/results/M2-S1/raw-outputs.sha256: record [431 csv, 216 pcapng, 24 sca, 24 vec, ] differing [15 csv, 24 sca, 24 vec, ]
+  simulations/m2/results/M2-S3/vec.sha256: record [1 M2S1#0, 1 M2S1#1, 1 M2S1#2, 1 M2S1#3, 1 M2S1#4, 1 M2S1#5, 1 M2S1#6, 1 M2S1#7, 1 M2S1#8, 1 M2S1#9, 1 M2S1-frag#0, 1 M2S1-load#0, 1 M2S1-load-harq16#0, 1 M2S1-load-off#0, 1 M2S1-off#0, ] differing [1 M2S1#0, 1 M2S1#1, 1 M2S1#2, 1 M2S1#3, 1 M2S1#4, 1 M2S1#5, 1 M2S1#6, 1 M2S1#7, 1 M2S1#8, 1 M2S1#9, 1 M2S1-frag#0, 1 M2S1-load#0, 1 M2S1-load-harq16#0, 1 M2S1-load-off#0, 1 M2S1-off#0, ]
+  == checker / record text outputs (byte comparison with HEAD)
+  identical simulations/m1/results/O-S3-1/check.txt OVERALL: PASS
+  identical simulations/m1/results/O-tail/check.txt OVERALL: PASS
+  identical simulations/m1/results/S0/check.txt OVERALL: PASS
+  DIFFERS simulations/m1/results/S0/fingerprints.log: -Ran 4 tests in 3.007s +Ran 4 tests in 2.907s 
+  identical simulations/m1/results/S1/check.txt OVERALL: PASS
+  identical simulations/m1/results/S2-phase/check.txt OVERALL: PASS
+  identical simulations/m1/results/S2/check.txt OVERALL: PASS
+  identical simulations/m1/results/S2/s1-regression-check.txt OVERALL: PASS
+  identical simulations/m1/results/S3/check.txt OVERALL: PASS
+  identical simulations/m1/results/S3/experimental.txt 
+  identical simulations/m1/results/S3/regression-S1-check.txt OVERALL: PASS
+  identical simulations/m1/results/S3/regression-S2-check.txt OVERALL: PASS
+  identical simulations/m1/results/S4/clock-baseline.txt 
+  identical simulations/m1/results/S4/clock-check.txt OVERALL: PASS
+  identical simulations/m1/results/S4/regression-S1-check.txt OVERALL: PASS
+  identical simulations/m1/results/S4/regression-S2-check.txt OVERALL: PASS
+  identical simulations/m1/results/S4/regression-S3-seed0.txt 
+  identical simulations/m1/results/S4/transport-check.txt OVERALL: PASS
+  identical simulations/m1/results/S5/check.txt OVERALL: PASS
+  identical simulations/m1/results/S5/regression-S1-check.txt OVERALL: PASS
+  identical simulations/m1/results/S5/regression-S2-check.txt OVERALL: PASS
+  identical simulations/m1/results/S5/regression-S3-seed0.txt 
+  identical simulations/m1/results/S5/regression-S4-clock-check.txt OVERALL: PASS
+  identical simulations/m1/results/S5/regression-S4-transport-check.txt OVERALL: PASS
+  identical simulations/m1/results/upstream-issues/check.txt OVERALL (issues reproduced): YES
+  identical simulations/m2/results/M2-S0/census.txt 
+  identical simulations/m2/results/M2-S0/check.txt OVERALL: PASS (21/21)
+  identical simulations/m2/results/M2-S0/regression/O-S3-1-check.txt OVERALL: PASS
+  identical simulations/m2/results/M2-S0/regression/O-tail-check.txt OVERALL: PASS
+  identical simulations/m2/results/M2-S0/regression/S1-check.txt OVERALL: PASS
+  identical simulations/m2/results/M2-S0/regression/S2-check.txt OVERALL: PASS
+  identical simulations/m2/results/M2-S0/regression/S2-phase-check.txt OVERALL: PASS
+  identical simulations/m2/results/M2-S0/regression/S3-check.txt OVERALL: PASS
+  identical simulations/m2/results/M2-S0/regression/S4-clock-check.txt OVERALL: PASS
+  identical simulations/m2/results/M2-S0/regression/S4-transport-check.txt OVERALL: PASS
+  identical simulations/m2/results/M2-S0/regression/S5-check.txt OVERALL: PASS
+  identical simulations/m2/results/M2-S0/regression/summary.txt IDENTICAL  b55a713aae5ae9a4  simulations/m1/results/S1/check.txt  (overall: OVERALL: PASS)
+  identical simulations/m2/results/M2-S0/regression/upstream-issues-check.txt OVERALL (issues reproduced): YES
+  identical simulations/m2/results/M2-S1/census.txt 
+  identical simulations/m2/results/M2-S1/check.txt OVERALL: PASS (28/28)
+  identical simulations/m2/results/M2-S1/regression/M1-O-S3-1-check.txt OVERALL: PASS
+  identical simulations/m2/results/M2-S1/regression/M1-O-tail-check.txt OVERALL: PASS
+  identical simulations/m2/results/M2-S1/regression/M1-S1-check.txt OVERALL: PASS
+  identical simulations/m2/results/M2-S1/regression/M1-S2-check.txt OVERALL: PASS
+  identical simulations/m2/results/M2-S1/regression/M1-S2-phase-check.txt OVERALL: PASS
+  identical simulations/m2/results/M2-S1/regression/M1-S3-check.txt OVERALL: PASS
+  identical simulations/m2/results/M2-S1/regression/M1-S4-clock-check.txt OVERALL: PASS
+  identical simulations/m2/results/M2-S1/regression/M1-S4-transport-check.txt OVERALL: PASS
+  identical simulations/m2/results/M2-S1/regression/M1-S5-check.txt OVERALL: PASS
+  identical simulations/m2/results/M2-S1/regression/M1-upstream-issues-check.txt OVERALL (issues reproduced): YES
+  identical simulations/m2/results/M2-S1/regression/M2-S0-census.txt 
+  identical simulations/m2/results/M2-S1/regression/M2-S0-check.txt OVERALL: PASS (21/21)
+  identical simulations/m2/results/M2-S1/regression/summary.txt IDENTICAL  b55a713aae5ae9a4  simulations/m1/results/S1/check.txt  (OVERALL: PASS)
+  identical simulations/m2/results/M2-S3/census.txt 
+  identical simulations/m2/results/M2-S3/check.txt OVERALL: PASS (24/24)
+  identical simulations/m2/results/M2-S3/regression/M1-O-S3-1-check.txt OVERALL: PASS
+  identical simulations/m2/results/M2-S3/regression/M1-O-tail-check.txt OVERALL: PASS
+  identical simulations/m2/results/M2-S3/regression/M1-S1-check.txt OVERALL: PASS
+  identical simulations/m2/results/M2-S3/regression/M1-S2-check.txt OVERALL: PASS
+  identical simulations/m2/results/M2-S3/regression/M1-S2-phase-check.txt OVERALL: PASS
+  identical simulations/m2/results/M2-S3/regression/M1-S3-check.txt OVERALL: PASS
+  identical simulations/m2/results/M2-S3/regression/M1-S4-clock-check.txt OVERALL: PASS
+  identical simulations/m2/results/M2-S3/regression/M1-S4-transport-check.txt OVERALL: PASS
+  identical simulations/m2/results/M2-S3/regression/M1-S5-check.txt OVERALL: PASS
+  identical simulations/m2/results/M2-S3/regression/M1-upstream-issues-check.txt OVERALL (issues reproduced): YES
+  identical simulations/m2/results/M2-S3/regression/M2-S0-census.txt 
+  identical simulations/m2/results/M2-S3/regression/M2-S0-check.txt OVERALL: PASS (21/21)
+  identical simulations/m2/results/M2-S3/regression/M2-S1-census.txt 
+  identical simulations/m2/results/M2-S3/regression/M2-S1-check.txt OVERALL: PASS (28/28)
+  identical simulations/m2/results/M2-S3/regression/summary.txt IDENTICAL  2c2705f82c21ac8f  simulations/m2/results/M2-S1/check.txt  (OVERALL: PASS (28/28))
+  identical simulations/m2/results/M2-S3/serializer-probe.txt 
+  identical simulations/m2/results/M2-S3/slave-model.txt 
+  identical simulations/m2/results/M2-S3/syncs.csv 
+
+Classification:
+- Byte-identical:
+  - every checker output (M1, M2-S0 to M2-S6, including M2-S6 check/report/gate-D0/gate-E0b);
+  - every .pcapng and every per-frame, engine and TT-clock log: M2-S1 632, M2-S4 1648, M2-S5 2325, M2-S6 2727, M2-S0 314;
+  - libnasctime_m2.so, equal to M2-S6/env-all.txt.
+- Not byte-reproducible (pre-existing, run metadata):
+  - .sca/.vec (run id, date);
+  - the opp_scavetool CSV exports (M2-S1 15, M2-S0 13);
+  - M2-S3 vec.sha256 (hashes of the M2-S1 .vec files);
+  - env*.txt (dates);
+  - M1-S0 fingerprints.log (unittest wall-clock line only).
+  - o_tail_investigation.sh deletes the committed O-tail raw-outputs.sha256 (pre-existing runner behaviour).
+- M2-S5/env.txt now records the M2-S6 library hash. This is expected: M2-S6 added C++ to libnasctime_m2. M2-S5 check.txt and all 2325 hashes are unchanged.
+- M1 runners do not rewrite their raw-outputs.sha256. The M1 evidence is the byte-identical checker outputs.

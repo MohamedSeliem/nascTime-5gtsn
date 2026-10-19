@@ -1,0 +1,4 @@
+M2S6U-Q10-0  L_S = 10000
+  with K7 resets (recorded = O5)   mean between-step drift -0.1429 ns over 70 intervals; mean gmRR - 1 = +200067.8107 ppb; steps with reset 80
+  counterfactual: no resets        mean between-step drift -0.2857 ns over 70 intervals; mean gmRR - 1 = +200019.7079 ppb; steps with reset 0
+  mean reset phase 7.1372 ns; mean reset phase / 125 ms = 57.0978 ppb
