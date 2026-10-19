@@ -56,6 +56,13 @@ CLOCKS["M2S6U-A4"] = cfg(True, node(osc("drift", NS, 20.0, rw=0.01)),
                          node(osc("drift", NS, -20.0, rw=0.02), initial=1234567 * NS, servo="none"), 10 * S, reps=(0, 1, 2))
 CLOCKS["M2S6U-A5"] = cfg(True, node(C(100.0, 1)), node(C(-100.0, 1), initial=1234567 * NS, servo="none"), 10 * S)
 
+# stage B: GM drift, slave 0 ppm (1 ns)
+for name, y in (("m100", -100.0), ("m10", -10.0), ("m1", -1.0), ("p1", 1.0), ("p10", 10.0), ("p100", 100.0)):
+    CLOCKS[f"M2S6U-B-{name}"] = cfg(True, node(C(y)), node(C(0.0)), 10 * S)
+CLOCKS["M2S6-B-p100"] = cfg(False, node(C(100.0)), node(C(0.0)), 5 * S, reps=range(10))
+CLOCKS["M2S6-B-m100"] = cfg(False, node(C(-100.0)), node(C(0.0)), 5 * S)
+CLOCKS["M2S6-B-p10"] = cfg(False, node(C(10.0)), node(C(0.0)), 5 * S)
+
 
 # ---------------------------------------------------------------------------------------
 def read_vectors(path):
