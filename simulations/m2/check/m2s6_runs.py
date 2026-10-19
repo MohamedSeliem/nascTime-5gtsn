@@ -63,6 +63,23 @@ CLOCKS["M2S6-B-p100"] = cfg(False, node(C(100.0)), node(C(0.0)), 5 * S, reps=ran
 CLOCKS["M2S6-B-m100"] = cfg(False, node(C(-100.0)), node(C(0.0)), 5 * S)
 CLOCKS["M2S6-B-p10"] = cfg(False, node(C(10.0)), node(C(0.0)), 5 * S)
 
+# stage C
+CLOCKS["M2S6U-C-sp100"] = cfg(True, node(C(0.0)), node(C(100.0)), 10 * S)
+CLOCKS["M2S6U-C-sm100"] = cfg(True, node(C(0.0)), node(C(-100.0)), 10 * S)
+CLOCKS["M2S6U-C-a"] = cfg(True, node(C(100.0)), node(C(-100.0)), 10 * S)
+CLOCKS["M2S6U-C-b"] = cfg(True, node(C(-100.0)), node(C(100.0)), 10 * S)
+for name, ch in (("r001", 0.00012345), ("r01", 0.0012345), ("r1", 0.012345)):
+    CLOCKS[f"M2S6U-C-{name}"] = cfg(True, node(osc("drift", NS, 0.0, stair=(0.0, ch))), node(C(0.0)), 10 * S)
+CLOCKS["M2S6U-C-rs1"] = cfg(True, node(C(0.0)), node(osc("drift", NS, 0.0, stair=(0.0, -0.012345))), 10 * S)
+CLOCKS["M2S6U-C-off"] = cfg(True, node(C(100.0)), node(C(-100.0), initial=1234567 * NS), 10 * S)
+CLOCKS["M2S6U-C-1ps"] = cfg(True, node(C(100.0, 1)), node(C(-100.0, 1)), 10 * S)
+CLOCKS["M2S6U-C-1psr"] = cfg(True, node(osc("drift", 1, 100.0, stair=(100.0, 0.012345))), node(C(-100.0, 1)), 10 * S)
+CLOCKS["M2S6-C-a"] = cfg(False, node(C(100.0)), node(C(-100.0)), 5 * S, reps=range(10))
+CLOCKS["M2S6-C-off"] = cfg(False, node(C(100.0)), node(C(-100.0), initial=1234567 * NS), 5 * S)
+CLOCKS["M2S6-C-r1"] = cfg(False, node(osc("drift", NS, 0.0, stair=(0.0, 0.012345))), node(C(0.0)), 5 * S)
+for f in ("FS1", "FS2", "FD1", "FD2"):
+    CLOCKS[f"M2S6-C-{f}"] = cfg(False, node(C(100.0)), node(C(-100.0)), 5 * S, notes="fault")
+
 
 # ---------------------------------------------------------------------------------------
 def read_vectors(path):
