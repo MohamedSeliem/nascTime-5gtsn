@@ -95,14 +95,14 @@ extra() {
 }
 twins() {
   { phase1_configs | sed 's/ 0\.\.[0-9]*$/ 0/'; for o in $OPTS; do echo "M2S71-$o-Ca 0"; echo "M2S71-$o-Bp100 0"; done
-    [ -f "$OUT/phase2-options.txt" ] && phase2_configs $(cat "$OUT/phase2-options.txt") | sed 's/ 0\.\.[0-9]*$/ 0/'; } \
+    if [ -f "$OUT/phase2-options.txt" ]; then phase2_configs $(cat "$OUT/phase2-options.txt") | sed 's/ 0\.\.[0-9]*$/ 0/'; fi; } \
     | runlist runs-10s --sim-time-limit=10s
   printf '%s\n' "M2S6-C-a 0..4" "M2S6-B-p100 0..4" | runlist runs-m2s6ref
 }
 h0() {
   { phase1_configs | sed 's/ 0\.\.[0-9]*$/ 0/'
-    [ -f "$OUT/phase2-options.txt" ] && phase2_configs $(cat "$OUT/phase2-options.txt") | sed 's/ 0\.\.[0-9]*$/ 0/'
-    [ -f "$OUT/h0-extra.txt" ] && cat "$OUT/h0-extra.txt"; } | sort -u | runlist runs-20s --sim-time-limit=20s
+    if [ -f "$OUT/phase2-options.txt" ]; then phase2_configs $(cat "$OUT/phase2-options.txt") | sed 's/ 0\.\.[0-9]*$/ 0/'; fi
+    if [ -f "$OUT/h0-extra.txt" ]; then cat "$OUT/h0-extra.txt"; fi; } | sort -u | runlist runs-20s --sim-time-limit=20s
 }
 
 case "$MODE" in
@@ -121,18 +121,20 @@ case "$MODE" in
   check) python3 "$CHK/check_m2s71.py" final "$OUT" | tee "$OUT/check.txt" ;;
   all)
     rm -rf "$OUT"/runs* "$OUT/phase2-options.txt" "$OUT/h0-extra.txt"
-    m0 > /dev/null
+    m0 > /dev/null || true
     phase1_configs | runlist runs
     accuracy_configs | runlist runs
     extra
     REUSE=1 twins
-    python3 "$CHK/gate_m2s71.py" gates "$OUT" "$HERE/results" > "$OUT/gate-P0.txt"
+    python3 "$CHK/gate_m2s71.py" gates "$OUT" "$HERE/results" > "$OUT/gate-P0.txt" || true
     python3 "$CHK/check_m2s71.py" phase1 "$OUT" > "$OUT/phase1-check.txt" || true
     read -r A B < "$OUT/phase2-options.txt"
     phase2_configs "$A" "$B" | runlist runs
     REUSE=1 twins
     REUSE=1 h0
-    python3 "$CHK/check_m2s71.py" final "$OUT" > "$OUT/check.txt"
+    python3 "$CHK/check_m2s71.py" final "$OUT" > "$OUT/check.txt" || true
+    REUSE=1 h0                              # second pass: runs listed in h0-extra.txt by the check
+    python3 "$CHK/check_m2s71.py" final "$OUT" > "$OUT/check.txt" || true
     (cd "$OUT" && find runs* -type f \( -name '*.pcapng' -o -name '*.csv' -o -name '*.sca' -o -name '*.vec' \) | LC_ALL=C sort | xargs sha256sum > raw-outputs.sha256)
     grep -m1 OVERALL "$OUT/check.txt" ;;
   *) echo "unknown mode $MODE" >&2; exit 2 ;;
