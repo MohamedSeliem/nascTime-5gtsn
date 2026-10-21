@@ -1,0 +1,21 @@
+M2-S7.1 fresh-clone reproduction (2026-10-21)
+
+Setup:
+- A new repository at /root/inv/nascTime-5gtsn holding only the history of 189be27 (cloned --no-local --single-branch; 496fae6 absent before the pull).
+- Bundle 189be27..m2/architecture (sha256 ab55468b3052ea2c1c3a782d689adb279e7c9c134a58a4c3043f3dde88bb9f76): verified, pulled --ff-only to 9a50358; tree identical to the development repository.
+- Upstream stack unchanged: OMNeT++ 6.4.0, INET 4.7.0, Simu5G 1.8.0. libnasctime_m2 built from scratch in the clone: sha256 42c90633ccb62f5c43b1671958fef7e89daf2af61cd942abf423be7f1b5f873a = the record's env-all*.txt.
+
+Driver (m2s71.sh all1..all4 = all):
+  rehearsal at 9a5035872a008d4abeaf86f22d27a2fd3dde5ca8 start 2026-10-21T20:33:07Z
+  all1 rc=0 21:00:28
+  all2 rc=0 21:23:39
+  all3 rc=0 22:22:10
+  all4 rc=0 22:37:07
+
+Byte-identical to the committed record (e637e19):
+- check.txt (OVERALL: FAIL (30/31), the N-noHold row), final-report.txt, gate-P0.txt (244/244), gate-M0.txt (10/10), phase1-check.txt, phase1-report.txt, phase2-options.txt (qa qd2), h0-extra.txt;
+- gate-Q0b.txt apart from its 426 input-hash lines (sha256 of each .vec; .vec files carry the run id and date);
+- every .pcapng and every per-frame, port, engine, sync and monitor log: 21 505 of 21 505 hashes in raw-outputs.sha256.
+
+Not byte-reproducible (as in every earlier milestone): the 1 270 .sca/.vec hashes in raw-outputs.sha256, the vec hashes in gate-Q0b.txt, env-all*.txt (date, commit).
+The changed record files were restored from HEAD after the comparison.
