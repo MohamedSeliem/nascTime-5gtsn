@@ -314,7 +314,9 @@ def deliveries(done, deliv, rxpdus, pdus, sdus, horizon=None):
     deliveries not predicted (plus RX PDUs without a TX PDU, size None); destroyed PDUs)."""
     got, orphan = pdu_receptions(pdus, rxpdus)
     own = L.pdu_owner(sdus, pdus)
-    lost_sdu = {own[k] for k in range(len(pdus)) if k not in got}
+    # a PDU without reception is destroyed only if its reception window closed before the horizon (else in flight)
+    gone = [k for k in range(len(pdus)) if k not in got and (horizon is None or pdus[k][0] + AIR <= horizon)]
+    lost_sdu = {own[k] for k in gone}
     obs = Counter(deliv)
     cls = defaultdict(list)
     for i, (a, size, tc) in enumerate(done):
@@ -331,7 +333,7 @@ def deliveries(done, deliv, rxpdus, pdus, sdus, horizon=None):
             unmatched.append((done[i][0], done[i][1], done[i][2], st))
     matched.sort()
     rest = sorted(x for x, n in obs.items() for _ in range(n)) + [(t, None) for t, s in orphan]
-    return matched, unmatched, rest, [pdus[k] for k in range(len(pdus)) if k not in got]
+    return matched, unmatched, rest, [pdus[k] for k in gone]
 
 
 def q0b(out, add):

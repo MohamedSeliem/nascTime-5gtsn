@@ -140,10 +140,20 @@ def rows(out, add, Analysis, report):
         add("N-doubleCount: Q8 conservation must fail", f"complete cohort pairs {len(a.cohort_complete())} vs sum of classes {sum(cls.values())} "
             f"(pair {s0} counted twice)", sum(cls.values()) != len(a.cohort_complete()))
     r20 = os.path.join(out, "runs-20s")
-    if os.path.isdir(os.path.join(r20, "M2S71-q0-idle")):
-        a = Analysis(root, "M2S71-q0-idle", 0, horizon=10 * S + 1 * MS)
-        b = Analysis(r20, "M2S71-q0-idle", 0)
-        ch = [s for s in a.cohort_complete() if a.outcome[s] != b.outcome[s]]
-        add("N-horizonShort: H0 must detect an insufficient horizon", f"outcomes at 10.001 s vs 20 s (Q-0 idle seed 0): {len(ch)} cohort pairs change "
-            f"class ({dict(Counter(a.outcome[s] for s in ch))}); p99 lag at 10.001 s {K.us(L.pct([a.lag[s] for s in a.cohort_complete()], 0.99))} us",
-            len(ch) > 0)
+    if os.path.isdir(r20):
+        # every primary run with a 20 s twin (seed 0), re-evaluated at H = 10.001 s
+        ch, per, inf_ok, n = Counter(), Counter(), True, 0
+        for cfg in G.run_dirs(r20):
+            if cfg not in G.run_dirs(root) or "-sus" in cfg:
+                continue
+            a = Analysis(root, cfg, 0, horizon=10 * S + 1 * MS)
+            b = Analysis(r20, cfg, 0)
+            n += 1
+            for s in a.cohort_complete():
+                if a.outcome[s] != b.outcome[s]:
+                    ch[(a.outcome[s], b.outcome[s])] += 1
+                    per[cfg] += 1
+                    inf_ok = inf_ok and a.lag[s] == INF
+        add("N-horizonShort: H0 must detect an insufficient horizon", f"{n} seed-0 runs evaluated at 10.001 s vs 20 s: {sum(ch.values())} cohort "
+            f"pairs change class {dict(ch)} in {dict(per)}; each counted +inf at 10.001 s: {inf_ok} (the cohort's last Sync starts at 9.875 s, "
+            "so only pairs still unresolved 126 ms later can change)", sum(ch.values()) > 0 and inf_ok)
