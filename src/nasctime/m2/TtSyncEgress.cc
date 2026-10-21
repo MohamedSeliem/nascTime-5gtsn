@@ -37,6 +37,7 @@ void TtSyncEgress::initialize(int stage)
     if (stage != INITSTAGE_LOCAL)
         return;
     ttClock = findTtClock(this);
+    monitor = findTtSyncMonitor(this);
     std::string m = par("mode").stdstringValue();
     if (m == "off")
         mode = OFF;
@@ -55,7 +56,11 @@ void TtSyncEgress::initialize(int stage)
     dropSyncSeq = par("dropSyncSeq");
     static const std::set<std::string> known = {"", "tseEnd", "tseSlot", "prevSync", "noFcs", "noStrip", "forwardInvalid", "noHold",
                                                 "rrIgnore", "rrTwice"};
-    if (!known.count(egressTest))
+    if (egressTest.rfind("dropLag:", 0) == 0) {   // TEST ONLY (M2-S7.1 N-drop): discard Follow_Ups later than this
+        dropLagTest = SimTime::parse(egressTest.substr(8).c_str());
+        egressTest = "dropLag";
+    }
+    else if (!known.count(egressTest))
         throw cRuntimeError("Unknown TEST ONLY egressTest '%s'", egressTest.c_str());
     if (mode == OFF)
         return;   // passive: classify and count only (gate G0)
@@ -300,6 +305,8 @@ void TtSyncEgress::processFollowUp(Packet *packet)
         if (crossCheckFrameId && lastTx.frameId != 0 && tag->getSyncFrameId() != 0 && lastTx.frameId != tag->getSyncFrameId())
             return discard(packet, numAssociationMismatch, "associationMismatch", f,
                     "Sync frame id " + std::to_string(lastTx.frameId) + " vs tag " + std::to_string(tag->getSyncFrameId()));
+        if (egressTest == "dropLag" && simTime() - lastTx.tse > dropLagTest)   // TEST ONLY (M2-S7.1 N-drop)
+            return discard(packet, numDropLagTest, "dropLagTest", f, "TEST dropLag");
         simtime_t res = lastTx.tse - tag->getSyncIngressTime();
         if (res < SIMTIME_ZERO)
             throw cRuntimeError("Negative residence time %s for %s", res.str().c_str(), f.key.str().c_str());
@@ -386,6 +393,9 @@ void TtSyncEgress::release(bool expired)
 void TtSyncEgress::writeLog(const char *event, int msgType, const Key& key, long treeId, uint64_t syncFrameId, uint64_t fuFrameId,
                             const TtSyncIngressTag *tag, simtime_t tse, simtime_t res, simtime_t cfOut, const std::string& note)
 {
+    if (monitor)   // M2-S7.1: observation only (a function call; no event, no frame change)
+        monitor->egressEvent(event, msgType, key.domain, key.seq, key.isSet(), tag ? tag->getSyncIngressTime() : simtime_t(-1.0),
+                             tse, res, holding);
     if (!log.is_open())
         return;
     char buf[64];

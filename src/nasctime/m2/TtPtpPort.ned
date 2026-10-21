@@ -74,6 +74,11 @@ module TtPtpPort like ITrafficConditionerLayer
         ttClock: <default("")> like ITtClock if typename != "" {
             @display("p=450,300");
         }
+        // M2-S7.1: optional residence-time / Follow_Up-lag monitor (migration/m2-s7.1-design.md
+        // rev. 3, 3.3), observed by syncOut through function calls only. Absent by default.
+        monitor: <default("")> like ITtSyncMonitor if typename != "" {
+            @display("p=550,300");
+        }
     connections:
         upperLayerIn --> { @display("m=n"); } --> tx.in;
         tx.out --> { @display("m=s"); } --> syncOut.in;
@@ -119,7 +124,7 @@ simple TtSyncEgress extends PacketFlowBase
         bool selfCheck = default(true);
         string logFile = default("");
         // TEST ONLY (negative controls / hold cases, design 7.4, 8.1)
-        string egressTest = default("");           // "tseEnd" | "tseSlot" | "prevSync" | "noFcs" | "noStrip" | "forwardInvalid" | "noHold"; M2-S6: "rrIgnore" | "rrTwice"
+        string egressTest = default("");           // "tseEnd" | "tseSlot" | "prevSync" | "noFcs" | "noStrip" | "forwardInvalid" | "noHold"; M2-S6: "rrIgnore" | "rrTwice"; M2-S7.1: "dropLag:<time>"
         int dropSyncSeq = default(-1);             // the Sync with this sequenceId is lost below the hold point (H4)
         @class(nasctime::TtSyncEgress);
         @display("i=block/timer");

@@ -17,6 +17,7 @@
 #include "inet/queueing/base/PacketFlowBase.h"
 
 #include "TtClockAccess.h"
+#include "TtSyncMonitorAccess.h"
 #include "TtGptpFrame.h"
 
 namespace nasctime {
@@ -55,6 +56,9 @@ class TtSyncEgress : public queueing::PacketFlowBase, public TransparentProtocol
 
     cModule *interfaceModule = nullptr;
     ITtClock *ttClock = nullptr;           // M2-S6: TT clock (nullptr: simulation time)
+    ITtSyncMonitor *monitor = nullptr;     // M2-S7.1: optional monitor (nullptr: none)
+    simtime_t dropLagTest = -1;            // M2-S7.1 TEST ONLY (egressTest "dropLag:<t>"), no scalar
+    long numDropLagTest = 0;
     cModule *transmitterModule = nullptr;
     std::ofstream log;
 
