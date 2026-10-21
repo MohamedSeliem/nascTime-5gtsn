@@ -133,6 +133,7 @@ case "$MODE" in
     phase2_configs "$A" "$B" | runlist runs
     REUSE=1 twins
     REUSE=1 h0
+    python3 "$CHK/gate_m2s71.py" gates "$OUT" "$HERE/results" > "$OUT/gate-P0.txt" || true   # gates over the phase-2 runs too
     python3 "$CHK/check_m2s71.py" final "$OUT" > "$OUT/check.txt" || true
     REUSE=1 h0                              # second pass: runs listed in h0-extra.txt by the check
     python3 "$CHK/check_m2s71.py" final "$OUT" > "$OUT/check.txt" || true

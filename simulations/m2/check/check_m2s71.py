@@ -632,6 +632,11 @@ def main():
         return finish(out, mode)
     which = {"phase1": ("idle", "load", "frag"), "phase2": ("sus",), "final": ("idle", "load", "frag", "sus")}[mode]
     A = load_all(out, which)
+    ok, why = gate_ok(out)
+    miss = sorted({(a.cfg, a.rep) for a in A} - set(ok or {}))
+    add("order rule: every analysed run passed through the gates", f"{len(A)} runs analysed, {len(miss)} not in gate-Q0b.txt", not miss, str(miss[:3]))
+    if miss:
+        return finish(out, mode)
     # C1: the statistics' inputs are exactly the complete cohort pairs
     c1bad = [(a.cfg, a.rep) for a in A if set(a.cohort_complete()) != {s for s in a.lag if s in a.cohort}]
     add("C1 cohort use", f"{len(A)} runs: every primary statistic is computed over the complete cohort pairs only (post-cohort pairs: "
