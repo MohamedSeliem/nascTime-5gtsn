@@ -1,0 +1,11 @@
+[PASS] M0 (a) monitor present, M2S5: M2S71-M0-m2s5 seeds 0-9: 330/330 PCAP/log hashes identical to the M2-S5 record (M2S5 seeds 0-9) -- missing 0, extra 0
+[PASS] M0 (a) monitor present, M2S5U-hold: M2S71-M0-hold-0: 10/10 PCAP/log hashes identical to the M2-S5 record (M2S5U-hold-0) -- missing 0, extra 0
+[PASS] M0 (a) monitor present, M2S6-C-a: M2S71-M0-Ca seeds 0-9: 330/330 PCAP/log hashes identical to the M2-S6 record (M2S6-C-a seeds 0-9) -- missing 0, extra 0
+[PASS] M0 (b) Q-d (UM) idle: monitor present vs absent: 33 of 33/33 PCAP/log files identical
+[PASS] M0 monitor active: every monitor-present run wrote its monitor log (22/22)
+[PASS] M0 (c) event fingerprint: M2S5-0 (no monitor) 54ae-3552/tplx = M2S71-M0-m2s5-0 (monitor) 54ae-3552/tplx
+[PASS] M0 (c) event fingerprint: M2S5U-hold-0 (no monitor) a36e-da3e/tplx = M2S71-M0-hold-0 (monitor) a36e-da3e/tplx
+[PASS] M0 (c) event fingerprint: M2S6-C-a-0 (no monitor) dc46-a58d/tplx = M2S71-M0-Ca-0 (monitor) dc46-a58d/tplx
+[PASS] M0 (c) event fingerprint: M2S71-M0-qdu-off-0 (no monitor) 89f0-7119/tplx = M2S71-qdu-idle-0 (monitor) 89f0-7119/tplx
+[PASS] M0 (d) sensitivity, N-monitor: one TEST self-message: fingerprint cf67-0470/tplx != 54ae-3552/tplx, while every PCAP stays identical (9/9); the logs that record packet tree ids differ (10 of 24: the extra message shifts the ids)
+OVERALL: PASS (10/10)
