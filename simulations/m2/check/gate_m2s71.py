@@ -107,10 +107,15 @@ def m0(out, results):
         fa, fb = fingerprint(fpr, a), fingerprint(fpr, b)
         add("M0 (c) event fingerprint", f"{a}-0 (no monitor) {fa} = {b}-0 (monitor) {fb}", fa is not None and fa == fb)
     fa, fn = fingerprint(fpr, "M2S5"), fingerprint(fpr, "M2S71-N-monitor")
-    na, nb, s = compare_runs(fpr, "M2S5", "M2S71-N-monitor")
-    npc = sum(1 for f in run_files(fpr, "M2S5", 0) if "/pcap/" in f)
-    add("M0 (d) sensitivity, N-monitor", f"one TEST self-message: fingerprint {fn} != {fa}, while {s} of {na} PCAP/log files stay identical "
-        f"({npc} PCAP)", fn is not None and fa is not None and fn != fa and s == na == nb and na > 0)
+    pa = [f for f in run_files(fpr, "M2S5", 0) if "/pcap/" in f]
+    pb = {f.replace("M2S71-N-monitor", "M2S5"): f for f in run_files(fpr, "M2S71-N-monitor", 0) if "/pcap/" in f}
+    psame = sum(1 for f in pa if f in pb and sha(os.path.join(fpr, f)) == sha(os.path.join(fpr, pb[f])))
+    la = [f for f in run_files(fpr, "M2S5", 0) if "/m2log/" in f]
+    lb = {f.replace("M2S71-N-monitor", "M2S5"): f for f in run_files(fpr, "M2S71-N-monitor", 0) if "/m2log/" in f}
+    ldiff = sorted(os.path.basename(f) for f in la if f in lb and sha(os.path.join(fpr, f)) != sha(os.path.join(fpr, lb[f])))
+    add("M0 (d) sensitivity, N-monitor", f"one TEST self-message: fingerprint {fn} != {fa}, while every PCAP stays identical ({psame}/{len(pa)}); "
+        f"the logs that record packet tree ids differ ({len(ldiff)} of {len(la)}: the extra message shifts the ids)",
+        fn is not None and fa is not None and fn != fa and psame == len(pa) == len(pb) and len(pa) > 0)
 
 
 def report():
