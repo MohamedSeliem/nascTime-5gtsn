@@ -119,25 +119,30 @@ case "$MODE" in
           echo "$1 $2" > "$OUT/phase2-options.txt"; phase2_configs "$1" "$2" | runlist runs ;;
   check2) python3 "$CHK/check_m2s71.py" phase2 "$OUT" | tee "$OUT/phase2-check.txt" ;;
   check) python3 "$CHK/check_m2s71.py" final "$OUT" | tee "$OUT/check.txt" ;;
-  all)
+  # all = all1 all2 all3 all4 (stages, so that each fits a bounded session; same steps, same order)
+  all1)
     rm -rf "$OUT"/runs* "$OUT/phase2-options.txt" "$OUT/h0-extra.txt"
     m0 > /dev/null || true
-    phase1_configs | runlist runs
+    phase1_configs | runlist runs ;;
+  all2)
     accuracy_configs | runlist runs
     extra
     REUSE=1 twins
     REUSE=1 h0                              # phase-1 H0 runs: H0 is an eligibility row of the phase-1 selection
     python3 "$CHK/gate_m2s71.py" gates "$OUT" "$HERE/results" > "$OUT/gate-P0.txt" || true
-    python3 "$CHK/check_m2s71.py" phase1 "$OUT" > "$OUT/phase1-check.txt" || true
+    python3 "$CHK/check_m2s71.py" phase1 "$OUT" > "$OUT/phase1-check.txt" || true ;;
+  all3)
     read -r A B < "$OUT/phase2-options.txt"
     phase2_configs "$A" "$B" | runlist runs
     REUSE=1 twins
-    REUSE=1 h0
+    REUSE=1 h0 ;;
+  all4)
     python3 "$CHK/gate_m2s71.py" gates "$OUT" "$HERE/results" > "$OUT/gate-P0.txt" || true   # gates over the phase-2 runs too
     python3 "$CHK/check_m2s71.py" final "$OUT" > "$OUT/check.txt" || true
     REUSE=1 h0                              # second pass: runs listed in h0-extra.txt by the check
     python3 "$CHK/check_m2s71.py" final "$OUT" > "$OUT/check.txt" || true
     (cd "$OUT" && find runs* -type f \( -name '*.pcapng' -o -name '*.csv' -o -name '*.sca' -o -name '*.vec' \) | LC_ALL=C sort | xargs sha256sum > raw-outputs.sha256)
     grep -m1 OVERALL "$OUT/check.txt" ;;
+  all) for s in all1 all2 all3 all4; do "$0" "$s" || exit $?; done ;;
   *) echo "unknown mode $MODE" >&2; exit 2 ;;
 esac
