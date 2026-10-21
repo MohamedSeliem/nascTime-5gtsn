@@ -234,7 +234,7 @@ def fmt_ci(v, unit="us"):
         return "inf"
     if unit == "p":
         return f"{m:.4f}" + (f" ± {h:.4f}" if h is not None else "")
-    return f"{m / 1e6:.3f}" + (f" ± {h / 1e6:.3f}" if h is not None else "") + " ms"
+    return f"{m / 1e6:.3f}" + (f" ± {h / 1e6:.3f}" if h is not None else "") + " us"
 
 
 # --- rows ---------------------------------------------------------------------------------------------
