@@ -1,0 +1,405 @@
+M2-S7.1 report (phase1); reported results, not gating
+
+Q6 HARQ pair (DL; reported, no delivery guarantee claimed):
+  Q-0 frag: RLC PDUs lost DL {'drb1': 0, 'lost_pairs': 0} (5 HARQ) vs {'drb1': 0, 'lost_pairs': 0} (16 HARQ)
+  Q-0 idle: RLC PDUs lost DL {'drb1': 0, 'lost_pairs': 0} (5 HARQ) vs {'drb1': 0, 'lost_pairs': 0} (16 HARQ)
+  Q-0 load: RLC PDUs lost DL {'drb1': 12492, 'lost_pairs': 27} (5 HARQ) vs {'drb1': 0, 'lost_pairs': 0} (16 HARQ)
+  Q-0p frag: RLC PDUs lost DL {'drb1': 0, 'lost_pairs': 0} (5 HARQ) vs {'drb1': 0, 'lost_pairs': 0} (16 HARQ)
+  Q-0p idle: RLC PDUs lost DL {'drb1': 0, 'lost_pairs': 0} (5 HARQ) vs {'drb1': 0, 'lost_pairs': 0} (16 HARQ)
+  Q-0p load: RLC PDUs lost DL {'drb1': 13090, 'lost_pairs': 30} (5 HARQ) vs {'drb1': 0, 'lost_pairs': 0} (16 HARQ)
+  Q-a frag: RLC PDUs lost DL {'drb1': 0, 'drb4': 0, 'lost_pairs': 0} (5 HARQ) vs {'drb1': 0, 'drb4': 0, 'lost_pairs': 0} (16 HARQ)
+  Q-a idle: RLC PDUs lost DL {'drb1': 0, 'drb4': 0, 'lost_pairs': 0} (5 HARQ) vs {'drb1': 0, 'drb4': 0, 'lost_pairs': 0} (16 HARQ)
+  Q-a load: RLC PDUs lost DL {'drb1': 12474, 'drb4': 50, 'lost_pairs': 25} (5 HARQ) vs {'drb1': 0, 'drb4': 0, 'lost_pairs': 0} (16 HARQ)
+  Q-b frag: RLC PDUs lost DL {'drb1': 0, 'lost_pairs': 0} (5 HARQ) vs {'drb1': 0, 'lost_pairs': 0} (16 HARQ)
+  Q-b idle: RLC PDUs lost DL {'drb1': 0, 'lost_pairs': 0} (5 HARQ) vs {'drb1': 0, 'lost_pairs': 0} (16 HARQ)
+  Q-b load: RLC PDUs lost DL {'drb1': 12268, 'lost_pairs': 0} (5 HARQ) vs {'drb1': 0, 'lost_pairs': 0} (16 HARQ)
+  Q-c frag: RLC PDUs lost DL {'drb1': 0, 'drb4': 0, 'drb5': 0, 'lost_pairs': 0} (5 HARQ) vs {'drb1': 0, 'drb4': 0, 'drb5': 0, 'lost_pairs': 0} (16 HARQ)
+  Q-c idle: RLC PDUs lost DL {'drb1': 0, 'drb4': 0, 'drb5': 0, 'lost_pairs': 0} (5 HARQ) vs {'drb1': 0, 'drb4': 0, 'drb5': 0, 'lost_pairs': 0} (16 HARQ)
+  Q-c load: RLC PDUs lost DL {'drb1': 12496, 'drb4': 24, 'drb5': 15, 'lost_pairs': 39} (5 HARQ) vs {'drb1': 0, 'drb4': 0, 'drb5': 0, 'lost_pairs': 0} (16 HARQ)
+  Q-c' frag: RLC PDUs lost DL {'drb1': 0, 'lost_pairs': 0} (5 HARQ) vs {'drb1': 0, 'lost_pairs': 0} (16 HARQ)
+  Q-c' idle: RLC PDUs lost DL {'drb1': 0, 'lost_pairs': 0} (5 HARQ) vs {'drb1': 0, 'lost_pairs': 0} (16 HARQ)
+  Q-c' load: RLC PDUs lost DL {'drb1': 12476, 'lost_pairs': 0} (5 HARQ) vs {'drb1': 0, 'lost_pairs': 0} (16 HARQ)
+  Q-d' frag: RLC PDUs lost DL {'drb1': 0, 'drb4': 0, 'drb5': 0, 'lost_pairs': 0} (5 HARQ) vs {'drb1': 0, 'drb4': 0, 'drb5': 0, 'lost_pairs': 0} (16 HARQ)
+  Q-d' idle: RLC PDUs lost DL {'drb1': 0, 'drb4': 0, 'drb5': 0, 'lost_pairs': 0} (5 HARQ) vs {'drb1': 0, 'drb4': 0, 'drb5': 0, 'lost_pairs': 0} (16 HARQ)
+  Q-d' load: RLC PDUs lost DL {'drb1': 12990, 'drb4': 20, 'drb5': 20, 'lost_pairs': 40} (5 HARQ) vs {'drb1': 0, 'drb4': 0, 'drb5': 0, 'lost_pairs': 0} (16 HARQ)
+  Q-d (AM) frag: RLC PDUs lost DL {'drb1': 0, 'lost_pairs': 0} (5 HARQ) vs {'drb1': 0, 'lost_pairs': 0} (16 HARQ)
+  Q-d (AM) idle: RLC PDUs lost DL {'drb1': 0, 'lost_pairs': 0} (5 HARQ) vs {'drb1': 0, 'lost_pairs': 0} (16 HARQ)
+  Q-d (AM) load: RLC PDUs lost DL {'drb1': 12915, 'lost_pairs': 0} (5 HARQ) vs {'drb1': 0, 'lost_pairs': 0} (16 HARQ)
+  Q-d (UM) frag: RLC PDUs lost DL {'drb1': 0, 'drb4': 0, 'lost_pairs': 0} (5 HARQ) vs {'drb1': 0, 'drb4': 0, 'lost_pairs': 0} (16 HARQ)
+  Q-d (UM) idle: RLC PDUs lost DL {'drb1': 0, 'drb4': 0, 'lost_pairs': 0} (5 HARQ) vs {'drb1': 0, 'drb4': 0, 'lost_pairs': 0} (16 HARQ)
+  Q-d (UM) load: RLC PDUs lost DL {'drb1': 12930, 'drb4': 40, 'lost_pairs': 20} (5 HARQ) vs {'drb1': 0, 'drb4': 0, 'lost_pairs': 0} (16 HARQ)
+
+M2S71-q0-Bp100 (reps [0, 1, 2, 3, 4]): 475 Follow_Ups (435 calibrated, 40 uncalibrated); Res +4012974.760..+5000476.009 ns; Follow_Up lag at the slave +1728.000..+1728.000 ns
+  epsilon (calibrated) +0.115..+0.116 ns: E_link +0.054..+0.054, E_res -0.001..+0.000, E_ldn -0.005..-0.005, E_qG +0.067..+0.067
+  epsilon (uncalibrated) -410.000..-401.250 ns: E_link -0.005..-0.005, E_res -410.057..-401.307, E_ldn -0.005..-0.005, E_qG +0.067..+0.067
+    E_link: trunc -0.001..-0.001, mul +0.000..+0.000, nrr -0.000..+0.000, qG +0.054..+0.054
+    E_res: mul -0.000..+0.000, carriage -0.000..+0.000, nrr -0.000..+0.000
+    E_ldn: base -0.005..-0.005
+  after step k >= 3 (calibrated, steady state): e+ +1.000..+1.000 ns = eps +0.115..+0.116 + lag +0.000..+0.000 + round-up +0.884..+0.885
+  between steps after step k >= 3 (calibrated, steady state): max |e| 2.000 ns; end of interval e- +1.000..+1.000 ns
+  after step k >= 3 (first calibrated step: transition): e+ +1.000..+1.000 ns = eps +0.116..+0.116 + lag +0.000..+0.000 + round-up +0.884..+0.884
+  between steps after step k >= 3 (first calibrated step: transition): max |e| 412.000 ns; end of interval e- +411.000..+411.000 ns
+  after step k >= 3 (uncalibrated): e+ -410.000..-403.000 ns = eps -410.000..-403.750 + lag +0.000..+0.000 + round-up +0.000..+0.750
+  between steps after step k >= 3 (uncalibrated): max |e| 411.000 ns; end of interval e- -412.000..-404.000 ns
+  transient (rep 0): step 1: e+ -401.000, max between 12900.000, e- -12901.000 ns; step 2: e+ -402.000, max between 402.000, e- -403.000 ns; step 3: e+ -403.000, max between 403.000, e- -404.000 ns
+
+M2S71-q0-Ca (reps [0, 1, 2, 3, 4]): 475 Follow_Ups (435 calibrated, 40 uncalibrated); Res +4012974.760..+5000476.009 ns; Follow_Up lag at the slave +1728.000..+1728.000 ns
+  epsilon (calibrated) -0.380..-0.356 ns: E_link +0.054..+0.054, E_res -0.001..+0.000, E_ldn -0.501..-0.477, E_qG +0.067..+0.067
+  epsilon (uncalibrated) -410.496..-401.750 ns: E_link -0.005..-0.005, E_res -410.057..-401.307, E_ldn -0.505..-0.501, E_qG +0.067..+0.067
+    E_link: trunc -0.001..-0.001, mul +0.000..+0.000, nrr -0.000..+0.000, qG +0.054..+0.054
+    E_res: mul -0.000..+0.000, carriage -0.000..+0.000, nrr -0.000..+0.000
+    E_ldn: smooth -0.033..-0.009, mul +0.000..+0.000, nrrS -0.000..+0.000, qS -0.463..-0.463, base -0.005..-0.005
+  after step k >= 3 (calibrated, steady state): e+ +0.000..+0.000 ns = eps -0.380..-0.356 + lag +0.000..+0.000 + round-up +0.356..+0.380
+  between steps after step k >= 3 (calibrated, steady state): max |e| 1.000 ns; end of interval e- +0.000..+0.000 ns
+  after step k >= 3 (first calibrated step: transition): e+ +1.000..+1.000 ns = eps -0.380..-0.380 + lag +1.000..+1.000 + round-up +0.380..+0.380
+  between steps after step k >= 3 (first calibrated step: transition): max |e| 412.000 ns; end of interval e- +411.000..+411.000 ns
+  after step k >= 3 (uncalibrated): e+ -409.000..-404.000 ns = eps -410.496..-404.250 + lag +0.000..+1.000 + round-up +0.000..+0.750
+  between steps after step k >= 3 (uncalibrated): max |e| 409.000 ns; end of interval e- -410.000..-405.000 ns
+  transient (rep 0): step 1: e+ -401.000, max between 25399.000, e- -25401.000 ns; step 2: e+ -403.000, max between 402.000, e- -404.000 ns; step 3: e+ -404.000, max between 404.000, e- -405.000 ns
+
+M2S71-q0p-Bp100 (reps [0, 1, 2, 3, 4]): 475 Follow_Ups (435 calibrated, 40 uncalibrated); Res +4012974.760..+5000476.009 ns; Follow_Up lag at the slave +1728.000..+1728.000 ns
+  epsilon (calibrated) +0.115..+0.116 ns: E_link +0.054..+0.054, E_res -0.001..+0.000, E_ldn -0.005..-0.005, E_qG +0.067..+0.067
+  epsilon (uncalibrated) -410.000..-401.250 ns: E_link -0.005..-0.005, E_res -410.057..-401.307, E_ldn -0.005..-0.005, E_qG +0.067..+0.067
+    E_link: trunc -0.001..-0.001, mul +0.000..+0.000, nrr -0.000..+0.000, qG +0.054..+0.054
+    E_res: mul -0.000..+0.000, carriage -0.000..+0.000, nrr -0.000..+0.000
+    E_ldn: base -0.005..-0.005
+  after step k >= 3 (calibrated, steady state): e+ +1.000..+1.000 ns = eps +0.115..+0.116 + lag +0.000..+0.000 + round-up +0.884..+0.885
+  between steps after step k >= 3 (calibrated, steady state): max |e| 2.000 ns; end of interval e- +1.000..+1.000 ns
+  after step k >= 3 (first calibrated step: transition): e+ +1.000..+1.000 ns = eps +0.116..+0.116 + lag +0.000..+0.000 + round-up +0.884..+0.884
+  between steps after step k >= 3 (first calibrated step: transition): max |e| 412.000 ns; end of interval e- +411.000..+411.000 ns
+  after step k >= 3 (uncalibrated): e+ -410.000..-403.000 ns = eps -410.000..-403.750 + lag +0.000..+0.000 + round-up +0.000..+0.750
+  between steps after step k >= 3 (uncalibrated): max |e| 411.000 ns; end of interval e- -412.000..-404.000 ns
+  transient (rep 0): step 1: e+ -401.000, max between 12900.000, e- -12901.000 ns; step 2: e+ -402.000, max between 402.000, e- -403.000 ns; step 3: e+ -403.000, max between 403.000, e- -404.000 ns
+
+M2S71-q0p-Ca (reps [0, 1, 2, 3, 4]): 475 Follow_Ups (435 calibrated, 40 uncalibrated); Res +4012974.760..+5000476.009 ns; Follow_Up lag at the slave +1728.000..+1728.000 ns
+  epsilon (calibrated) -0.380..-0.356 ns: E_link +0.054..+0.054, E_res -0.001..+0.000, E_ldn -0.501..-0.477, E_qG +0.067..+0.067
+  epsilon (uncalibrated) -410.496..-401.750 ns: E_link -0.005..-0.005, E_res -410.057..-401.307, E_ldn -0.505..-0.501, E_qG +0.067..+0.067
+    E_link: trunc -0.001..-0.001, mul +0.000..+0.000, nrr -0.000..+0.000, qG +0.054..+0.054
+    E_res: mul -0.000..+0.000, carriage -0.000..+0.000, nrr -0.000..+0.000
+    E_ldn: smooth -0.033..-0.009, mul +0.000..+0.000, nrrS -0.000..+0.000, qS -0.463..-0.463, base -0.005..-0.005
+  after step k >= 3 (calibrated, steady state): e+ +0.000..+0.000 ns = eps -0.380..-0.356 + lag +0.000..+0.000 + round-up +0.356..+0.380
+  between steps after step k >= 3 (calibrated, steady state): max |e| 1.000 ns; end of interval e- +0.000..+0.000 ns
+  after step k >= 3 (first calibrated step: transition): e+ +1.000..+1.000 ns = eps -0.380..-0.380 + lag +1.000..+1.000 + round-up +0.380..+0.380
+  between steps after step k >= 3 (first calibrated step: transition): max |e| 412.000 ns; end of interval e- +411.000..+411.000 ns
+  after step k >= 3 (uncalibrated): e+ -409.000..-404.000 ns = eps -410.496..-404.250 + lag +0.000..+1.000 + round-up +0.000..+0.750
+  between steps after step k >= 3 (uncalibrated): max |e| 409.000 ns; end of interval e- -410.000..-405.000 ns
+  transient (rep 0): step 1: e+ -401.000, max between 25399.000, e- -25401.000 ns; step 2: e+ -403.000, max between 402.000, e- -404.000 ns; step 3: e+ -404.000, max between 404.000, e- -405.000 ns
+
+M2S71-qa-Bp100 (reps [0, 1, 2, 3, 4]): 475 Follow_Ups (435 calibrated, 40 uncalibrated); Res +4012974.760..+5000476.009 ns; Follow_Up lag at the slave +1728.000..+1728.000 ns
+  epsilon (calibrated) +0.115..+0.116 ns: E_link +0.054..+0.054, E_res -0.001..+0.000, E_ldn -0.005..-0.005, E_qG +0.067..+0.067
+  epsilon (uncalibrated) -410.000..-401.250 ns: E_link -0.005..-0.005, E_res -410.057..-401.307, E_ldn -0.005..-0.005, E_qG +0.067..+0.067
+    E_link: trunc -0.001..-0.001, mul +0.000..+0.000, nrr -0.000..+0.000, qG +0.054..+0.054
+    E_res: mul -0.000..+0.000, carriage -0.000..+0.000, nrr -0.000..+0.000
+    E_ldn: base -0.005..-0.005
+  after step k >= 3 (calibrated, steady state): e+ +1.000..+1.000 ns = eps +0.115..+0.116 + lag +0.000..+0.000 + round-up +0.884..+0.885
+  between steps after step k >= 3 (calibrated, steady state): max |e| 2.000 ns; end of interval e- +1.000..+1.000 ns
+  after step k >= 3 (first calibrated step: transition): e+ +1.000..+1.000 ns = eps +0.116..+0.116 + lag +0.000..+0.000 + round-up +0.884..+0.884
+  between steps after step k >= 3 (first calibrated step: transition): max |e| 412.000 ns; end of interval e- +411.000..+411.000 ns
+  after step k >= 3 (uncalibrated): e+ -410.000..-403.000 ns = eps -410.000..-403.750 + lag +0.000..+0.000 + round-up +0.000..+0.750
+  between steps after step k >= 3 (uncalibrated): max |e| 411.000 ns; end of interval e- -412.000..-404.000 ns
+  transient (rep 0): step 1: e+ -401.000, max between 12900.000, e- -12901.000 ns; step 2: e+ -402.000, max between 402.000, e- -403.000 ns; step 3: e+ -403.000, max between 403.000, e- -404.000 ns
+
+M2S71-qa-Ca (reps [0, 1, 2, 3, 4]): 475 Follow_Ups (435 calibrated, 40 uncalibrated); Res +4012974.760..+5000476.009 ns; Follow_Up lag at the slave +1728.000..+1728.000 ns
+  epsilon (calibrated) -0.380..-0.356 ns: E_link +0.054..+0.054, E_res -0.001..+0.000, E_ldn -0.501..-0.477, E_qG +0.067..+0.067
+  epsilon (uncalibrated) -410.496..-401.750 ns: E_link -0.005..-0.005, E_res -410.057..-401.307, E_ldn -0.505..-0.501, E_qG +0.067..+0.067
+    E_link: trunc -0.001..-0.001, mul +0.000..+0.000, nrr -0.000..+0.000, qG +0.054..+0.054
+    E_res: mul -0.000..+0.000, carriage -0.000..+0.000, nrr -0.000..+0.000
+    E_ldn: smooth -0.033..-0.009, mul +0.000..+0.000, nrrS -0.000..+0.000, qS -0.463..-0.463, base -0.005..-0.005
+  after step k >= 3 (calibrated, steady state): e+ +0.000..+0.000 ns = eps -0.380..-0.356 + lag +0.000..+0.000 + round-up +0.356..+0.380
+  between steps after step k >= 3 (calibrated, steady state): max |e| 1.000 ns; end of interval e- +0.000..+0.000 ns
+  after step k >= 3 (first calibrated step: transition): e+ +1.000..+1.000 ns = eps -0.380..-0.380 + lag +1.000..+1.000 + round-up +0.380..+0.380
+  between steps after step k >= 3 (first calibrated step: transition): max |e| 412.000 ns; end of interval e- +411.000..+411.000 ns
+  after step k >= 3 (uncalibrated): e+ -409.000..-404.000 ns = eps -410.496..-404.250 + lag +0.000..+1.000 + round-up +0.000..+0.750
+  between steps after step k >= 3 (uncalibrated): max |e| 409.000 ns; end of interval e- -410.000..-405.000 ns
+  transient (rep 0): step 1: e+ -401.000, max between 25399.000, e- -25401.000 ns; step 2: e+ -403.000, max between 402.000, e- -404.000 ns; step 3: e+ -404.000, max between 404.000, e- -405.000 ns
+
+M2S71-qb-Bp100 (reps [0, 1, 2, 3, 4]): 475 Follow_Ups (435 calibrated, 40 uncalibrated); Res +4012974.760..+5000476.009 ns; Follow_Up lag at the slave +1001056.000..+2001056.000 ns
+  epsilon (calibrated) +0.115..+0.116 ns: E_link +0.054..+0.054, E_res -0.001..+0.000, E_ldn -0.005..-0.005, E_qG +0.067..+0.067
+  epsilon (uncalibrated) -410.000..-401.250 ns: E_link -0.005..-0.005, E_res -410.057..-401.307, E_ldn -0.005..-0.005, E_qG +0.067..+0.067
+    E_link: trunc -0.001..-0.001, mul +0.000..+0.000, nrr -0.000..+0.000, qG +0.054..+0.054
+    E_res: mul -0.000..+0.000, carriage -0.000..+0.000, nrr -0.000..+0.000
+    E_ldn: base -0.005..-0.005
+  after step k >= 3 (calibrated, steady state): e+ +1.000..+5.000 ns = eps +0.115..+0.116 + lag +0.000..+4.000 + round-up +0.884..+0.885
+  between steps after step k >= 3 (calibrated, steady state): max |e| 6.000 ns; end of interval e- +1.000..+5.000 ns
+  after step k >= 3 (first calibrated step: transition): e+ +1.000..+2.000 ns = eps +0.116..+0.116 + lag +0.000..+1.000 + round-up +0.884..+0.884
+  between steps after step k >= 3 (first calibrated step: transition): max |e| 413.000 ns; end of interval e- +408.000..+412.000 ns
+  after step k >= 3 (uncalibrated): e+ -410.000..-403.000 ns = eps -410.000..-403.750 + lag +0.000..+1.000 + round-up +0.000..+0.750
+  between steps after step k >= 3 (uncalibrated): max |e| 411.000 ns; end of interval e- -412.000..-404.000 ns
+  transient (rep 0): step 1: e+ -601.000, max between 13000.000, e- -13001.000 ns; step 2: e+ -502.000, max between 502.000, e- -503.000 ns; step 3: e+ -403.000, max between 403.000, e- -404.000 ns
+
+M2S71-qb-Ca (reps [0, 1, 2, 3, 4]): 475 Follow_Ups (435 calibrated, 40 uncalibrated); Res +4012974.760..+5000476.009 ns; Follow_Up lag at the slave +1001056.000..+2001056.000 ns
+  epsilon (calibrated) -0.380..-0.356 ns: E_link +0.054..+0.054, E_res -0.001..+0.000, E_ldn -0.501..-0.477, E_qG +0.067..+0.067
+  epsilon (uncalibrated) -410.496..-401.750 ns: E_link -0.005..-0.005, E_res -410.057..-401.307, E_ldn -0.505..-0.501, E_qG +0.067..+0.067
+    E_link: trunc -0.001..-0.001, mul +0.000..+0.000, nrr -0.000..+0.000, qG +0.054..+0.054
+    E_res: mul -0.000..+0.000, carriage -0.000..+0.000, nrr -0.000..+0.000
+    E_ldn: smooth -0.033..-0.009, mul +0.000..+0.000, nrrS -0.000..+0.000, qS -0.463..-0.463, base -0.005..-0.005
+  after step k >= 3 (calibrated, steady state): e+ +0.000..+4.000 ns = eps -0.380..-0.356 + lag +0.000..+4.000 + round-up +0.356..+0.380
+  between steps after step k >= 3 (calibrated, steady state): max |e| 6.000 ns; end of interval e- +0.000..+4.000 ns
+  after step k >= 3 (first calibrated step: transition): e+ +1.000..+1.000 ns = eps -0.380..-0.380 + lag +1.000..+1.000 + round-up +0.380..+0.380
+  between steps after step k >= 3 (first calibrated step: transition): max |e| 413.000 ns; end of interval e- +408.000..+411.000 ns
+  after step k >= 3 (uncalibrated): e+ -410.000..-404.000 ns = eps -410.496..-404.250 + lag +0.000..+1.000 + round-up +0.000..+0.750
+  between steps after step k >= 3 (uncalibrated): max |e| 410.000 ns; end of interval e- -411.000..-405.000 ns
+  transient (rep 0): step 1: e+ -801.000, max between 25599.000, e- -25601.000 ns; step 2: e+ -603.000, max between 602.000, e- -604.000 ns; step 3: e+ -404.000, max between 404.000, e- -405.000 ns
+
+M2S71-qc-Bp100 (reps [0, 1, 2, 3, 4]): 225 Follow_Ups (204 calibrated, 21 uncalibrated); Res +4012974.760..+5000476.009 ns; Follow_Up lag at the slave +1001056.000..+2001056.000 ns
+  epsilon (calibrated) +0.115..+0.116 ns: E_link +0.054..+0.054, E_res -0.001..+0.000, E_ldn -0.005..-0.005, E_qG +0.067..+0.067
+  epsilon (uncalibrated) -410.000..-401.250 ns: E_link -0.005..-0.005, E_res -410.057..-401.307, E_ldn -0.005..-0.005, E_qG +0.067..+0.067
+    E_link: trunc -0.001..-0.001, mul +0.000..+0.000, nrr -0.000..+0.000, qG +0.054..+0.054
+    E_res: mul -0.000..+0.000, carriage -0.000..+0.000, nrr -0.000..+0.000
+    E_ldn: base -0.005..-0.005
+  after step k >= 3 (calibrated, steady state): e+ +1.000..+4.000 ns = eps +0.115..+0.116 + lag +0.000..+3.000 + round-up +0.884..+0.885
+  between steps after step k >= 3 (calibrated, steady state): max |e| 4.000 ns; end of interval e- +1.000..+4.000 ns
+  after step k >= 3 (first calibrated step: transition): e+ +1.000..+2.000 ns = eps +0.116..+0.116 + lag +0.000..+1.000 + round-up +0.884..+0.884
+  between steps after step k >= 3 (first calibrated step: transition): max |e| 1233.000 ns; end of interval e- +53.000..+1232.000 ns
+  after step k >= 3 (uncalibrated): e+ -410.000..-403.000 ns = eps -410.000..-403.750 + lag +0.000..+0.000 + round-up +0.000..+0.750
+  between steps after step k >= 3 (uncalibrated): max |e| 415.000 ns; end of interval e- -415.000..-406.000 ns
+  transient (rep 0): step 1: e+ -601.000, max between 38100.000, e- -38101.000 ns; step 2: e+ -605.000, max between 606.000, e- -607.000 ns; step 3: e+ -406.000, max between 415.000, e- -415.000 ns
+
+M2S71-qc-Ca (reps [0, 1, 2, 3, 4]): 225 Follow_Ups (204 calibrated, 21 uncalibrated); Res +4012974.760..+5000476.009 ns; Follow_Up lag at the slave +1001056.000..+2001056.000 ns
+  epsilon (calibrated) -0.380..-0.356 ns: E_link +0.054..+0.054, E_res -0.001..+0.000, E_ldn -0.501..-0.477, E_qG +0.067..+0.067
+  epsilon (uncalibrated) -410.496..-401.750 ns: E_link -0.005..-0.005, E_res -410.057..-401.307, E_ldn -0.505..-0.501, E_qG +0.067..+0.067
+    E_link: trunc -0.001..-0.001, mul +0.000..+0.000, nrr -0.000..+0.000, qG +0.054..+0.054
+    E_res: mul -0.000..+0.000, carriage -0.000..+0.000, nrr -0.000..+0.000
+    E_ldn: smooth -0.033..-0.009, mul +0.000..+0.000, nrrS -0.000..+0.000, qS -0.463..-0.463, base -0.005..-0.005
+  after step k >= 3 (calibrated, steady state): e+ +0.000..+4.000 ns = eps -0.380..-0.356 + lag +0.000..+4.000 + round-up +0.356..+0.380
+  between steps after step k >= 3 (calibrated, steady state): max |e| 5.000 ns; end of interval e- +0.000..+4.000 ns
+  after step k >= 3 (first calibrated step: transition): e+ +0.000..+1.000 ns = eps -0.380..-0.380 + lag +0.000..+1.000 + round-up +0.380..+0.380
+  between steps after step k >= 3 (first calibrated step: transition): max |e| 1233.000 ns; end of interval e- +52.000..+1231.000 ns
+  after step k >= 3 (uncalibrated): e+ -410.000..-404.000 ns = eps -410.496..-404.250 + lag +0.000..+0.000 + round-up +0.000..+0.750
+  between steps after step k >= 3 (uncalibrated): max |e| 414.000 ns; end of interval e- -415.000..-407.000 ns
+  transient (rep 0): step 1: e+ -801.000, max between 75799.000, e- -75801.000 ns; step 2: e+ -805.000, max between 805.000, e- -807.000 ns; step 3: e+ -406.000, max between 414.000, e- -415.000 ns
+
+M2S71-qc2-Bp100 (reps [0, 1, 2, 3, 4]): 222 Follow_Ups (202 calibrated, 20 uncalibrated); Res +4012974.760..+5000476.009 ns; Follow_Up lag at the slave +1001056.000..+2001056.000 ns
+  epsilon (calibrated) +0.115..+0.116 ns: E_link +0.054..+0.054, E_res -0.001..+0.000, E_ldn -0.005..-0.005, E_qG +0.067..+0.067
+  epsilon (uncalibrated) -410.000..-401.250 ns: E_link -0.005..-0.005, E_res -410.057..-401.307, E_ldn -0.005..-0.005, E_qG +0.067..+0.067
+    E_link: trunc -0.001..-0.001, mul +0.000..+0.000, nrr -0.000..+0.000, qG +0.054..+0.054
+    E_res: mul -0.000..+0.000, carriage -0.000..+0.000, nrr -0.000..+0.000
+    E_ldn: base -0.005..-0.005
+  after step k >= 3 (calibrated, steady state): e+ +1.000..+4.000 ns = eps +0.115..+0.116 + lag +0.000..+3.000 + round-up +0.884..+0.885
+  between steps after step k >= 3 (calibrated, steady state): max |e| 4.000 ns; end of interval e- +1.000..+4.000 ns
+  after step k >= 3 (first calibrated step: transition): e+ +1.000..+2.000 ns = eps +0.116..+0.116 + lag +0.000..+1.000 + round-up +0.884..+0.884
+  between steps after step k >= 3 (first calibrated step: transition): max |e| 1233.000 ns; end of interval e- +53.000..+1232.000 ns
+  after step k >= 3 (uncalibrated): e+ -410.000..-403.000 ns = eps -410.000..-403.750 + lag +0.000..+0.000 + round-up +0.000..+0.750
+  between steps after step k >= 3 (uncalibrated): max |e| 415.000 ns; end of interval e- -415.000..-406.000 ns
+  transient (rep 0): step 1: e+ -601.000, max between 38100.000, e- -38101.000 ns; step 2: e+ -605.000, max between 606.000, e- -607.000 ns; step 3: e+ -406.000, max between 415.000, e- -415.000 ns
+
+M2S71-qc2-Ca (reps [0, 1, 2, 3, 4]): 222 Follow_Ups (202 calibrated, 20 uncalibrated); Res +4012974.760..+5000476.009 ns; Follow_Up lag at the slave +1001056.000..+2001056.000 ns
+  epsilon (calibrated) -0.380..-0.330 ns: E_link +0.054..+0.054, E_res -0.001..+0.000, E_ldn -0.501..-0.451, E_qG +0.067..+0.067
+  epsilon (uncalibrated) -410.496..-401.750 ns: E_link -0.005..-0.005, E_res -410.057..-401.307, E_ldn -0.505..-0.501, E_qG +0.067..+0.067
+    E_link: trunc -0.001..-0.001, mul +0.000..+0.000, nrr -0.000..+0.000, qG +0.054..+0.054
+    E_res: mul -0.000..+0.000, carriage -0.000..+0.000, nrr -0.000..+0.000
+    E_ldn: smooth -0.483..+0.016, mul -0.000..+0.000, nrrS -0.000..+0.000, qS -0.463..+0.037, base -0.005..-0.005
+  after step k >= 3 (calibrated, steady state): e+ +0.000..+4.000 ns = eps -0.380..-0.330 + lag +0.000..+4.000 + round-up +0.330..+0.380
+  between steps after step k >= 3 (calibrated, steady state): max |e| 5.000 ns; end of interval e- +0.000..+4.000 ns
+  after step k >= 3 (first calibrated step: transition): e+ +0.000..+1.000 ns = eps -0.380..-0.330 + lag +0.000..+1.000 + round-up +0.330..+0.380
+  between steps after step k >= 3 (first calibrated step: transition): max |e| 1233.000 ns; end of interval e- +52.000..+1231.000 ns
+  after step k >= 3 (uncalibrated): e+ -410.000..-404.000 ns = eps -410.496..-404.250 + lag +0.000..+0.000 + round-up +0.000..+0.750
+  between steps after step k >= 3 (uncalibrated): max |e| 414.000 ns; end of interval e- -415.000..-407.000 ns
+  transient (rep 0): step 1: e+ -801.000, max between 75799.000, e- -75801.000 ns; step 2: e+ -805.000, max between 805.000, e- -807.000 ns; step 3: e+ -406.000, max between 414.000, e- -415.000 ns
+
+M2S71-qd2-Bp100 (reps [0, 1, 2, 3, 4]): 473 Follow_Ups (435 calibrated, 38 uncalibrated); Res +4012974.760..+5000476.009 ns; Follow_Up lag at the slave +1001056.000..+1001056.000 ns
+  epsilon (calibrated) +0.115..+0.116 ns: E_link +0.054..+0.054, E_res -0.001..+0.000, E_ldn -0.005..-0.005, E_qG +0.067..+0.067
+  epsilon (uncalibrated) -410.000..-401.250 ns: E_link -0.005..-0.005, E_res -410.057..-401.307, E_ldn -0.005..-0.005, E_qG +0.067..+0.067
+    E_link: trunc -0.001..-0.001, mul +0.000..+0.000, nrr -0.000..+0.000, qG +0.054..+0.054
+    E_res: mul -0.000..+0.000, carriage -0.000..+0.000, nrr -0.000..+0.000
+    E_ldn: base -0.005..-0.005
+  after step k >= 3 (calibrated, steady state): e+ +1.000..+4.000 ns = eps +0.115..+0.116 + lag +0.000..+3.000 + round-up +0.884..+0.885
+  between steps after step k >= 3 (calibrated, steady state): max |e| 5.000 ns; end of interval e- +1.000..+4.000 ns
+  after step k >= 3 (first calibrated step: transition): e+ +1.000..+1.000 ns = eps +0.116..+0.116 + lag +0.000..+0.000 + round-up +0.884..+0.884
+  between steps after step k >= 3 (first calibrated step: transition): max |e| 412.000 ns; end of interval e- +411.000..+411.000 ns
+  after step k >= 3 (uncalibrated): e+ -410.000..-403.000 ns = eps -410.000..-403.750 + lag +0.000..+0.000 + round-up +0.000..+0.750
+  between steps after step k >= 3 (uncalibrated): max |e| 411.000 ns; end of interval e- -412.000..-404.000 ns
+  transient (rep 0): step 1: e+ -502.000, max between 13001.000, e- -13002.000 ns; step 2: e+ -503.000, max between 503.000, e- -504.000 ns; step 3: e+ -405.000, max between 405.000, e- -406.000 ns
+
+M2S71-qd2-Ca (reps [0, 1, 2, 3, 4]): 473 Follow_Ups (435 calibrated, 38 uncalibrated); Res +4012974.760..+5000476.009 ns; Follow_Up lag at the slave +1001056.000..+1001056.000 ns
+  epsilon (calibrated) -0.380..-0.356 ns: E_link +0.054..+0.054, E_res -0.001..+0.000, E_ldn -0.501..-0.477, E_qG +0.067..+0.067
+  epsilon (uncalibrated) -410.496..-401.750 ns: E_link -0.005..-0.005, E_res -410.057..-401.307, E_ldn -0.505..-0.501, E_qG +0.067..+0.067
+    E_link: trunc -0.001..-0.001, mul +0.000..+0.000, nrr -0.000..+0.000, qG +0.054..+0.054
+    E_res: mul -0.000..+0.000, carriage -0.000..+0.000, nrr -0.000..+0.000
+    E_ldn: smooth -0.033..-0.009, mul +0.000..+0.000, nrrS -0.000..+0.000, qS -0.463..-0.463, base -0.005..-0.005
+  after step k >= 3 (calibrated, steady state): e+ +0.000..+4.000 ns = eps -0.380..-0.356 + lag +0.000..+4.000 + round-up +0.356..+0.380
+  between steps after step k >= 3 (calibrated, steady state): max |e| 6.000 ns; end of interval e- +0.000..+4.000 ns
+  after step k >= 3 (first calibrated step: transition): e+ +0.000..+1.000 ns = eps -0.380..-0.380 + lag +0.000..+1.000 + round-up +0.380..+0.380
+  between steps after step k >= 3 (first calibrated step: transition): max |e| 413.000 ns; end of interval e- +410.000..+411.000 ns
+  after step k >= 3 (uncalibrated): e+ -410.000..-404.000 ns = eps -410.496..-404.250 + lag +0.000..+0.000 + round-up +0.000..+0.750
+  between steps after step k >= 3 (uncalibrated): max |e| 410.000 ns; end of interval e- -411.000..-405.000 ns
+  transient (rep 0): step 1: e+ -603.000, max between 25601.000, e- -25603.000 ns; step 2: e+ -604.000, max between 603.000, e- -605.000 ns; step 3: e+ -405.000, max between 405.000, e- -406.000 ns
+
+M2S71-qda-Bp100 (reps [0, 1, 2, 3, 4]): 475 Follow_Ups (435 calibrated, 40 uncalibrated); Res +4012974.760..+5000476.009 ns; Follow_Up lag at the slave +1001056.000..+1001056.000 ns
+  epsilon (calibrated) +0.115..+0.116 ns: E_link +0.054..+0.054, E_res -0.001..+0.000, E_ldn -0.005..-0.005, E_qG +0.067..+0.067
+  epsilon (uncalibrated) -410.000..-401.250 ns: E_link -0.005..-0.005, E_res -410.057..-401.307, E_ldn -0.005..-0.005, E_qG +0.067..+0.067
+    E_link: trunc -0.001..-0.001, mul +0.000..+0.000, nrr -0.000..+0.000, qG +0.054..+0.054
+    E_res: mul -0.000..+0.000, carriage -0.000..+0.000, nrr -0.000..+0.000
+    E_ldn: base -0.005..-0.005
+  after step k >= 3 (calibrated, steady state): e+ +1.000..+4.000 ns = eps +0.115..+0.116 + lag +0.000..+3.000 + round-up +0.884..+0.885
+  between steps after step k >= 3 (calibrated, steady state): max |e| 5.000 ns; end of interval e- +1.000..+4.000 ns
+  after step k >= 3 (first calibrated step: transition): e+ +1.000..+1.000 ns = eps +0.116..+0.116 + lag +0.000..+0.000 + round-up +0.884..+0.884
+  between steps after step k >= 3 (first calibrated step: transition): max |e| 412.000 ns; end of interval e- +411.000..+411.000 ns
+  after step k >= 3 (uncalibrated): e+ -410.000..-403.000 ns = eps -410.000..-403.750 + lag +0.000..+0.000 + round-up +0.000..+0.750
+  between steps after step k >= 3 (uncalibrated): max |e| 411.000 ns; end of interval e- -412.000..-404.000 ns
+  transient (rep 0): step 1: e+ -501.000, max between 13000.000, e- -13001.000 ns; step 2: e+ -502.000, max between 502.000, e- -503.000 ns; step 3: e+ -403.000, max between 403.000, e- -404.000 ns
+
+M2S71-qda-Ca (reps [0, 1, 2, 3, 4]): 475 Follow_Ups (435 calibrated, 40 uncalibrated); Res +4012974.760..+5000476.009 ns; Follow_Up lag at the slave +1001056.000..+1001056.000 ns
+  epsilon (calibrated) -0.380..-0.356 ns: E_link +0.054..+0.054, E_res -0.001..+0.000, E_ldn -0.501..-0.477, E_qG +0.067..+0.067
+  epsilon (uncalibrated) -410.496..-401.750 ns: E_link -0.005..-0.005, E_res -410.057..-401.307, E_ldn -0.505..-0.501, E_qG +0.067..+0.067
+    E_link: trunc -0.001..-0.001, mul +0.000..+0.000, nrr -0.000..+0.000, qG +0.054..+0.054
+    E_res: mul -0.000..+0.000, carriage -0.000..+0.000, nrr -0.000..+0.000
+    E_ldn: smooth -0.033..-0.009, mul +0.000..+0.000, nrrS -0.000..+0.000, qS -0.463..-0.463, base -0.005..-0.005
+  after step k >= 3 (calibrated, steady state): e+ +0.000..+4.000 ns = eps -0.380..-0.356 + lag +0.000..+4.000 + round-up +0.356..+0.380
+  between steps after step k >= 3 (calibrated, steady state): max |e| 6.000 ns; end of interval e- +0.000..+4.000 ns
+  after step k >= 3 (first calibrated step: transition): e+ +1.000..+1.000 ns = eps -0.380..-0.380 + lag +1.000..+1.000 + round-up +0.380..+0.380
+  between steps after step k >= 3 (first calibrated step: transition): max |e| 413.000 ns; end of interval e- +411.000..+411.000 ns
+  after step k >= 3 (uncalibrated): e+ -410.000..-404.000 ns = eps -410.496..-404.250 + lag +0.000..+0.000 + round-up +0.000..+0.750
+  between steps after step k >= 3 (uncalibrated): max |e| 410.000 ns; end of interval e- -411.000..-405.000 ns
+  transient (rep 0): step 1: e+ -601.000, max between 25599.000, e- -25601.000 ns; step 2: e+ -603.000, max between 602.000, e- -604.000 ns; step 3: e+ -404.000, max between 404.000, e- -405.000 ns
+
+M2S71-qdu-Bp100 (reps [0, 1, 2, 3, 4]): 475 Follow_Ups (435 calibrated, 40 uncalibrated); Res +4012974.760..+5000476.009 ns; Follow_Up lag at the slave +1728.000..+1728.000 ns
+  epsilon (calibrated) +0.115..+0.116 ns: E_link +0.054..+0.054, E_res -0.001..+0.000, E_ldn -0.005..-0.005, E_qG +0.067..+0.067
+  epsilon (uncalibrated) -410.000..-401.250 ns: E_link -0.005..-0.005, E_res -410.057..-401.307, E_ldn -0.005..-0.005, E_qG +0.067..+0.067
+    E_link: trunc -0.001..-0.001, mul +0.000..+0.000, nrr -0.000..+0.000, qG +0.054..+0.054
+    E_res: mul -0.000..+0.000, carriage -0.000..+0.000, nrr -0.000..+0.000
+    E_ldn: base -0.005..-0.005
+  after step k >= 3 (calibrated, steady state): e+ +1.000..+1.000 ns = eps +0.115..+0.116 + lag +0.000..+0.000 + round-up +0.884..+0.885
+  between steps after step k >= 3 (calibrated, steady state): max |e| 2.000 ns; end of interval e- +1.000..+1.000 ns
+  after step k >= 3 (first calibrated step: transition): e+ +1.000..+1.000 ns = eps +0.116..+0.116 + lag +0.000..+0.000 + round-up +0.884..+0.884
+  between steps after step k >= 3 (first calibrated step: transition): max |e| 412.000 ns; end of interval e- +411.000..+411.000 ns
+  after step k >= 3 (uncalibrated): e+ -410.000..-403.000 ns = eps -410.000..-403.750 + lag +0.000..+0.000 + round-up +0.000..+0.750
+  between steps after step k >= 3 (uncalibrated): max |e| 411.000 ns; end of interval e- -412.000..-404.000 ns
+  transient (rep 0): step 1: e+ -401.000, max between 12900.000, e- -12901.000 ns; step 2: e+ -402.000, max between 402.000, e- -403.000 ns; step 3: e+ -403.000, max between 403.000, e- -404.000 ns
+
+M2S71-qdu-Ca (reps [0, 1, 2, 3, 4]): 475 Follow_Ups (435 calibrated, 40 uncalibrated); Res +4012974.760..+5000476.009 ns; Follow_Up lag at the slave +1728.000..+1728.000 ns
+  epsilon (calibrated) -0.380..-0.356 ns: E_link +0.054..+0.054, E_res -0.001..+0.000, E_ldn -0.501..-0.477, E_qG +0.067..+0.067
+  epsilon (uncalibrated) -410.496..-401.750 ns: E_link -0.005..-0.005, E_res -410.057..-401.307, E_ldn -0.505..-0.501, E_qG +0.067..+0.067
+    E_link: trunc -0.001..-0.001, mul +0.000..+0.000, nrr -0.000..+0.000, qG +0.054..+0.054
+    E_res: mul -0.000..+0.000, carriage -0.000..+0.000, nrr -0.000..+0.000
+    E_ldn: smooth -0.033..-0.009, mul +0.000..+0.000, nrrS -0.000..+0.000, qS -0.463..-0.463, base -0.005..-0.005
+  after step k >= 3 (calibrated, steady state): e+ +0.000..+0.000 ns = eps -0.380..-0.356 + lag +0.000..+0.000 + round-up +0.356..+0.380
+  between steps after step k >= 3 (calibrated, steady state): max |e| 1.000 ns; end of interval e- +0.000..+0.000 ns
+  after step k >= 3 (first calibrated step: transition): e+ +1.000..+1.000 ns = eps -0.380..-0.380 + lag +1.000..+1.000 + round-up +0.380..+0.380
+  between steps after step k >= 3 (first calibrated step: transition): max |e| 412.000 ns; end of interval e- +411.000..+411.000 ns
+  after step k >= 3 (uncalibrated): e+ -409.000..-404.000 ns = eps -410.496..-404.250 + lag +0.000..+1.000 + round-up +0.000..+0.750
+  between steps after step k >= 3 (uncalibrated): max |e| 409.000 ns; end of interval e- -410.000..-405.000 ns
+  transient (rep 0): step 1: e+ -401.000, max between 25399.000, e- -25401.000 ns; step 2: e+ -403.000, max between 402.000, e- -404.000 ns; step 3: e+ -404.000, max between 404.000, e- -405.000 ns
+
+Q2 distributions over the complete cohort pairs (+inf rule; seeds = replication unit)
+option | variant | HARQ | seeds | pairs | P(delivered, used) mean ± 95% CI | p50 lag | p99 lag pooled | p99 lag per seed (mean ± CI) | p99 lag (delivered only) | lag min..max (delivered) | p99 residence | censored | classes | acceptance
+
+Q-0 | frag | 5 | 1 | 79 | 1.0000 | 14998.640 us | 20000.240 us | 20000.240 us | 20000.240 us | 3998.640..20000.240 us | 6002.176 us | 0 | {'used': 79} | exact-replay
+
+Q-0 | frag | 16 | 1 | 79 | 1.0000 | 14998.640 us | 20000.240 us | 20000.240 us | 20000.240 us | 3998.640..20000.240 us | 6002.176 us | 0 | {'used': 79} | exact-replay
+
+Q-0 | idle | 5 | 10 | 790 | 1.0000 ± 0.0000 | 14998.640 us | 20000.240 us | 20000.240 ± 0.000 us | 20000.240 us | 3998.640..20000.240 us | 6002.176 us | 0 | {'used': 790} | exact-replay
+
+Q-0 | idle | 16 | 10 | 790 | 1.0000 ± 0.0000 | 14998.640 us | 20000.240 us | 20000.240 ± 0.000 us | 20000.240 us | 3998.640..20000.240 us | 6002.176 us | 0 | {'used': 790} | exact-replay
+
+Q-0 | load | 5 | 5 | 395 | 0.9316 ± 0.0086 | 124999.088 us | inf us | inf | 124999.088 us | 1.584..124999.088 us | inf us | 0 | {'used': 368, 'lost': 27} | exact-replay
+
+Q-0 | load | 16 | 5 | 395 | 1.0000 ± 0.0000 | 124999.088 us | 124999.088 us | 124999.088 ± 0.000 us | 124999.088 us | 1.584..124999.088 us | 6022.976 us | 0 | {'used': 395} | exact-replay
+
+Q-0p | frag | 5 | 1 | 79 | 1.0000 | 14998.640 us | 20000.240 us | 20000.240 us | 20000.240 us | 3998.640..20000.240 us | 6002.176 us | 0 | {'used': 79} | exact-replay
+
+Q-0p | frag | 16 | 1 | 79 | 1.0000 | 14998.640 us | 20000.240 us | 20000.240 us | 20000.240 us | 3998.640..20000.240 us | 6002.176 us | 0 | {'used': 79} | exact-replay
+
+Q-0p | idle | 5 | 10 | 790 | 1.0000 ± 0.0000 | 14998.640 us | 20000.240 us | 20000.240 ± 0.000 us | 20000.240 us | 3998.640..20000.240 us | 6002.176 us | 0 | {'used': 790} | exact-replay
+
+Q-0p | idle | 16 | 10 | 790 | 1.0000 ± 0.0000 | 14998.640 us | 20000.240 us | 20000.240 ± 0.000 us | 20000.240 us | 3998.640..20000.240 us | 6002.176 us | 0 | {'used': 790} | exact-replay
+
+Q-0p | load | 5 | 5 | 395 | 0.9241 ± 0.0000 | 124999.088 us | inf us | inf | 124999.088 us | 1.584..124999.088 us | inf us | 0 | {'used': 365, 'lost': 30} | exact-replay
+
+Q-0p | load | 16 | 5 | 395 | 1.0000 ± 0.0000 | 124999.088 us | 124999.088 us | 124999.088 ± 0.000 us | 124999.088 us | 1.584..124999.088 us | 6022.976 us | 0 | {'used': 395} | exact-replay
+
+Q-a | frag | 5 | 1 | 79 | 1.0000 | 0.912 us | 0.912 us | 0.912 us | 0.912 us | 0.912..0.912 us | 6000.576 us | 0 | {'used': 79} | exact-replay
+
+Q-a | frag | 16 | 1 | 79 | 1.0000 | 0.912 us | 0.912 us | 0.912 us | 0.912 us | 0.912..0.912 us | 6000.576 us | 0 | {'used': 79} | exact-replay
+
+Q-a | idle | 5 | 10 | 790 | 1.0000 ± 0.0000 | 0.912 us | 0.912 us | 0.912 ± 0.000 us | 0.912 us | 0.912..0.912 us | 6000.576 us | 0 | {'used': 790} | exact-replay
+
+Q-a | idle | 16 | 10 | 790 | 1.0000 ± 0.0000 | 0.912 us | 0.912 us | 0.912 ± 0.000 us | 0.912 us | 0.912..0.912 us | 6000.576 us | 0 | {'used': 790} | exact-replay
+
+Q-a | load | 5 | 5 | 395 | 0.9367 ± 0.0192 | 0.912 us | inf us | inf | 0.912 us | 0.912..0.912 us | inf us | 0 | {'used': 370, 'lost': 25} | exact-replay
+
+Q-a | load | 16 | 5 | 395 | 1.0000 ± 0.0000 | 0.912 us | 0.912 us | 0.912 ± 0.000 us | 0.912 us | 0.912..0.912 us | 10000.576 us | 0 | {'used': 395} | exact-replay
+
+Q-b | frag | 5 | 1 | 79 | 1.0000 | 1000.240 us | 2000.240 us | 2000.240 us | 2000.240 us | 1000.240..2000.240 us | 6000.576 us | 0 | {'used': 79} | measured-only
+
+Q-b | frag | 16 | 1 | 79 | 1.0000 | 1000.240 us | 2000.240 us | 2000.240 us | 2000.240 us | 1000.240..2000.240 us | 6000.576 us | 0 | {'used': 79} | measured-only
+
+Q-b | idle | 5 | 10 | 790 | 1.0000 ± 0.0000 | 1000.240 us | 2000.240 us | 2000.240 ± 0.000 us | 2000.240 us | 1000.240..2000.240 us | 6000.576 us | 0 | {'used': 790} | measured-only
+
+Q-b | idle | 16 | 10 | 790 | 1.0000 ± 0.0000 | 1000.240 us | 2000.240 us | 2000.240 ± 0.000 us | 2000.240 us | 1000.240..2000.240 us | 6000.576 us | 0 | {'used': 790} | measured-only
+
+Q-b | load | 5 | 5 | 395 | 0.9367 ± 0.0294 | 1000.240 us | inf us | inf | 83000.240 us | 1000.240..85000.240 us | 505000.576 us | 0 | {'used': 370, 'late': 25} | measured-only
+
+Q-b | load | 16 | 5 | 395 | 1.0000 ± 0.0000 | 1000.240 us | 6000.240 us | 7800.240 ± 3866.521 us | 6000.240 us | 1000.240..13000.240 us | 9000.576 us | 0 | {'used': 395} | measured-only
+
+Q-c (EXPERIMENTAL) | frag | 5 | 1 | 79 | 0.3924 | inf us | inf us | inf | 2000.240 us | 1000.240..2000.240 us | 7000.576 us | 0 | {'used': 31, 'late': 48} | exact-replay
+
+Q-c (EXPERIMENTAL) | frag | 16 | 1 | 79 | 0.3924 | inf us | inf us | inf | 2000.240 us | 1000.240..2000.240 us | 7000.576 us | 0 | {'used': 31, 'late': 48} | exact-replay
+
+Q-c (EXPERIMENTAL) | idle | 5 | 10 | 790 | 0.4456 ± 0.0457 | inf us | inf us | inf | 2000.240 us | 1000.240..2000.240 us | 7000.576 us | 0 | {'used': 352, 'late': 438} | exact-replay
+
+Q-c (EXPERIMENTAL) | idle | 16 | 10 | 790 | 0.4456 ± 0.0457 | inf us | inf us | inf | 2000.240 us | 1000.240..2000.240 us | 7000.576 us | 0 | {'used': 352, 'late': 438} | exact-replay
+
+Q-c (EXPERIMENTAL) | load | 5 | 5 | 395 | 0.4329 ± 0.0560 | inf us | inf us | inf | 7000.240 us | 1000.240..7000.240 us | inf us | 0 | {'late': 185, 'lost': 39, 'used': 171} | exact-replay
+
+Q-c (EXPERIMENTAL) | load | 16 | 5 | 395 | 0.4785 ± 0.0391 | inf us | inf us | inf | 5000.240 us | 1000.240..5000.240 us | 10000.576 us | 0 | {'used': 189, 'late': 206} | exact-replay
+
+Q-c' (EXPERIMENTAL) | frag | 5 | 1 | 79 | 0.3924 | inf us | inf us | inf | 2000.240 us | 1000.240..2000.240 us | 7000.576 us | 0 | {'used': 31, 'late': 48} | measured-only
+
+Q-c' (EXPERIMENTAL) | frag | 16 | 1 | 79 | 0.3924 | inf us | inf us | inf | 2000.240 us | 1000.240..2000.240 us | 7000.576 us | 0 | {'used': 31, 'late': 48} | measured-only
+
+Q-c' (EXPERIMENTAL) | idle | 5 | 10 | 790 | 0.4152 ± 0.0449 | inf us | inf us | inf | 2000.240 us | 1000.240..2000.240 us | 7000.576 us | 0 | {'used': 328, 'late': 462} | measured-only
+
+Q-c' (EXPERIMENTAL) | idle | 16 | 10 | 790 | 0.4152 ± 0.0449 | inf us | inf us | inf | 2000.240 us | 1000.240..2000.240 us | 7000.576 us | 0 | {'used': 328, 'late': 462} | measured-only
+
+Q-c' (EXPERIMENTAL) | load | 5 | 5 | 395 | 0.4835 ± 0.0623 | inf us | inf us | inf | 84000.240 us | 1000.240..87000.240 us | 89000.576 us | 0 | {'late': 204, 'used': 191} | measured-only
+
+Q-c' (EXPERIMENTAL) | load | 16 | 5 | 395 | 0.4684 ± 0.0786 | inf us | inf us | inf | 5000.240 us | 1000.240..5000.240 us | 10000.576 us | 0 | {'used': 185, 'late': 210} | measured-only
+
+Q-d (UM) | frag | 5 | 1 | 79 | 1.0000 | 0.912 us | 0.912 us | 0.912 us | 0.912 us | 0.912..0.912 us | 5000.576 us | 0 | {'used': 79} | exact-replay
+
+Q-d (UM) | frag | 16 | 1 | 79 | 1.0000 | 0.912 us | 0.912 us | 0.912 us | 0.912 us | 0.912..0.912 us | 5000.576 us | 0 | {'used': 79} | exact-replay
+
+Q-d (UM) | idle | 5 | 10 | 790 | 1.0000 ± 0.0000 | 0.912 us | 0.912 us | 0.912 ± 0.000 us | 0.912 us | 0.912..0.912 us | 5000.576 us | 0 | {'used': 790} | exact-replay
+
+Q-d (UM) | idle | 16 | 10 | 790 | 1.0000 ± 0.0000 | 0.912 us | 0.912 us | 0.912 ± 0.000 us | 0.912 us | 0.912..0.912 us | 5000.576 us | 0 | {'used': 790} | exact-replay
+
+Q-d (UM) | load | 5 | 5 | 395 | 0.9494 ± 0.0000 | 0.912 us | inf us | inf | 0.912 us | 0.912..0.912 us | inf us | 0 | {'used': 375, 'lost': 20} | exact-replay
+
+Q-d (UM) | load | 16 | 5 | 395 | 1.0000 ± 0.0000 | 0.912 us | 0.912 us | 0.912 ± 0.000 us | 0.912 us | 0.912..0.912 us | 5000.576 us | 0 | {'used': 395} | exact-replay
+
+Q-d (AM) | frag | 5 | 1 | 79 | 1.0000 | 1000.240 us | 2000.240 us | 2000.240 us | 2000.240 us | 1000.240..2000.240 us | 5000.576 us | 0 | {'used': 79} | measured-only
+
+Q-d (AM) | frag | 16 | 1 | 79 | 1.0000 | 1000.240 us | 2000.240 us | 2000.240 us | 2000.240 us | 1000.240..2000.240 us | 5000.576 us | 0 | {'used': 79} | measured-only
+
+Q-d (AM) | idle | 5 | 10 | 790 | 1.0000 ± 0.0000 | 1000.240 us | 1000.240 us | 1700.240 ± 345.526 us | 1000.240 us | 1000.240..2000.240 us | 5000.576 us | 0 | {'used': 790} | measured-only
+
+Q-d (AM) | idle | 16 | 10 | 790 | 1.0000 ± 0.0000 | 1000.240 us | 1000.240 us | 1700.240 ± 345.526 us | 1000.240 us | 1000.240..2000.240 us | 5000.576 us | 0 | {'used': 790} | measured-only
+
+Q-d (AM) | load | 5 | 5 | 395 | 0.8987 ± 0.0000 | 1000.240 us | inf us | inf | 1000.240 us | 1000.240..1000.240 us | 461000.576 us | 0 | {'used': 355, 'late': 40} | measured-only
+
+Q-d (AM) | load | 16 | 5 | 395 | 1.0000 ± 0.0000 | 1000.240 us | 1000.240 us | 1000.240 ± 0.000 us | 1000.240 us | 1000.240..1000.240 us | 5000.576 us | 0 | {'used': 395} | measured-only
+
+Q-d' (EXPERIMENTAL) | frag | 5 | 1 | 79 | 1.0000 | 1000.240 us | 1000.240 us | 1000.240 us | 1000.240 us | 1000.240..1000.240 us | 5000.576 us | 0 | {'used': 79} | exact-replay
+
+Q-d' (EXPERIMENTAL) | frag | 16 | 1 | 79 | 1.0000 | 1000.240 us | 1000.240 us | 1000.240 us | 1000.240 us | 1000.240..1000.240 us | 5000.576 us | 0 | {'used': 79} | exact-replay
+
+Q-d' (EXPERIMENTAL) | idle | 5 | 10 | 790 | 0.9911 ± 0.0044 | 1000.240 us | 1000.240 us | inf | 1000.240 us | 1000.240..1000.240 us | 5000.576 us | 0 | {'used': 783, 'late': 7} | exact-replay
+
+Q-d' (EXPERIMENTAL) | idle | 16 | 10 | 790 | 0.9911 ± 0.0044 | 1000.240 us | 1000.240 us | inf | 1000.240 us | 1000.240..1000.240 us | 5000.576 us | 0 | {'used': 783, 'late': 7} | exact-replay
+
+Q-d' (EXPERIMENTAL) | load | 5 | 5 | 395 | 0.8886 ± 0.0070 | 1000.240 us | inf us | inf | 1000.240 us | 1000.240..1000.240 us | inf us | 0 | {'late': 4, 'used': 351, 'lost': 40} | exact-replay
+
+Q-d' (EXPERIMENTAL) | load | 16 | 5 | 395 | 0.9975 ± 0.0070 | 1000.240 us | 1000.240 us | inf | 1000.240 us | 1000.240..1000.240 us | 5000.576 us | 0 | {'used': 394, 'late': 1} | exact-replay
+
+Eligibility (design 7 step 1): Q-0 yes, Q-0p yes, Q-a yes, Q-b yes, Q-c yes, Q-c' yes, Q-d (UM) yes, Q-d (AM) yes, Q-d' yes (gates P0/C0/Q0a/Q0b: rows common to all options PASS; rows of each option's own configs: Q-0 PASS, Q-0p PASS, Q-a PASS, Q-b PASS, Q-c PASS, Q-c' PASS, Q-d (UM) PASS, Q-d (AM) PASS, Q-d' PASS; whole record PASS)
+
+Phase-1 selection (idle + 0-3 s load; 5 HARQ):
+  Q-0: reference
+  Q-a: idle difference vs Q-0: p99 lag -19999.328 us, p99 residence -1.600 us -> idle guard passed; worse than Q-0 under no load condition
+  Q-b: idle difference vs Q-0: p99 lag -18000.000 us, p99 residence -1.600 us -> idle guard passed; worse than Q-0 under no load condition
+  Q-d (UM): idle difference vs Q-0: p99 lag -19999.328 us, p99 residence -1001.600 us -> idle guard passed; worse than Q-0 under no load condition
+  Q-d (AM): idle difference vs Q-0: p99 lag -19000.000 us, p99 residence -1001.600 us -> idle guard passed; worse than Q-0 under no load condition
+  admissible, ranked: ['Q-a', 'Q-d (UM)', 'Q-d (AM)', 'Q-b']; better than Q-0 under load: []
+
+  phase-2 options: strongest non-experimental dedicated-DRB option Q-a; strongest experimental Q-d' (experimental notes: Q-0: reference; Q-c: idle difference vs Q-0: p99 lag inf us, p99 residence 998.400 us -> idle guard FAILED; worse than Q-0 under no load condition; Q-c': idle difference vs Q-0: p99 lag inf us, p99 residence 998.400 us -> idle guard FAILED; worse than Q-0 under no load condition; Q-d': idle difference vs Q-0: p99 lag -19000.000 us, p99 residence -1001.600 us -> idle guard passed; worse than Q-0 under no load condition)

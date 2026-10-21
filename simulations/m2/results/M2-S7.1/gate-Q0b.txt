@@ -1,0 +1,692 @@
+[PASS] Q0b-1 slack rule M2S71-q0-Bp100: 480 slots with >= 2 queued items, 0 cuts; cut iff grant < need (slack below the missing header bytes) in all: True; single fresh SDU cut: 0; slots granted less than the demand formula (resource-limited, reported): 0
+[PASS] Q0b-2 replay M2S71-q0-Bp100: 3935 SDUs; predicted (time, size) deliveries = observed: 3925 delivered exactly 4 ms after their last PDU; 0 lost, each with a PDU of its own never received (0 such PDUs); in flight at the end 10; unexplained 0; observed but not predicted 0; left in the RLC at the end 0
+[PASS] Q0b-3 Follow_Up classification M2S71-q0-Bp100: 475 Follow_Ups, 0 cut (each completes only after the next SDU on its DRB); predicted lag = replayed RLC delivery + UE-to-DS-TT FIFO (866000 ps unqueued, or back to back after the previous frame: 475) - TSe = PCAP lag for all but 0
+[PASS] Q0b-1 slack rule M2S71-q0-Ca: 480 slots with >= 2 queued items, 0 cuts; cut iff grant < need (slack below the missing header bytes) in all: True; single fresh SDU cut: 0; slots granted less than the demand formula (resource-limited, reported): 0
+[PASS] Q0b-2 replay M2S71-q0-Ca: 3935 SDUs; predicted (time, size) deliveries = observed: 3925 delivered exactly 4 ms after their last PDU; 0 lost, each with a PDU of its own never received (0 such PDUs); in flight at the end 10; unexplained 0; observed but not predicted 0; left in the RLC at the end 0
+[PASS] Q0b-3 Follow_Up classification M2S71-q0-Ca: 475 Follow_Ups, 0 cut (each completes only after the next SDU on its DRB); predicted lag = replayed RLC delivery + UE-to-DS-TT FIFO (866000 ps unqueued, or back to back after the previous frame: 475) - TSe = PCAP lag for all but 0
+[PASS] Q0b-1 slack rule M2S71-q0-Ca-sus: 56525 slots with >= 2 queued items, 56523 cuts; cut iff grant < need (slack below the missing header bytes) in all: True; single fresh SDU cut: 0; slots granted less than the demand formula (resource-limited, reported): 8919
+[PASS] Q0b-2 replay M2S71-q0-Ca-sus: 241925 SDUs; predicted (time, size) deliveries = observed: 190531 delivered exactly 4 ms after their last PDU; 51299 lost, each with a PDU of its own never received (51299 such PDUs); in flight at the end 90; unexplained 0; observed but not predicted 0; left in the RLC at the end 5
+[PASS] Q0b-3 Follow_Up classification M2S71-q0-Ca-sus: 363 Follow_Ups, 87 cut (each completes only after the next SDU on its DRB); predicted lag = replayed RLC delivery + UE-to-DS-TT FIFO (866000 ps unqueued, or back to back after the previous frame: 276) - TSe = PCAP lag for all but 0
+[PASS] Q0b-1 slack rule M2S71-q0-frag: 665 slots with >= 2 queued items, 665 cuts; cut iff grant < need (slack below the missing header bytes) in all: True; single fresh SDU cut: 0; slots granted less than the demand formula (resource-limited, reported): 0
+[PASS] Q0b-2 replay M2S71-q0-frag: 785 SDUs; predicted (time, size) deliveries = observed: 784 delivered exactly 4 ms after their last PDU; 0 lost, each with a PDU of its own never received (0 such PDUs); in flight at the end 0; unexplained 0; observed but not predicted 0; left in the RLC at the end 1
+[PASS] Q0b-3 Follow_Up classification M2S71-q0-frag: 95 Follow_Ups, 95 cut (each completes only after the next SDU on its DRB); predicted lag = replayed RLC delivery + UE-to-DS-TT FIFO (866000 ps unqueued, or back to back after the previous frame: 0) - TSe = PCAP lag for all but 0
+[PASS] Q0b-1 slack rule M2S71-q0-frag-h16: 665 slots with >= 2 queued items, 665 cuts; cut iff grant < need (slack below the missing header bytes) in all: True; single fresh SDU cut: 0; slots granted less than the demand formula (resource-limited, reported): 0
+[PASS] Q0b-2 replay M2S71-q0-frag-h16: 785 SDUs; predicted (time, size) deliveries = observed: 784 delivered exactly 4 ms after their last PDU; 0 lost, each with a PDU of its own never received (0 such PDUs); in flight at the end 0; unexplained 0; observed but not predicted 0; left in the RLC at the end 1
+[PASS] Q0b-3 Follow_Up classification M2S71-q0-frag-h16: 95 Follow_Ups, 95 cut (each completes only after the next SDU on its DRB); predicted lag = replayed RLC delivery + UE-to-DS-TT FIFO (866000 ps unqueued, or back to back after the previous frame: 0) - TSe = PCAP lag for all but 0
+[PASS] Q0b-1 slack rule M2S71-q0-idle: 6650 slots with >= 2 queued items, 6650 cuts; cut iff grant < need (slack below the missing header bytes) in all: True; single fresh SDU cut: 0; slots granted less than the demand formula (resource-limited, reported): 0
+[PASS] Q0b-2 replay M2S71-q0-idle: 7850 SDUs; predicted (time, size) deliveries = observed: 7840 delivered exactly 4 ms after their last PDU; 0 lost, each with a PDU of its own never received (0 such PDUs); in flight at the end 0; unexplained 0; observed but not predicted 0; left in the RLC at the end 10
+[PASS] Q0b-3 Follow_Up classification M2S71-q0-idle: 950 Follow_Ups, 950 cut (each completes only after the next SDU on its DRB); predicted lag = replayed RLC delivery + UE-to-DS-TT FIFO (866000 ps unqueued, or back to back after the previous frame: 0) - TSe = PCAP lag for all but 0
+[PASS] Q0b-1 slack rule M2S71-q0-idle-B10: 665 slots with >= 2 queued items, 665 cuts; cut iff grant < need (slack below the missing header bytes) in all: True; single fresh SDU cut: 0; slots granted less than the demand formula (resource-limited, reported): 0
+[PASS] Q0b-2 replay M2S71-q0-idle-B10: 785 SDUs; predicted (time, size) deliveries = observed: 784 delivered exactly 4 ms after their last PDU; 0 lost, each with a PDU of its own never received (0 such PDUs); in flight at the end 0; unexplained 0; observed but not predicted 0; left in the RLC at the end 1
+[PASS] Q0b-3 Follow_Up classification M2S71-q0-idle-B10: 95 Follow_Ups, 95 cut (each completes only after the next SDU on its DRB); predicted lag = replayed RLC delivery + UE-to-DS-TT FIFO (866000 ps unqueued, or back to back after the previous frame: 0) - TSe = PCAP lag for all but 0
+[PASS] Q0b-1 slack rule M2S71-q0-idle-h16: 6650 slots with >= 2 queued items, 6650 cuts; cut iff grant < need (slack below the missing header bytes) in all: True; single fresh SDU cut: 0; slots granted less than the demand formula (resource-limited, reported): 0
+[PASS] Q0b-2 replay M2S71-q0-idle-h16: 7850 SDUs; predicted (time, size) deliveries = observed: 7840 delivered exactly 4 ms after their last PDU; 0 lost, each with a PDU of its own never received (0 such PDUs); in flight at the end 0; unexplained 0; observed but not predicted 0; left in the RLC at the end 10
+[PASS] Q0b-3 Follow_Up classification M2S71-q0-idle-h16: 950 Follow_Ups, 950 cut (each completes only after the next SDU on its DRB); predicted lag = replayed RLC delivery + UE-to-DS-TT FIFO (866000 ps unqueued, or back to back after the previous frame: 0) - TSe = PCAP lag for all but 0
+[PASS] Q0b-1 slack rule M2S71-q0-load: 14140 slots with >= 2 queued items, 14138 cuts; cut iff grant < need (slack below the missing header bytes) in all: True; single fresh SDU cut: 0; slots granted less than the demand formula (resource-limited, reported): 2169
+[PASS] Q0b-2 replay M2S71-q0-load: 59675 SDUs; predicted (time, size) deliveries = observed: 47178 delivered exactly 4 ms after their last PDU; 12492 lost, each with a PDU of its own never received (12492 such PDUs); in flight at the end 0; unexplained 0; observed but not predicted 0; left in the RLC at the end 5
+[PASS] Q0b-3 Follow_Up classification M2S71-q0-load: 443 Follow_Ups, 355 cut (each completes only after the next SDU on its DRB); predicted lag = replayed RLC delivery + UE-to-DS-TT FIFO (866000 ps unqueued, or back to back after the previous frame: 88) - TSe = PCAP lag for all but 0
+[PASS] Q0b-1 slack rule M2S71-q0-load-h16: 14140 slots with >= 2 queued items, 14138 cuts; cut iff grant < need (slack below the missing header bytes) in all: True; single fresh SDU cut: 0; slots granted less than the demand formula (resource-limited, reported): 2169
+[PASS] Q0b-2 replay M2S71-q0-load-h16: 59675 SDUs; predicted (time, size) deliveries = observed: 59670 delivered exactly 4 ms after their last PDU; 0 lost, each with a PDU of its own never received (0 such PDUs); in flight at the end 0; unexplained 0; observed but not predicted 0; left in the RLC at the end 5
+[PASS] Q0b-3 Follow_Up classification M2S71-q0-load-h16: 470 Follow_Ups, 355 cut (each completes only after the next SDU on its DRB); predicted lag = replayed RLC delivery + UE-to-DS-TT FIFO (866000 ps unqueued, or back to back after the previous frame: 115) - TSe = PCAP lag for all but 0
+[PASS] Q0b-1 slack rule M2S71-q0-sus: 56525 slots with >= 2 queued items, 56523 cuts; cut iff grant < need (slack below the missing header bytes) in all: True; single fresh SDU cut: 0; slots granted less than the demand formula (resource-limited, reported): 8919
+[PASS] Q0b-2 replay M2S71-q0-sus: 241915 SDUs; predicted (time, size) deliveries = observed: 190522 delivered exactly 4 ms after their last PDU; 51308 lost, each with a PDU of its own never received (51308 such PDUs); in flight at the end 80; unexplained 0; observed but not predicted 0; left in the RLC at the end 5
+[PASS] Q0b-3 Follow_Up classification M2S71-q0-sus: 375 Follow_Ups, 0 cut (each completes only after the next SDU on its DRB); predicted lag = replayed RLC delivery + UE-to-DS-TT FIFO (866000 ps unqueued, or back to back after the previous frame: 375) - TSe = PCAP lag for all but 0
+[PASS] Q0b-1 slack rule M2S71-q0-sus-h16: 56525 slots with >= 2 queued items, 56523 cuts; cut iff grant < need (slack below the missing header bytes) in all: True; single fresh SDU cut: 0; slots granted less than the demand formula (resource-limited, reported): 8919
+[PASS] Q0b-2 replay M2S71-q0-sus-h16: 241915 SDUs; predicted (time, size) deliveries = observed: 241830 delivered exactly 4 ms after their last PDU; 0 lost, each with a PDU of its own never received (0 such PDUs); in flight at the end 80; unexplained 0; observed but not predicted 0; left in the RLC at the end 5
+[PASS] Q0b-3 Follow_Up classification M2S71-q0-sus-h16: 475 Follow_Ups, 0 cut (each completes only after the next SDU on its DRB); predicted lag = replayed RLC delivery + UE-to-DS-TT FIFO (866000 ps unqueued, or back to back after the previous frame: 475) - TSe = PCAP lag for all but 0
+[PASS] Q0b-1 slack rule M2S71-q0p-Bp100: 480 slots with >= 2 queued items, 0 cuts; cut iff grant < need (slack below the missing header bytes) in all: True; single fresh SDU cut: 0; slots granted less than the demand formula (resource-limited, reported): 0
+[PASS] Q0b-2 replay M2S71-q0p-Bp100: 3935 SDUs; predicted (time, size) deliveries = observed: 3925 delivered exactly 4 ms after their last PDU; 0 lost, each with a PDU of its own never received (0 such PDUs); in flight at the end 10; unexplained 0; observed but not predicted 0; left in the RLC at the end 0
+[PASS] Q0b-3 Follow_Up classification M2S71-q0p-Bp100: 475 Follow_Ups, 0 cut (each completes only after the next SDU on its DRB); predicted lag = replayed RLC delivery + UE-to-DS-TT FIFO (866000 ps unqueued, or back to back after the previous frame: 475) - TSe = PCAP lag for all but 0
+[PASS] Q0b-1 slack rule M2S71-q0p-Ca: 480 slots with >= 2 queued items, 0 cuts; cut iff grant < need (slack below the missing header bytes) in all: True; single fresh SDU cut: 0; slots granted less than the demand formula (resource-limited, reported): 0
+[PASS] Q0b-2 replay M2S71-q0p-Ca: 3935 SDUs; predicted (time, size) deliveries = observed: 3925 delivered exactly 4 ms after their last PDU; 0 lost, each with a PDU of its own never received (0 such PDUs); in flight at the end 10; unexplained 0; observed but not predicted 0; left in the RLC at the end 0
+[PASS] Q0b-3 Follow_Up classification M2S71-q0p-Ca: 475 Follow_Ups, 0 cut (each completes only after the next SDU on its DRB); predicted lag = replayed RLC delivery + UE-to-DS-TT FIFO (866000 ps unqueued, or back to back after the previous frame: 475) - TSe = PCAP lag for all but 0
+[PASS] Q0b-1 slack rule M2S71-q0p-frag: 665 slots with >= 2 queued items, 665 cuts; cut iff grant < need (slack below the missing header bytes) in all: True; single fresh SDU cut: 0; slots granted less than the demand formula (resource-limited, reported): 0
+[PASS] Q0b-2 replay M2S71-q0p-frag: 785 SDUs; predicted (time, size) deliveries = observed: 784 delivered exactly 4 ms after their last PDU; 0 lost, each with a PDU of its own never received (0 such PDUs); in flight at the end 0; unexplained 0; observed but not predicted 0; left in the RLC at the end 1
+[PASS] Q0b-3 Follow_Up classification M2S71-q0p-frag: 95 Follow_Ups, 95 cut (each completes only after the next SDU on its DRB); predicted lag = replayed RLC delivery + UE-to-DS-TT FIFO (866000 ps unqueued, or back to back after the previous frame: 0) - TSe = PCAP lag for all but 0
+[PASS] Q0b-1 slack rule M2S71-q0p-frag-h16: 665 slots with >= 2 queued items, 665 cuts; cut iff grant < need (slack below the missing header bytes) in all: True; single fresh SDU cut: 0; slots granted less than the demand formula (resource-limited, reported): 0
+[PASS] Q0b-2 replay M2S71-q0p-frag-h16: 785 SDUs; predicted (time, size) deliveries = observed: 784 delivered exactly 4 ms after their last PDU; 0 lost, each with a PDU of its own never received (0 such PDUs); in flight at the end 0; unexplained 0; observed but not predicted 0; left in the RLC at the end 1
+[PASS] Q0b-3 Follow_Up classification M2S71-q0p-frag-h16: 95 Follow_Ups, 95 cut (each completes only after the next SDU on its DRB); predicted lag = replayed RLC delivery + UE-to-DS-TT FIFO (866000 ps unqueued, or back to back after the previous frame: 0) - TSe = PCAP lag for all but 0
+[PASS] Q0b-1 slack rule M2S71-q0p-idle: 6650 slots with >= 2 queued items, 6650 cuts; cut iff grant < need (slack below the missing header bytes) in all: True; single fresh SDU cut: 0; slots granted less than the demand formula (resource-limited, reported): 0
+[PASS] Q0b-2 replay M2S71-q0p-idle: 7850 SDUs; predicted (time, size) deliveries = observed: 7840 delivered exactly 4 ms after their last PDU; 0 lost, each with a PDU of its own never received (0 such PDUs); in flight at the end 0; unexplained 0; observed but not predicted 0; left in the RLC at the end 10
+[PASS] Q0b-3 Follow_Up classification M2S71-q0p-idle: 950 Follow_Ups, 950 cut (each completes only after the next SDU on its DRB); predicted lag = replayed RLC delivery + UE-to-DS-TT FIFO (866000 ps unqueued, or back to back after the previous frame: 0) - TSe = PCAP lag for all but 0
+[PASS] Q0b-1 slack rule M2S71-q0p-idle-h16: 6650 slots with >= 2 queued items, 6650 cuts; cut iff grant < need (slack below the missing header bytes) in all: True; single fresh SDU cut: 0; slots granted less than the demand formula (resource-limited, reported): 0
+[PASS] Q0b-2 replay M2S71-q0p-idle-h16: 7850 SDUs; predicted (time, size) deliveries = observed: 7840 delivered exactly 4 ms after their last PDU; 0 lost, each with a PDU of its own never received (0 such PDUs); in flight at the end 0; unexplained 0; observed but not predicted 0; left in the RLC at the end 10
+[PASS] Q0b-3 Follow_Up classification M2S71-q0p-idle-h16: 950 Follow_Ups, 950 cut (each completes only after the next SDU on its DRB); predicted lag = replayed RLC delivery + UE-to-DS-TT FIFO (866000 ps unqueued, or back to back after the previous frame: 0) - TSe = PCAP lag for all but 0
+[PASS] Q0b-1 slack rule M2S71-q0p-load: 14140 slots with >= 2 queued items, 14140 cuts; cut iff grant < need (slack below the missing header bytes) in all: True; single fresh SDU cut: 0; slots granted less than the demand formula (resource-limited, reported): 2165
+[PASS] Q0b-2 replay M2S71-q0p-load: 59675 SDUs; predicted (time, size) deliveries = observed: 46580 delivered exactly 4 ms after their last PDU; 13090 lost, each with a PDU of its own never received (13090 such PDUs); in flight at the end 0; unexplained 0; observed but not predicted 0; left in the RLC at the end 5
+[PASS] Q0b-3 Follow_Up classification M2S71-q0p-load: 440 Follow_Ups, 355 cut (each completes only after the next SDU on its DRB); predicted lag = replayed RLC delivery + UE-to-DS-TT FIFO (866000 ps unqueued, or back to back after the previous frame: 85) - TSe = PCAP lag for all but 0
+[PASS] Q0b-1 slack rule M2S71-q0p-load-h16: 14140 slots with >= 2 queued items, 14140 cuts; cut iff grant < need (slack below the missing header bytes) in all: True; single fresh SDU cut: 0; slots granted less than the demand formula (resource-limited, reported): 2165
+[PASS] Q0b-2 replay M2S71-q0p-load-h16: 59675 SDUs; predicted (time, size) deliveries = observed: 59670 delivered exactly 4 ms after their last PDU; 0 lost, each with a PDU of its own never received (0 such PDUs); in flight at the end 0; unexplained 0; observed but not predicted 0; left in the RLC at the end 5
+[PASS] Q0b-3 Follow_Up classification M2S71-q0p-load-h16: 470 Follow_Ups, 355 cut (each completes only after the next SDU on its DRB); predicted lag = replayed RLC delivery + UE-to-DS-TT FIFO (866000 ps unqueued, or back to back after the previous frame: 115) - TSe = PCAP lag for all but 0
+[PASS] Q0b-1 slack rule M2S71-qa-Bp100: 480 slots with >= 2 queued items, 0 cuts; cut iff grant < need (slack below the missing header bytes) in all: True; single fresh SDU cut: 0; slots granted less than the demand formula (resource-limited, reported): 0
+[PASS] Q0b-2 replay M2S71-qa-Bp100: 960 SDUs; predicted (time, size) deliveries = observed: 950 delivered exactly 4 ms after their last PDU; 0 lost, each with a PDU of its own never received (0 such PDUs); in flight at the end 10; unexplained 0; observed but not predicted 0; left in the RLC at the end 0
+[PASS] Q0b-2 replay (DRB 1, data) M2S71-qa-Bp100: 2975 SDUs; predicted (time, size) deliveries = observed: 2975 delivered exactly 4 ms after their last PDU; 0 lost, each with a PDU of its own never received (0 such PDUs); in flight at the end 0; unexplained 0; observed but not predicted 0; left in the RLC at the end 0
+[PASS] Q0b-3 Follow_Up classification M2S71-qa-Bp100: 475 Follow_Ups, 0 cut (each completes only after the next SDU on its DRB); predicted lag = replayed RLC delivery + UE-to-DS-TT FIFO (866000 ps unqueued, or back to back after the previous frame: 475) - TSe = PCAP lag for all but 0
+[PASS] Q0b-1 slack rule M2S71-qa-Ca: 480 slots with >= 2 queued items, 0 cuts; cut iff grant < need (slack below the missing header bytes) in all: True; single fresh SDU cut: 0; slots granted less than the demand formula (resource-limited, reported): 0
+[PASS] Q0b-2 replay M2S71-qa-Ca: 960 SDUs; predicted (time, size) deliveries = observed: 950 delivered exactly 4 ms after their last PDU; 0 lost, each with a PDU of its own never received (0 such PDUs); in flight at the end 10; unexplained 0; observed but not predicted 0; left in the RLC at the end 0
+[PASS] Q0b-2 replay (DRB 1, data) M2S71-qa-Ca: 2975 SDUs; predicted (time, size) deliveries = observed: 2975 delivered exactly 4 ms after their last PDU; 0 lost, each with a PDU of its own never received (0 such PDUs); in flight at the end 0; unexplained 0; observed but not predicted 0; left in the RLC at the end 0
+[PASS] Q0b-3 Follow_Up classification M2S71-qa-Ca: 475 Follow_Ups, 0 cut (each completes only after the next SDU on its DRB); predicted lag = replayed RLC delivery + UE-to-DS-TT FIFO (866000 ps unqueued, or back to back after the previous frame: 475) - TSe = PCAP lag for all but 0
+[PASS] Q0b-1 slack rule M2S71-qa-Ca-sus: 477 slots with >= 2 queued items, 0 cuts; cut iff grant < need (slack below the missing header bytes) in all: True; single fresh SDU cut: 0; slots granted less than the demand formula (resource-limited, reported): 0
+[PASS] Q0b-2 replay M2S71-qa-Ca-sus: 960 SDUs; predicted (time, size) deliveries = observed: 796 delivered exactly 4 ms after their last PDU; 154 lost, each with a PDU of its own never received (154 such PDUs); in flight at the end 4; unexplained 0; observed but not predicted 0; left in the RLC at the end 6
+[PASS] Q0b-2 replay (DRB 1, data) M2S71-qa-Ca-sus: 240965 SDUs; predicted (time, size) deliveries = observed: 189824 delivered exactly 4 ms after their last PDU; 51056 lost, each with a PDU of its own never received (51056 such PDUs); in flight at the end 76; unexplained 0; observed but not predicted 0; left in the RLC at the end 9
+[PASS] Q0b-3 Follow_Up classification M2S71-qa-Ca-sus: 398 Follow_Ups, 0 cut (each completes only after the next SDU on its DRB); predicted lag = replayed RLC delivery + UE-to-DS-TT FIFO (866000 ps unqueued, or back to back after the previous frame: 398) - TSe = PCAP lag for all but 0
+[PASS] Q0b-1 slack rule M2S71-qa-frag: 95 slots with >= 2 queued items, 0 cuts; cut iff grant < need (slack below the missing header bytes) in all: True; single fresh SDU cut: 0; slots granted less than the demand formula (resource-limited, reported): 0
+[PASS] Q0b-2 replay M2S71-qa-frag: 190 SDUs; predicted (time, size) deliveries = observed: 190 delivered exactly 4 ms after their last PDU; 0 lost, each with a PDU of its own never received (0 such PDUs); in flight at the end 0; unexplained 0; observed but not predicted 0; left in the RLC at the end 0
+[PASS] Q0b-2 replay (DRB 1, data) M2S71-qa-frag: 595 SDUs; predicted (time, size) deliveries = observed: 595 delivered exactly 4 ms after their last PDU; 0 lost, each with a PDU of its own never received (0 such PDUs); in flight at the end 0; unexplained 0; observed but not predicted 0; left in the RLC at the end 0
+[PASS] Q0b-3 Follow_Up classification M2S71-qa-frag: 95 Follow_Ups, 0 cut (each completes only after the next SDU on its DRB); predicted lag = replayed RLC delivery + UE-to-DS-TT FIFO (866000 ps unqueued, or back to back after the previous frame: 95) - TSe = PCAP lag for all but 0
+[PASS] Q0b-1 slack rule M2S71-qa-frag-h16: 95 slots with >= 2 queued items, 0 cuts; cut iff grant < need (slack below the missing header bytes) in all: True; single fresh SDU cut: 0; slots granted less than the demand formula (resource-limited, reported): 0
+[PASS] Q0b-2 replay M2S71-qa-frag-h16: 190 SDUs; predicted (time, size) deliveries = observed: 190 delivered exactly 4 ms after their last PDU; 0 lost, each with a PDU of its own never received (0 such PDUs); in flight at the end 0; unexplained 0; observed but not predicted 0; left in the RLC at the end 0
+[PASS] Q0b-2 replay (DRB 1, data) M2S71-qa-frag-h16: 595 SDUs; predicted (time, size) deliveries = observed: 595 delivered exactly 4 ms after their last PDU; 0 lost, each with a PDU of its own never received (0 such PDUs); in flight at the end 0; unexplained 0; observed but not predicted 0; left in the RLC at the end 0
+[PASS] Q0b-3 Follow_Up classification M2S71-qa-frag-h16: 95 Follow_Ups, 0 cut (each completes only after the next SDU on its DRB); predicted lag = replayed RLC delivery + UE-to-DS-TT FIFO (866000 ps unqueued, or back to back after the previous frame: 95) - TSe = PCAP lag for all but 0
+[PASS] Q0b-1 slack rule M2S71-qa-idle: 950 slots with >= 2 queued items, 0 cuts; cut iff grant < need (slack below the missing header bytes) in all: True; single fresh SDU cut: 0; slots granted less than the demand formula (resource-limited, reported): 0
+[PASS] Q0b-2 replay M2S71-qa-idle: 1900 SDUs; predicted (time, size) deliveries = observed: 1900 delivered exactly 4 ms after their last PDU; 0 lost, each with a PDU of its own never received (0 such PDUs); in flight at the end 0; unexplained 0; observed but not predicted 0; left in the RLC at the end 0
+[PASS] Q0b-2 replay (DRB 1, data) M2S71-qa-idle: 5950 SDUs; predicted (time, size) deliveries = observed: 5950 delivered exactly 4 ms after their last PDU; 0 lost, each with a PDU of its own never received (0 such PDUs); in flight at the end 0; unexplained 0; observed but not predicted 0; left in the RLC at the end 0
+[PASS] Q0b-3 Follow_Up classification M2S71-qa-idle: 950 Follow_Ups, 0 cut (each completes only after the next SDU on its DRB); predicted lag = replayed RLC delivery + UE-to-DS-TT FIFO (866000 ps unqueued, or back to back after the previous frame: 950) - TSe = PCAP lag for all but 0
+[PASS] Q0b-1 slack rule M2S71-qa-idle-B5: 95 slots with >= 2 queued items, 0 cuts; cut iff grant < need (slack below the missing header bytes) in all: True; single fresh SDU cut: 0; slots granted less than the demand formula (resource-limited, reported): 0
+[PASS] Q0b-2 replay M2S71-qa-idle-B5: 190 SDUs; predicted (time, size) deliveries = observed: 190 delivered exactly 4 ms after their last PDU; 0 lost, each with a PDU of its own never received (0 such PDUs); in flight at the end 0; unexplained 0; observed but not predicted 0; left in the RLC at the end 0
+[PASS] Q0b-2 replay (DRB 1, data) M2S71-qa-idle-B5: 595 SDUs; predicted (time, size) deliveries = observed: 595 delivered exactly 4 ms after their last PDU; 0 lost, each with a PDU of its own never received (0 such PDUs); in flight at the end 0; unexplained 0; observed but not predicted 0; left in the RLC at the end 0
+[PASS] Q0b-3 Follow_Up classification M2S71-qa-idle-B5: 95 Follow_Ups, 0 cut (each completes only after the next SDU on its DRB); predicted lag = replayed RLC delivery + UE-to-DS-TT FIFO (866000 ps unqueued, or back to back after the previous frame: 95) - TSe = PCAP lag for all but 0
+[PASS] Q0b-1 slack rule M2S71-qa-idle-B6: 95 slots with >= 2 queued items, 0 cuts; cut iff grant < need (slack below the missing header bytes) in all: True; single fresh SDU cut: 0; slots granted less than the demand formula (resource-limited, reported): 0
+[PASS] Q0b-2 replay M2S71-qa-idle-B6: 190 SDUs; predicted (time, size) deliveries = observed: 190 delivered exactly 4 ms after their last PDU; 0 lost, each with a PDU of its own never received (0 such PDUs); in flight at the end 0; unexplained 0; observed but not predicted 0; left in the RLC at the end 0
+[PASS] Q0b-2 replay (DRB 1, data) M2S71-qa-idle-B6: 595 SDUs; predicted (time, size) deliveries = observed: 595 delivered exactly 4 ms after their last PDU; 0 lost, each with a PDU of its own never received (0 such PDUs); in flight at the end 0; unexplained 0; observed but not predicted 0; left in the RLC at the end 0
+[PASS] Q0b-3 Follow_Up classification M2S71-qa-idle-B6: 95 Follow_Ups, 0 cut (each completes only after the next SDU on its DRB); predicted lag = replayed RLC delivery + UE-to-DS-TT FIFO (866000 ps unqueued, or back to back after the previous frame: 95) - TSe = PCAP lag for all but 0
+[PASS] Q0b-1 slack rule M2S71-qa-idle-h16: 950 slots with >= 2 queued items, 0 cuts; cut iff grant < need (slack below the missing header bytes) in all: True; single fresh SDU cut: 0; slots granted less than the demand formula (resource-limited, reported): 0
+[PASS] Q0b-2 replay M2S71-qa-idle-h16: 1900 SDUs; predicted (time, size) deliveries = observed: 1900 delivered exactly 4 ms after their last PDU; 0 lost, each with a PDU of its own never received (0 such PDUs); in flight at the end 0; unexplained 0; observed but not predicted 0; left in the RLC at the end 0
+[PASS] Q0b-2 replay (DRB 1, data) M2S71-qa-idle-h16: 5950 SDUs; predicted (time, size) deliveries = observed: 5950 delivered exactly 4 ms after their last PDU; 0 lost, each with a PDU of its own never received (0 such PDUs); in flight at the end 0; unexplained 0; observed but not predicted 0; left in the RLC at the end 0
+[PASS] Q0b-3 Follow_Up classification M2S71-qa-idle-h16: 950 Follow_Ups, 0 cut (each completes only after the next SDU on its DRB); predicted lag = replayed RLC delivery + UE-to-DS-TT FIFO (866000 ps unqueued, or back to back after the previous frame: 950) - TSe = PCAP lag for all but 0
+[PASS] Q0b-1 slack rule M2S71-qa-load: 475 slots with >= 2 queued items, 0 cuts; cut iff grant < need (slack below the missing header bytes) in all: True; single fresh SDU cut: 0; slots granted less than the demand formula (resource-limited, reported): 0
+[PASS] Q0b-2 replay M2S71-qa-load: 950 SDUs; predicted (time, size) deliveries = observed: 900 delivered exactly 4 ms after their last PDU; 50 lost, each with a PDU of its own never received (50 such PDUs); in flight at the end 0; unexplained 0; observed but not predicted 0; left in the RLC at the end 0
+[PASS] Q0b-2 replay (DRB 1, data) M2S71-qa-load: 58725 SDUs; predicted (time, size) deliveries = observed: 46246 delivered exactly 4 ms after their last PDU; 12474 lost, each with a PDU of its own never received (12474 such PDUs); in flight at the end 0; unexplained 0; observed but not predicted 0; left in the RLC at the end 5
+[PASS] Q0b-3 Follow_Up classification M2S71-qa-load: 450 Follow_Ups, 0 cut (each completes only after the next SDU on its DRB); predicted lag = replayed RLC delivery + UE-to-DS-TT FIFO (866000 ps unqueued, or back to back after the previous frame: 450) - TSe = PCAP lag for all but 0
+[PASS] Q0b-1 slack rule M2S71-qa-load-h16: 475 slots with >= 2 queued items, 0 cuts; cut iff grant < need (slack below the missing header bytes) in all: True; single fresh SDU cut: 0; slots granted less than the demand formula (resource-limited, reported): 0
+[PASS] Q0b-2 replay M2S71-qa-load-h16: 950 SDUs; predicted (time, size) deliveries = observed: 950 delivered exactly 4 ms after their last PDU; 0 lost, each with a PDU of its own never received (0 such PDUs); in flight at the end 0; unexplained 0; observed but not predicted 0; left in the RLC at the end 0
+[PASS] Q0b-2 replay (DRB 1, data) M2S71-qa-load-h16: 58725 SDUs; predicted (time, size) deliveries = observed: 58720 delivered exactly 4 ms after their last PDU; 0 lost, each with a PDU of its own never received (0 such PDUs); in flight at the end 0; unexplained 0; observed but not predicted 0; left in the RLC at the end 5
+[PASS] Q0b-3 Follow_Up classification M2S71-qa-load-h16: 475 Follow_Ups, 0 cut (each completes only after the next SDU on its DRB); predicted lag = replayed RLC delivery + UE-to-DS-TT FIFO (866000 ps unqueued, or back to back after the previous frame: 475) - TSe = PCAP lag for all but 0
+[PASS] Q0b-1 slack rule M2S71-qa-sus: 475 slots with >= 2 queued items, 0 cuts; cut iff grant < need (slack below the missing header bytes) in all: True; single fresh SDU cut: 0; slots granted less than the demand formula (resource-limited, reported): 0
+[PASS] Q0b-2 replay M2S71-qa-sus: 950 SDUs; predicted (time, size) deliveries = observed: 770 delivered exactly 4 ms after their last PDU; 180 lost, each with a PDU of its own never received (180 such PDUs); in flight at the end 0; unexplained 0; observed but not predicted 0; left in the RLC at the end 0
+[PASS] Q0b-2 replay (DRB 1, data) M2S71-qa-sus: 240965 SDUs; predicted (time, size) deliveries = observed: 190099 delivered exactly 4 ms after their last PDU; 50781 lost, each with a PDU of its own never received (50781 such PDUs); in flight at the end 80; unexplained 0; observed but not predicted 0; left in the RLC at the end 5
+[PASS] Q0b-3 Follow_Up classification M2S71-qa-sus: 385 Follow_Ups, 0 cut (each completes only after the next SDU on its DRB); predicted lag = replayed RLC delivery + UE-to-DS-TT FIFO (866000 ps unqueued, or back to back after the previous frame: 385) - TSe = PCAP lag for all but 0
+[PASS] Q0b-1 slack rule M2S71-qa-sus-h16: 475 slots with >= 2 queued items, 0 cuts; cut iff grant < need (slack below the missing header bytes) in all: True; single fresh SDU cut: 0; slots granted less than the demand formula (resource-limited, reported): 0
+[PASS] Q0b-2 replay M2S71-qa-sus-h16: 950 SDUs; predicted (time, size) deliveries = observed: 950 delivered exactly 4 ms after their last PDU; 0 lost, each with a PDU of its own never received (0 such PDUs); in flight at the end 0; unexplained 0; observed but not predicted 0; left in the RLC at the end 0
+[PASS] Q0b-2 replay (DRB 1, data) M2S71-qa-sus-h16: 240965 SDUs; predicted (time, size) deliveries = observed: 240880 delivered exactly 4 ms after their last PDU; 0 lost, each with a PDU of its own never received (0 such PDUs); in flight at the end 80; unexplained 0; observed but not predicted 0; left in the RLC at the end 5
+[PASS] Q0b-3 Follow_Up classification M2S71-qa-sus-h16: 475 Follow_Ups, 0 cut (each completes only after the next SDU on its DRB); predicted lag = replayed RLC delivery + UE-to-DS-TT FIFO (866000 ps unqueued, or back to back after the previous frame: 475) - TSe = PCAP lag for all but 0
+[NOT EVALUATED] Q0b-4 AM M2S71-qb-Bp100: 5 runs on RLC AM: NOT EVALUATED (no independently validated AM replay); measured-only acceptance class
+[NOT EVALUATED] Q0b-4 AM M2S71-qb-Ca: 5 runs on RLC AM: NOT EVALUATED (no independently validated AM replay); measured-only acceptance class
+[NOT EVALUATED] Q0b-4 AM M2S71-qb-frag: 1 runs on RLC AM: NOT EVALUATED (no independently validated AM replay); measured-only acceptance class
+[NOT EVALUATED] Q0b-4 AM M2S71-qb-frag-h16: 1 runs on RLC AM: NOT EVALUATED (no independently validated AM replay); measured-only acceptance class
+[NOT EVALUATED] Q0b-4 AM M2S71-qb-idle: 10 runs on RLC AM: NOT EVALUATED (no independently validated AM replay); measured-only acceptance class
+[NOT EVALUATED] Q0b-4 AM M2S71-qb-idle-h16: 10 runs on RLC AM: NOT EVALUATED (no independently validated AM replay); measured-only acceptance class
+[NOT EVALUATED] Q0b-4 AM M2S71-qb-load: 5 runs on RLC AM: NOT EVALUATED (no independently validated AM replay); measured-only acceptance class
+[NOT EVALUATED] Q0b-4 AM M2S71-qb-load-h16: 5 runs on RLC AM: NOT EVALUATED (no independently validated AM replay); measured-only acceptance class
+[PASS] Q0b-1 slack rule M2S71-qc-Bp100: 0 slots with >= 2 queued items, 0 cuts; cut iff grant < need (slack below the missing header bytes) in all: True; single fresh SDU cut: 0; slots granted less than the demand formula (resource-limited, reported): 0
+[PASS] Q0b-2 replay M2S71-qc-Bp100: 960 SDUs; predicted (time, size) deliveries = observed: 950 delivered exactly 4 ms after their last PDU; 0 lost, each with a PDU of its own never received (0 such PDUs); in flight at the end 10; unexplained 0; observed but not predicted 0; left in the RLC at the end 0
+[PASS] Q0b-2 replay (DRB 1, data) M2S71-qc-Bp100: 2975 SDUs; predicted (time, size) deliveries = observed: 2975 delivered exactly 4 ms after their last PDU; 0 lost, each with a PDU of its own never received (0 such PDUs); in flight at the end 0; unexplained 0; observed but not predicted 0; left in the RLC at the end 0
+[PASS] Q0b-3 Follow_Up classification M2S71-qc-Bp100: 475 Follow_Ups, 0 cut (each completes only after the next SDU on its DRB); predicted lag = replayed RLC delivery + UE-to-DS-TT FIFO (866000 ps unqueued, or back to back after the previous frame: 0) - TSe = PCAP lag for all but 0
+[PASS] Q0b-5 split counterfactual M2S71-qc-Bp100: Sync and Follow_Up on separate DRBs: slots with >= 2 queued items 0, cuts 0
+[PASS] Q0b-1 slack rule M2S71-qc-Ca: 0 slots with >= 2 queued items, 0 cuts; cut iff grant < need (slack below the missing header bytes) in all: True; single fresh SDU cut: 0; slots granted less than the demand formula (resource-limited, reported): 0
+[PASS] Q0b-2 replay M2S71-qc-Ca: 960 SDUs; predicted (time, size) deliveries = observed: 950 delivered exactly 4 ms after their last PDU; 0 lost, each with a PDU of its own never received (0 such PDUs); in flight at the end 10; unexplained 0; observed but not predicted 0; left in the RLC at the end 0
+[PASS] Q0b-2 replay (DRB 1, data) M2S71-qc-Ca: 2975 SDUs; predicted (time, size) deliveries = observed: 2975 delivered exactly 4 ms after their last PDU; 0 lost, each with a PDU of its own never received (0 such PDUs); in flight at the end 0; unexplained 0; observed but not predicted 0; left in the RLC at the end 0
+[PASS] Q0b-3 Follow_Up classification M2S71-qc-Ca: 475 Follow_Ups, 0 cut (each completes only after the next SDU on its DRB); predicted lag = replayed RLC delivery + UE-to-DS-TT FIFO (866000 ps unqueued, or back to back after the previous frame: 0) - TSe = PCAP lag for all but 0
+[PASS] Q0b-5 split counterfactual M2S71-qc-Ca: Sync and Follow_Up on separate DRBs: slots with >= 2 queued items 0, cuts 0
+[PASS] Q0b-1 slack rule M2S71-qc-frag: 0 slots with >= 2 queued items, 0 cuts; cut iff grant < need (slack below the missing header bytes) in all: True; single fresh SDU cut: 0; slots granted less than the demand formula (resource-limited, reported): 0
+[PASS] Q0b-2 replay M2S71-qc-frag: 190 SDUs; predicted (time, size) deliveries = observed: 190 delivered exactly 4 ms after their last PDU; 0 lost, each with a PDU of its own never received (0 such PDUs); in flight at the end 0; unexplained 0; observed but not predicted 0; left in the RLC at the end 0
+[PASS] Q0b-2 replay (DRB 1, data) M2S71-qc-frag: 595 SDUs; predicted (time, size) deliveries = observed: 595 delivered exactly 4 ms after their last PDU; 0 lost, each with a PDU of its own never received (0 such PDUs); in flight at the end 0; unexplained 0; observed but not predicted 0; left in the RLC at the end 0
+[PASS] Q0b-3 Follow_Up classification M2S71-qc-frag: 95 Follow_Ups, 0 cut (each completes only after the next SDU on its DRB); predicted lag = replayed RLC delivery + UE-to-DS-TT FIFO (866000 ps unqueued, or back to back after the previous frame: 0) - TSe = PCAP lag for all but 0
+[PASS] Q0b-5 split counterfactual M2S71-qc-frag: Sync and Follow_Up on separate DRBs: slots with >= 2 queued items 0, cuts 0
+[PASS] Q0b-1 slack rule M2S71-qc-frag-h16: 0 slots with >= 2 queued items, 0 cuts; cut iff grant < need (slack below the missing header bytes) in all: True; single fresh SDU cut: 0; slots granted less than the demand formula (resource-limited, reported): 0
+[PASS] Q0b-2 replay M2S71-qc-frag-h16: 190 SDUs; predicted (time, size) deliveries = observed: 190 delivered exactly 4 ms after their last PDU; 0 lost, each with a PDU of its own never received (0 such PDUs); in flight at the end 0; unexplained 0; observed but not predicted 0; left in the RLC at the end 0
+[PASS] Q0b-2 replay (DRB 1, data) M2S71-qc-frag-h16: 595 SDUs; predicted (time, size) deliveries = observed: 595 delivered exactly 4 ms after their last PDU; 0 lost, each with a PDU of its own never received (0 such PDUs); in flight at the end 0; unexplained 0; observed but not predicted 0; left in the RLC at the end 0
+[PASS] Q0b-3 Follow_Up classification M2S71-qc-frag-h16: 95 Follow_Ups, 0 cut (each completes only after the next SDU on its DRB); predicted lag = replayed RLC delivery + UE-to-DS-TT FIFO (866000 ps unqueued, or back to back after the previous frame: 0) - TSe = PCAP lag for all but 0
+[PASS] Q0b-5 split counterfactual M2S71-qc-frag-h16: Sync and Follow_Up on separate DRBs: slots with >= 2 queued items 0, cuts 0
+[PASS] Q0b-1 slack rule M2S71-qc-idle: 0 slots with >= 2 queued items, 0 cuts; cut iff grant < need (slack below the missing header bytes) in all: True; single fresh SDU cut: 0; slots granted less than the demand formula (resource-limited, reported): 0
+[PASS] Q0b-2 replay M2S71-qc-idle: 1900 SDUs; predicted (time, size) deliveries = observed: 1900 delivered exactly 4 ms after their last PDU; 0 lost, each with a PDU of its own never received (0 such PDUs); in flight at the end 0; unexplained 0; observed but not predicted 0; left in the RLC at the end 0
+[PASS] Q0b-2 replay (DRB 1, data) M2S71-qc-idle: 5950 SDUs; predicted (time, size) deliveries = observed: 5950 delivered exactly 4 ms after their last PDU; 0 lost, each with a PDU of its own never received (0 such PDUs); in flight at the end 0; unexplained 0; observed but not predicted 0; left in the RLC at the end 0
+[PASS] Q0b-3 Follow_Up classification M2S71-qc-idle: 950 Follow_Ups, 0 cut (each completes only after the next SDU on its DRB); predicted lag = replayed RLC delivery + UE-to-DS-TT FIFO (866000 ps unqueued, or back to back after the previous frame: 0) - TSe = PCAP lag for all but 0
+[PASS] Q0b-5 split counterfactual M2S71-qc-idle: Sync and Follow_Up on separate DRBs: slots with >= 2 queued items 0, cuts 0
+[PASS] Q0b-1 slack rule M2S71-qc-idle-h16: 0 slots with >= 2 queued items, 0 cuts; cut iff grant < need (slack below the missing header bytes) in all: True; single fresh SDU cut: 0; slots granted less than the demand formula (resource-limited, reported): 0
+[PASS] Q0b-2 replay M2S71-qc-idle-h16: 1900 SDUs; predicted (time, size) deliveries = observed: 1900 delivered exactly 4 ms after their last PDU; 0 lost, each with a PDU of its own never received (0 such PDUs); in flight at the end 0; unexplained 0; observed but not predicted 0; left in the RLC at the end 0
+[PASS] Q0b-2 replay (DRB 1, data) M2S71-qc-idle-h16: 5950 SDUs; predicted (time, size) deliveries = observed: 5950 delivered exactly 4 ms after their last PDU; 0 lost, each with a PDU of its own never received (0 such PDUs); in flight at the end 0; unexplained 0; observed but not predicted 0; left in the RLC at the end 0
+[PASS] Q0b-3 Follow_Up classification M2S71-qc-idle-h16: 950 Follow_Ups, 0 cut (each completes only after the next SDU on its DRB); predicted lag = replayed RLC delivery + UE-to-DS-TT FIFO (866000 ps unqueued, or back to back after the previous frame: 0) - TSe = PCAP lag for all but 0
+[PASS] Q0b-5 split counterfactual M2S71-qc-idle-h16: Sync and Follow_Up on separate DRBs: slots with >= 2 queued items 0, cuts 0
+[PASS] Q0b-1 slack rule M2S71-qc-load: 0 slots with >= 2 queued items, 0 cuts; cut iff grant < need (slack below the missing header bytes) in all: True; single fresh SDU cut: 0; slots granted less than the demand formula (resource-limited, reported): 0
+[PASS] Q0b-2 replay M2S71-qc-load: 950 SDUs; predicted (time, size) deliveries = observed: 911 delivered exactly 4 ms after their last PDU; 39 lost, each with a PDU of its own never received (39 such PDUs); in flight at the end 0; unexplained 0; observed but not predicted 0; left in the RLC at the end 0
+[PASS] Q0b-2 replay (DRB 1, data) M2S71-qc-load: 58725 SDUs; predicted (time, size) deliveries = observed: 46224 delivered exactly 4 ms after their last PDU; 12496 lost, each with a PDU of its own never received (12496 such PDUs); in flight at the end 0; unexplained 0; observed but not predicted 0; left in the RLC at the end 5
+[PASS] Q0b-3 Follow_Up classification M2S71-qc-load: 436 Follow_Ups, 0 cut (each completes only after the next SDU on its DRB); predicted lag = replayed RLC delivery + UE-to-DS-TT FIFO (866000 ps unqueued, or back to back after the previous frame: 0) - TSe = PCAP lag for all but 0
+[PASS] Q0b-5 split counterfactual M2S71-qc-load: Sync and Follow_Up on separate DRBs: slots with >= 2 queued items 0, cuts 0
+[PASS] Q0b-1 slack rule M2S71-qc-load-h16: 0 slots with >= 2 queued items, 0 cuts; cut iff grant < need (slack below the missing header bytes) in all: True; single fresh SDU cut: 0; slots granted less than the demand formula (resource-limited, reported): 0
+[PASS] Q0b-2 replay M2S71-qc-load-h16: 950 SDUs; predicted (time, size) deliveries = observed: 950 delivered exactly 4 ms after their last PDU; 0 lost, each with a PDU of its own never received (0 such PDUs); in flight at the end 0; unexplained 0; observed but not predicted 0; left in the RLC at the end 0
+[PASS] Q0b-2 replay (DRB 1, data) M2S71-qc-load-h16: 58725 SDUs; predicted (time, size) deliveries = observed: 58720 delivered exactly 4 ms after their last PDU; 0 lost, each with a PDU of its own never received (0 such PDUs); in flight at the end 0; unexplained 0; observed but not predicted 0; left in the RLC at the end 5
+[PASS] Q0b-3 Follow_Up classification M2S71-qc-load-h16: 475 Follow_Ups, 0 cut (each completes only after the next SDU on its DRB); predicted lag = replayed RLC delivery + UE-to-DS-TT FIFO (866000 ps unqueued, or back to back after the previous frame: 0) - TSe = PCAP lag for all but 0
+[PASS] Q0b-5 split counterfactual M2S71-qc-load-h16: Sync and Follow_Up on separate DRBs: slots with >= 2 queued items 0, cuts 0
+[NOT EVALUATED] Q0b-4 AM M2S71-qc2-Bp100: 5 runs on RLC AM: NOT EVALUATED (no independently validated AM replay); measured-only acceptance class
+[NOT EVALUATED] Q0b-4 AM M2S71-qc2-Ca: 5 runs on RLC AM: NOT EVALUATED (no independently validated AM replay); measured-only acceptance class
+[NOT EVALUATED] Q0b-4 AM M2S71-qc2-frag: 1 runs on RLC AM: NOT EVALUATED (no independently validated AM replay); measured-only acceptance class
+[NOT EVALUATED] Q0b-4 AM M2S71-qc2-frag-h16: 1 runs on RLC AM: NOT EVALUATED (no independently validated AM replay); measured-only acceptance class
+[NOT EVALUATED] Q0b-4 AM M2S71-qc2-idle: 10 runs on RLC AM: NOT EVALUATED (no independently validated AM replay); measured-only acceptance class
+[NOT EVALUATED] Q0b-4 AM M2S71-qc2-idle-h16: 10 runs on RLC AM: NOT EVALUATED (no independently validated AM replay); measured-only acceptance class
+[NOT EVALUATED] Q0b-4 AM M2S71-qc2-load: 5 runs on RLC AM: NOT EVALUATED (no independently validated AM replay); measured-only acceptance class
+[NOT EVALUATED] Q0b-4 AM M2S71-qc2-load-h16: 5 runs on RLC AM: NOT EVALUATED (no independently validated AM replay); measured-only acceptance class
+[PASS] Q0b-1 slack rule M2S71-qd2-Bp100: 0 slots with >= 2 queued items, 0 cuts; cut iff grant < need (slack below the missing header bytes) in all: True; single fresh SDU cut: 0; slots granted less than the demand formula (resource-limited, reported): 0
+[PASS] Q0b-2 replay M2S71-qd2-Bp100: 960 SDUs; predicted (time, size) deliveries = observed: 950 delivered exactly 4 ms after their last PDU; 0 lost, each with a PDU of its own never received (0 such PDUs); in flight at the end 10; unexplained 0; observed but not predicted 0; left in the RLC at the end 0
+[PASS] Q0b-2 replay (DRB 1, data) M2S71-qd2-Bp100: 2975 SDUs; predicted (time, size) deliveries = observed: 2975 delivered exactly 4 ms after their last PDU; 0 lost, each with a PDU of its own never received (0 such PDUs); in flight at the end 0; unexplained 0; observed but not predicted 0; left in the RLC at the end 0
+[PASS] Q0b-3 Follow_Up classification M2S71-qd2-Bp100: 475 Follow_Ups, 0 cut (each completes only after the next SDU on its DRB); predicted lag = replayed RLC delivery + UE-to-DS-TT FIFO (866000 ps unqueued, or back to back after the previous frame: 0) - TSe = PCAP lag for all but 0
+[PASS] Q0b-5 split counterfactual M2S71-qd2-Bp100: Sync and Follow_Up on separate DRBs: slots with >= 2 queued items 0, cuts 0
+[PASS] Q0b-1 slack rule M2S71-qd2-Ca: 0 slots with >= 2 queued items, 0 cuts; cut iff grant < need (slack below the missing header bytes) in all: True; single fresh SDU cut: 0; slots granted less than the demand formula (resource-limited, reported): 0
+[PASS] Q0b-2 replay M2S71-qd2-Ca: 960 SDUs; predicted (time, size) deliveries = observed: 950 delivered exactly 4 ms after their last PDU; 0 lost, each with a PDU of its own never received (0 such PDUs); in flight at the end 10; unexplained 0; observed but not predicted 0; left in the RLC at the end 0
+[PASS] Q0b-2 replay (DRB 1, data) M2S71-qd2-Ca: 2975 SDUs; predicted (time, size) deliveries = observed: 2975 delivered exactly 4 ms after their last PDU; 0 lost, each with a PDU of its own never received (0 such PDUs); in flight at the end 0; unexplained 0; observed but not predicted 0; left in the RLC at the end 0
+[PASS] Q0b-3 Follow_Up classification M2S71-qd2-Ca: 475 Follow_Ups, 0 cut (each completes only after the next SDU on its DRB); predicted lag = replayed RLC delivery + UE-to-DS-TT FIFO (866000 ps unqueued, or back to back after the previous frame: 0) - TSe = PCAP lag for all but 0
+[PASS] Q0b-5 split counterfactual M2S71-qd2-Ca: Sync and Follow_Up on separate DRBs: slots with >= 2 queued items 0, cuts 0
+[PASS] Q0b-1 slack rule M2S71-qd2-Ca-sus: 0 slots with >= 2 queued items, 0 cuts; cut iff grant < need (slack below the missing header bytes) in all: True; single fresh SDU cut: 0; slots granted less than the demand formula (resource-limited, reported): 0
+[PASS] Q0b-2 replay M2S71-qd2-Ca-sus: 960 SDUs; predicted (time, size) deliveries = observed: 795 delivered exactly 4 ms after their last PDU; 155 lost, each with a PDU of its own never received (155 such PDUs); in flight at the end 10; unexplained 0; observed but not predicted 0; left in the RLC at the end 0
+[PASS] Q0b-2 replay (DRB 1, data) M2S71-qd2-Ca-sus: 240965 SDUs; predicted (time, size) deliveries = observed: 187875 delivered exactly 4 ms after their last PDU; 53005 lost, each with a PDU of its own never received (53005 such PDUs); in flight at the end 40; unexplained 0; observed but not predicted 0; left in the RLC at the end 45
+[PASS] Q0b-3 Follow_Up classification M2S71-qd2-Ca-sus: 320 Follow_Ups, 0 cut (each completes only after the next SDU on its DRB); predicted lag = replayed RLC delivery + UE-to-DS-TT FIFO (866000 ps unqueued, or back to back after the previous frame: 0) - TSe = PCAP lag for all but 0
+[PASS] Q0b-5 split counterfactual M2S71-qd2-Ca-sus: Sync and Follow_Up on separate DRBs: slots with >= 2 queued items 0, cuts 0
+[PASS] Q0b-1 slack rule M2S71-qd2-frag: 0 slots with >= 2 queued items, 0 cuts; cut iff grant < need (slack below the missing header bytes) in all: True; single fresh SDU cut: 0; slots granted less than the demand formula (resource-limited, reported): 0
+[PASS] Q0b-2 replay M2S71-qd2-frag: 190 SDUs; predicted (time, size) deliveries = observed: 190 delivered exactly 4 ms after their last PDU; 0 lost, each with a PDU of its own never received (0 such PDUs); in flight at the end 0; unexplained 0; observed but not predicted 0; left in the RLC at the end 0
+[PASS] Q0b-2 replay (DRB 1, data) M2S71-qd2-frag: 595 SDUs; predicted (time, size) deliveries = observed: 595 delivered exactly 4 ms after their last PDU; 0 lost, each with a PDU of its own never received (0 such PDUs); in flight at the end 0; unexplained 0; observed but not predicted 0; left in the RLC at the end 0
+[PASS] Q0b-3 Follow_Up classification M2S71-qd2-frag: 95 Follow_Ups, 0 cut (each completes only after the next SDU on its DRB); predicted lag = replayed RLC delivery + UE-to-DS-TT FIFO (866000 ps unqueued, or back to back after the previous frame: 0) - TSe = PCAP lag for all but 0
+[PASS] Q0b-5 split counterfactual M2S71-qd2-frag: Sync and Follow_Up on separate DRBs: slots with >= 2 queued items 0, cuts 0
+[PASS] Q0b-1 slack rule M2S71-qd2-frag-h16: 0 slots with >= 2 queued items, 0 cuts; cut iff grant < need (slack below the missing header bytes) in all: True; single fresh SDU cut: 0; slots granted less than the demand formula (resource-limited, reported): 0
+[PASS] Q0b-2 replay M2S71-qd2-frag-h16: 190 SDUs; predicted (time, size) deliveries = observed: 190 delivered exactly 4 ms after their last PDU; 0 lost, each with a PDU of its own never received (0 such PDUs); in flight at the end 0; unexplained 0; observed but not predicted 0; left in the RLC at the end 0
+[PASS] Q0b-2 replay (DRB 1, data) M2S71-qd2-frag-h16: 595 SDUs; predicted (time, size) deliveries = observed: 595 delivered exactly 4 ms after their last PDU; 0 lost, each with a PDU of its own never received (0 such PDUs); in flight at the end 0; unexplained 0; observed but not predicted 0; left in the RLC at the end 0
+[PASS] Q0b-3 Follow_Up classification M2S71-qd2-frag-h16: 95 Follow_Ups, 0 cut (each completes only after the next SDU on its DRB); predicted lag = replayed RLC delivery + UE-to-DS-TT FIFO (866000 ps unqueued, or back to back after the previous frame: 0) - TSe = PCAP lag for all but 0
+[PASS] Q0b-5 split counterfactual M2S71-qd2-frag-h16: Sync and Follow_Up on separate DRBs: slots with >= 2 queued items 0, cuts 0
+[PASS] Q0b-1 slack rule M2S71-qd2-idle: 0 slots with >= 2 queued items, 0 cuts; cut iff grant < need (slack below the missing header bytes) in all: True; single fresh SDU cut: 0; slots granted less than the demand formula (resource-limited, reported): 0
+[PASS] Q0b-2 replay M2S71-qd2-idle: 1900 SDUs; predicted (time, size) deliveries = observed: 1900 delivered exactly 4 ms after their last PDU; 0 lost, each with a PDU of its own never received (0 such PDUs); in flight at the end 0; unexplained 0; observed but not predicted 0; left in the RLC at the end 0
+[PASS] Q0b-2 replay (DRB 1, data) M2S71-qd2-idle: 5950 SDUs; predicted (time, size) deliveries = observed: 5950 delivered exactly 4 ms after their last PDU; 0 lost, each with a PDU of its own never received (0 such PDUs); in flight at the end 0; unexplained 0; observed but not predicted 0; left in the RLC at the end 0
+[PASS] Q0b-3 Follow_Up classification M2S71-qd2-idle: 950 Follow_Ups, 0 cut (each completes only after the next SDU on its DRB); predicted lag = replayed RLC delivery + UE-to-DS-TT FIFO (866000 ps unqueued, or back to back after the previous frame: 0) - TSe = PCAP lag for all but 0
+[PASS] Q0b-5 split counterfactual M2S71-qd2-idle: Sync and Follow_Up on separate DRBs: slots with >= 2 queued items 0, cuts 0
+[PASS] Q0b-1 slack rule M2S71-qd2-idle-h16: 0 slots with >= 2 queued items, 0 cuts; cut iff grant < need (slack below the missing header bytes) in all: True; single fresh SDU cut: 0; slots granted less than the demand formula (resource-limited, reported): 0
+[PASS] Q0b-2 replay M2S71-qd2-idle-h16: 1900 SDUs; predicted (time, size) deliveries = observed: 1900 delivered exactly 4 ms after their last PDU; 0 lost, each with a PDU of its own never received (0 such PDUs); in flight at the end 0; unexplained 0; observed but not predicted 0; left in the RLC at the end 0
+[PASS] Q0b-2 replay (DRB 1, data) M2S71-qd2-idle-h16: 5950 SDUs; predicted (time, size) deliveries = observed: 5950 delivered exactly 4 ms after their last PDU; 0 lost, each with a PDU of its own never received (0 such PDUs); in flight at the end 0; unexplained 0; observed but not predicted 0; left in the RLC at the end 0
+[PASS] Q0b-3 Follow_Up classification M2S71-qd2-idle-h16: 950 Follow_Ups, 0 cut (each completes only after the next SDU on its DRB); predicted lag = replayed RLC delivery + UE-to-DS-TT FIFO (866000 ps unqueued, or back to back after the previous frame: 0) - TSe = PCAP lag for all but 0
+[PASS] Q0b-5 split counterfactual M2S71-qd2-idle-h16: Sync and Follow_Up on separate DRBs: slots with >= 2 queued items 0, cuts 0
+[PASS] Q0b-1 slack rule M2S71-qd2-load: 0 slots with >= 2 queued items, 0 cuts; cut iff grant < need (slack below the missing header bytes) in all: True; single fresh SDU cut: 0; slots granted less than the demand formula (resource-limited, reported): 0
+[PASS] Q0b-2 replay M2S71-qd2-load: 950 SDUs; predicted (time, size) deliveries = observed: 910 delivered exactly 4 ms after their last PDU; 40 lost, each with a PDU of its own never received (40 such PDUs); in flight at the end 0; unexplained 0; observed but not predicted 0; left in the RLC at the end 0
+[PASS] Q0b-2 replay (DRB 1, data) M2S71-qd2-load: 58725 SDUs; predicted (time, size) deliveries = observed: 45730 delivered exactly 4 ms after their last PDU; 12990 lost, each with a PDU of its own never received (12990 such PDUs); in flight at the end 0; unexplained 0; observed but not predicted 0; left in the RLC at the end 5
+[PASS] Q0b-3 Follow_Up classification M2S71-qd2-load: 435 Follow_Ups, 0 cut (each completes only after the next SDU on its DRB); predicted lag = replayed RLC delivery + UE-to-DS-TT FIFO (866000 ps unqueued, or back to back after the previous frame: 0) - TSe = PCAP lag for all but 0
+[PASS] Q0b-5 split counterfactual M2S71-qd2-load: Sync and Follow_Up on separate DRBs: slots with >= 2 queued items 0, cuts 0
+[PASS] Q0b-1 slack rule M2S71-qd2-load-h16: 0 slots with >= 2 queued items, 0 cuts; cut iff grant < need (slack below the missing header bytes) in all: True; single fresh SDU cut: 0; slots granted less than the demand formula (resource-limited, reported): 0
+[PASS] Q0b-2 replay M2S71-qd2-load-h16: 950 SDUs; predicted (time, size) deliveries = observed: 950 delivered exactly 4 ms after their last PDU; 0 lost, each with a PDU of its own never received (0 such PDUs); in flight at the end 0; unexplained 0; observed but not predicted 0; left in the RLC at the end 0
+[PASS] Q0b-2 replay (DRB 1, data) M2S71-qd2-load-h16: 58725 SDUs; predicted (time, size) deliveries = observed: 58720 delivered exactly 4 ms after their last PDU; 0 lost, each with a PDU of its own never received (0 such PDUs); in flight at the end 0; unexplained 0; observed but not predicted 0; left in the RLC at the end 5
+[PASS] Q0b-3 Follow_Up classification M2S71-qd2-load-h16: 475 Follow_Ups, 0 cut (each completes only after the next SDU on its DRB); predicted lag = replayed RLC delivery + UE-to-DS-TT FIFO (866000 ps unqueued, or back to back after the previous frame: 0) - TSe = PCAP lag for all but 0
+[PASS] Q0b-5 split counterfactual M2S71-qd2-load-h16: Sync and Follow_Up on separate DRBs: slots with >= 2 queued items 0, cuts 0
+[PASS] Q0b-1 slack rule M2S71-qd2-sus: 0 slots with >= 2 queued items, 0 cuts; cut iff grant < need (slack below the missing header bytes) in all: True; single fresh SDU cut: 0; slots granted less than the demand formula (resource-limited, reported): 0
+[PASS] Q0b-2 replay M2S71-qd2-sus: 950 SDUs; predicted (time, size) deliveries = observed: 790 delivered exactly 4 ms after their last PDU; 160 lost, each with a PDU of its own never received (160 such PDUs); in flight at the end 0; unexplained 0; observed but not predicted 0; left in the RLC at the end 0
+[PASS] Q0b-2 replay (DRB 1, data) M2S71-qd2-sus: 240965 SDUs; predicted (time, size) deliveries = observed: 187575 delivered exactly 4 ms after their last PDU; 53305 lost, each with a PDU of its own never received (53305 such PDUs); in flight at the end 80; unexplained 0; observed but not predicted 0; left in the RLC at the end 5
+[PASS] Q0b-3 Follow_Up classification M2S71-qd2-sus: 315 Follow_Ups, 0 cut (each completes only after the next SDU on its DRB); predicted lag = replayed RLC delivery + UE-to-DS-TT FIFO (866000 ps unqueued, or back to back after the previous frame: 0) - TSe = PCAP lag for all but 0
+[PASS] Q0b-5 split counterfactual M2S71-qd2-sus: Sync and Follow_Up on separate DRBs: slots with >= 2 queued items 0, cuts 0
+[PASS] Q0b-1 slack rule M2S71-qd2-sus-h16: 0 slots with >= 2 queued items, 0 cuts; cut iff grant < need (slack below the missing header bytes) in all: True; single fresh SDU cut: 0; slots granted less than the demand formula (resource-limited, reported): 0
+[PASS] Q0b-2 replay M2S71-qd2-sus-h16: 950 SDUs; predicted (time, size) deliveries = observed: 950 delivered exactly 4 ms after their last PDU; 0 lost, each with a PDU of its own never received (0 such PDUs); in flight at the end 0; unexplained 0; observed but not predicted 0; left in the RLC at the end 0
+[PASS] Q0b-2 replay (DRB 1, data) M2S71-qd2-sus-h16: 240965 SDUs; predicted (time, size) deliveries = observed: 240880 delivered exactly 4 ms after their last PDU; 0 lost, each with a PDU of its own never received (0 such PDUs); in flight at the end 80; unexplained 0; observed but not predicted 0; left in the RLC at the end 5
+[PASS] Q0b-3 Follow_Up classification M2S71-qd2-sus-h16: 475 Follow_Ups, 0 cut (each completes only after the next SDU on its DRB); predicted lag = replayed RLC delivery + UE-to-DS-TT FIFO (866000 ps unqueued, or back to back after the previous frame: 0) - TSe = PCAP lag for all but 0
+[PASS] Q0b-5 split counterfactual M2S71-qd2-sus-h16: Sync and Follow_Up on separate DRBs: slots with >= 2 queued items 0, cuts 0
+[NOT EVALUATED] Q0b-4 AM M2S71-qda-Bp100: 5 runs on RLC AM: NOT EVALUATED (no independently validated AM replay); measured-only acceptance class
+[NOT EVALUATED] Q0b-4 AM M2S71-qda-Ca: 5 runs on RLC AM: NOT EVALUATED (no independently validated AM replay); measured-only acceptance class
+[NOT EVALUATED] Q0b-4 AM M2S71-qda-frag: 1 runs on RLC AM: NOT EVALUATED (no independently validated AM replay); measured-only acceptance class
+[NOT EVALUATED] Q0b-4 AM M2S71-qda-frag-h16: 1 runs on RLC AM: NOT EVALUATED (no independently validated AM replay); measured-only acceptance class
+[NOT EVALUATED] Q0b-4 AM M2S71-qda-idle: 10 runs on RLC AM: NOT EVALUATED (no independently validated AM replay); measured-only acceptance class
+[NOT EVALUATED] Q0b-4 AM M2S71-qda-idle-h16: 10 runs on RLC AM: NOT EVALUATED (no independently validated AM replay); measured-only acceptance class
+[NOT EVALUATED] Q0b-4 AM M2S71-qda-load: 5 runs on RLC AM: NOT EVALUATED (no independently validated AM replay); measured-only acceptance class
+[NOT EVALUATED] Q0b-4 AM M2S71-qda-load-h16: 5 runs on RLC AM: NOT EVALUATED (no independently validated AM replay); measured-only acceptance class
+[PASS] Q0b-1 slack rule M2S71-qdu-Bp100: 480 slots with >= 2 queued items, 0 cuts; cut iff grant < need (slack below the missing header bytes) in all: True; single fresh SDU cut: 0; slots granted less than the demand formula (resource-limited, reported): 0
+[PASS] Q0b-2 replay M2S71-qdu-Bp100: 960 SDUs; predicted (time, size) deliveries = observed: 950 delivered exactly 4 ms after their last PDU; 0 lost, each with a PDU of its own never received (0 such PDUs); in flight at the end 10; unexplained 0; observed but not predicted 0; left in the RLC at the end 0
+[PASS] Q0b-2 replay (DRB 1, data) M2S71-qdu-Bp100: 2975 SDUs; predicted (time, size) deliveries = observed: 2975 delivered exactly 4 ms after their last PDU; 0 lost, each with a PDU of its own never received (0 such PDUs); in flight at the end 0; unexplained 0; observed but not predicted 0; left in the RLC at the end 0
+[PASS] Q0b-3 Follow_Up classification M2S71-qdu-Bp100: 475 Follow_Ups, 0 cut (each completes only after the next SDU on its DRB); predicted lag = replayed RLC delivery + UE-to-DS-TT FIFO (866000 ps unqueued, or back to back after the previous frame: 475) - TSe = PCAP lag for all but 0
+[PASS] Q0b-1 slack rule M2S71-qdu-Ca: 480 slots with >= 2 queued items, 0 cuts; cut iff grant < need (slack below the missing header bytes) in all: True; single fresh SDU cut: 0; slots granted less than the demand formula (resource-limited, reported): 0
+[PASS] Q0b-2 replay M2S71-qdu-Ca: 960 SDUs; predicted (time, size) deliveries = observed: 950 delivered exactly 4 ms after their last PDU; 0 lost, each with a PDU of its own never received (0 such PDUs); in flight at the end 10; unexplained 0; observed but not predicted 0; left in the RLC at the end 0
+[PASS] Q0b-2 replay (DRB 1, data) M2S71-qdu-Ca: 2975 SDUs; predicted (time, size) deliveries = observed: 2975 delivered exactly 4 ms after their last PDU; 0 lost, each with a PDU of its own never received (0 such PDUs); in flight at the end 0; unexplained 0; observed but not predicted 0; left in the RLC at the end 0
+[PASS] Q0b-3 Follow_Up classification M2S71-qdu-Ca: 475 Follow_Ups, 0 cut (each completes only after the next SDU on its DRB); predicted lag = replayed RLC delivery + UE-to-DS-TT FIFO (866000 ps unqueued, or back to back after the previous frame: 475) - TSe = PCAP lag for all but 0
+[PASS] Q0b-1 slack rule M2S71-qdu-frag: 95 slots with >= 2 queued items, 0 cuts; cut iff grant < need (slack below the missing header bytes) in all: True; single fresh SDU cut: 0; slots granted less than the demand formula (resource-limited, reported): 0
+[PASS] Q0b-2 replay M2S71-qdu-frag: 190 SDUs; predicted (time, size) deliveries = observed: 190 delivered exactly 4 ms after their last PDU; 0 lost, each with a PDU of its own never received (0 such PDUs); in flight at the end 0; unexplained 0; observed but not predicted 0; left in the RLC at the end 0
+[PASS] Q0b-2 replay (DRB 1, data) M2S71-qdu-frag: 595 SDUs; predicted (time, size) deliveries = observed: 595 delivered exactly 4 ms after their last PDU; 0 lost, each with a PDU of its own never received (0 such PDUs); in flight at the end 0; unexplained 0; observed but not predicted 0; left in the RLC at the end 0
+[PASS] Q0b-3 Follow_Up classification M2S71-qdu-frag: 95 Follow_Ups, 0 cut (each completes only after the next SDU on its DRB); predicted lag = replayed RLC delivery + UE-to-DS-TT FIFO (866000 ps unqueued, or back to back after the previous frame: 95) - TSe = PCAP lag for all but 0
+[PASS] Q0b-1 slack rule M2S71-qdu-frag-h16: 95 slots with >= 2 queued items, 0 cuts; cut iff grant < need (slack below the missing header bytes) in all: True; single fresh SDU cut: 0; slots granted less than the demand formula (resource-limited, reported): 0
+[PASS] Q0b-2 replay M2S71-qdu-frag-h16: 190 SDUs; predicted (time, size) deliveries = observed: 190 delivered exactly 4 ms after their last PDU; 0 lost, each with a PDU of its own never received (0 such PDUs); in flight at the end 0; unexplained 0; observed but not predicted 0; left in the RLC at the end 0
+[PASS] Q0b-2 replay (DRB 1, data) M2S71-qdu-frag-h16: 595 SDUs; predicted (time, size) deliveries = observed: 595 delivered exactly 4 ms after their last PDU; 0 lost, each with a PDU of its own never received (0 such PDUs); in flight at the end 0; unexplained 0; observed but not predicted 0; left in the RLC at the end 0
+[PASS] Q0b-3 Follow_Up classification M2S71-qdu-frag-h16: 95 Follow_Ups, 0 cut (each completes only after the next SDU on its DRB); predicted lag = replayed RLC delivery + UE-to-DS-TT FIFO (866000 ps unqueued, or back to back after the previous frame: 95) - TSe = PCAP lag for all but 0
+[PASS] Q0b-1 slack rule M2S71-qdu-idle: 950 slots with >= 2 queued items, 0 cuts; cut iff grant < need (slack below the missing header bytes) in all: True; single fresh SDU cut: 0; slots granted less than the demand formula (resource-limited, reported): 0
+[PASS] Q0b-2 replay M2S71-qdu-idle: 1900 SDUs; predicted (time, size) deliveries = observed: 1900 delivered exactly 4 ms after their last PDU; 0 lost, each with a PDU of its own never received (0 such PDUs); in flight at the end 0; unexplained 0; observed but not predicted 0; left in the RLC at the end 0
+[PASS] Q0b-2 replay (DRB 1, data) M2S71-qdu-idle: 5950 SDUs; predicted (time, size) deliveries = observed: 5950 delivered exactly 4 ms after their last PDU; 0 lost, each with a PDU of its own never received (0 such PDUs); in flight at the end 0; unexplained 0; observed but not predicted 0; left in the RLC at the end 0
+[PASS] Q0b-3 Follow_Up classification M2S71-qdu-idle: 950 Follow_Ups, 0 cut (each completes only after the next SDU on its DRB); predicted lag = replayed RLC delivery + UE-to-DS-TT FIFO (866000 ps unqueued, or back to back after the previous frame: 950) - TSe = PCAP lag for all but 0
+[PASS] Q0b-1 slack rule M2S71-qdu-idle-h16: 950 slots with >= 2 queued items, 0 cuts; cut iff grant < need (slack below the missing header bytes) in all: True; single fresh SDU cut: 0; slots granted less than the demand formula (resource-limited, reported): 0
+[PASS] Q0b-2 replay M2S71-qdu-idle-h16: 1900 SDUs; predicted (time, size) deliveries = observed: 1900 delivered exactly 4 ms after their last PDU; 0 lost, each with a PDU of its own never received (0 such PDUs); in flight at the end 0; unexplained 0; observed but not predicted 0; left in the RLC at the end 0
+[PASS] Q0b-2 replay (DRB 1, data) M2S71-qdu-idle-h16: 5950 SDUs; predicted (time, size) deliveries = observed: 5950 delivered exactly 4 ms after their last PDU; 0 lost, each with a PDU of its own never received (0 such PDUs); in flight at the end 0; unexplained 0; observed but not predicted 0; left in the RLC at the end 0
+[PASS] Q0b-3 Follow_Up classification M2S71-qdu-idle-h16: 950 Follow_Ups, 0 cut (each completes only after the next SDU on its DRB); predicted lag = replayed RLC delivery + UE-to-DS-TT FIFO (866000 ps unqueued, or back to back after the previous frame: 950) - TSe = PCAP lag for all but 0
+[PASS] Q0b-1 slack rule M2S71-qdu-load: 475 slots with >= 2 queued items, 0 cuts; cut iff grant < need (slack below the missing header bytes) in all: True; single fresh SDU cut: 0; slots granted less than the demand formula (resource-limited, reported): 0
+[PASS] Q0b-2 replay M2S71-qdu-load: 950 SDUs; predicted (time, size) deliveries = observed: 910 delivered exactly 4 ms after their last PDU; 40 lost, each with a PDU of its own never received (40 such PDUs); in flight at the end 0; unexplained 0; observed but not predicted 0; left in the RLC at the end 0
+[PASS] Q0b-2 replay (DRB 1, data) M2S71-qdu-load: 58725 SDUs; predicted (time, size) deliveries = observed: 45790 delivered exactly 4 ms after their last PDU; 12930 lost, each with a PDU of its own never received (12930 such PDUs); in flight at the end 0; unexplained 0; observed but not predicted 0; left in the RLC at the end 5
+[PASS] Q0b-3 Follow_Up classification M2S71-qdu-load: 455 Follow_Ups, 0 cut (each completes only after the next SDU on its DRB); predicted lag = replayed RLC delivery + UE-to-DS-TT FIFO (866000 ps unqueued, or back to back after the previous frame: 455) - TSe = PCAP lag for all but 0
+[PASS] Q0b-1 slack rule M2S71-qdu-load-h16: 475 slots with >= 2 queued items, 0 cuts; cut iff grant < need (slack below the missing header bytes) in all: True; single fresh SDU cut: 0; slots granted less than the demand formula (resource-limited, reported): 0
+[PASS] Q0b-2 replay M2S71-qdu-load-h16: 950 SDUs; predicted (time, size) deliveries = observed: 950 delivered exactly 4 ms after their last PDU; 0 lost, each with a PDU of its own never received (0 such PDUs); in flight at the end 0; unexplained 0; observed but not predicted 0; left in the RLC at the end 0
+[PASS] Q0b-2 replay (DRB 1, data) M2S71-qdu-load-h16: 58725 SDUs; predicted (time, size) deliveries = observed: 58720 delivered exactly 4 ms after their last PDU; 0 lost, each with a PDU of its own never received (0 such PDUs); in flight at the end 0; unexplained 0; observed but not predicted 0; left in the RLC at the end 5
+[PASS] Q0b-3 Follow_Up classification M2S71-qdu-load-h16: 475 Follow_Ups, 0 cut (each completes only after the next SDU on its DRB); predicted lag = replayed RLC delivery + UE-to-DS-TT FIFO (866000 ps unqueued, or back to back after the previous frame: 475) - TSe = PCAP lag for all but 0
+OVERALL: PASS (239 PASS, 0 FAIL, 24 NOT EVALUATED)
+UE-to-DS-TT Follow_Up path delay (ps): 866000
+inputs (config rep sha256 of the .vec):
+  M2S71-q0-Bp100 0 209a600a8ce907d3e0b9cac26484e674b7efb549a40de84ec60a515e3941ee32
+  M2S71-q0-Bp100 1 7dbb6c11a8c2ae6ece5dd2151f70852d3890b30ee5b8137149ea69320f22f33e
+  M2S71-q0-Bp100 2 5ea2109c8b360c0e51cadd587c6ebb2eacd07dcaf127736c757fa2ad375520ed
+  M2S71-q0-Bp100 3 62e75c4dd4a1c944f0f67abb2c0c89d6580428529dbc6faba90b314bfb65753e
+  M2S71-q0-Bp100 4 047645d2a3d4c10313203e17bf151e1dc0cce4bb3df7024bd696ca4998e369de
+  M2S71-q0-Ca 0 d86a880e50aed9d6767aa7e3f6ea33efe66b88e684e99e2b7349abad89c32029
+  M2S71-q0-Ca 1 eda97aae54acfd8cac1c512d2ce162d614733933c480da136d8028a0dce3e00a
+  M2S71-q0-Ca 2 fca56e4b5dcdf80b7d1de1fb0d5c545ab0bb2c3973ff09474438c3946e3380b5
+  M2S71-q0-Ca 3 c8263ff57c5ed830c2e0221547fd481d6d54fa28848d7c0f67734629c09ecde2
+  M2S71-q0-Ca 4 82f3e7b3dc12d3aa8d20d62f86094177034d74b4916be62a856bde7acad2e0a7
+  M2S71-q0-Ca-sus 0 565fe6c7ad9314c2476c2e69582057158cb0cd748358cdb28d9cc072bde93d91
+  M2S71-q0-Ca-sus 1 856d5cc595f337c544a21d8ad2218952bcc21bb28395cbe75e9582bc7228128b
+  M2S71-q0-Ca-sus 2 4f38dec97bd315c1b65bba5dfd26f1d5dad927e94d16966a1ea87325060cabdb
+  M2S71-q0-Ca-sus 3 070fc2a0553bb7e8958bd9e4008fa49b9c75353283ff2c49965347f94698fd68
+  M2S71-q0-Ca-sus 4 4c009c786a5cdd6cf1933b1c4c2fdaecb3cc1baa7266597278a9022fa8474a1b
+  M2S71-q0-frag 0 f26dd9bb614d77f4ba4c8453183d77f5d7d5168319e6e4f41e9ee74a68595384
+  M2S71-q0-frag-h16 0 47268172aa0daa03e9e547257f3ec6e910b631a225b4171733e0d2119c115966
+  M2S71-q0-idle 0 9ab559b2cd708156d055748bf0a9340f07575fd1e63e35aae40ba117db943f09
+  M2S71-q0-idle 1 7cfb956bd2a1061f0a8975a8af6fe4c86925fdac0f54d5267e927bf8a692f6bb
+  M2S71-q0-idle 2 b78da1e0a67482a7844cd06bb35dc37636d16d95c3d249870d6b6bf8d698f8ef
+  M2S71-q0-idle 3 aec2d6dc96dd70444e672eff110155d864c472156ca87568db0751b72bedcfc4
+  M2S71-q0-idle 4 85a86b284779e3da058cb796b4f00a5e40dae542fb8cf68316b73837980192cd
+  M2S71-q0-idle 5 2782bd2b13a13aa9d8bb684eddcd7cb4f9080a1afe47bd621e525ba6dbfaf573
+  M2S71-q0-idle 6 105c36de505b240dda62d56e5d007379bfd82d9092e2249617f02b760d4cb9ae
+  M2S71-q0-idle 7 18f5b6c76756f3261ddfe83ba446f6e0b6041551360a436c36bae1ee92475e97
+  M2S71-q0-idle 8 2287430aa32a368ff9855ff826e2d1f83460ed62215beff45ccdc678a7c1406d
+  M2S71-q0-idle 9 fa400738a96887a7d405c90c50cc6a3f32cda1b5ca4613ffed11840952a0b555
+  M2S71-q0-idle-B10 0 eb7b3285bcbb6b753599f44f0352cc06504911acd77e6922cd94148cec0d55d8
+  M2S71-q0-idle-h16 0 54637445018e224e40b119d555d8db90ca2608c5833335e8ee96a8d15a9f3a1f
+  M2S71-q0-idle-h16 1 4ee3f144dce2d7a82f5ad94224b3c168f67cf9a482ab1b31874b53d03426cf5a
+  M2S71-q0-idle-h16 2 b5ff18310e8f686ae07688877c781e4176b0795e87eacfd0f6fefa280cee527b
+  M2S71-q0-idle-h16 3 caad0306540d8a3318d0361a2c404c35a999ba8daa8279cf55959bd2efb3d6ed
+  M2S71-q0-idle-h16 4 8159a6934091be162e1ec44f4c17481047424b373c45fcc090dee6c7c00c62c1
+  M2S71-q0-idle-h16 5 651e4d3ddcd1b5c3fcf9d0197d2e264a69d19fe2fd8783a8d86d33e02516fe13
+  M2S71-q0-idle-h16 6 788596b519bb9ed65fff4003147352e40484c906089325248cda93da51e8960f
+  M2S71-q0-idle-h16 7 b0ac6ba465ab39f001ba76ce096c94aedc7772ff2f5b39e4afd6a157f123382b
+  M2S71-q0-idle-h16 8 cea7de60d72fe09999d5c11d7cb7929dea1418b2a5ecffe009af509d287e3e99
+  M2S71-q0-idle-h16 9 85498e75b0adf6dacada30d8e270c74ef3e718ec17e4cfa1887eb68383bf4836
+  M2S71-q0-load 0 953072842ad456000d6afa1c14d8600b27cf3f0d63e2385a638235b6a73cc77a
+  M2S71-q0-load 1 57f71a2db530a5b5de39139a32bc0024bb6c495731ed24db8403afce26b4699a
+  M2S71-q0-load 2 1154c8b27ce5361f21838a7ca4bb0fe08e9cf0282bee2ee98c48d1b810ac753c
+  M2S71-q0-load 3 452c009b839a8fb5e3e2eb482abe13ce23a3e770204c891006c3956fa989faaf
+  M2S71-q0-load 4 753b148982eabbfd26c5784a68d7ce840af61cbfe33cb3ef69ed95ff801c8665
+  M2S71-q0-load-h16 0 c201307a3b443816e30e0709154c97e459853f5419e0b2b1630275460c16aa85
+  M2S71-q0-load-h16 1 e2d9a77ebbff8c9ed5ba20ac39aa1e7855243671b5ef4f693f1482fce17a1b67
+  M2S71-q0-load-h16 2 211cc31cf2fd9e3593eac2dcc0580df76296dcabec2d66a7896b66b90f67eec4
+  M2S71-q0-load-h16 3 b8757bea66c93bfeded473dac36c45720b4fd430402770bb525d90fe2db0b784
+  M2S71-q0-load-h16 4 19d33c9e185b6d76f7291fd21f2319ce7fc70f46e7b0b723ebb48b679db10641
+  M2S71-q0-sus 0 689ff642460f06592a9154bec3b20d6a09ba3cc900f834736fa3a38a0a362123
+  M2S71-q0-sus 1 2ea47a8386550b7de75e1ac53531df6f8685f3baa6ef7150a83f70b2c491600e
+  M2S71-q0-sus 2 708709972847daf7303a1d9ecceb3f54e7cfcf8d580e3976b43a869adb687c95
+  M2S71-q0-sus 3 c5877470a3b8646c809ab80a26c12b00bf1ef2328ecbbb3a4550562bdd122f44
+  M2S71-q0-sus 4 486d8322fc7ca70063dabb0e3fc149f4dbf0d1315ea4adee51cba35e2ced5da6
+  M2S71-q0-sus-h16 0 20aab56fe5eeda93f4fabd976d57958c9dc6f709db8d71dd867319d1ef69cc9e
+  M2S71-q0-sus-h16 1 6a3568ed5cf3c244ac08e8ba0c50b047b7657e90c326e2ea8d27d1a19899da0e
+  M2S71-q0-sus-h16 2 c223071de2d26df8aaec3c47947e7a7448ad0643fccbe7b7e30b4a65a7abbbcf
+  M2S71-q0-sus-h16 3 f23afd2be46c863a74480211eb47ebb330145ac67cffcf6d796da9b4a6b71206
+  M2S71-q0-sus-h16 4 cebd3c195d0024e5d5d44a67bc1c7e18729cff80916f4f5b537768b1c8eaeb2c
+  M2S71-q0p-Bp100 0 bac402f156ec335d5128355257756f8349c48725479042f40aa9b53e18418f3f
+  M2S71-q0p-Bp100 1 07d956aa6fe2a2db1ae21dfc778852c253b420791750fc4d5d3de2fb887dcce6
+  M2S71-q0p-Bp100 2 df65dbc87701b0fe5e2ffc4927edbe5c3d4e5be3844218feb546fb48ea138bd3
+  M2S71-q0p-Bp100 3 481294badd6da5e1f6223e2c82e0e1f28dd05961f55348afaf78f2f6ca77187b
+  M2S71-q0p-Bp100 4 642e8bc847bd60d4a806e833149548fb83417288b94d4e1eac3ce93204249d10
+  M2S71-q0p-Ca 0 4d7216f7e638b7471dc1d8e97690477569015da3af46c80cb637411f42df35cf
+  M2S71-q0p-Ca 1 876203ee22b292fbdd0110eb79f8dbdedf9f7882d824c1437996be6ee38c78ef
+  M2S71-q0p-Ca 2 4e078561c9407decaa2da048ea2a91d47e10c1f6f453800b86aa9ae8250f19ae
+  M2S71-q0p-Ca 3 1853b5915e4f8c00fb84afec9fc59d40a4450369b6359a5e8eb52b5d0bd8f96a
+  M2S71-q0p-Ca 4 dc1844ae46b300fc11fa3266786c2716b7ed2472b1ce74a8e77c241ba7d94ff8
+  M2S71-q0p-frag 0 03e71638327d9b7dc4ed0dccdbc86b850c0d3dc551d0e7ec3d52bb994bb6f793
+  M2S71-q0p-frag-h16 0 123f4ac5b0b1b0295cdaffdbb5ad84d1fe953f8234514153f766c9e7e38712a3
+  M2S71-q0p-idle 0 76682203a95a84c47fd4708d396724342f64af16872286abbb07475901d86118
+  M2S71-q0p-idle 1 e549823dd697d53449bbff587947000a7d2a2c5c867fe63a97e81868fe4ac73e
+  M2S71-q0p-idle 2 b54ae68d46c050834e9596687969fc4010c8c44bf67233b0fd0e4914c9f37d69
+  M2S71-q0p-idle 3 a27c3138e1b9f052a2730bfe37d1525cb0159452696cab4ef2005dcd1babcc55
+  M2S71-q0p-idle 4 393701fd62a612970e18dfeb2286e77249858778d19527703391e77eb79434dd
+  M2S71-q0p-idle 5 e894df20e0685da98c81f108d0bac4dc718a8da74f480df94fe720550a669e85
+  M2S71-q0p-idle 6 ccd0534b9853dd31cb6164490cdb2c081b8addfae774eea187c74ce207862181
+  M2S71-q0p-idle 7 2e79b426babf779195b89864ad7ffc7caabc9165192c06b841281cd9bb1bf6bd
+  M2S71-q0p-idle 8 ff111a5fda5c7dc74bb44d0c634450676e2c78c46d64febefe8716f30ab6966f
+  M2S71-q0p-idle 9 a3fd86ec212df36e97b9c730ffa564ff95ea177d40aa029823db6cf5090ab474
+  M2S71-q0p-idle-h16 0 106f3eff41d9f03fca90a57c94595ef661f12f4d4ff55e0a63a4423d98584a93
+  M2S71-q0p-idle-h16 1 ce502b1bee319c6ede23b616860b657573a338dba24256d4b135542ee500453b
+  M2S71-q0p-idle-h16 2 aece9c1d37c727374857e45a1c4f02f60bdaf1d97fcb515c2602cadb7ac9a487
+  M2S71-q0p-idle-h16 3 4f855bccaa5f77d228cd2f743890a7dec17bd57b0123ff0dce8ffc2f2a5cbffa
+  M2S71-q0p-idle-h16 4 50ee97ffa0997642f6d885f628e961b6bce671a721fa9e14604384c65acb9535
+  M2S71-q0p-idle-h16 5 98d7ab81cbb1ece90bb27ebb780cb2a2b15dc517ca9a799a48a7833828951c1d
+  M2S71-q0p-idle-h16 6 b716992573810aa2cf5ac0f433342141252fcd816e8f871b8753514d661ea0d7
+  M2S71-q0p-idle-h16 7 94af4de8022982f8cca343288976cd491e0c4a47c5e85228b3e5ecf9872fcd01
+  M2S71-q0p-idle-h16 8 c6d2f14ddc52724ee3a92b5b7179d46df02651b3b8aecfaf2a198341dc47fa7c
+  M2S71-q0p-idle-h16 9 067be6720e897513d46bccfef3b51db684a72aefcee4d0916e1deeae633e4038
+  M2S71-q0p-load 0 2734f44bc13de95a2442de554309008375e2f2278b55326c74b90264969e088d
+  M2S71-q0p-load 1 e71b8367ee2e31fe3ae8e5b5054bb2d262624844434a49e8805890536f30273c
+  M2S71-q0p-load 2 2fedd08976d4cbdb9d9b66616b66e8249ac7d6200012a5f0c498de0e5306508c
+  M2S71-q0p-load 3 22b1535f403f3594fe2944bfe501ec2298cad55c7b6c21ae0703adddf1858866
+  M2S71-q0p-load 4 d17f5f00af52bfb3d36e4e1b39248b13040372662287c6d89ec161bb176d7f0b
+  M2S71-q0p-load-h16 0 fe5335b1a2002d38419283de93cfc62ef714efd7b2bb75163d4963b3a2a6d6ca
+  M2S71-q0p-load-h16 1 e35ec51042a36a9ba4ebc4baae1f69a0da5eb4cb9fca6704870223b5be7c3047
+  M2S71-q0p-load-h16 2 d4629d1c82eb91018c8a484e0a3ada686c7e77aec26cdd1d41caaaee54f1f291
+  M2S71-q0p-load-h16 3 e94c8bf16904e458155f32440a96f967e74f4e2db5d28f3c35305194662d97f7
+  M2S71-q0p-load-h16 4 9e6fbcb7385596bd5a560d6387aab4716edff77c61494db773b154ba3b2cfaa3
+  M2S71-qa-Bp100 0 9b9f382513376fb22ed6f3566375c151d96b261d9cbe3bd3d4067c755add8fc9
+  M2S71-qa-Bp100 1 a30f730c938d5cda594429ce6bcdad70b51d00b250c429e59fe32ee4d573673a
+  M2S71-qa-Bp100 2 4d73a73e13be32e255e6ea690a07d1a504ed22493e5c5de55c312cf322c155f9
+  M2S71-qa-Bp100 3 236aca3b371494c1573c0d2a7872549cccd72259d506d77d4cb989fd63c106fb
+  M2S71-qa-Bp100 4 cdc6755b37f97ca4b26d26008752a17666ed68d48a8b2dec267ac121fdafd825
+  M2S71-qa-Ca 0 72aba7fbb1264bd72c7eb824eb3b42dec864d8e77bb67c5b6905df5be155acf8
+  M2S71-qa-Ca 1 9137991e2b5329708e3fa4b7cc8dd8ae7130f86ba457e80794d58ebffe030e2f
+  M2S71-qa-Ca 2 c1296d36a08e4af8696e3a74bbf9cd5b280e2c6bab12e9358564bec81d23fdef
+  M2S71-qa-Ca 3 f3cf873146f24749471e05f8f56310ff62d46dff1536cbd2f44063d3edd9565e
+  M2S71-qa-Ca 4 5753e477d07c2725fcdcbe21e0d1fbc0fd6dbf2c5a5a665ef5cdb852f625d6e4
+  M2S71-qa-Ca-sus 0 89b7f06d7c944eefd2e771c8065b7da3ef3a2a90dcaafc2b0da267971137c40f
+  M2S71-qa-Ca-sus 1 86c52857f1e27515a8371210956e32f0ab6130a51f8e8f5bab628a210161f985
+  M2S71-qa-Ca-sus 2 dc243180172e5afc78ed5446309a89f788f2722e26b649d5874c774c9984b08d
+  M2S71-qa-Ca-sus 3 62a6ed438aac61b44a811657a7f92dde35f761b5bfbc09b17107afb35df07208
+  M2S71-qa-Ca-sus 4 5f7d83c7c1280aa0ed01629093d8033cb106666aed87ec1b256883ba842fd606
+  M2S71-qa-frag 0 119271ba936415d0e3eeb544aade1b06860c129d999c28f05963668db92cbb8a
+  M2S71-qa-frag-h16 0 9436484cc601c4fb425eeb7dc05167e396e4a3362ba2f833b1a6ff1a4ce0ddf3
+  M2S71-qa-idle 0 dad1995cec2cba716ec9fc009fb61ae9299cf0775c5b4071316d2a0d5ea9fc0a
+  M2S71-qa-idle 1 baf6aec7bd47e479443b0bf44f3b8b441bb6408cf100b874b8360830f121cb49
+  M2S71-qa-idle 2 532fa6b14b7b22abbb2ff6da5e7c7b67fada2090aa8b9ceddb349b82052b43f1
+  M2S71-qa-idle 3 24064fa94f64e0d67c4cee42a92e5d86350e41a1386cd07800d451326ccf9129
+  M2S71-qa-idle 4 1532fa6fefc72e49b7d7492ce0d4247d89ad3639d43fe34c3c587c91b987de21
+  M2S71-qa-idle 5 c8c888749da3cd64f166717daa098112c12407074646780b2370f59f9b5446ea
+  M2S71-qa-idle 6 ec325f11b7d8787ba2ce6601fadd28491596a782c772d18494a023d9211aae26
+  M2S71-qa-idle 7 b32fd92478df9a2380a7ff171e061ebd52bbc22b4ac91c84fb70a308d656de9d
+  M2S71-qa-idle 8 4030006ff669b20adfd0ebd0f13332f9350a646d5a796bc73d1f144f28b7b046
+  M2S71-qa-idle 9 cbc84978b11aa2114ce96a5f30abb9c1ba105e66676265cb7218098ace967da8
+  M2S71-qa-idle-B5 0 e7197bc9c89554f55bd25d4c236d87eff46b1bfe8420dbca10d0174937552577
+  M2S71-qa-idle-B6 0 6bc5b4fcb1810c7e49c989419afe1346bed6fed6ce0c185c2658647138f3a373
+  M2S71-qa-idle-h16 0 d82ef9759f373db3861f95fc63a10d0e474b8998b0b2aa758e3393dc87f4c75d
+  M2S71-qa-idle-h16 1 10d745ba4eec06e8e7f56476b2341d81a065b8184f311c52bc541a04b277684e
+  M2S71-qa-idle-h16 2 eb689d00fc7d75277047ed05c4abb9dabfb1bbacbd808ccecc42d61123d2ef71
+  M2S71-qa-idle-h16 3 31ae574eb1e38b801552fddcf4ccb79119f14f92e786a18a29d81a21b1fffae5
+  M2S71-qa-idle-h16 4 29caee8a8370464d5bfa003ce86a05b9020a5d2492b8f465b1aa6c3ea7fbb983
+  M2S71-qa-idle-h16 5 0b6536962c0d0905ff39ed06ea4400f7954f457878d26a3953a5a4e665a0dcbc
+  M2S71-qa-idle-h16 6 fdb2778c03f42c0045e3c06157c36c6a995096948c3632de44a170e08a1a9576
+  M2S71-qa-idle-h16 7 29d0c40c640a1f6e83dc45bc3f25bd7cceb7bdfffa7df6436fede8946321f453
+  M2S71-qa-idle-h16 8 949996147b2f499f40cee804c293605f3178f062f67b5e30549fb2ab32bd01a6
+  M2S71-qa-idle-h16 9 9873b82d5d5e878ae1f061861915f86b6d2407cb23dc31ff38c71853cbdc9ab9
+  M2S71-qa-load 0 190a0083402367ab9f217f330e7717b9077684b09059c216cf0f0300c14ada10
+  M2S71-qa-load 1 cf65023347db4a254e8a0c70db285e084d54b0d6e2dad76abecc2488872848d0
+  M2S71-qa-load 2 ca7f7500dc64487ad0076e95d5d66801f3f971c8dd9a263fdfa9240914559a21
+  M2S71-qa-load 3 669e8b15110661cff982d2557739889d829973d202dd9d01b4e6a30e73dc5992
+  M2S71-qa-load 4 70d9606e5624ab9a1957a53dc1184374d87fed582621ae106a809cebd93a15e9
+  M2S71-qa-load-h16 0 f899346f43286936ce590ee6f66ee44e9106a5dec23d50bef87b1bdb6b4cb807
+  M2S71-qa-load-h16 1 a8f28071e198bc375d60a05faa81d0c66a2035fbf5fc140f3711a922c4f3bbf2
+  M2S71-qa-load-h16 2 c5144daef1b0ed4d98158ed36c8fed42753535385e104459bb9304d425fd54db
+  M2S71-qa-load-h16 3 b844201a5a26cce0382a141702e2f2e687d4d8e0cd4e8cebe533898c2820f748
+  M2S71-qa-load-h16 4 06731b304c3735718bbed7459631f927747c23018c5e52858780de93bf59d047
+  M2S71-qa-sus 0 5c45c89cda00a75fecb7be24e6f019a779c3434ecdd04e1f51b5edf4848f5f0f
+  M2S71-qa-sus 1 de92efc5089dfafa8b5c32b773e846247c0264e72a7e87a1f7aa7fc96b071856
+  M2S71-qa-sus 2 51f62ac2f93e28fa3c4555113b621a6865354d6c3d915fdd67aa0d9a7294260c
+  M2S71-qa-sus 3 146e6d82b0a14aec80ed4c92355ca501e5850cdd4c1373983ac6c6b8e1523f6e
+  M2S71-qa-sus 4 2da529fff1ccb565370cb73684dd73f34b0bce2d7a742848ab676ebb0d1d751c
+  M2S71-qa-sus-h16 0 98dbb6c7b2650155d86129d82e425ffbc4d82c0d93fe08ced5f1e99942f8bf1f
+  M2S71-qa-sus-h16 1 b00c42dab1c63ccb927ee4a41c4f9283a44e35edfa50452a0a901d32ffb1f996
+  M2S71-qa-sus-h16 2 ee94889d1b082e11fcc061dbca82abb94361fc24d6e8d8f5edeef4948c00305b
+  M2S71-qa-sus-h16 3 b67fc6f7e23b5d75f0c033db1fe4223cadc13ab04693ab5050bd6e87a5dcf0a9
+  M2S71-qa-sus-h16 4 abb1daaad04672c0a05aa5213de1d7b49a0a1af018a3f246b6e658663153a85e
+  M2S71-qb-Bp100 0 e112c0478eec8f63553bae89eb02952bac5f722ea706a66241f0d1be19cde161
+  M2S71-qb-Bp100 1 692b6d60b92b3f4b50e03b662c281284c1822851a8ea44c4e78353848a1848af
+  M2S71-qb-Bp100 2 1f3174fdd6de1dfcdaa5dabe44f6b9826c160b21a6efea5aafce2c1968c97fc6
+  M2S71-qb-Bp100 3 787666833b65c7fcf0c0f7483b165e8dcd9bd90772083ae26f52a6d5faa668a9
+  M2S71-qb-Bp100 4 2891b07f491c90803fd804aa7cc6ad4209512e6fcbe7d0fe69c8fd6fac5b6661
+  M2S71-qb-Ca 0 c33f9d5597c20cb68f48003735a5f227bc39627f823a1ce723edba1c38fb7fa2
+  M2S71-qb-Ca 1 ea31d6c595044c02d9ca91e7cf93fc2a221b31446665bff94174d85e6c2db7b5
+  M2S71-qb-Ca 2 7f19c7633181cf74c073d58ca6d983458f060076acb10b2899ceee6ec0d2c7f0
+  M2S71-qb-Ca 3 e148433c2c5ad08651a27c49da409e23dd38928b7d5ebc81bbe28f0df382bd24
+  M2S71-qb-Ca 4 063145e3d7a4fce9b4e1a2a9d7d83d77a2f957d9a34de7f632b85d3171ca8c87
+  M2S71-qb-frag 0 37942ff3cb898036fa3333baa4f7ec05b8add005005d9c3b023c26c5dc4c6bd0
+  M2S71-qb-frag-h16 0 f5c40071d1bc094ca3647588d3c674b79d579b5b761d7e6de2af29463b6939f9
+  M2S71-qb-idle 0 9dd94ff43065742d5f009a8185898740daac21f42c61da9c017d61ba10dc4275
+  M2S71-qb-idle 1 a2137cdf228bb776b90cc2199f8d7ba01a1f2cc40715e46433b16a5a6d7da4a9
+  M2S71-qb-idle 2 93452f1608f0e9e9c3f6cd896b0a108e91900d36bf59c45ff47120209602badd
+  M2S71-qb-idle 3 2ca1bd59ce3b0c2aeaef5f5558a5add95fba9fe30736d17fb12ef7d854d01605
+  M2S71-qb-idle 4 8f98791a70a1e109db8c0f773ea05da39b4120a442c5aec12ce496ec77f41052
+  M2S71-qb-idle 5 b68f685bb297f6c098439caaa491937f680e29d1271e60f8503b09e09e465c8a
+  M2S71-qb-idle 6 a07d5f2e50d3b3ee31c5ddbed828662ecde9a4c592754ddd3eb18750aed63921
+  M2S71-qb-idle 7 f391056046a973ca16713d0c5ef2934ee413155b32d12736ec36e870a9aef74e
+  M2S71-qb-idle 8 c690eaa9bed6ca324f07c8bdfca05bd1090dbc9fa085c4e3b5b73b5c364fc451
+  M2S71-qb-idle 9 949daaadd05705748e169f8556921b99b96f894075b59b990cffe6d80ca06303
+  M2S71-qb-idle-h16 0 80e8eecb3b7bbc0469772c65c1dfb102682ecc36c5787acaca4828b9256eb337
+  M2S71-qb-idle-h16 1 c3e7461a6ca958a0d21adc10877278bf98cc59cc6700735b576653893a20db6d
+  M2S71-qb-idle-h16 2 3451d91c7204efab8259701513e1b08abadb33c1777ea6963320e57c9d19b4b9
+  M2S71-qb-idle-h16 3 4103b9a9be6acfe84a6b79890d326f9c6f3325434e04c25c66a1ca6a782a9bb9
+  M2S71-qb-idle-h16 4 be89173b31e9ed9e8690e0f2bcca4acd9f1d36a585ae87bdaaa1d1acb6ff4533
+  M2S71-qb-idle-h16 5 969e903ea4fe7fb5330cd782c111785f8354e5eab6908928a07de1406f66c61b
+  M2S71-qb-idle-h16 6 dd29d00dee723f9ab730b8bd1cbf7cc9578c7dd721fd9fe51aed2aae10911129
+  M2S71-qb-idle-h16 7 54c6e285033968158d7a3a7ec600aa1eda6b56031282afc8675a3d91e744289c
+  M2S71-qb-idle-h16 8 ed899b6628afea8bc5fbc8c48933eea794819bcf3f05b8328773c6a58a0a4532
+  M2S71-qb-idle-h16 9 18f8c3d93c97143a4bfbbf1f28722c7fe2c9357529368d1292d00ce276e7c23f
+  M2S71-qb-load 0 345f13ef40918c561ae5438f3a17498331a1843b713fcfc4b5f0072a39582183
+  M2S71-qb-load 1 1aeea03806708fbd439d6c53fbe8ff0f870218ee61203aa7f17ed8659abdc50d
+  M2S71-qb-load 2 5adb90ebe9ec445f9411bfeb2d3e147ebfd13f74bbf2afd0018b057f8880d576
+  M2S71-qb-load 3 c16afb00175870d6adcd1b3038bae7bc58dd7f675ff534408624ae822de620c9
+  M2S71-qb-load 4 4b6e64cf4ccf140732957d45a17e828fa73a82ef662af670ca449160729b6c55
+  M2S71-qb-load-h16 0 88537f0e217deca9723bb7bfcdc661a859fbece3748247d7d5009925a434b759
+  M2S71-qb-load-h16 1 df7de4250cca35a11154105bd2c238a42aaf239b9bb80edfa666239062fe84b4
+  M2S71-qb-load-h16 2 4fd9c684e911c3c0c19cd338acd0293f4a03337921be8711757b3b0835e32a8b
+  M2S71-qb-load-h16 3 011f9f3e54a3a4d02bfa90dd951b7fd1de7b7ca268e397ab5ae489fdaa13c121
+  M2S71-qb-load-h16 4 4f10606578c1dc22a34342565c3b64984899d7cacc8b7cf0cdb9336a9d3bd42d
+  M2S71-qc-Bp100 0 f8904b56c6b9538fa5d5b1aa296e9767f5e1ad7201032f362175d2d460bd3a2f
+  M2S71-qc-Bp100 1 bb586d95c309555b96bc4b193eb2fb9c9654fb014c22d65ecc9cbb98416928ce
+  M2S71-qc-Bp100 2 2f95b7a42f3116fd4d304295e7841d03869f53f3d62760973d5b000c56eceee5
+  M2S71-qc-Bp100 3 471f0090f8671e33f0f8af01706002ffd80604e06f1ec1a0d41e3506562ad6db
+  M2S71-qc-Bp100 4 fefa65c8cce20cf0d62e8b1d0b2629a01892f761d1deeff1fde5cbb493d57572
+  M2S71-qc-Ca 0 3509e9b3c9cd709e2ac3127756dac4817536ef9aa669dd299e08acbf76148fa2
+  M2S71-qc-Ca 1 58671758f661c74ec62963e91b668b0b059da996ab7afd5243d654a7a1f285c1
+  M2S71-qc-Ca 2 674becb8a7736238c34fd802c83485f3b8ef5197d667b9b8c0792da2ae088479
+  M2S71-qc-Ca 3 820cfa55410836ae2eeb17f31b6371aa73005943ff275a746c4a33f3589a0159
+  M2S71-qc-Ca 4 c452ee10b129c78519c1d533580b7f03e922c766d91bd2f7e0dee3010852c402
+  M2S71-qc-frag 0 a33e3c3043da048bfd1d14aedba742bbe2fca72a1477ad857fabdb3adf240b27
+  M2S71-qc-frag-h16 0 281f6265ec48a25b2634344f4a91e13050550304d3feae9effd8ed90cbc67835
+  M2S71-qc-idle 0 7aae51829d2a9e09682d8c026998d567e9a403ef683fcde3bae40aaa81561180
+  M2S71-qc-idle 1 059aee778efa606e372807bded6eb0aed06f23a0e1a57f4440804c447fe6a9a6
+  M2S71-qc-idle 2 50af36159e571edd29913b62d5f936ef084df81cbf2d46f7f03ed2f6e722887a
+  M2S71-qc-idle 3 adcbb0ad85ebd467f6f86d967b3c079c0b5ff4f9a670208a1710b47fe3af0a70
+  M2S71-qc-idle 4 16aef4b74a119f77dffc8295654155a8f0669b5586181357acb9ccbb9372f1a8
+  M2S71-qc-idle 5 b02b30fd22de44ca3c630c5e3a7d25fcd22cb28b7ecf73aeaf012c6658bcc664
+  M2S71-qc-idle 6 b9f7e396d95219995f67c69114e9d63c927792a628293f7a734446546a9a2320
+  M2S71-qc-idle 7 bf079acfae11c58cebb0aee2ec5df1c6372567636cb774e74452f227012b4000
+  M2S71-qc-idle 8 f6566fc5a6e3b84e7fc1bd1ed5b712b43d7e8e44e03d3308b0a8cdd792a31d56
+  M2S71-qc-idle 9 d00bccc49c48cd408b49fbd08b4daac19f29107d4588b2fd197d6a2302d0b583
+  M2S71-qc-idle-h16 0 2d05cfb3c4d788426228ecab763ec3b484cc82a3295b7085e854c58b9e1efebd
+  M2S71-qc-idle-h16 1 0ee44a1f675c1406d55f515d7c9add6c7aadbaa08ba9cb1f73c0699e36f2b255
+  M2S71-qc-idle-h16 2 7107b42c3cfa76ebf73cc64a95cbd5ef9b10e200af2746617b47f44012ef5d14
+  M2S71-qc-idle-h16 3 224d856b81b263da35deb3b7b6424ef1305cbb5c88118c4a001d4e594c788d18
+  M2S71-qc-idle-h16 4 c09964331ea0400c84b9499d2d9b598bedc54a299be1876ec416384fe681eefb
+  M2S71-qc-idle-h16 5 6fd8a0560d58a3752c06ad46ecdd29c1df65f3daa0abacd3beca353d2ab0ce78
+  M2S71-qc-idle-h16 6 d72225d12b925cf7b5a2ee825c4b56747fb72af77d0674ee4f7c20eef150d0ac
+  M2S71-qc-idle-h16 7 51709bd84ddb5a505b5f74b04e8580766c5ae85f3bcb1275567c54de58e3675a
+  M2S71-qc-idle-h16 8 037fdd6ce12ad77a533eda6dae4ed4b6d96ef56a43e970ba2ef2c71f59a5d32f
+  M2S71-qc-idle-h16 9 b67e833766a01d732a10920c58b0d85422f74deaddcb8b31f9152074bded3e41
+  M2S71-qc-load 0 6c6ea0e071c254239b260f3ad97bcea468e4183240dbcaef374354161f6550b5
+  M2S71-qc-load 1 cf5200ac448a54f664685fe4e0a686ddefe2f66bbc9faa82b2d005efa73fe327
+  M2S71-qc-load 2 9b484f2ada1414e99b7a7e736047591787c4cebe58a4280042a59631e226524c
+  M2S71-qc-load 3 6da02ae9fb882c3740864cde4d49d2add34dd9cc4a14e49dce4d404adc39b33a
+  M2S71-qc-load 4 6ebf48387385bf1c34c635fe14e13672c8501cebe4ad1aa242ff5e950bb9b4f7
+  M2S71-qc-load-h16 0 7fa8ba823834478ec9b76af4fb8067b8a07dbe52bcfeade3c23bbdd5b038fdf3
+  M2S71-qc-load-h16 1 94fa9b4c469efc7585ff9f643674ccb6e1081624f0c05cfabc7d1be27b8aafd8
+  M2S71-qc-load-h16 2 c1a047996f20ba827b50c8380fda0c916ee0fb7c59538ce9f7fedc99f90f42c3
+  M2S71-qc-load-h16 3 6b6a98ec5954aa11361ea8a8ce0a69b7dae5115e5f43c135884893b103865394
+  M2S71-qc-load-h16 4 78a29119b3681de4c2f28493f10ec36f13599625b749c3e4194be0d942fe636d
+  M2S71-qc2-Bp100 0 161936c8173e14efafa9fe8e8e0731c10f87f6fb377f02f0cd3f8c54bef258ee
+  M2S71-qc2-Bp100 1 d12818e5f0077d683d3cb7e8822f70085b3f62cc86f1b2d7b893e473beae23f2
+  M2S71-qc2-Bp100 2 ac08c15b0399a4011de7aff75bee408ef036214b2060240945f66835b83a1161
+  M2S71-qc2-Bp100 3 05478c113802700a93bca22c7f9d197f8714e00a4d35861b66f32b23a5654c9b
+  M2S71-qc2-Bp100 4 5377bc399b245a4b0af828f11b17915a59974e226cc3ee49074ffc292217fd88
+  M2S71-qc2-Ca 0 337f20279e0b206a36eb565ca39d4d5ebc081c9ba8debd2600965df761fbc02c
+  M2S71-qc2-Ca 1 0c993d8d0d37784a3078527c3ee4fcd80d8da2ebcf7d0a6aa6ec146ceee521e9
+  M2S71-qc2-Ca 2 0495d0598df5c18eaa87f961cdcdac8eaeccbcccdbe2f5b134522d523682de88
+  M2S71-qc2-Ca 3 dfa07a543df903e556a3d23ecc732a4a97783bb32fd3129cc993fe0f573587d9
+  M2S71-qc2-Ca 4 978a0f3f046c49fe297cd4210b32958025621d8b259f150f822d244050774416
+  M2S71-qc2-frag 0 c6e0b0a596c681a90ea8945799d6a11251cc43ee8b89a8984b634415f326c103
+  M2S71-qc2-frag-h16 0 9d79e279d758b5c5452e10a216f726867d7034057e3882087e66157b7bb5a4d9
+  M2S71-qc2-idle 0 362d75e12c16d46e4c20b44a9b2159c7b44ffb3823482f2d30129a0c8bcb56fe
+  M2S71-qc2-idle 1 78618341fdb3dd632c0457f33e6fdb8c5abfcdf962d7ee8df0578893c149a5f5
+  M2S71-qc2-idle 2 206d95188ab165a3ac7ef886ef7a68c7eb14c631fda27269de7277c502b13e6a
+  M2S71-qc2-idle 3 330c25a4edebe3cf56c6aece7c89581ea777b42e9a678117f3c9509357dd3078
+  M2S71-qc2-idle 4 25448e141f2a6aa1105df8326f5f432a1653fe4e20c06eac829b41817cae9a36
+  M2S71-qc2-idle 5 04e175a72fdda83b70bb0491e8ba160bd92f26b0cfbbbd51f2764a7a810476b9
+  M2S71-qc2-idle 6 110552e8b4fa9ca3854f22bc270c4ecc3e91d4b0f71b0b959079435fb7363503
+  M2S71-qc2-idle 7 dba1287649e0b37a4ff47227c0486a10c646abc2f82b57f3fdcede5f61caa24c
+  M2S71-qc2-idle 8 f5f9dab98966e6dbeb520a1aa23626abd0f06b0d752682e6bcc5628fec066db8
+  M2S71-qc2-idle 9 0d33d9fc064668afeb0380a95adfb8186fb1b91d6dcd5a3a8ff20d5f9de62e15
+  M2S71-qc2-idle-h16 0 cccd206b8646d8b3af94ee5d276e9707f66a66bd215d4b2afb3c8590a8f5f393
+  M2S71-qc2-idle-h16 1 94c9fed83e44bbc9afec8dcf6fbe069206e0d50ca9b9f3799b653b6e13abadd5
+  M2S71-qc2-idle-h16 2 47957e942e5e157d33c177ba158074351657abeee0d0bfb55075c040a9392899
+  M2S71-qc2-idle-h16 3 8217a209191ab3bcde53cb07381b83873646fc706ad221af9805f8ed0e674221
+  M2S71-qc2-idle-h16 4 22906bc95c17467718538e29841938fd63e91d1d2cc588870412e2fda7165845
+  M2S71-qc2-idle-h16 5 a5a851e19169207dc386330231ecddeec04d40304e76e8b0a039553c7ab2bfe9
+  M2S71-qc2-idle-h16 6 2a1f78aff8ae3059114dfd3a6a159ac6c61207c8fef095c17433c6026f63e7c8
+  M2S71-qc2-idle-h16 7 c0a2493b4dea17868f54a323f21fd8355b8c732abc1ee6391f66e8c774a7e1c0
+  M2S71-qc2-idle-h16 8 7e8c34ac568eae6cc67801c4003923a3652c8cca7224590d0ac24a3debd31a26
+  M2S71-qc2-idle-h16 9 f3cd55de3aee34a60fe98f74763101d070259e895c37ea4d641262219b3347df
+  M2S71-qc2-load 0 418f994f203f6f11d9daff6f37161a734fac2a05907c19d5b69f4531d14db061
+  M2S71-qc2-load 1 04efa007ca4e6d266a58d662dfe38dc099741efe967b127018ce03617b450e8b
+  M2S71-qc2-load 2 6cb86a81be78c03f1fb41e3c4593a0c07cea03c6f93fe20850404579d4a7d488
+  M2S71-qc2-load 3 878dd2da54e900d22b05ba8d2525871746dd26024e8e380da65daa73752fa9e2
+  M2S71-qc2-load 4 b8538539118415d7c733d69b475080190c6aedc95e5b585aff2d5678bd3a96cd
+  M2S71-qc2-load-h16 0 805f077fa338d955a830efc7b7b96156f8b34fe148aa0839df220e6929525529
+  M2S71-qc2-load-h16 1 94db824206c6ffccfa0cec9cccddb370069ed24d2a5f0ffc04f692691f3dc31c
+  M2S71-qc2-load-h16 2 40dc2b43b9eaaf420d1b52046535563274c9310eac15d66dd34a6ed738f96856
+  M2S71-qc2-load-h16 3 c606426d63ff8a77323a262efb626222e25ec521fe8321b88f108c534abea0da
+  M2S71-qc2-load-h16 4 794acc5c34672b3b72c200cb8bb3cbe36489cf731b282d5849988d470aa1e303
+  M2S71-qd2-Bp100 0 3973495350fc0bb1ca8194108b9817b5d232da8ac25d830552663019a7bfc862
+  M2S71-qd2-Bp100 1 9d1706f9b52cf845dcede464e5a884dbf1b7bfa4cd60e6b09f01f64ddc7c52d7
+  M2S71-qd2-Bp100 2 0531ca2d68d1fb021d139e9cea3aebd575177d11c0a3339331e7bf5a4108ed00
+  M2S71-qd2-Bp100 3 af5cf590856e6a2f2d6a364e95ec9983e3108e36da3c38f6fce1fdde50d71742
+  M2S71-qd2-Bp100 4 95dfd6f3bee9dad90777b85f0ffce5203f50eac90e04ac51eb91eea5f4fc0c88
+  M2S71-qd2-Ca 0 9749adbb0165b89ea2c94c7bfc25aec8309dc6a9350a8481b5a4b9e1c9374e1c
+  M2S71-qd2-Ca 1 c75c9ef4f37bc10abb1a8ad296792eabfa35882e4669eed89b64de4b897e5e55
+  M2S71-qd2-Ca 2 a1a71f2c2968431920d875496ec1c58a50ad4a3787a6744421d5dfa30cb159fa
+  M2S71-qd2-Ca 3 98d99b89eac96d4624f5e99a095810fb8bf7075481bc2bf3f35527fe67b62544
+  M2S71-qd2-Ca 4 742cfd6be2f9ba442a929d181654d23086e0a7384f86f72c9fb06af879deb883
+  M2S71-qd2-Ca-sus 0 3b1fd452f143f131395ca8e4815f352fe828a17cbd0365735130c6694b64db7b
+  M2S71-qd2-Ca-sus 1 96ac2a221fe9e8253c95eb354ed247e48637debb07805666a29844cd1348c5cd
+  M2S71-qd2-Ca-sus 2 d3163ccbb922a34feba64c86a1b670a3898862b325061d0c0595555cdef96190
+  M2S71-qd2-Ca-sus 3 af265ed86030adbb617710251a4702a5ca0ed974e3796f4891cea04dabde350d
+  M2S71-qd2-Ca-sus 4 ee9f4e6941f25bfb6457b90435698173a2d34332e4b801bbd8673c86c487e7bf
+  M2S71-qd2-frag 0 830e73767ae80ab449ec2fc80a79be88033156f76cb91f2c24a3dd7b337a4bad
+  M2S71-qd2-frag-h16 0 3cd7993c24459bd45e87d9c3ccf598555dfc91713f9b38b5cbce418eb5ec6c05
+  M2S71-qd2-idle 0 93dd75e5f25096a6fce1444308dae90c857b93056f7b3ac2d7d0781dfdf5c096
+  M2S71-qd2-idle 1 63d7d1c2a116952d9d13b19fe06f7e729f1c1cedac93a9d306b9ef632b38bf45
+  M2S71-qd2-idle 2 62777c3f9c12f22f09b97b2f937b13915b0c27d9145a855464ef3d42fe6ae4a6
+  M2S71-qd2-idle 3 feb86e12d1915396d87ea84378cf837d2582cfe0f1cecee0a1335af730bcd91c
+  M2S71-qd2-idle 4 38bbbaf39d8ed72ae7adbf62d56a6625c5af8194d8f5bb5b41e81ca0c1c71bb3
+  M2S71-qd2-idle 5 362c951470097da96f9a61205944195cb8b692b1009996e432f901cec1cc4eed
+  M2S71-qd2-idle 6 e74850b4c92dc274ce01f545ab1e09209e8a9dc447cf49dd3f5433af4d8e98ec
+  M2S71-qd2-idle 7 772ec98d9276a542e0397846f09407b13080e35f5ddc522b0371ba7de991096f
+  M2S71-qd2-idle 8 062604d17d00054ccda45572f7b665c721d8109e0fc5885c2ad5438d7f410a26
+  M2S71-qd2-idle 9 55520b7ed757aaaf46c79e33c92a6a80b97fb27cbe3806f14873007d40b6e2c3
+  M2S71-qd2-idle-h16 0 eeb9acb53de98199da432e42366427031d871ad650b3d9903dca6b002fd1e813
+  M2S71-qd2-idle-h16 1 48e538bac5421cc9f628979e8f5374410c504481e586a0c97cccc81a8d6e2558
+  M2S71-qd2-idle-h16 2 3656901ac5f8ea0008255f36195fc2398f745892154bf11b15736d91d9ac57a9
+  M2S71-qd2-idle-h16 3 a4b46cab77c9d585ef9cfaa0cd57166464c690a61920e5464beaac0f05c0ca5d
+  M2S71-qd2-idle-h16 4 01f6f37a6c302fe14f7d6676bb179a60367588a4a2649e3926dd9af9ed1dc2fd
+  M2S71-qd2-idle-h16 5 2c93a0853f653380704ac75a512ae3615e713393d07ed05652795e398fec12ec
+  M2S71-qd2-idle-h16 6 ae4b764d0101e2984fbcf8a25dbcb4408a1783b1ae0b7fc7b7e0e9df668f12ef
+  M2S71-qd2-idle-h16 7 d416979fa33ab7ef05017aaf427427ae0e556cd9fa9db7fc8d63dd603bce1160
+  M2S71-qd2-idle-h16 8 de30f3774e045cc1ccb2e40ab3298091503179e0708a0556c15b1f7829ddf9c4
+  M2S71-qd2-idle-h16 9 e15efa68b7530237aa2f0f87965db047672f8367c43e2c4fe3d9af5823f990d7
+  M2S71-qd2-load 0 e3df0bb418844e5c56d5be0439765ffa5f41ab50149d0988ddf643a3c5e3b653
+  M2S71-qd2-load 1 5e303120579e6816fa39eabe966f670446978950df2deb825ebafb3a67db4338
+  M2S71-qd2-load 2 ef04d0120ae74418c716c4c8e3c7bbbfc652d3e80749637fdefd0b47c41692b2
+  M2S71-qd2-load 3 d83e1d79ae4994579dd7ab55632df35e3d62a3deb31eb2bca2f8984427acb63b
+  M2S71-qd2-load 4 2f9ac49d4833f1106259e3cdf9aa3b9858e4b67b7695b134d21475a278a1cf79
+  M2S71-qd2-load-h16 0 08669436d9347a41ce716198b02abfbdc61ea146fdbc2a4a0551acdceebbd021
+  M2S71-qd2-load-h16 1 98523d80416e2d68b116f61994104cc32064f15bf751af338817da9512fa270f
+  M2S71-qd2-load-h16 2 a5419dd36d8083a6c14dee6d7a63855fe4bf11fabd21e49c4a916f51d5ae78ae
+  M2S71-qd2-load-h16 3 d8fbadc6e211dfa220c1db2f76b7f0e69a7b9f85f8ba3b58aa44b8d5bebee694
+  M2S71-qd2-load-h16 4 f80034ca8360b36f3a105372ef9f7e5aa5fd657661cb4ace3fcd880feefbcba7
+  M2S71-qd2-sus 0 2f5ff48ecec025f301f406ea81709b12226dbd76983c57273b1c245b648126bc
+  M2S71-qd2-sus 1 d8529d0efd9560e926ee351907eb18133abb0b9a6d14c4060d20862f2c1661d2
+  M2S71-qd2-sus 2 2ba857e9e076abcbfab361782ef6ce6e6e788c8211e1780d764b4dc75e7c5412
+  M2S71-qd2-sus 3 13b33035a95a136c2adfee8560c3bde2b027545b4df988e34be51e928432fe32
+  M2S71-qd2-sus 4 532154bccff1939598a444f30a8c112dd670c3c0bd1a27e5d83ecf6568f1a22f
+  M2S71-qd2-sus-h16 0 257d329be7fe706a2d443a2cae1163044767d5856800167ed7ba35bd7dbc488e
+  M2S71-qd2-sus-h16 1 8626d4bada9000cd8fe8f68b198603fcbf67ce95d2cf5b1636e7600f63d2ca1b
+  M2S71-qd2-sus-h16 2 ebe7f9a13ccd22f1c6b4960fd394e2352db881b99f11679c9b0264ac1aca46be
+  M2S71-qd2-sus-h16 3 a60c746aee243981c119a7b0405f132b27625608ad4611a6ae9e4ebd1d84fa4c
+  M2S71-qd2-sus-h16 4 d85632138df1d80a91c72109d941d8bb763aba99b9432f46a90e910dc16ebec6
+  M2S71-qda-Bp100 0 715b8bf0a337700535e8645142a32c4d6934618142174b01483f4bd706432b83
+  M2S71-qda-Bp100 1 88d015e6a36afe90bfae575e3fb0f8f9cb77483e1701f6c075f5ab0d9daa03a8
+  M2S71-qda-Bp100 2 c190f4a5693278a19b395a65905f0951a19c9d39a3984ba1673926628b55c7a6
+  M2S71-qda-Bp100 3 7b19d43fc53e82379be26392d0c27ccf6d9a13556ff2c1682601bb3978f9cd3f
+  M2S71-qda-Bp100 4 30985b9a9ac3768414f740a6e5d950ba0e91461aabe9db76f100fd95233ebfa7
+  M2S71-qda-Ca 0 a42703191726176f7c4e49cdf8426fa08920db14b62ac3f4b42cedcd2a44e840
+  M2S71-qda-Ca 1 6506272039672ce335250818fce88e4a0a5d3ebb82a5717fbd7dadabc6c34834
+  M2S71-qda-Ca 2 d7944510a1dddfb172ed31d1819227cd584e1c7205ee778e63c0063f5fc832c3
+  M2S71-qda-Ca 3 808a048ecf941e72790dfc2682e1e041add6f62f3af057b2bbf02b571646faf2
+  M2S71-qda-Ca 4 af82bf1e894ae9856662c1d96743972cd87e974b86f8d5b30fe0fc8dbe64777d
+  M2S71-qda-frag 0 84f60dd4115ef1928063ee762f56045cdb69ca077dedfbe9c4b1cecf1c33a96a
+  M2S71-qda-frag-h16 0 0f607ca6459b59e935b7f5eeadb0982970bf15deaa70b3b6d7da7f896c793fad
+  M2S71-qda-idle 0 886eccca092e57a1a03ab03c3a020c2691095fd5dc0f2d554e07f9447776af3b
+  M2S71-qda-idle 1 a70e79cae7f255b3bcdbb52489e9bee8c14a72a447b432d8dc48e4c5721c6507
+  M2S71-qda-idle 2 8f8615d93289fe5a120019b377206615eaa04aae772a4b7782843667e861cf73
+  M2S71-qda-idle 3 cd4b54e1cbdfd3136ea44511cb891d6b18e19cc00bea6ee544aceb9f8ba1bbc3
+  M2S71-qda-idle 4 a8d91d29e5be9afc2f2a0f159e567e35abf0e9ba392c36b781e86b624a2e0d93
+  M2S71-qda-idle 5 98bea054942ec3ec20eb1d20363849d71a130f3e56fa8a3521f2e97b280b4a3a
+  M2S71-qda-idle 6 7ec1198b1f3624fbac3636d5d58ce10093b37946951747a86fa48ecf020dbe69
+  M2S71-qda-idle 7 37ebdccb875b150667b4739f5d7990f72eb6e2bbdc66dfdf12aa02d152fe9cab
+  M2S71-qda-idle 8 466ae6db986bb4be69c3b1414bf6e72d22917bf175ac05f77838b6a5d0ff3a6c
+  M2S71-qda-idle 9 7fe4c8c0bda866a7746359d4f0ee9967c4fd42d2186c03444018e99e21b7465a
+  M2S71-qda-idle-h16 0 978b96807ef0ba5e2c24d7e4408539b739282ea1adf8c8bb3271be41ba5bb62e
+  M2S71-qda-idle-h16 1 744b94a43c0be8e1d433d5f21ef1469276b8925c84dc9af64f354e6f49f86d94
+  M2S71-qda-idle-h16 2 0fba9fee9789c02c40c423062fbb669fc3027b2bd97f7580bc6443c630510a53
+  M2S71-qda-idle-h16 3 0bf45fbde84f08a489cfaec7b6ca71475b10e87f9eea13766929ebc64ebead03
+  M2S71-qda-idle-h16 4 3a719adccfbe704042cf5360c9e34b545414f174d36a25474e7f3b1abdf40a29
+  M2S71-qda-idle-h16 5 02d576f4425fe2a82fe7056b183696f70dfcfe989921d831afd0ad2ecf243cb0
+  M2S71-qda-idle-h16 6 6f665e68a20abc899fc39b3a90982539d46baa925262b77d9040857395758476
+  M2S71-qda-idle-h16 7 686cae7e3345e52f48398cde5e28fb1bc153575dbc3c2716c301d07f9021c872
+  M2S71-qda-idle-h16 8 dafb6d2443f2609ca6f5117940dc0ad1bdc14aa05de34910ecc0eeb9eeb070f2
+  M2S71-qda-idle-h16 9 905198202b2e9d3f5539b091475ed4c2be42852956bbd594ca14af18a344dd35
+  M2S71-qda-load 0 de67b2e92f74e9901729cbcf912f84cdc8c831416341731167376e7cc1efe8b5
+  M2S71-qda-load 1 14699be9943900821e8caf87cd6c70f633c99f1471d02d3529b65e946d04f8a9
+  M2S71-qda-load 2 eedd46be028b6fb9f6435d366b34501274e3b3e97a1d8711ae3c98da49f51cfa
+  M2S71-qda-load 3 c57bc482c3dcad9e7976d6b692bdda87997ba09e38908d728183290086587b0b
+  M2S71-qda-load 4 d0feb134c4be9726f6e1ba957bd052c39b20801b718ee9c262dbab806b431978
+  M2S71-qda-load-h16 0 dd7271030193d0b132c4f4819b5884535b845c258d1e176c47be2e359a2f9f1d
+  M2S71-qda-load-h16 1 3fe6e5f3342bb8c674d6c8e6457de59d0fd21e073ca46e92d9a963de91b132ab
+  M2S71-qda-load-h16 2 1649dac490ed8ed7851f3a4ee1b253b0b237bc21a5045f1eabb2c9c59ddcefee
+  M2S71-qda-load-h16 3 c63a039bb51230e376c4e55b24b8ed506bba464a1113b116e743993d9964c83b
+  M2S71-qda-load-h16 4 1bc8593e48251fce9b567a3c642d3d565bf98aec01c59298936b816dfbc6eacf
+  M2S71-qdu-Bp100 0 f90ea0076a2181058b16ed424a4ba1bf34e4cd07eb47513f6e254235312e3864
+  M2S71-qdu-Bp100 1 894afaf7c31e0c91a214fc183bc816dc0963ecdab7f51a73035aee52069048ab
+  M2S71-qdu-Bp100 2 2b9fb58a801b2ea4065b493552962511916288f9c7c348c24c453fd591ce0ed3
+  M2S71-qdu-Bp100 3 9d5f3f9194910ed86e1c5e02f497f21c37407dfed76bed45acba49b285053173
+  M2S71-qdu-Bp100 4 07fe9f221b36305de4124b05c281ab976359b6ab03df5be70172b9f06087c5b3
+  M2S71-qdu-Ca 0 17c0cd88f4e08a6e4be77654d95e9f48f1be91e147b3c320cf34b18f65d7b7e1
+  M2S71-qdu-Ca 1 ca5afa117bdfa15662d644c5fd6707c098b435b3f6fe963774fca8ddeb0daf3c
+  M2S71-qdu-Ca 2 af98c86bc1923a5abd10cbbc2805e87e00c128a82d410464eab297260facae4d
+  M2S71-qdu-Ca 3 0915f9b052e14926a3085ba1a34e160f5cedb936c25816b6cd0f34670232d082
+  M2S71-qdu-Ca 4 64d71f92f5bc577389d359dff45021d4333ae6a9a5cd2f1cd6a8bec1afc6f1b4
+  M2S71-qdu-frag 0 3090194062bd02adc4db7f8832fce16cd2b4b0926562aef8777fcc5ddc4b4e14
+  M2S71-qdu-frag-h16 0 f03e996cb92b283447b158959d11c34d1e9c41333e798bb4fa46583c792c0204
+  M2S71-qdu-idle 0 c12e404bd73154e1a8f64ee1c9df5ea72a2628ef9181cc1a4f910515812f3982
+  M2S71-qdu-idle 1 841e6eef421fd4ea08766c17dd440d1179cf6b05aff534b4084b5b191797211f
+  M2S71-qdu-idle 2 fb5f2560f10203d15524443d72330e63ecba09fa0d8f904461693b2bfd0e9d03
+  M2S71-qdu-idle 3 7e2276b69b56fa3d8023e0058c0fb5bb1f21ab37917d2d1e7614871b9a16a995
+  M2S71-qdu-idle 4 53bbfda4db5ba1b8bea66882c668290a2b3b00f6534aec8e93974444a7f4db85
+  M2S71-qdu-idle 5 71870389f49775c474ba5e891e6cb1eb7e970de98ea3f2e7a1bae0faa0ccfbcf
+  M2S71-qdu-idle 6 81bf2cf53449641fbbfbb51131af0889bbac94221f18cbc13dbc91f098dd39e1
+  M2S71-qdu-idle 7 def201d466cf095b955e4356beab0380a02f56ecffea4366333126fce9627158
+  M2S71-qdu-idle 8 fb1cd9a598f8a4a54b127a748d8531061b8ed70a1bb85b95a845768742bc717e
+  M2S71-qdu-idle 9 b9f8bb7e3e150b7ec8939fd3f91cad33c4a389b51c1c37e2e08515bb89ccc697
+  M2S71-qdu-idle-h16 0 0cfd598bdd2d538335744766524406f84889c26e31409c5bb371239c9b1ff62f
+  M2S71-qdu-idle-h16 1 528e8207b9808e92cd0fed54f78476be0abce67c2b73a71b75403a847835ae23
+  M2S71-qdu-idle-h16 2 64550b04a8ad01d971afbc078d92dd5dd966a3d3fa9cd853ee0f9f93eef69a9a
+  M2S71-qdu-idle-h16 3 7597e49981fbf269c1e5b00e0a30dc0981792e2c183caf0df5362f0286a4f181
+  M2S71-qdu-idle-h16 4 c422ba74918100fe1996ff7b150f31ae1a0db1b897d71efdda290cf081177143
+  M2S71-qdu-idle-h16 5 7983f6e9ffd34525341474ef9e5abf55556c2d97dce2d6bbd217d921a99157f6
+  M2S71-qdu-idle-h16 6 24a1664a6d67492184a3f8d32ff827c309a1a31efb93cbfe5421011dd93c893c
+  M2S71-qdu-idle-h16 7 a284e4419c05a8b58391c10dc0975ca1ec30a83eb8a970c5e3dd4b512faf92d2
+  M2S71-qdu-idle-h16 8 72f2fdbe799d159284fb537f4af584df4de9033947d43a089eb1720f3b244510
+  M2S71-qdu-idle-h16 9 6f502d611a594a6f84c00e111dac236256e8f3420d8e1fb493a36a4db3fc3976
+  M2S71-qdu-load 0 71c8c9665fe1334e9cf490e1469ab1c7413289b3ba30c035cca09ff560c6eeb3
+  M2S71-qdu-load 1 1569c1715c07a4dc5965e80e98709a89b1699e50dfa1ae5e26d6b83184135d4c
+  M2S71-qdu-load 2 40cdd5f73f119216692581a517e282e1582879bc8393b8c7aae33ccff6262ab0
+  M2S71-qdu-load 3 88792976609ad7b137e2cf09f83d311a66c1a2df304f7946d8b852b40bc44cb9
+  M2S71-qdu-load 4 d4e83455f4e8ab00d489e63a497c7307efe2adbde0d5c513a4469a8015bc428c
+  M2S71-qdu-load-h16 0 65a6ab642750428be239155d0b6dd7036e9c2f4c3511734ce5ab7213ad3f3e0f
+  M2S71-qdu-load-h16 1 9f585b80e0d2bfaf0cba1afd2a261f341dcb98b21a0e767e23af2d65aa76d3a5
+  M2S71-qdu-load-h16 2 57230ff7bb27f9f028777471522a37d4eecda1db4af1334055e41355dc4ec02c
+  M2S71-qdu-load-h16 3 e6c61d354e66fb8019dab87677e2f8316a7808b302e978d7f0bfb03d01452720
+  M2S71-qdu-load-h16 4 48c2b4bc465a8f06b1aca176ca869e487be2a006e26c6c338d893cb88701bfad
