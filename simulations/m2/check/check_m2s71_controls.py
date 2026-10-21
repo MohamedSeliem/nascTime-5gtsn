@@ -55,27 +55,40 @@ def rows(out, add, Analysis, report):
         add("N-noRule: Q0a must fail; Q2 must equal Q-0", f"gPTP QFIs on N3 {dict(q)} (a dedicated-DRB option needs 10); per-pair lag, "
             f"residence and outcome identical to Q-0 in {same}/{n} paired seeds", q and set(q) != {10} and same == n and n)
 
-    # --- N-swap: Q0a must fail (QFIs exchanged), nothing else
-    if have("M2S71-N-swap"):
+    # --- N-swap: Q0a must fail (QFIs exchanged); the other rows evaluate the run exactly as they do Q-c
+    if have("M2S71-N-swap") and have("M2S71-qc-idle"):
         q = Counter()
         path = os.path.join(root, "M2S71-N-swap", "pcap", "M2S71-N-swap-0", "M1Bridge.upf.pcapRecorder[0].pcapng")
         for d, qfi, inner in L.C5.n3_inner(path):
             if d == 2 and len(inner) > 14 and inner[12:14] == b"\x88\xf7":
                 q[(inner[14] & 15, qfi)] += 1
-        a = Analysis(root, "M2S71-N-swap", 0)
-        cls = Counter(a.outcome[s] for s in a.cohort_complete())
-        add("N-swap: Q0a must fail, other rows unaffected", f"(type, QFI) on N3 {dict(q)} (configured: Sync 10, Follow_Up 11); cohort outcomes {dict(cls)}",
-            q.get((0, 11)) and q.get((8, 10)) and not q.get((0, 10)) and set(cls) == {"used"})
+        a, b = Analysis(root, "M2S71-N-swap", 0), Analysis(root, "M2S71-qc-idle", 0)
+        verdicts = {}
+        for name, x in (("N-swap", a), ("Q-c", b)):
+            saved = K.rows[:]
+            del K.rows[:]
+            for f in (K.q8_rows, K.q1_rows, K.c3_rows, K.q5_rows):
+                f([x])
+            K.q3_rows([x])
+            verdicts[name] = {r[0].replace(" Q-c", ""): r[2] for r in K.rows}
+            K.rows[:] = saved
+        add("N-swap: Q0a must fail, the other rows unaffected", f"(type, QFI) on N3 {dict(q)} (configured: Sync 10, Follow_Up 11); "
+            f"Q8/Q1/C-3/Q5 verdicts on the swapped run {verdicts['N-swap']} = on Q-c {verdicts['Q-c']}",
+            q.get((0, 11)) and q.get((8, 10)) and not q.get((0, 10)) and verdicts["N-swap"] == verdicts["Q-c"])
 
-    # --- N-noHold: Q5 must fail (and pairs become late, fail-closed)
+    # --- N-noHold: Q5 must fail (Follow_Ups that would be held are discarded instead)
     if have("M2S71-N-noHold") and have("M2S71-qc-idle"):
         a, b = Analysis(root, "M2S71-N-noHold", 0), Analysis(root, "M2S71-qc-idle", 0)
-        pred = sorted(s for s in a.ds0_f if s in a.ds1_s and a.ds0_f[s]["end"] < a.ds1_s[s]["start"])
+        hold = lambda x: sorted(s for s in x.ds0_f if s in x.ds1_s and s in x.ds0_s  # noqa: E731
+                                and x.ds0_s[s]["end"] <= x.ds0_f[s]["end"] < x.ds1_s[s]["start"])
+        pred = hold(a)
         rec = sorted(int(r["seq"]) for r in a.run.R.dslog if r["event"] == "hold")
         cls_a = Counter(a.outcome[s] for s in a.cohort_complete())
         cls_b = Counter(b.outcome[s] for s in b.cohort_complete())
-        add("N-noHold: Q5 must fail", f"Follow_Ups arriving before their Sync left: {len(pred)}; holds recorded {len(rec)}; cohort outcomes "
-            f"{dict(cls_a)} (Q-c: {dict(cls_b)})", pred and pred != rec, "if no Follow_Up overtakes its Sync, the control cannot act")
+        add("N-noHold: Q5 must fail", f"Follow_Ups arriving while their Sync is queued (hold cases): {len(pred)} (Q-c: {len(hold(b))}); "
+            f"holds recorded {len(rec)}; cohort outcomes {dict(cls_a)} (Q-c: {dict(cls_b)})", pred and pred != rec,
+            "" if pred else "no hold case arises in this run, so disabling the hold changes nothing and Q5's sensitivity to it is "
+            "not demonstrated here (M2-S5 H1 shows it on the unit topology)")
 
     # --- N-prio: Q-d (UM) under load with inverted priorities must lose the Q-d load expectation
     if have("M2S71-N-prio") and have("M2S71-qdu-load"):

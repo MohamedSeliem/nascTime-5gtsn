@@ -126,6 +126,7 @@ case "$MODE" in
     accuracy_configs | runlist runs
     extra
     REUSE=1 twins
+    REUSE=1 h0                              # phase-1 H0 runs: H0 is an eligibility row of the phase-1 selection
     python3 "$CHK/gate_m2s71.py" gates "$OUT" "$HERE/results" > "$OUT/gate-P0.txt" || true
     python3 "$CHK/check_m2s71.py" phase1 "$OUT" > "$OUT/phase1-check.txt" || true
     read -r A B < "$OUT/phase2-options.txt"
