@@ -13,6 +13,7 @@
 #   ./m2s71.sh phase2 A B  phase 2: sustained load for Q-0, option A (non-experimental), option B (experimental)
 #   ./m2s71.sh check2      phase-2 check                                    -> phase2-check.txt
 #   ./m2s71.sh check       final check over everything present              -> check.txt, report.txt
+#   ./m2s71.sh configs     run the "config reps" lines read from stdin into runs/
 #   ./m2s71.sh all         everything from scratch, in the design's order (phase 2 options from phase 1)
 # Requires OMNETPP_ROOT, INET_ROOT, SIMU5G_ROOT (or the defaults below) and, for M0 and P0(ii), the
 # committed results/M2-S5/raw-outputs.sha256 and results/M2-S6/raw-outputs.sha256.
@@ -44,6 +45,7 @@ source "$OMNETPP_ROOT/setenv" -f >/dev/null
 # run <config> <repetitions> <root dir under OUT> [extra opp_run arguments...]
 run() {
   local cfg=$1 reps=$2 root=$3; shift 3
+  if [ -n "$REUSE" ] && [ -d "$OUT/$root/$cfg" ]; then return 0; fi   # twins/h0: keep runs already present
   rm -rf "$OUT/$root/$cfg"
   mkdir -p "$OUT/$root"
   local express=--cmdenv-express-mode=true
@@ -56,7 +58,7 @@ run() {
 }
 runline() { local root=$1 cfg=$2 reps=$3; shift 3; run "$cfg" "$reps" "$root" "$@"; }
 export -f run runline
-export HERE NASCTIME SIMU5G_ROOT OUT
+export HERE NASCTIME SIMU5G_ROOT OUT REUSE
 
 OPTS="q0 q0p qa qb qc qc2 qdu qda qd2"
 phase1_configs() {
@@ -86,7 +88,7 @@ extra() {
   echo "$b" > "$OUT/runs/M2S71-N-bound.bound"
   # N-drop: threshold = p99 of the monitor lag of M2S71-q0-idle seed 0
   local t; t=$(python3 "$CHK/m2s71_tools.py" p99-lag "$OUT/runs/M2S71-q0-idle/m2log/M2S71-q0-idle-0")
-  echo "M2S71-N-drop 0 --*.dsTt.eth[1].trafficConditionerLayer.syncOut.egressTest=dropLag:${t}" | runlist runs
+  echo "M2S71-N-drop 0 --*.dsTt.eth[1].trafficConditionerLayer.syncOut.egressTest=\\\"dropLag:${t}\\\"" | runlist runs
   echo "$t" > "$OUT/runs/M2S71-N-drop.threshold"
   # Q6: MAC debug traces (seed 0) of Q-0 and Q-a under 0-3 s load, 5 and 16 HARQ processes
   printf '%s\n' "M2S71-T-q0-load 0" "M2S71-T-q0-load-h16 0" "M2S71-T-qa-load 0" "M2S71-T-qa-load-h16 0" | runlist runs-trace
@@ -108,8 +110,9 @@ case "$MODE" in
   phase1) phase1_configs | runlist runs ;;
   accuracy) accuracy_configs | runlist runs ;;
   extra) extra ;;
-  twins) twins ;;
-  h0) h0 ;;
+  twins) REUSE=1; twins ;;
+  h0) REUSE=1; h0 ;;
+  configs) runlist runs ;;   # lines "config reps" from stdin (e.g. to rerun configs)
   gates) python3 "$CHK/gate_m2s71.py" gates "$OUT" "$HERE/results" | tee "$OUT/gate-P0.txt" ;;
   check1) python3 "$CHK/check_m2s71.py" phase1 "$OUT" | tee "$OUT/phase1-check.txt" ;;
   phase2) shift; [ $# -eq 2 ] || { echo "usage: m2s71.sh phase2 <non-experimental option> <experimental option>" >&2; exit 2; }
@@ -122,13 +125,13 @@ case "$MODE" in
     phase1_configs | runlist runs
     accuracy_configs | runlist runs
     extra
-    twins
+    REUSE=1 twins
     python3 "$CHK/gate_m2s71.py" gates "$OUT" "$HERE/results" > "$OUT/gate-P0.txt"
     python3 "$CHK/check_m2s71.py" phase1 "$OUT" > "$OUT/phase1-check.txt" || true
     read -r A B < "$OUT/phase2-options.txt"
     phase2_configs "$A" "$B" | runlist runs
-    twins
-    h0
+    REUSE=1 twins
+    REUSE=1 h0
     python3 "$CHK/check_m2s71.py" final "$OUT" > "$OUT/check.txt"
     (cd "$OUT" && find runs* -type f \( -name '*.pcapng' -o -name '*.csv' -o -name '*.sca' -o -name '*.vec' \) | LC_ALL=C sort | xargs sha256sum > raw-outputs.sha256)
     grep -m1 OVERALL "$OUT/check.txt" ;;
