@@ -340,6 +340,7 @@ def q0b(out, add):
     runs = os.path.join(out, "runs")
     lines = []
     agg = defaultdict(lambda: Counter())
+    agg1 = defaultdict(lambda: Counter())      # DRB 1 of the dedicated-DRB options (data only), Q0b-2
     notes = defaultdict(list)
     inputs = []
     delta_fu = Counter()
@@ -358,12 +359,13 @@ def q0b(out, add):
             if mode == "am":
                 agg[cfg]["am_runs"] += 1
                 continue
-            for drb in sorted({ds, df}):
+            for drb in sorted({1, ds, df}):
                 d = L.rlc(run, opt, drb)
                 done, slots, left = L.replay_um(d["sdus"], d["pdus"])
-                c = agg[cfg]
+                gptp = drb in (ds, df)          # Q0b-1/3/5 are about the gPTP DRBs; Q0b-2 covers DRB 1 as well
+                c = agg[cfg] if gptp else agg1[cfg]
                 # Q0b-1
-                for t, s in slots.items():
+                for t, s in (slots.items() if gptp else ()):
                     alloc = sum(s["pdus"]) + 2
                     demand = sum(r for r, _ in s["before"]) + 2 + 1
                     need = sum(r + (1 if fresh else 4) for r, fresh in s["before"]) + 2
@@ -391,6 +393,8 @@ def q0b(out, add):
                     if expl is False:                    # neither destroyed nor in flight, yet not delivered on time
                         c["unexplained"] += 1
                         notes[cfg].append(("unexplained", rep, drb, a))
+                if not gptp:
+                    continue
                 # Q0b-5
                 if ds != df:
                     c["split_multi_gptp"] += sum(1 for s in slots.values()
@@ -444,6 +448,13 @@ def q0b(out, add):
                       f"exactly 4 ms after their last PDU; {c['unmatched']} lost, each with a PDU of its own never received ({c['lostpdu']} such "
                       f"PDUs); in flight at the end {c['inflight']}; "
                       f"unexplained {c['unexplained']}; observed but not predicted {c['extra_rx']}; left in the RLC at the end {c['left']}"))
+        if cfg in agg1:
+            c1 = agg1[cfg]
+            lines.append(("Q0b-2 replay (DRB 1, data)", cfg, c1["unexplained"] == 0 and c1["extra_rx"] == 0,
+                          f"{c1['sdus']} SDUs; predicted (time, size) deliveries = observed: {c1['matched']} delivered exactly 4 ms after their "
+                          f"last PDU; {c1['unmatched']} lost, each with a PDU of its own never received ({c1['lostpdu']} such PDUs); in flight at "
+                          f"the end {c1['inflight']}; unexplained {c1['unexplained']}; observed but not predicted {c1['extra_rx']}; left in the "
+                          f"RLC at the end {c1['left']}"))
         nq = sum(1 for cf, dl, q in fifo if cf == cfg and q)
         lines.append(("Q0b-3 Follow_Up classification", cfg, bad3[cfg] == 0 and c["fu_classified"] > 0,
                       f"{c['fu_classified']} Follow_Ups, {c['fu_cut']} cut (each completes only after the next SDU on its DRB); "
