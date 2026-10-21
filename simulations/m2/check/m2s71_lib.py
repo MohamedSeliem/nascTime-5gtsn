@@ -145,6 +145,25 @@ def replay_um(sdus, pdus):
     return done, slots, queue
 
 
+def pdu_owner(sdus, pdus):
+    """index of the SDU that each TX PDU carries (a segment of), by the same UM framing rules as replay_um;
+    SDU indices count completed SDUs in completion order, which for one FIFO TX entity is arrival order"""
+    queue, i, own, k = [], 0, [], 0
+    for t, s in pdus:
+        while i < len(sdus) and sdus[i][0] <= t:
+            queue.append([int(sdus[i][1]), 0])
+            i += 1
+        h = queue[0]
+        s = int(s)
+        pay = (h[0] if s == h[0] + 1 else s - 2) if h[1] == 0 else s - 4
+        own.append(k)
+        h[1] += pay
+        if h[1] >= h[0]:
+            queue.pop(0)
+            k += 1
+    return own
+
+
 def rlc(run, opt, drb):
     tx = entity(opt, drb, "tx")
     rx = entity(opt, drb, "rx")
