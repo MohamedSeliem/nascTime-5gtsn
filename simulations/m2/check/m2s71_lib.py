@@ -43,8 +43,17 @@ QFI = {"q0": (None, None), "q0p": (None, None), "qa": (10, 10), "qb": (10, 10), 
        "qdu": (10, 10), "qda": (10, 10), "qd2": (10, 11)}
 
 
+# negative-control runs: the option (DRB mapping, RLC mode) they are analysed as, and their variant
+CONTROLS = {"M2S71-N-noRule": ("q0", "idle"), "M2S71-N-swap": ("qc", "idle"), "M2S71-N-noHold": ("qc", "idle"),
+            "M2S71-N-prio": ("qdu", "load"), "M2S71-N-bound": ("qa", "idle"), "M2S71-N-drop": ("q0", "idle")}
+
+
 def parse_cfg(cfg):
-    """M2S71-<opt>-<variant>[-h16] -> (opt, variant, harq)"""
+    """M2S71-<opt>-<variant>[-h16] -> (opt, variant, harq); M2S71-T-<opt>-... (traces) likewise; controls by CONTROLS"""
+    if cfg in CONTROLS:
+        return CONTROLS[cfg] + (5,)
+    if cfg.startswith("M2S71-T-"):
+        cfg = "M2S71-" + cfg[len("M2S71-T-"):]
     p = cfg.split("-")
     opt = p[1]
     rest = p[2:]
@@ -91,6 +100,14 @@ class Run:
     def cohort(self, t=T_COHORT):
         """sequenceIds of the Syncs whose GM-wire transmission starts before t"""
         return sorted(s for s, f in self.gm_tx(SYNC).items() if f["start"] < t)
+
+
+class VecRun:
+    """vector access only (for rlc() on a run whose Analysis has been compacted)"""
+    def __init__(self, vec_path):
+        self.V = RR.read_vectors(vec_path)
+
+    vec = Run.vec
 
 
 def ds_events(run):

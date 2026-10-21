@@ -90,6 +90,22 @@ class Analysis:
         self.map_sdus()
         self.classify()
 
+    def compact(self):
+        """free the raw inputs once the per-pair quantities exist (a phase check holds hundreds of runs): vectors,
+        non-gPTP PCAP records and the per-SDU RLC lists (their size histograms and loss count are kept)"""
+        run = self.run
+        run.V = None
+        for k, v in list(vars(run.R).items()):
+            if isinstance(v, list) and v and isinstance(v[0], dict) and "type" in v[0]:
+                setattr(run.R, k, [f for f in v if f["type"] in (L.SYNC, L.FU)])
+        for d in self.rlc.values():
+            d["sdu_sizes"] = Counter(sz for _, sz in d["sdus"])
+            d["deliv_sizes"] = Counter(sz for _, sz in d["deliv"])
+            d["n_lostpdu"] = len(d.get("lostpdu", []))
+            for key in ("sdus", "pdus", "deliv", "rxpdus", "done", "slots", "matched", "unmatched", "lostpdu", "left"):
+                d.pop(key, None)
+        return self
+
     def slave_use(self):
         last_sync, out = None, {}
         for f in self.run.R.sl:
@@ -270,7 +286,8 @@ def q1_rows(A):
     bad = []
     for a in A:
         ds, df = a.drb_of[L.SYNC], a.drb_of[L.FU]
-        sizes = {drb: (Counter(sz for _, sz in d["sdus"]), Counter(sz for _, sz in d["deliv"])) for drb, d in a.rlc.items()}
+        sizes = {drb: (d["sdu_sizes"], d["deliv_sizes"]) if "sdu_sizes" in d else
+                 (Counter(sz for _, sz in d["sdus"]), Counter(sz for _, sz in d["deliv"])) for drb, d in a.rlc.items()}
         small = {drb: ({sz for sz in tx if sz < 110}, {sz for sz in rx if sz < 110}) for drb, (tx, rx) in sizes.items()}
         want = {1: set(), ds: set(), df: set()}
         if ds == 1:
@@ -316,26 +333,38 @@ def q3_rows(A):
 
 
 def q5_rows(A):
-    bad, n, nh = [], 0, 0
+    """Q5 per split option. Hold replay (M2-S5 R-2 method): a Follow_Up is held iff it reaches the DS-TT eth[0] after
+    its Sync arrived there and before the Sync's transmission starts on eth[1] (the Sync is queued). A Follow_Up that
+    arrives before its Sync reached the DS-TT is not a hold case: TtSyncEgress discards it (fuNoSync, fail-closed);
+    those are counted and reported, and the slave must still never see a Follow_Up before its Sync."""
+    per = defaultdict(lambda: {"n": 0, "pred": 0, "rec": 0, "early": 0, "nosync": 0, "bad": []})
     for a in A:
         if a.drb_of[L.SYNC] == a.drb_of[L.FU]:
             continue
-        n += 1
-        # predicted holds: Follow_Up reaches the DS-TT eth[0] before its Sync started on eth[1]
-        pred = sorted(s for s in a.ds0_f if s in a.ds1_s and a.ds0_f[s]["end"] < a.ds1_s[s]["start"])
+        c = per[a.opt]
+        c["n"] += 1
+        pred = sorted(s for s in a.ds0_f if s in a.ds1_s and s in a.ds0_s
+                      and a.ds0_s[s]["end"] <= a.ds0_f[s]["end"] < a.ds1_s[s]["start"])
+        early = sorted(s for s in a.ds0_f if s in a.ds0_s and a.ds0_f[s]["end"] < a.ds0_s[s]["end"])
         rec = sorted(int(r["seq"]) for r in a.run.R.dslog if r["event"] == "hold" and int(r["t"]) <= a.H)
-        nh += len(rec)
-        before = []
-        last = {}
+        nos = {int(r["seq"]) for r in a.run.R.dslog if r["event"] == "fuNoSync" and r.get("seq", "") != "" and int(r["t"]) <= a.H}
+        c["pred"] += len(pred)
+        c["rec"] += len(rec)
+        c["early"] += len(early)
+        c["nosync"] += sum(1 for s in early if s in nos)
+        before, last = [], set()
         for f in a.run.R.sl:
             if f["dir"] == 1 and f["type"] == L.SYNC:
-                last[f["seq"]] = True
+                last.add(f["seq"])
             if f["dir"] == 1 and f["type"] == L.FU and f["seq"] not in last:
                 before.append(f["seq"])
-        if pred != rec or before:
-            bad.append((a.cfg, a.rep, len(pred), len(rec), before[:3]))
-    add("Q5 order safety (split DRBs)", f"{n} runs: no Follow_Up before its Sync at the slave; DS-TT holds = Follow_Ups arriving before their "
-        f"Sync left (PCAP replay), {nh} holds", n == 0 or not bad, str(bad[:3]))
+        if pred != rec or before or any(s not in nos for s in early):
+            c["bad"].append((a.cfg, a.rep, len(pred), len(rec), before[:3], [s for s in early if s not in nos][:3]))
+    for o, c in sorted(per.items(), key=lambda kv: list(L.OPTIONS).index(kv[0])):
+        add(f"Q5 order safety {L.LABEL[o]}", f"{c['n']} runs: no Follow_Up before its Sync at the slave; DS-TT holds {c['rec']} = replay "
+            f"(Follow_Up arriving while its Sync is queued) {c['pred']}; Follow_Ups arriving before their Sync reached the DS-TT: "
+            f"{c['early']}, each discarded fail-closed (fuNoSync: {c['nosync']}) - the hold does not cover them",
+            not c["bad"], str(c["bad"][:3]))
 
 
 def trace_counts(path):
@@ -380,7 +409,7 @@ def q6_rows(out, A):
         k = (a.opt, a.variant)
         for drb, d in a.rlc.items():
             if d["mode"] == "um":
-                agg[(k, a.harq)][f"drb{drb}"] += len(d["lostpdu"])
+                agg[(k, a.harq)][f"drb{drb}"] += d["n_lostpdu"] if "n_lostpdu" in d else len(d["lostpdu"])
         agg[(k, a.harq)]["lost_pairs"] += sum(1 for s in a.cohort_complete() if a.outcome[s] == "lost")
     lines = []
     for (k, h), c in sorted(agg.items()):
@@ -403,7 +432,7 @@ def q0c_rows(out, A):
             continue
         nn += 1
         for drb in (1, 2):
-            d0, dp = L.rlc(a0.run, "q0", drb), L.rlc(ap.run, "q0p", drb)
+            d0, dp = L.rlc(L.VecRun(a0.run.R.vec_path), "q0", drb), L.rlc(L.VecRun(ap.run.R.vec_path), "q0p", drb)
             if [x for x in d0["sdus"]] != [x for x in dp["sdus"]]:
                 bad.append((v, h, r, drb, "arrivals differ"))
                 continue
@@ -412,8 +441,8 @@ def q0c_rows(out, A):
             cp = {x[0]: x[2] for x in rp[0]}
             cut0 = {x for s in r0[1].values() for x in s["cut"]}
             cutp = {x for s in rp[1].values() for x in s["cut"]}
-            m0 = G.deliveries(r0[0], d0["deliv"], d0["rxpdus"], d0["pdus"])
-            mp = G.deliveries(rp[0], dp["deliv"], dp["rxpdus"], dp["pdus"])
+            m0 = G.deliveries(r0[0], d0["deliv"], d0["rxpdus"], d0["pdus"], d0["sdus"], a0.run.end)
+            mp = G.deliveries(rp[0], dp["deliv"], dp["rxpdus"], dp["pdus"], dp["sdus"], ap.run.end)
             del0 = {x[0]: x[3] for x in m0[0]}
             delp = {x[0]: x[3] for x in mp[0]}
             for t, sz in d0["sdus"]:
@@ -421,7 +450,8 @@ def q0c_rows(out, A):
                 if a_ == b_:
                     continue
                 if (a_ is None) != (b_ is None):
-                    cause = "HARQ discard" if (t in {x[0] for x in m0[1]} or t in {x[0] for x in mp[1]}) else ("end of run" if t > 11 * S else None)
+                    lost = {x[0] for x in m0[1] if x[3] is True} | {x[0] for x in mp[1] if x[3] is True}
+                    cause = "HARQ discard" if t in lost else ("end of run" if t > 11 * S else None)
                 elif (t in cut0) != (t in cutp):
                     cause = "tail lag"
                 else:
@@ -549,7 +579,7 @@ def load_all(out, which):
         if variant not in which:
             continue
         for rep in G.reps_of(root, cfg):
-            A.append(Analysis(root, cfg, rep))
+            A.append(Analysis(root, cfg, rep).compact())
     return A
 
 
@@ -569,6 +599,29 @@ def gate_ok(out):
         if not os.path.exists(v) or hashlib.sha256(open(v, "rb").read()).hexdigest() != h:
             bad.append((cfg, rep))
     return not bad and rec, f"{len(rec)} inputs recorded, {len(bad)} changed or missing"
+
+
+def gate_rows(out):
+    """per-option gate verdict from gate-P0.txt: a row naming a config (M2S71-<opt>-...) before its ':' belongs to that
+    option, the others are common. NOT EVALUATED (Q0b-4, AM) is neither PASS nor FAIL: it puts the option in the
+    measured-only class and does not block eligibility. Returns ({opt: all own rows pass}, common rows pass, OVERALL)."""
+    p = os.path.join(out, "gate-P0.txt")
+    if not os.path.exists(p):
+        return {}, False, False
+    own, common, overall = defaultdict(lambda: True), True, False
+    for line in open(p):
+        m = re.match(r"\[(PASS|FAIL|NOT EVALUATED)\] ([^:]*)", line)
+        if not m:
+            overall = overall or line.startswith("OVERALL: PASS")
+            continue
+        ok = m.group(1) != "FAIL"
+        c = re.search(r"\b(M2S71-[A-Za-z0-9-]+)$", m.group(2).strip())
+        if c and c.group(1).split("-")[1] in L.OPTIONS:
+            o = c.group(1).split("-")[1]
+            own[o] = own[o] and ok
+        else:
+            common = common and ok
+    return {o: own[o] for o in L.OPTIONS}, common, overall
 
 
 def main():
@@ -615,16 +668,17 @@ def main():
                       f"{dict(s['classes'])} | {acc_cls}")
     # eligibility
     rowok = lambda prefix: all(r[2] for r in rows if r[0].startswith(prefix))  # noqa: E731
-    common = all(rowok(p) for p in ("C1", "Q8", "C-3", "Q1", "Q3", "Q5", "H0"))
-    gate_rec = open(os.path.join(out, "gate-P0.txt")).read() if os.path.exists(os.path.join(out, "gate-P0.txt")) else ""
-    gate_pass = "OVERALL: PASS" in gate_rec
+    common = all(rowok(p) for p in ("C1", "Q8", "Q1", "H0"))            # design 7 step 1 (with P0, C0, Q0a, Q0b, Q4, Q7)
+    gate_opt, gate_common, gate_pass = gate_rows(out)
     elig = {}
     for o in L.OPTIONS:
         ig = sum(v for k, v in q7.items() if k[0] == o)
         q4 = all(v for c, v in acc.items() if c.startswith(f"M2S71-{o}-")) and any(c.startswith(f"M2S71-{o}-") for c in acc)
-        elig[o] = common and gate_pass and ig == 0 and q4
+        elig[o] = common and gate_common and gate_opt.get(o, False) and ig == 0 and q4
     report.append("Eligibility (design 7 step 1): " + ", ".join(f"{L.LABEL[o]} {'yes' if v else 'no'}" for o, v in elig.items())
-                  + f" (gates P0/C0/Q0a/Q0b record: {'PASS' if gate_pass else 'not PASS'})")
+                  + f" (gates P0/C0/Q0a/Q0b: rows common to all options {'PASS' if gate_common else 'not PASS'}; rows of each "
+                  f"option's own configs: {', '.join(L.LABEL[o] + (' PASS' if v else ' not PASS') for o, v in gate_opt.items())}; "
+                  f"whole record {'PASS' if gate_pass else 'not PASS'})")
     conds = ["idle", "load"] + (["sus"] if mode != "phase1" else [])
     st5 = {(o, c): stats[(o, c, 5)] for (o, c, h) in stats if h == 5 and c in conds}
     have = [o for o in NONEXP if all((o, c) in st5 for c in conds)]
