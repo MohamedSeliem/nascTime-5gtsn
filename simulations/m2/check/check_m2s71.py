@@ -26,6 +26,7 @@ C5 = L.C5
 S, MS, NS = L.S, L.MS, L.NS
 INF = L.INF
 rows, report = [], []
+BETWEEN = {}      # accuracy config -> steady-state between-step max |e| (ps), from Q4
 INVALID_EV = {"fuInvalidUpstream", "fuNoTag", "tagMismatch", "malformedFU", "unsupportedRepresentation", "associationMismatch",
               "ambiguousSync", "duplicateFU"}
 LATE_EV = {"staleFU", "fuNoSync", "holdExpired", "dropLagTest"}
@@ -81,7 +82,8 @@ class Analysis:
             if mode_d == "um":
                 done, slots, left = L.replay_um([x for x in d["sdus"] if x[0] <= h], [x for x in d["pdus"] if x[0] <= h])
                 matched, unmatched, extra, lostpdu = G.deliveries(done, [x for x in d["deliv"] if x[0] <= h],
-                                                                  [x for x in d["rxpdus"] if x[0] <= h], [x for x in d["pdus"] if x[0] <= h])
+                                                                  [x for x in d["rxpdus"] if x[0] <= h], [x for x in d["pdus"] if x[0] <= h],
+                                                                  [x for x in d["sdus"] if x[0] <= h], h)
                 d.update(done=done, slots=slots, left=left, matched=matched, unmatched=unmatched, lostpdu=lostpdu)
             self.rlc[drb] = d
         self.drb_of = {L.SYNC: ds, L.FU: df}
@@ -129,14 +131,14 @@ class Analysis:
         if d["mode"] == "um":
             if any(q["arr"] == sdu[0] for q in d["left"]):
                 return "held"
-            done = {a: tc for a, _, tc in d["done"]}
-            if sdu[0] in done:
-                tc = done[sdu[0]]
-                lost_t = {p[0] for p in d["lostpdu"]}
-                if any(sdu[0] <= t <= tc for t in lost_t) and not any(m[0] == sdu[0] for m in d["matched"]):
-                    return "destroyed"
-                if tc + 4 * MS > self.H - 2 * MS:
-                    return "held"          # in flight at the horizon
+            st = {u[0]: u[3] for u in d["unmatched"]}.get(sdu[0])
+            if st is True:
+                return "destroyed"         # one of its own PDUs never received (Q0b replay)
+            if st == "inflight":
+                return "held"              # replayed delivery after the horizon
+            dl = {m[0]: m[3] for m in d["matched"]}.get(sdu[0])
+            if dl is not None and dl > self.H - 2 * MS:
+                return "held"              # delivered by the RLC, still on the UE -> DS-TT path at the horizon
             return "missing"
         # AM: delivered later or still outstanding at the TX entity
         if sdu[0] > self.H - 10 * MS:
@@ -445,10 +447,23 @@ def q4_rows(out):
     import check_m2s6 as CK
     n0 = len(CK.rows)
     done = []
+    global BETWEEN
     for cfg in sorted(k for k in RR.CLOCKS if k.startswith("M2S71-")):
+        items = []
         for rep in RR.CLOCKS[cfg]["reps"]:
-            CK.run_eval(os.path.join(out, "runs"), cfg, rep, [])
+            rr = []
+            E = CK.run_eval(os.path.join(out, "runs"), cfg, rep, rr)
             done.append((cfg, rep))
+            if rr[0][3]:
+                items.append((rep, E))
+        if items:
+            report.append("\n".join(CK.stats_lines(cfg, items)))
+            # steady-state between-step max |e| (M2-S6 definition: calibrated intervals from step 3, after the first calibrated one)
+            vals = []
+            for rep, E in items:
+                cal = [f["seq"] for f in E.fus if "skip" not in f and f["nrr_valid"]]
+                vals += [abs(x["max_between"]) for x in E.iv[2:] if x["seq"] in cal and x["seq"] != cal[0] and x["max_between"] is not None]
+            BETWEEN[cfg] = max(vals) if vals else INF
     new = CK.rows[n0:]
     by_cfg = defaultdict(lambda: [0, 0])
     for r in new:
@@ -517,7 +532,8 @@ def select(stats, eligible, conds, options):
         s = {c: stats[(o, c)] for c in conds}
         ld = tuple(s[c]["p99_lag"] for c in ("sus", "load") if c in conds)
         return (ld, s["idle"]["p99_lag"], max(s[c]["p99_res"] for c in conds if c != "idle") if len(conds) > 1 else 0,
-                0 if L.OPTIONS[o][2] == "um" else 1, (1 if L.OPTIONS[o][0] == 1 else 2), 0 if L.OPTIONS[o][4] == "MAXCI" else 1)
+                BETWEEN.get(f"M2S71-{o}-Ca", INF),
+                0 if L.OPTIONS[o][2] == "um" else 1, len({L.OPTIONS[o][0], L.OPTIONS[o][1]}), 0 if L.OPTIONS[o][4] == "MAXCI" else 1)
     adm.sort(key=key)
     better = [o for o in adm if all(stats[(o, c)]["p99_lag"] < stats[("q0", c)]["p99_lag"] for c in conds if c != "idle")]
     return adm, better, notes
