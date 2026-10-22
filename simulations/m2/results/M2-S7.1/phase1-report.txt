@@ -1,5 +1,7 @@
 M2-S7.1 report (phase1); reported results, not gating
 
+Q6 (a) AM options: NOT EVALUATED (STATUS PDUs are outside the data-PDU statistics; no validated AM model, as Q0b-4): M2S71-T-qb-load: deleted MAC PDUs DL 83 / UL 61, RLC PDUs inside DL 435 / UL 378, data-PDU deficit DL 417 / UL 378; M2S71-T-qb-load-h16: deleted MAC PDUs DL 0 / UL 0, RLC PDUs inside DL 0 / UL 0, data-PDU deficit DL -18 / UL 0; M2S71-T-qc2-load: deleted MAC PDUs DL 83 / UL 61, RLC PDUs inside DL 437 / UL 379, data-PDU deficit DL 416 / UL 378; M2S71-T-qc2-load-h16: deleted MAC PDUs DL 0 / UL 0, RLC PDUs inside DL 0 / UL 0, data-PDU deficit DL -14 / UL 0; M2S71-T-qda-load: deleted MAC PDUs DL 83 / UL 0, RLC PDUs inside DL 446 / UL 0, data-PDU deficit DL 425 / UL 0; M2S71-T-qda-load-h16: deleted MAC PDUs DL 0 / UL 0, RLC PDUs inside DL 0 / UL 0, data-PDU deficit DL -18 / UL 0
+
 Q6 HARQ pair (DL; reported, no delivery guarantee claimed):
   Q-0 frag: RLC PDUs lost DL {'drb1': 0, 'lost_pairs': 0} (5 HARQ) vs {'drb1': 0, 'lost_pairs': 0} (16 HARQ)
   Q-0 idle: RLC PDUs lost DL {'drb1': 0, 'lost_pairs': 0} (5 HARQ) vs {'drb1': 0, 'lost_pairs': 0} (16 HARQ)
@@ -28,6 +30,8 @@ Q6 HARQ pair (DL; reported, no delivery guarantee claimed):
   Q-d (UM) frag: RLC PDUs lost DL {'drb1': 0, 'drb4': 0, 'lost_pairs': 0} (5 HARQ) vs {'drb1': 0, 'drb4': 0, 'lost_pairs': 0} (16 HARQ)
   Q-d (UM) idle: RLC PDUs lost DL {'drb1': 0, 'drb4': 0, 'lost_pairs': 0} (5 HARQ) vs {'drb1': 0, 'drb4': 0, 'lost_pairs': 0} (16 HARQ)
   Q-d (UM) load: RLC PDUs lost DL {'drb1': 12930, 'drb4': 40, 'lost_pairs': 20} (5 HARQ) vs {'drb1': 0, 'drb4': 0, 'lost_pairs': 0} (16 HARQ)
+
+N-noHold, original scenario (M2S71-N-noHold = Q-c idle, seed 0), superseded by M2S71-H-noHold: hold cases 0 (Q-c: 0), holds recorded 0, Follow_Ups arriving before their Sync 57 (Q-c: 57); Q5 verdict True (Q-c: True). With no hold case, disabling the hold changes nothing: the scenario cannot exercise Q5.
 
 M2S71-q0-Bp100 (reps [0, 1, 2, 3, 4]): 475 Follow_Ups (435 calibrated, 40 uncalibrated); Res +4012974.760..+5000476.009 ns; Follow_Up lag at the slave +1728.000..+1728.000 ns
   epsilon (calibrated) +0.115..+0.116 ns: E_link +0.054..+0.054, E_res -0.001..+0.000, E_ldn -0.005..-0.005, E_qG +0.067..+0.067
@@ -281,116 +285,116 @@ M2S71-qdu-Ca (reps [0, 1, 2, 3, 4]): 475 Follow_Ups (435 calibrated, 40 uncalibr
   between steps after step k >= 3 (uncalibrated): max |e| 409.000 ns; end of interval e- -410.000..-405.000 ns
   transient (rep 0): step 1: e+ -401.000, max between 25399.000, e- -25401.000 ns; step 2: e+ -403.000, max between 402.000, e- -404.000 ns; step 3: e+ -404.000, max between 404.000, e- -405.000 ns
 
-Q2 distributions over the complete cohort pairs (+inf rule; seeds = replication unit)
-option | variant | HARQ | seeds | pairs | P(delivered, used) mean ± 95% CI | p50 lag | p99 lag pooled | p99 lag per seed (mean ± CI) | p99 lag (delivered only) | lag min..max (delivered) | p99 residence | censored | classes | acceptance
+Q2 distributions over the complete cohort pairs (+inf rule; seeds = replication unit; a ± interval is given only when the seeds produced different runs)
+option | variant | HARQ | seeds (distinct runs) | pairs | P(delivered, used) mean ± 95% CI | p50 lag | p99 lag pooled | p99 lag per seed (mean ± CI) | p99 lag (delivered only) | lag min..max (delivered) | p99 residence | censored | classes | acceptance
 
-Q-0 | frag | 5 | 1 | 79 | 1.0000 | 14998.640 us | 20000.240 us | 20000.240 us | 20000.240 us | 3998.640..20000.240 us | 6002.176 us | 0 | {'used': 79} | exact-replay
+Q-0 | frag | 5 | 1 (1) | 79 | 1.0000 | 14998.640 us | 20000.240 us | 20000.240 us | 20000.240 us | 3998.640..20000.240 us | 6002.176 us | 0 | {'used': 79} | exact-replay
 
-Q-0 | frag | 16 | 1 | 79 | 1.0000 | 14998.640 us | 20000.240 us | 20000.240 us | 20000.240 us | 3998.640..20000.240 us | 6002.176 us | 0 | {'used': 79} | exact-replay
+Q-0 | frag | 16 | 1 (1) | 79 | 1.0000 | 14998.640 us | 20000.240 us | 20000.240 us | 20000.240 us | 3998.640..20000.240 us | 6002.176 us | 0 | {'used': 79} | exact-replay
 
-Q-0 | idle | 5 | 10 | 790 | 1.0000 ± 0.0000 | 14998.640 us | 20000.240 us | 20000.240 ± 0.000 us | 20000.240 us | 3998.640..20000.240 us | 6002.176 us | 0 | {'used': 790} | exact-replay
+Q-0 | idle | 5 | 10 (10) | 790 | 1.0000 ± 0.0000 | 14998.640 us | 20000.240 us | 20000.240 ± 0.000 us | 20000.240 us | 3998.640..20000.240 us | 6002.176 us | 0 | {'used': 790} | exact-replay
 
-Q-0 | idle | 16 | 10 | 790 | 1.0000 ± 0.0000 | 14998.640 us | 20000.240 us | 20000.240 ± 0.000 us | 20000.240 us | 3998.640..20000.240 us | 6002.176 us | 0 | {'used': 790} | exact-replay
+Q-0 | idle | 16 | 10 (10) | 790 | 1.0000 ± 0.0000 | 14998.640 us | 20000.240 us | 20000.240 ± 0.000 us | 20000.240 us | 3998.640..20000.240 us | 6002.176 us | 0 | {'used': 790} | exact-replay
 
-Q-0 | load | 5 | 5 | 395 | 0.9316 ± 0.0086 | 124999.088 us | inf us | inf | 124999.088 us | 1.584..124999.088 us | inf us | 0 | {'used': 368, 'lost': 27} | exact-replay
+Q-0 | load | 5 | 5 (5) | 395 | 0.9316 ± 0.0086 | 124999.088 us | inf us | inf | 124999.088 us | 1.584..124999.088 us | inf us | 0 | {'used': 368, 'lost': 27} | exact-replay
 
-Q-0 | load | 16 | 5 | 395 | 1.0000 ± 0.0000 | 124999.088 us | 124999.088 us | 124999.088 ± 0.000 us | 124999.088 us | 1.584..124999.088 us | 6022.976 us | 0 | {'used': 395} | exact-replay
+Q-0 | load | 16 | 5 (5) | 395 | 1.0000 ± 0.0000 | 124999.088 us | 124999.088 us | 124999.088 ± 0.000 us | 124999.088 us | 1.584..124999.088 us | 6022.976 us | 0 | {'used': 395} | exact-replay
 
-Q-0p | frag | 5 | 1 | 79 | 1.0000 | 14998.640 us | 20000.240 us | 20000.240 us | 20000.240 us | 3998.640..20000.240 us | 6002.176 us | 0 | {'used': 79} | exact-replay
+Q-0p | frag | 5 | 1 (1) | 79 | 1.0000 | 14998.640 us | 20000.240 us | 20000.240 us | 20000.240 us | 3998.640..20000.240 us | 6002.176 us | 0 | {'used': 79} | exact-replay
 
-Q-0p | frag | 16 | 1 | 79 | 1.0000 | 14998.640 us | 20000.240 us | 20000.240 us | 20000.240 us | 3998.640..20000.240 us | 6002.176 us | 0 | {'used': 79} | exact-replay
+Q-0p | frag | 16 | 1 (1) | 79 | 1.0000 | 14998.640 us | 20000.240 us | 20000.240 us | 20000.240 us | 3998.640..20000.240 us | 6002.176 us | 0 | {'used': 79} | exact-replay
 
-Q-0p | idle | 5 | 10 | 790 | 1.0000 ± 0.0000 | 14998.640 us | 20000.240 us | 20000.240 ± 0.000 us | 20000.240 us | 3998.640..20000.240 us | 6002.176 us | 0 | {'used': 790} | exact-replay
+Q-0p | idle | 5 | 10 (1) | 790 | 1.0000 | 14998.640 us | 20000.240 us | 20000.240 us | 20000.240 us | 3998.640..20000.240 us | 6002.176 us | 0 | {'used': 790} | exact-replay
 
-Q-0p | idle | 16 | 10 | 790 | 1.0000 ± 0.0000 | 14998.640 us | 20000.240 us | 20000.240 ± 0.000 us | 20000.240 us | 3998.640..20000.240 us | 6002.176 us | 0 | {'used': 790} | exact-replay
+Q-0p | idle | 16 | 10 (1) | 790 | 1.0000 | 14998.640 us | 20000.240 us | 20000.240 us | 20000.240 us | 3998.640..20000.240 us | 6002.176 us | 0 | {'used': 790} | exact-replay
 
-Q-0p | load | 5 | 5 | 395 | 0.9241 ± 0.0000 | 124999.088 us | inf us | inf | 124999.088 us | 1.584..124999.088 us | inf us | 0 | {'used': 365, 'lost': 30} | exact-replay
+Q-0p | load | 5 | 5 (1) | 395 | 0.9241 | 124999.088 us | inf us | inf | 124999.088 us | 1.584..124999.088 us | inf us | 0 | {'used': 365, 'lost': 30} | exact-replay
 
-Q-0p | load | 16 | 5 | 395 | 1.0000 ± 0.0000 | 124999.088 us | 124999.088 us | 124999.088 ± 0.000 us | 124999.088 us | 1.584..124999.088 us | 6022.976 us | 0 | {'used': 395} | exact-replay
+Q-0p | load | 16 | 5 (1) | 395 | 1.0000 | 124999.088 us | 124999.088 us | 124999.088 us | 124999.088 us | 1.584..124999.088 us | 6022.976 us | 0 | {'used': 395} | exact-replay
 
-Q-a | frag | 5 | 1 | 79 | 1.0000 | 0.912 us | 0.912 us | 0.912 us | 0.912 us | 0.912..0.912 us | 6000.576 us | 0 | {'used': 79} | exact-replay
+Q-a | frag | 5 | 1 (1) | 79 | 1.0000 | 0.912 us | 0.912 us | 0.912 us | 0.912 us | 0.912..0.912 us | 6000.576 us | 0 | {'used': 79} | exact-replay
 
-Q-a | frag | 16 | 1 | 79 | 1.0000 | 0.912 us | 0.912 us | 0.912 us | 0.912 us | 0.912..0.912 us | 6000.576 us | 0 | {'used': 79} | exact-replay
+Q-a | frag | 16 | 1 (1) | 79 | 1.0000 | 0.912 us | 0.912 us | 0.912 us | 0.912 us | 0.912..0.912 us | 6000.576 us | 0 | {'used': 79} | exact-replay
 
-Q-a | idle | 5 | 10 | 790 | 1.0000 ± 0.0000 | 0.912 us | 0.912 us | 0.912 ± 0.000 us | 0.912 us | 0.912..0.912 us | 6000.576 us | 0 | {'used': 790} | exact-replay
+Q-a | idle | 5 | 10 (10) | 790 | 1.0000 ± 0.0000 | 0.912 us | 0.912 us | 0.912 ± 0.000 us | 0.912 us | 0.912..0.912 us | 6000.576 us | 0 | {'used': 790} | exact-replay
 
-Q-a | idle | 16 | 10 | 790 | 1.0000 ± 0.0000 | 0.912 us | 0.912 us | 0.912 ± 0.000 us | 0.912 us | 0.912..0.912 us | 6000.576 us | 0 | {'used': 790} | exact-replay
+Q-a | idle | 16 | 10 (10) | 790 | 1.0000 ± 0.0000 | 0.912 us | 0.912 us | 0.912 ± 0.000 us | 0.912 us | 0.912..0.912 us | 6000.576 us | 0 | {'used': 790} | exact-replay
 
-Q-a | load | 5 | 5 | 395 | 0.9367 ± 0.0192 | 0.912 us | inf us | inf | 0.912 us | 0.912..0.912 us | inf us | 0 | {'used': 370, 'lost': 25} | exact-replay
+Q-a | load | 5 | 5 (5) | 395 | 0.9367 ± 0.0192 | 0.912 us | inf us | inf | 0.912 us | 0.912..0.912 us | inf us | 0 | {'used': 370, 'lost': 25} | exact-replay
 
-Q-a | load | 16 | 5 | 395 | 1.0000 ± 0.0000 | 0.912 us | 0.912 us | 0.912 ± 0.000 us | 0.912 us | 0.912..0.912 us | 10000.576 us | 0 | {'used': 395} | exact-replay
+Q-a | load | 16 | 5 (5) | 395 | 1.0000 ± 0.0000 | 0.912 us | 0.912 us | 0.912 ± 0.000 us | 0.912 us | 0.912..0.912 us | 10000.576 us | 0 | {'used': 395} | exact-replay
 
-Q-b | frag | 5 | 1 | 79 | 1.0000 | 1000.240 us | 2000.240 us | 2000.240 us | 2000.240 us | 1000.240..2000.240 us | 6000.576 us | 0 | {'used': 79} | measured-only
+Q-b | frag | 5 | 1 (1) | 79 | 1.0000 | 1000.240 us | 2000.240 us | 2000.240 us | 2000.240 us | 1000.240..2000.240 us | 6000.576 us | 0 | {'used': 79} | measured-only
 
-Q-b | frag | 16 | 1 | 79 | 1.0000 | 1000.240 us | 2000.240 us | 2000.240 us | 2000.240 us | 1000.240..2000.240 us | 6000.576 us | 0 | {'used': 79} | measured-only
+Q-b | frag | 16 | 1 (1) | 79 | 1.0000 | 1000.240 us | 2000.240 us | 2000.240 us | 2000.240 us | 1000.240..2000.240 us | 6000.576 us | 0 | {'used': 79} | measured-only
 
-Q-b | idle | 5 | 10 | 790 | 1.0000 ± 0.0000 | 1000.240 us | 2000.240 us | 2000.240 ± 0.000 us | 2000.240 us | 1000.240..2000.240 us | 6000.576 us | 0 | {'used': 790} | measured-only
+Q-b | idle | 5 | 10 (10) | 790 | 1.0000 ± 0.0000 | 1000.240 us | 2000.240 us | 2000.240 ± 0.000 us | 2000.240 us | 1000.240..2000.240 us | 6000.576 us | 0 | {'used': 790} | measured-only
 
-Q-b | idle | 16 | 10 | 790 | 1.0000 ± 0.0000 | 1000.240 us | 2000.240 us | 2000.240 ± 0.000 us | 2000.240 us | 1000.240..2000.240 us | 6000.576 us | 0 | {'used': 790} | measured-only
+Q-b | idle | 16 | 10 (10) | 790 | 1.0000 ± 0.0000 | 1000.240 us | 2000.240 us | 2000.240 ± 0.000 us | 2000.240 us | 1000.240..2000.240 us | 6000.576 us | 0 | {'used': 790} | measured-only
 
-Q-b | load | 5 | 5 | 395 | 0.9367 ± 0.0294 | 1000.240 us | inf us | inf | 83000.240 us | 1000.240..85000.240 us | 505000.576 us | 0 | {'used': 370, 'late': 25} | measured-only
+Q-b | load | 5 | 5 (5) | 395 | 0.9367 ± 0.0294 | 1000.240 us | inf us | inf | 83000.240 us | 1000.240..85000.240 us | 505000.576 us | 0 | {'used': 370, 'late': 25} | measured-only
 
-Q-b | load | 16 | 5 | 395 | 1.0000 ± 0.0000 | 1000.240 us | 6000.240 us | 7800.240 ± 3866.521 us | 6000.240 us | 1000.240..13000.240 us | 9000.576 us | 0 | {'used': 395} | measured-only
+Q-b | load | 16 | 5 (5) | 395 | 1.0000 ± 0.0000 | 1000.240 us | 6000.240 us | 7800.240 ± 3866.521 us | 6000.240 us | 1000.240..13000.240 us | 9000.576 us | 0 | {'used': 395} | measured-only
 
-Q-c (EXPERIMENTAL) | frag | 5 | 1 | 79 | 0.3924 | inf us | inf us | inf | 2000.240 us | 1000.240..2000.240 us | 7000.576 us | 0 | {'used': 31, 'late': 48} | exact-replay
+Q-c (EXPERIMENTAL) | frag | 5 | 1 (1) | 79 | 0.3924 | inf us | inf us | inf | 2000.240 us | 1000.240..2000.240 us | 7000.576 us | 0 | {'used': 31, 'late': 48} | exact-replay
 
-Q-c (EXPERIMENTAL) | frag | 16 | 1 | 79 | 0.3924 | inf us | inf us | inf | 2000.240 us | 1000.240..2000.240 us | 7000.576 us | 0 | {'used': 31, 'late': 48} | exact-replay
+Q-c (EXPERIMENTAL) | frag | 16 | 1 (1) | 79 | 0.3924 | inf us | inf us | inf | 2000.240 us | 1000.240..2000.240 us | 7000.576 us | 0 | {'used': 31, 'late': 48} | exact-replay
 
-Q-c (EXPERIMENTAL) | idle | 5 | 10 | 790 | 0.4456 ± 0.0457 | inf us | inf us | inf | 2000.240 us | 1000.240..2000.240 us | 7000.576 us | 0 | {'used': 352, 'late': 438} | exact-replay
+Q-c (EXPERIMENTAL) | idle | 5 | 10 (10) | 790 | 0.4456 ± 0.0457 | inf us | inf us | inf | 2000.240 us | 1000.240..2000.240 us | 7000.576 us | 0 | {'used': 352, 'late': 438} | exact-replay
 
-Q-c (EXPERIMENTAL) | idle | 16 | 10 | 790 | 0.4456 ± 0.0457 | inf us | inf us | inf | 2000.240 us | 1000.240..2000.240 us | 7000.576 us | 0 | {'used': 352, 'late': 438} | exact-replay
+Q-c (EXPERIMENTAL) | idle | 16 | 10 (10) | 790 | 0.4456 ± 0.0457 | inf us | inf us | inf | 2000.240 us | 1000.240..2000.240 us | 7000.576 us | 0 | {'used': 352, 'late': 438} | exact-replay
 
-Q-c (EXPERIMENTAL) | load | 5 | 5 | 395 | 0.4329 ± 0.0560 | inf us | inf us | inf | 7000.240 us | 1000.240..7000.240 us | inf us | 0 | {'late': 185, 'lost': 39, 'used': 171} | exact-replay
+Q-c (EXPERIMENTAL) | load | 5 | 5 (5) | 395 | 0.4329 ± 0.0560 | inf us | inf us | inf | 7000.240 us | 1000.240..7000.240 us | inf us | 0 | {'late': 185, 'lost': 39, 'used': 171} | exact-replay
 
-Q-c (EXPERIMENTAL) | load | 16 | 5 | 395 | 0.4785 ± 0.0391 | inf us | inf us | inf | 5000.240 us | 1000.240..5000.240 us | 10000.576 us | 0 | {'used': 189, 'late': 206} | exact-replay
+Q-c (EXPERIMENTAL) | load | 16 | 5 (5) | 395 | 0.4785 ± 0.0391 | inf us | inf us | inf | 5000.240 us | 1000.240..5000.240 us | 10000.576 us | 0 | {'used': 189, 'late': 206} | exact-replay
 
-Q-c' (EXPERIMENTAL) | frag | 5 | 1 | 79 | 0.3924 | inf us | inf us | inf | 2000.240 us | 1000.240..2000.240 us | 7000.576 us | 0 | {'used': 31, 'late': 48} | measured-only
+Q-c' (EXPERIMENTAL) | frag | 5 | 1 (1) | 79 | 0.3924 | inf us | inf us | inf | 2000.240 us | 1000.240..2000.240 us | 7000.576 us | 0 | {'used': 31, 'late': 48} | measured-only
 
-Q-c' (EXPERIMENTAL) | frag | 16 | 1 | 79 | 0.3924 | inf us | inf us | inf | 2000.240 us | 1000.240..2000.240 us | 7000.576 us | 0 | {'used': 31, 'late': 48} | measured-only
+Q-c' (EXPERIMENTAL) | frag | 16 | 1 (1) | 79 | 0.3924 | inf us | inf us | inf | 2000.240 us | 1000.240..2000.240 us | 7000.576 us | 0 | {'used': 31, 'late': 48} | measured-only
 
-Q-c' (EXPERIMENTAL) | idle | 5 | 10 | 790 | 0.4152 ± 0.0449 | inf us | inf us | inf | 2000.240 us | 1000.240..2000.240 us | 7000.576 us | 0 | {'used': 328, 'late': 462} | measured-only
+Q-c' (EXPERIMENTAL) | idle | 5 | 10 (10) | 790 | 0.4152 ± 0.0449 | inf us | inf us | inf | 2000.240 us | 1000.240..2000.240 us | 7000.576 us | 0 | {'used': 328, 'late': 462} | measured-only
 
-Q-c' (EXPERIMENTAL) | idle | 16 | 10 | 790 | 0.4152 ± 0.0449 | inf us | inf us | inf | 2000.240 us | 1000.240..2000.240 us | 7000.576 us | 0 | {'used': 328, 'late': 462} | measured-only
+Q-c' (EXPERIMENTAL) | idle | 16 | 10 (10) | 790 | 0.4152 ± 0.0449 | inf us | inf us | inf | 2000.240 us | 1000.240..2000.240 us | 7000.576 us | 0 | {'used': 328, 'late': 462} | measured-only
 
-Q-c' (EXPERIMENTAL) | load | 5 | 5 | 395 | 0.4835 ± 0.0623 | inf us | inf us | inf | 84000.240 us | 1000.240..87000.240 us | 89000.576 us | 0 | {'late': 204, 'used': 191} | measured-only
+Q-c' (EXPERIMENTAL) | load | 5 | 5 (5) | 395 | 0.4835 ± 0.0623 | inf us | inf us | inf | 84000.240 us | 1000.240..87000.240 us | 89000.576 us | 0 | {'late': 204, 'used': 191} | measured-only
 
-Q-c' (EXPERIMENTAL) | load | 16 | 5 | 395 | 0.4684 ± 0.0786 | inf us | inf us | inf | 5000.240 us | 1000.240..5000.240 us | 10000.576 us | 0 | {'used': 185, 'late': 210} | measured-only
+Q-c' (EXPERIMENTAL) | load | 16 | 5 (5) | 395 | 0.4684 ± 0.0786 | inf us | inf us | inf | 5000.240 us | 1000.240..5000.240 us | 10000.576 us | 0 | {'used': 185, 'late': 210} | measured-only
 
-Q-d (UM) | frag | 5 | 1 | 79 | 1.0000 | 0.912 us | 0.912 us | 0.912 us | 0.912 us | 0.912..0.912 us | 5000.576 us | 0 | {'used': 79} | exact-replay
+Q-d (UM) | frag | 5 | 1 (1) | 79 | 1.0000 | 0.912 us | 0.912 us | 0.912 us | 0.912 us | 0.912..0.912 us | 5000.576 us | 0 | {'used': 79} | exact-replay
 
-Q-d (UM) | frag | 16 | 1 | 79 | 1.0000 | 0.912 us | 0.912 us | 0.912 us | 0.912 us | 0.912..0.912 us | 5000.576 us | 0 | {'used': 79} | exact-replay
+Q-d (UM) | frag | 16 | 1 (1) | 79 | 1.0000 | 0.912 us | 0.912 us | 0.912 us | 0.912 us | 0.912..0.912 us | 5000.576 us | 0 | {'used': 79} | exact-replay
 
-Q-d (UM) | idle | 5 | 10 | 790 | 1.0000 ± 0.0000 | 0.912 us | 0.912 us | 0.912 ± 0.000 us | 0.912 us | 0.912..0.912 us | 5000.576 us | 0 | {'used': 790} | exact-replay
+Q-d (UM) | idle | 5 | 10 (1) | 790 | 1.0000 | 0.912 us | 0.912 us | 0.912 us | 0.912 us | 0.912..0.912 us | 5000.576 us | 0 | {'used': 790} | exact-replay
 
-Q-d (UM) | idle | 16 | 10 | 790 | 1.0000 ± 0.0000 | 0.912 us | 0.912 us | 0.912 ± 0.000 us | 0.912 us | 0.912..0.912 us | 5000.576 us | 0 | {'used': 790} | exact-replay
+Q-d (UM) | idle | 16 | 10 (1) | 790 | 1.0000 | 0.912 us | 0.912 us | 0.912 us | 0.912 us | 0.912..0.912 us | 5000.576 us | 0 | {'used': 790} | exact-replay
 
-Q-d (UM) | load | 5 | 5 | 395 | 0.9494 ± 0.0000 | 0.912 us | inf us | inf | 0.912 us | 0.912..0.912 us | inf us | 0 | {'used': 375, 'lost': 20} | exact-replay
+Q-d (UM) | load | 5 | 5 (1) | 395 | 0.9494 | 0.912 us | inf us | inf | 0.912 us | 0.912..0.912 us | inf us | 0 | {'used': 375, 'lost': 20} | exact-replay
 
-Q-d (UM) | load | 16 | 5 | 395 | 1.0000 ± 0.0000 | 0.912 us | 0.912 us | 0.912 ± 0.000 us | 0.912 us | 0.912..0.912 us | 5000.576 us | 0 | {'used': 395} | exact-replay
+Q-d (UM) | load | 16 | 5 (1) | 395 | 1.0000 | 0.912 us | 0.912 us | 0.912 us | 0.912 us | 0.912..0.912 us | 5000.576 us | 0 | {'used': 395} | exact-replay
 
-Q-d (AM) | frag | 5 | 1 | 79 | 1.0000 | 1000.240 us | 2000.240 us | 2000.240 us | 2000.240 us | 1000.240..2000.240 us | 5000.576 us | 0 | {'used': 79} | measured-only
+Q-d (AM) | frag | 5 | 1 (1) | 79 | 1.0000 | 1000.240 us | 2000.240 us | 2000.240 us | 2000.240 us | 1000.240..2000.240 us | 5000.576 us | 0 | {'used': 79} | measured-only
 
-Q-d (AM) | frag | 16 | 1 | 79 | 1.0000 | 1000.240 us | 2000.240 us | 2000.240 us | 2000.240 us | 1000.240..2000.240 us | 5000.576 us | 0 | {'used': 79} | measured-only
+Q-d (AM) | frag | 16 | 1 (1) | 79 | 1.0000 | 1000.240 us | 2000.240 us | 2000.240 us | 2000.240 us | 1000.240..2000.240 us | 5000.576 us | 0 | {'used': 79} | measured-only
 
-Q-d (AM) | idle | 5 | 10 | 790 | 1.0000 ± 0.0000 | 1000.240 us | 1000.240 us | 1700.240 ± 345.526 us | 1000.240 us | 1000.240..2000.240 us | 5000.576 us | 0 | {'used': 790} | measured-only
+Q-d (AM) | idle | 5 | 10 (2) | 790 | 1.0000 ± 0.0000 | 1000.240 us | 1000.240 us | 1700.240 ± 345.526 us | 1000.240 us | 1000.240..2000.240 us | 5000.576 us | 0 | {'used': 790} | measured-only
 
-Q-d (AM) | idle | 16 | 10 | 790 | 1.0000 ± 0.0000 | 1000.240 us | 1000.240 us | 1700.240 ± 345.526 us | 1000.240 us | 1000.240..2000.240 us | 5000.576 us | 0 | {'used': 790} | measured-only
+Q-d (AM) | idle | 16 | 10 (2) | 790 | 1.0000 ± 0.0000 | 1000.240 us | 1000.240 us | 1700.240 ± 345.526 us | 1000.240 us | 1000.240..2000.240 us | 5000.576 us | 0 | {'used': 790} | measured-only
 
-Q-d (AM) | load | 5 | 5 | 395 | 0.8987 ± 0.0000 | 1000.240 us | inf us | inf | 1000.240 us | 1000.240..1000.240 us | 461000.576 us | 0 | {'used': 355, 'late': 40} | measured-only
+Q-d (AM) | load | 5 | 5 (1) | 395 | 0.8987 | 1000.240 us | inf us | inf | 1000.240 us | 1000.240..1000.240 us | 461000.576 us | 0 | {'used': 355, 'late': 40} | measured-only
 
-Q-d (AM) | load | 16 | 5 | 395 | 1.0000 ± 0.0000 | 1000.240 us | 1000.240 us | 1000.240 ± 0.000 us | 1000.240 us | 1000.240..1000.240 us | 5000.576 us | 0 | {'used': 395} | measured-only
+Q-d (AM) | load | 16 | 5 (1) | 395 | 1.0000 | 1000.240 us | 1000.240 us | 1000.240 us | 1000.240 us | 1000.240..1000.240 us | 5000.576 us | 0 | {'used': 395} | measured-only
 
-Q-d' (EXPERIMENTAL) | frag | 5 | 1 | 79 | 1.0000 | 1000.240 us | 1000.240 us | 1000.240 us | 1000.240 us | 1000.240..1000.240 us | 5000.576 us | 0 | {'used': 79} | exact-replay
+Q-d' (EXPERIMENTAL) | frag | 5 | 1 (1) | 79 | 1.0000 | 1000.240 us | 1000.240 us | 1000.240 us | 1000.240 us | 1000.240..1000.240 us | 5000.576 us | 0 | {'used': 79} | exact-replay
 
-Q-d' (EXPERIMENTAL) | frag | 16 | 1 | 79 | 1.0000 | 1000.240 us | 1000.240 us | 1000.240 us | 1000.240 us | 1000.240..1000.240 us | 5000.576 us | 0 | {'used': 79} | exact-replay
+Q-d' (EXPERIMENTAL) | frag | 16 | 1 (1) | 79 | 1.0000 | 1000.240 us | 1000.240 us | 1000.240 us | 1000.240 us | 1000.240..1000.240 us | 5000.576 us | 0 | {'used': 79} | exact-replay
 
-Q-d' (EXPERIMENTAL) | idle | 5 | 10 | 790 | 0.9911 ± 0.0044 | 1000.240 us | 1000.240 us | inf | 1000.240 us | 1000.240..1000.240 us | 5000.576 us | 0 | {'used': 783, 'late': 7} | exact-replay
+Q-d' (EXPERIMENTAL) | idle | 5 | 10 (2) | 790 | 0.9911 ± 0.0044 | 1000.240 us | 1000.240 us | inf | 1000.240 us | 1000.240..1000.240 us | 5000.576 us | 0 | {'used': 783, 'late': 7} | exact-replay
 
-Q-d' (EXPERIMENTAL) | idle | 16 | 10 | 790 | 0.9911 ± 0.0044 | 1000.240 us | 1000.240 us | inf | 1000.240 us | 1000.240..1000.240 us | 5000.576 us | 0 | {'used': 783, 'late': 7} | exact-replay
+Q-d' (EXPERIMENTAL) | idle | 16 | 10 (2) | 790 | 0.9911 ± 0.0044 | 1000.240 us | 1000.240 us | inf | 1000.240 us | 1000.240..1000.240 us | 5000.576 us | 0 | {'used': 783, 'late': 7} | exact-replay
 
-Q-d' (EXPERIMENTAL) | load | 5 | 5 | 395 | 0.8886 ± 0.0070 | 1000.240 us | inf us | inf | 1000.240 us | 1000.240..1000.240 us | inf us | 0 | {'late': 4, 'used': 351, 'lost': 40} | exact-replay
+Q-d' (EXPERIMENTAL) | load | 5 | 5 (2) | 395 | 0.8886 ± 0.0070 | 1000.240 us | inf us | inf | 1000.240 us | 1000.240..1000.240 us | inf us | 0 | {'late': 4, 'used': 351, 'lost': 40} | exact-replay
 
-Q-d' (EXPERIMENTAL) | load | 16 | 5 | 395 | 0.9975 ± 0.0070 | 1000.240 us | 1000.240 us | inf | 1000.240 us | 1000.240..1000.240 us | 5000.576 us | 0 | {'used': 394, 'late': 1} | exact-replay
+Q-d' (EXPERIMENTAL) | load | 16 | 5 (2) | 395 | 0.9975 ± 0.0070 | 1000.240 us | 1000.240 us | inf | 1000.240 us | 1000.240..1000.240 us | 5000.576 us | 0 | {'used': 394, 'late': 1} | exact-replay
 
 Eligibility (design 7 step 1): Q-0 yes, Q-0p yes, Q-a yes, Q-b yes, Q-c yes, Q-c' yes, Q-d (UM) yes, Q-d (AM) yes, Q-d' yes (gates P0/C0/Q0a/Q0b: rows common to all options PASS; rows of each option's own configs: Q-0 PASS, Q-0p PASS, Q-a PASS, Q-b PASS, Q-c PASS, Q-c' PASS, Q-d (UM) PASS, Q-d (AM) PASS, Q-d' PASS; whole record PASS)
 

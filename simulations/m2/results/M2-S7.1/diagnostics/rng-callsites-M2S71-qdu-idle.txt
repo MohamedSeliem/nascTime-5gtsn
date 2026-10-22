@@ -1,0 +1,10 @@
+10001 intRand <- selfTest <- configure
+4000 doubleRand <- PhyPisaData <- Binder
+1200 doubleRand <- jakesFading <- getRSRP
+1027 doubleRand <- computeUrbanMacro3D <- getAttenuation
+359 doubleRand <- isReceptionSuccessful <- handleAirFrame
+283 doubleRand <- prepareSchedule <- simu5g::LteScheduler::schedule()
+84 checkRAC <- handleSelfMessage <- handleMessage
+4 doubleRand <- computeShadowing <- getAttenuation
+2 doubleRand <- nedf_uniform <- evaluate
+2 initialize <- initializeModules <- initializeModules

@@ -1,0 +1,121 @@
+M2-S7.1 seed-invariance diagnostic (closure, review 2026-10-22 item 5)
+
+1. Numbers drawn per physical RNG (= module group) in one run of each base, seeds fixed:
+  M2S71-R-q0-idle (reps [0, 1, 2, 3, 4]; identical runs: True): RNG 0 direct getEnvir()->getRNG(0) callers (PF/QoS score jitter, PhyPisaData): 4023, RNG 1 clocks: 0, RNG 2 UE MAC: 521, RNG 3 UE NIC rest (PHY, channel model): 2522, RNG 4 gNB MAC: 0, RNG 5 gNB NIC rest (PHY, channel model): 7139, RNG 6 applications: 0, RNG 7 everything else: 3
+  M2S71-R-q0-load (reps [0, 1, 2, 3, 4]; identical runs: True): RNG 0 direct getEnvir()->getRNG(0) callers (PF/QoS score jitter, PhyPisaData): 4311, RNG 1 clocks: 0, RNG 2 UE MAC: 34, RNG 3 UE NIC rest (PHY, channel model): 4982, RNG 4 gNB MAC: 0, RNG 5 gNB NIC rest (PHY, channel model): 9119, RNG 6 applications: 0, RNG 7 everything else: 3
+  M2S71-R-qdu-idle (reps [0, 1, 2, 3, 4]; identical runs: True): RNG 0 direct getEnvir()->getRNG(0) callers (PF/QoS score jitter, PhyPisaData): 5778, RNG 1 clocks: 0, RNG 2 UE MAC: 521, RNG 3 UE NIC rest (PHY, channel model): 2570, RNG 4 gNB MAC: 0, RNG 5 gNB NIC rest (PHY, channel model): 7139, RNG 6 applications: 0, RNG 7 everything else: 3
+  M2S71-R-qdu-load (reps [0, 1, 2, 3, 4]; identical runs: True): RNG 0 direct getEnvir()->getRNG(0) callers (PF/QoS score jitter, PhyPisaData): 7670, RNG 1 clocks: 0, RNG 2 UE MAC: 518, RNG 3 UE NIC rest (PHY, channel model): 4984, RNG 4 gNB MAC: 0, RNG 5 gNB NIC rest (PHY, channel model): 7275, RNG 6 applications: 0, RNG 7 everything else: 3
+  M2S71-R-qda-idle (reps [0, 1, 2, 3, 4]; identical runs: True): RNG 0 direct getEnvir()->getRNG(0) callers (PF/QoS score jitter, PhyPisaData): 5965, RNG 1 clocks: 0, RNG 2 UE MAC: 521, RNG 3 UE NIC rest (PHY, channel model): 2850, RNG 4 gNB MAC: 0, RNG 5 gNB NIC rest (PHY, channel model): 7139, RNG 6 applications: 0, RNG 7 everything else: 3
+  M2S71-R-qd2-idle (reps [0, 1, 2, 3, 4]; identical runs: True): RNG 0 direct getEnvir()->getRNG(0) callers (PF/QoS score jitter, PhyPisaData): 6015, RNG 1 clocks: 0, RNG 2 UE MAC: 521, RNG 3 UE NIC rest (PHY, channel model): 2760, RNG 4 gNB MAC: 0, RNG 5 gNB NIC rest (PHY, channel model): 7139, RNG 6 applications: 0, RNG 7 everything else: 3
+
+2. Influence: only physical RNG k varies (seeds 0-4); distinct runs (PCAP digests) and distinct gPTP views (cohort outcome, lag, residence per pair):
+  M2S71-R-q0-idle-v0: RNG 0 (direct getEnvir()->getRNG(0) callers (PF/QoS score jitter, PhyPisaData)): 5 distinct runs, 5 distinct gPTP views of 5; cohort pairs differing from seed 0 (outcome, lag or residence), seeds 1-4: [8, 8, 12, 10]; cohort outcomes per seed [{'used': 79}, {'used': 79}, {'used': 79}, {'used': 79}, {'used': 79}]
+  M2S71-R-q0-idle-v2: RNG 2 (UE MAC): 1 distinct runs, 1 distinct gPTP views of 5; cohort pairs differing from seed 0 (outcome, lag or residence), seeds 1-4: [0, 0, 0, 0]; cohort outcomes per seed [{'used': 79}, {'used': 79}, {'used': 79}, {'used': 79}, {'used': 79}]
+  M2S71-R-q0-idle-v3: RNG 3 (UE NIC rest (PHY, channel model)): 1 distinct runs, 1 distinct gPTP views of 5; cohort pairs differing from seed 0 (outcome, lag or residence), seeds 1-4: [0, 0, 0, 0]; cohort outcomes per seed [{'used': 79}, {'used': 79}, {'used': 79}, {'used': 79}, {'used': 79}]
+  M2S71-R-q0-idle-v5: RNG 5 (gNB NIC rest (PHY, channel model)): 1 distinct runs, 1 distinct gPTP views of 5; cohort pairs differing from seed 0 (outcome, lag or residence), seeds 1-4: [0, 0, 0, 0]; cohort outcomes per seed [{'used': 79}, {'used': 79}, {'used': 79}, {'used': 79}, {'used': 79}]
+  M2S71-R-q0-idle-v7: RNG 7 (everything else): 1 distinct runs, 1 distinct gPTP views of 5; cohort pairs differing from seed 0 (outcome, lag or residence), seeds 1-4: [0, 0, 0, 0]; cohort outcomes per seed [{'used': 79}, {'used': 79}, {'used': 79}, {'used': 79}, {'used': 79}]
+  M2S71-R-q0-load-v0: RNG 0 (direct getEnvir()->getRNG(0) callers (PF/QoS score jitter, PhyPisaData)): 5 distinct runs, 5 distinct gPTP views of 5; cohort pairs differing from seed 0 (outcome, lag or residence), seeds 1-4: [3, 2, 1, 5]; cohort outcomes per seed [{'used': 74, 'lost': 5}, {'used': 74, 'lost': 5}, {'used': 73, 'lost': 6}, {'used': 74, 'lost': 5}, {'used': 74, 'lost': 5}]
+  M2S71-R-q0-load-v2: RNG 2 (UE MAC): 1 distinct runs, 1 distinct gPTP views of 5; cohort pairs differing from seed 0 (outcome, lag or residence), seeds 1-4: [0, 0, 0, 0]; cohort outcomes per seed [{'used': 74, 'lost': 5}, {'used': 74, 'lost': 5}, {'used': 74, 'lost': 5}, {'used': 74, 'lost': 5}, {'used': 74, 'lost': 5}]
+  M2S71-R-q0-load-v3: RNG 3 (UE NIC rest (PHY, channel model)): 1 distinct runs, 1 distinct gPTP views of 5; cohort pairs differing from seed 0 (outcome, lag or residence), seeds 1-4: [0, 0, 0, 0]; cohort outcomes per seed [{'used': 74, 'lost': 5}, {'used': 74, 'lost': 5}, {'used': 74, 'lost': 5}, {'used': 74, 'lost': 5}, {'used': 74, 'lost': 5}]
+  M2S71-R-q0-load-v5: RNG 5 (gNB NIC rest (PHY, channel model)): 1 distinct runs, 1 distinct gPTP views of 5; cohort pairs differing from seed 0 (outcome, lag or residence), seeds 1-4: [0, 0, 0, 0]; cohort outcomes per seed [{'used': 74, 'lost': 5}, {'used': 74, 'lost': 5}, {'used': 74, 'lost': 5}, {'used': 74, 'lost': 5}, {'used': 74, 'lost': 5}]
+  M2S71-R-q0-load-v7: RNG 7 (everything else): 1 distinct runs, 1 distinct gPTP views of 5; cohort pairs differing from seed 0 (outcome, lag or residence), seeds 1-4: [0, 0, 0, 0]; cohort outcomes per seed [{'used': 74, 'lost': 5}, {'used': 74, 'lost': 5}, {'used': 74, 'lost': 5}, {'used': 74, 'lost': 5}, {'used': 74, 'lost': 5}]
+  M2S71-R-qdu-idle-v0: RNG 0 (direct getEnvir()->getRNG(0) callers (PF/QoS score jitter, PhyPisaData)): 1 distinct runs, 1 distinct gPTP views of 5; cohort pairs differing from seed 0 (outcome, lag or residence), seeds 1-4: [0, 0, 0, 0]; cohort outcomes per seed [{'used': 79}, {'used': 79}, {'used': 79}, {'used': 79}, {'used': 79}]
+  M2S71-R-qdu-idle-v2: RNG 2 (UE MAC): 1 distinct runs, 1 distinct gPTP views of 5; cohort pairs differing from seed 0 (outcome, lag or residence), seeds 1-4: [0, 0, 0, 0]; cohort outcomes per seed [{'used': 79}, {'used': 79}, {'used': 79}, {'used': 79}, {'used': 79}]
+  M2S71-R-qdu-idle-v3: RNG 3 (UE NIC rest (PHY, channel model)): 1 distinct runs, 1 distinct gPTP views of 5; cohort pairs differing from seed 0 (outcome, lag or residence), seeds 1-4: [0, 0, 0, 0]; cohort outcomes per seed [{'used': 79}, {'used': 79}, {'used': 79}, {'used': 79}, {'used': 79}]
+  M2S71-R-qdu-idle-v5: RNG 5 (gNB NIC rest (PHY, channel model)): 1 distinct runs, 1 distinct gPTP views of 5; cohort pairs differing from seed 0 (outcome, lag or residence), seeds 1-4: [0, 0, 0, 0]; cohort outcomes per seed [{'used': 79}, {'used': 79}, {'used': 79}, {'used': 79}, {'used': 79}]
+  M2S71-R-qdu-idle-v7: RNG 7 (everything else): 1 distinct runs, 1 distinct gPTP views of 5; cohort pairs differing from seed 0 (outcome, lag or residence), seeds 1-4: [0, 0, 0, 0]; cohort outcomes per seed [{'used': 79}, {'used': 79}, {'used': 79}, {'used': 79}, {'used': 79}]
+  M2S71-R-qdu-load-v0: RNG 0 (direct getEnvir()->getRNG(0) callers (PF/QoS score jitter, PhyPisaData)): 1 distinct runs, 1 distinct gPTP views of 5; cohort pairs differing from seed 0 (outcome, lag or residence), seeds 1-4: [0, 0, 0, 0]; cohort outcomes per seed [{'used': 75, 'lost': 4}, {'used': 75, 'lost': 4}, {'used': 75, 'lost': 4}, {'used': 75, 'lost': 4}, {'used': 75, 'lost': 4}]
+  M2S71-R-qdu-load-v2: RNG 2 (UE MAC): 1 distinct runs, 1 distinct gPTP views of 5; cohort pairs differing from seed 0 (outcome, lag or residence), seeds 1-4: [0, 0, 0, 0]; cohort outcomes per seed [{'used': 75, 'lost': 4}, {'used': 75, 'lost': 4}, {'used': 75, 'lost': 4}, {'used': 75, 'lost': 4}, {'used': 75, 'lost': 4}]
+  M2S71-R-qdu-load-v3: RNG 3 (UE NIC rest (PHY, channel model)): 1 distinct runs, 1 distinct gPTP views of 5; cohort pairs differing from seed 0 (outcome, lag or residence), seeds 1-4: [0, 0, 0, 0]; cohort outcomes per seed [{'used': 75, 'lost': 4}, {'used': 75, 'lost': 4}, {'used': 75, 'lost': 4}, {'used': 75, 'lost': 4}, {'used': 75, 'lost': 4}]
+  M2S71-R-qdu-load-v5: RNG 5 (gNB NIC rest (PHY, channel model)): 1 distinct runs, 1 distinct gPTP views of 5; cohort pairs differing from seed 0 (outcome, lag or residence), seeds 1-4: [0, 0, 0, 0]; cohort outcomes per seed [{'used': 75, 'lost': 4}, {'used': 75, 'lost': 4}, {'used': 75, 'lost': 4}, {'used': 75, 'lost': 4}, {'used': 75, 'lost': 4}]
+  M2S71-R-qdu-load-v7: RNG 7 (everything else): 1 distinct runs, 1 distinct gPTP views of 5; cohort pairs differing from seed 0 (outcome, lag or residence), seeds 1-4: [0, 0, 0, 0]; cohort outcomes per seed [{'used': 75, 'lost': 4}, {'used': 75, 'lost': 4}, {'used': 75, 'lost': 4}, {'used': 75, 'lost': 4}, {'used': 75, 'lost': 4}]
+  M2S71-R-qda-idle-v0: RNG 0 (direct getEnvir()->getRNG(0) callers (PF/QoS score jitter, PhyPisaData)): 1 distinct runs, 1 distinct gPTP views of 5; cohort pairs differing from seed 0 (outcome, lag or residence), seeds 1-4: [0, 0, 0, 0]; cohort outcomes per seed [{'used': 79}, {'used': 79}, {'used': 79}, {'used': 79}, {'used': 79}]
+  M2S71-R-qd2-idle-v0: RNG 0 (direct getEnvir()->getRNG(0) callers (PF/QoS score jitter, PhyPisaData)): 2 distinct runs, 2 distinct gPTP views of 5; cohort pairs differing from seed 0 (outcome, lag or residence), seeds 1-4: [0, 0, 1, 0]; cohort outcomes per seed [{'used': 79}, {'used': 79}, {'used': 79}, {'late': 1, 'used': 78}, {'used': 79}]
+
+   Not varied: RNG 1 (clocks), 4 (gNB MAC), 6 (applications) draw no numbers in these configs (section 1).
+
+3. Primary runs: distinct runs per (option, variant, HARQ) group:
+  M2S71-q0-Bp100: 1 distinct of 5
+  M2S71-q0-Ca: 1 distinct of 5
+  M2S71-q0-Ca-sus: 5 distinct of 5
+  M2S71-q0-frag: 1 distinct of 1
+  M2S71-q0-frag-h16: 1 distinct of 1
+  M2S71-q0-idle: 10 distinct of 10
+  M2S71-q0-idle-h16: 10 distinct of 10
+  M2S71-q0-load: 5 distinct of 5
+  M2S71-q0-load-h16: 5 distinct of 5
+  M2S71-q0-sus: 5 distinct of 5
+  M2S71-q0-sus-h16: 5 distinct of 5
+  M2S71-q0p-Bp100: 1 distinct of 5
+  M2S71-q0p-Ca: 1 distinct of 5
+  M2S71-q0p-frag: 1 distinct of 1
+  M2S71-q0p-frag-h16: 1 distinct of 1
+  M2S71-q0p-idle: 1 distinct of 10
+  M2S71-q0p-idle-h16: 1 distinct of 10
+  M2S71-q0p-load: 1 distinct of 5
+  M2S71-q0p-load-h16: 1 distinct of 5
+  M2S71-qa-Bp100: 1 distinct of 5
+  M2S71-qa-Ca: 1 distinct of 5
+  M2S71-qa-Ca-sus: 5 distinct of 5
+  M2S71-qa-frag: 1 distinct of 1
+  M2S71-qa-frag-h16: 1 distinct of 1
+  M2S71-qa-idle: 10 distinct of 10
+  M2S71-qa-idle-h16: 10 distinct of 10
+  M2S71-qa-load: 5 distinct of 5
+  M2S71-qa-load-h16: 5 distinct of 5
+  M2S71-qa-sus: 5 distinct of 5
+  M2S71-qa-sus-h16: 5 distinct of 5
+  M2S71-qb-Bp100: 5 distinct of 5
+  M2S71-qb-Ca: 5 distinct of 5
+  M2S71-qb-frag: 1 distinct of 1
+  M2S71-qb-frag-h16: 1 distinct of 1
+  M2S71-qb-idle: 10 distinct of 10
+  M2S71-qb-idle-h16: 10 distinct of 10
+  M2S71-qb-load: 5 distinct of 5
+  M2S71-qb-load-h16: 5 distinct of 5
+  M2S71-qc-Bp100: 5 distinct of 5
+  M2S71-qc-Ca: 5 distinct of 5
+  M2S71-qc-frag: 1 distinct of 1
+  M2S71-qc-frag-h16: 1 distinct of 1
+  M2S71-qc-idle: 10 distinct of 10
+  M2S71-qc-idle-h16: 10 distinct of 10
+  M2S71-qc-load: 5 distinct of 5
+  M2S71-qc-load-h16: 5 distinct of 5
+  M2S71-qc2-Bp100: 5 distinct of 5
+  M2S71-qc2-Ca: 5 distinct of 5
+  M2S71-qc2-frag: 1 distinct of 1
+  M2S71-qc2-frag-h16: 1 distinct of 1
+  M2S71-qc2-idle: 10 distinct of 10
+  M2S71-qc2-idle-h16: 10 distinct of 10
+  M2S71-qc2-load: 5 distinct of 5
+  M2S71-qc2-load-h16: 5 distinct of 5
+  M2S71-qd2-Bp100: 2 distinct of 5
+  M2S71-qd2-Ca: 2 distinct of 5
+  M2S71-qd2-Ca-sus: 2 distinct of 5
+  M2S71-qd2-frag: 1 distinct of 1
+  M2S71-qd2-frag-h16: 1 distinct of 1
+  M2S71-qd2-idle: 2 distinct of 10
+  M2S71-qd2-idle-h16: 2 distinct of 10
+  M2S71-qd2-load: 2 distinct of 5
+  M2S71-qd2-load-h16: 2 distinct of 5
+  M2S71-qd2-sus: 2 distinct of 5
+  M2S71-qd2-sus-h16: 2 distinct of 5
+  M2S71-qda-Bp100: 1 distinct of 5
+  M2S71-qda-Ca: 1 distinct of 5
+  M2S71-qda-frag: 1 distinct of 1
+  M2S71-qda-frag-h16: 1 distinct of 1
+  M2S71-qda-idle: 2 distinct of 10
+  M2S71-qda-idle-h16: 2 distinct of 10
+  M2S71-qda-load: 1 distinct of 5
+  M2S71-qda-load-h16: 1 distinct of 5
+  M2S71-qdu-Bp100: 1 distinct of 5
+  M2S71-qdu-Ca: 1 distinct of 5
+  M2S71-qdu-Ca-sus: 1 distinct of 5
+  M2S71-qdu-frag: 1 distinct of 1
+  M2S71-qdu-frag-h16: 1 distinct of 1
+  M2S71-qdu-idle: 1 distinct of 10
+  M2S71-qdu-idle-h16: 1 distinct of 10
+  M2S71-qdu-load: 1 distinct of 5
+  M2S71-qdu-load-h16: 1 distinct of 5
+  M2S71-qdu-sus: 1 distinct of 5
+  M2S71-qdu-sus-h16: 1 distinct of 5
