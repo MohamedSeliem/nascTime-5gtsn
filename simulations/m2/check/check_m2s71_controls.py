@@ -76,19 +76,49 @@ def rows(out, add, Analysis, report):
             f"Q8/Q1/C-3/Q5 verdicts on the swapped run {verdicts['N-swap']} = on Q-c {verdicts['Q-c']}",
             q.get((0, 11)) and q.get((8, 10)) and not q.get((0, 10)) and verdicts["N-swap"] == verdicts["Q-c"])
 
-    # --- N-noHold: Q5 must fail (Follow_Ups that would be held are discarded instead)
+    # --- hold positive control (M2S71-H-hold) and the repaired N-noHold (M2S71-H-noHold), seeds as run
+    if have("M2S71-H-hold"):
+        reps = G.reps_of(root, "M2S71-H-hold")
+        res = [K.q5_run(Analysis(root, "M2S71-H-hold", r)) for r in reps]
+        tot = Counter()
+        for ok, c, det in res:
+            tot.update(c)
+        cls, nres, badres = Counter(), 0, []
+        for r in reps:
+            a = Analysis(root, "M2S71-H-hold", r)
+            cls.update(a.outcome[s] for s in a.cohort_complete())
+            for x in a.run.R.dslog:
+                if x["event"] == "corrected" and int(x["seq"]) in a.res:
+                    nres += 1
+                    if int(x["Res"]) != a.res[int(x["seq"])]:
+                        badres.append((r, int(x["seq"])))
+        add("Q5 hold positive control (M2S71-H-hold)", f"{len(reps)} seeds: hold cases (Follow_Up arriving while its Sync is queued) "
+            f"{tot['pred']}, holds recorded {tot['rec']}; Q5 exact in every run; residence written into the held Follow_Ups = PCAP "
+            f"residence (gate wait included) in {nres - len(badres)}/{nres}; cohort outcomes {dict(cls)}",
+            all(ok for ok, c, det in res) and tot["pred"] > 0 and cls.get("used", 0) == sum(cls.values()) and not badres and nres,
+            str([d for ok, c, d in res if not ok][:3] + badres[:3]))
+    if have("M2S71-H-noHold") and have("M2S71-H-hold"):
+        reps = G.reps_of(root, "M2S71-H-noHold")
+        res = [K.q5_run(Analysis(root, "M2S71-H-noHold", r)) for r in reps]
+        tot = Counter()
+        for ok, c, det in res:
+            tot.update(c)
+        cls = Counter()
+        for r in reps:
+            a = Analysis(root, "M2S71-H-noHold", r)
+            cls.update(a.outcome[s] for s in a.cohort_complete())
+        add("N-noHold (repaired, M2S71-H-noHold): Q5 must fail", f"{len(reps)} seeds: hold cases {tot['pred']}, holds recorded {tot['rec']}, "
+            f"of the hold-case Follow_Ups discarded (fuNoSync, TEST noHold) {tot['pred_discarded']}; Q5 fails in "
+            f"{sum(1 for ok, c, d in res if not ok)}/{len(res)} runs; cohort outcomes {dict(cls)}",
+            tot["pred"] > 0 and tot["rec"] == 0 and all(not ok for ok, c, d in res) and tot["pred_discarded"] == tot["pred"])
+    # --- the original N-noHold (Q-c idle): reported; no hold case can arise there, so it cannot exercise Q5
     if have("M2S71-N-noHold") and have("M2S71-qc-idle"):
         a, b = Analysis(root, "M2S71-N-noHold", 0), Analysis(root, "M2S71-qc-idle", 0)
-        hold = lambda x: sorted(s for s in x.ds0_f if s in x.ds1_s and s in x.ds0_s  # noqa: E731
-                                and x.ds0_s[s]["end"] <= x.ds0_f[s]["end"] < x.ds1_s[s]["start"])
-        pred = hold(a)
-        rec = sorted(int(r["seq"]) for r in a.run.R.dslog if r["event"] == "hold")
-        cls_a = Counter(a.outcome[s] for s in a.cohort_complete())
-        cls_b = Counter(b.outcome[s] for s in b.cohort_complete())
-        add("N-noHold: Q5 must fail", f"Follow_Ups arriving while their Sync is queued (hold cases): {len(pred)} (Q-c: {len(hold(b))}); "
-            f"holds recorded {len(rec)}; cohort outcomes {dict(cls_a)} (Q-c: {dict(cls_b)})", pred and pred != rec,
-            "" if pred else "no hold case arises in this run, so disabling the hold changes nothing and Q5's sensitivity to it is "
-            "not demonstrated here (M2-S5 H1 shows it on the unit topology)")
+        oka, ca, _ = K.q5_run(a)
+        okb, cb, _ = K.q5_run(b)
+        report.append(f"N-noHold, original scenario (M2S71-N-noHold = Q-c idle, seed 0), superseded by M2S71-H-noHold: hold cases {ca['pred']} "
+                      f"(Q-c: {cb['pred']}), holds recorded {ca['rec']}, Follow_Ups arriving before their Sync {ca['early']} (Q-c: {cb['early']}); "
+                      f"Q5 verdict {oka} (Q-c: {okb}). With no hold case, disabling the hold changes nothing: the scenario cannot exercise Q5.")
 
     # --- N-prio: Q-d (UM) under load with inverted priorities must lose the Q-d load expectation
     if have("M2S71-N-prio") and have("M2S71-qdu-load"):

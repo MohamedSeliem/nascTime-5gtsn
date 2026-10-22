@@ -16,6 +16,7 @@ Definitions (design 3.5, 5):
              (INET Gptp::processFollowUp, Gptp.cc:364)
 """
 import os
+import re
 import sys
 from collections import Counter, defaultdict
 
@@ -45,7 +46,8 @@ QFI = {"q0": (None, None), "q0p": (None, None), "qa": (10, 10), "qb": (10, 10), 
 
 # negative-control runs: the option (DRB mapping, RLC mode) they are analysed as, and their variant
 CONTROLS = {"M2S71-N-noRule": ("q0", "idle"), "M2S71-N-swap": ("qc", "idle"), "M2S71-N-noHold": ("qc", "idle"),
-            "M2S71-N-prio": ("qdu", "load"), "M2S71-N-bound": ("qa", "idle"), "M2S71-N-drop": ("q0", "idle")}
+            "M2S71-N-prio": ("qdu", "load"), "M2S71-N-bound": ("qa", "idle"), "M2S71-N-drop": ("q0", "idle"),
+            "M2S71-H-hold": ("qa", "idle"), "M2S71-H-noHold": ("qa", "idle")}
 
 
 def parse_cfg(cfg):
@@ -54,6 +56,8 @@ def parse_cfg(cfg):
         return CONTROLS[cfg] + (5,)
     if cfg.startswith("M2S71-T-"):
         cfg = "M2S71-" + cfg[len("M2S71-T-"):]
+    if cfg.startswith("M2S71-R-"):            # seed diagnostic: M2S71-R-<opt>-<variant>[-v<k>]
+        cfg = "M2S71-" + re.sub(r"-v\d+$", "", cfg[len("M2S71-R-"):])
     p = cfg.split("-")
     opt = p[1]
     rest = p[2:]

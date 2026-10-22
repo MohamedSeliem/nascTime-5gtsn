@@ -26,6 +26,7 @@ C5 = L.C5
 S, MS, NS = L.S, L.MS, L.NS
 INF = L.INF
 rows, report = [], []
+TRACE = {}          # (option, HARQ) -> (deleted DL MAC PDUs, RLC PDUs inside), from the seed-0 traces
 BETWEEN = {}      # accuracy config -> steady-state between-step max |e| (ps), from Q4
 INVALID_EV = {"fuInvalidUpstream", "fuNoTag", "tagMismatch", "malformedFU", "unsupportedRepresentation", "associationMismatch",
               "ambiguousSync", "duplicateFU"}
@@ -43,6 +44,17 @@ def us(ps):
     return "inf" if ps == INF else ("-" if ps is None else f"{ps / 1e6:.3f}")
 
 
+def run_digest(root, cfg, rep):
+    """sha256 over every PCAP of the run (sorted by name): equal digests = byte-identical runs"""
+    pdir = os.path.join(root, cfg, "pcap", f"{cfg}-{rep}")
+    h = hashlib.sha256()
+    for f in sorted(os.listdir(pdir)):
+        h.update(f.encode())
+        with open(os.path.join(pdir, f), "rb") as fh:
+            h.update(hashlib.sha256(fh.read()).digest())
+    return h.hexdigest()
+
+
 # --- per-run analysis --------------------------------------------------------------------------------
 class Analysis:
     """cohort / post-cohort pair accounting (Q8), lag and residence (Q2), Q1, Q3, Q5, Q6, Q7 inputs"""
@@ -51,6 +63,7 @@ class Analysis:
         self.cfg, self.rep = cfg, rep
         self.opt, self.variant, self.harq = L.parse_cfg(cfg)
         self.run = run = L.Run(root, cfg, rep)
+        self.digest = run_digest(root, cfg, rep)
         self.H = run.end if horizon is None else horizon
         R = run.R
         ds, df, mode = L.OPTIONS[self.opt][:3]
@@ -202,8 +215,15 @@ def summarize(items):
     """items: [Analysis] of one (option, variant, harq), one per seed. Statistics over the cohort's complete
     pairs (C1), +inf rule (Q8); seeds are the replication unit for the CIs."""
     seeds = []
-    pool_lag, pool_res, pool_lag_d = [], [], []
+    pool_lag, pool_res, pool_lag_d, pool_lag_u, pool_res_d = [], [], [], [], []
+    destroyed = Counter()
     for a in items:
+        for drb, dd in a.rlc.items():
+            if dd["mode"] == "um":
+                destroyed[f"DRB{drb}"] += dd["n_lostpdu"] if "n_lostpdu" in dd else len(dd["lostpdu"])
+        co_ = a.cohort_complete()
+        pool_lag_u += [a.lag[s] for s in co_ if a.outcome[s] == "used"]
+        pool_res_d += [a.res[s] for s in co_ if a.res[s] != INF]
         co = a.cohort_complete()
         lags = [a.lag[s] for s in co]
         ress = [a.res[s] for s in co]
@@ -215,15 +235,28 @@ def summarize(items):
         pool_lag += lags
         pool_res += ress
         pool_lag_d += [x for x in lags if x != INF]
+    distinct = len({a.digest for a in items})
     pd, pdh = L.mean_ci([x["p_deliv"] for x in seeds])
     ml, mlh = L.mean_ci([x["p99_lag"] for x in seeds])
     mr, mrh = L.mean_ci([x["p99_res"] for x in seeds])
+    if distinct == 1:                 # every seed produced the same run: one observation, no interval
+        pdh = mlh = mrh = None
     fin = sorted(x for x in pool_lag_d)
     return {"seeds": seeds, "p_deliv": (pd, pdh), "p99_lag_seed": (ml, mlh), "p99_res_seed": (mr, mrh),
             "p99_lag": L.pct(pool_lag, 0.99), "p99_res": L.pct(pool_res, 0.99), "p50_lag": L.pct(pool_lag, 0.5),
             "min_lag": fin[0] if fin else None, "max_lag": fin[-1] if fin else None, "p99_lag_deliv": L.pct(pool_lag_d, 0.99),
-            "n": len(pool_lag), "censored": sum(x["censored"] for x in seeds),
+            "n": len(pool_lag), "censored": sum(x["censored"] for x in seeds), "distinct": distinct, "nseeds": len(items),
+            "p99_lag_used": L.pct(pool_lag_u, 0.99), "p99_res_deliv": L.pct(pool_res_d, 0.99),
+            "syncs_undelivered": len(pool_res) - len(pool_res_d), "destroyed": destroyed,
             "classes": sum((x["classes"] for x in seeds), Counter())}
+
+
+def repl(s):
+    """how many distinct runs the seeds of a group produced (CIs are given only when the seeds differ)"""
+    n, k = s["nseeds"], s["distinct"]
+    if n == 1:
+        return "1 seed"
+    return f"{n} seeds, deterministic (one distinct run)" if k == 1 else f"{n} seeds, {k} distinct runs"
 
 
 def fmt_ci(v, unit="us"):
@@ -332,34 +365,42 @@ def q3_rows(A):
     return n, nflag, bad
 
 
+def q5_run(a):
+    """Q5 on one run. Hold replay (M2-S5 R-2 method): a Follow_Up is a hold case iff it reaches the DS-TT eth[0] after its
+    Sync arrived there and before the Sync's transmission starts on eth[1] (the Sync is queued below TtSyncEgress). A
+    Follow_Up that arrives before its Sync reached the DS-TT is not a hold case: TtSyncEgress discards it (fuNoSync,
+    fail-closed). Exact: recorded holds = hold cases; every early Follow_Up discarded; no Follow_Up before its Sync at
+    the slave. Returns (ok, counts, detail)."""
+    pred = sorted(s for s in a.ds0_f if s in a.ds1_s and s in a.ds0_s
+                  and a.ds0_s[s]["end"] <= a.ds0_f[s]["end"] < a.ds1_s[s]["start"])
+    early = sorted(s for s in a.ds0_f if s in a.ds0_s and a.ds0_f[s]["end"] < a.ds0_s[s]["end"])
+    rec = sorted(int(r["seq"]) for r in a.run.R.dslog if r["event"] == "hold" and int(r["t"]) <= a.H)
+    nos = {int(r["seq"]) for r in a.run.R.dslog if r["event"] == "fuNoSync" and r.get("seq", "") != "" and int(r["t"]) <= a.H}
+    before, last = [], set()
+    for f in a.run.R.sl:
+        if f["dir"] == 1 and f["type"] == L.SYNC:
+            last.add(f["seq"])
+        if f["dir"] == 1 and f["type"] == L.FU and f["seq"] not in last:
+            before.append(f["seq"])
+    c = {"pred": len(pred), "rec": len(rec), "early": len(early), "nosync": sum(1 for s in early if s in nos),
+         "pred_discarded": sum(1 for s in pred if s in nos)}
+    bad = pred != rec or before or any(s not in nos for s in early)
+    return not bad, c, (a.cfg, a.rep, len(pred), len(rec), before[:3], [s for s in early if s not in nos][:3])
+
+
 def q5_rows(A):
-    """Q5 per split option. Hold replay (M2-S5 R-2 method): a Follow_Up is held iff it reaches the DS-TT eth[0] after
-    its Sync arrived there and before the Sync's transmission starts on eth[1] (the Sync is queued). A Follow_Up that
-    arrives before its Sync reached the DS-TT is not a hold case: TtSyncEgress discards it (fuNoSync, fail-closed);
-    those are counted and reported, and the slave must still never see a Follow_Up before its Sync."""
+    """Q5 per split option (design: Q-c, Q-c', Q-d')"""
     per = defaultdict(lambda: {"n": 0, "pred": 0, "rec": 0, "early": 0, "nosync": 0, "bad": []})
     for a in A:
         if a.drb_of[L.SYNC] == a.drb_of[L.FU]:
             continue
-        c = per[a.opt]
-        c["n"] += 1
-        pred = sorted(s for s in a.ds0_f if s in a.ds1_s and s in a.ds0_s
-                      and a.ds0_s[s]["end"] <= a.ds0_f[s]["end"] < a.ds1_s[s]["start"])
-        early = sorted(s for s in a.ds0_f if s in a.ds0_s and a.ds0_f[s]["end"] < a.ds0_s[s]["end"])
-        rec = sorted(int(r["seq"]) for r in a.run.R.dslog if r["event"] == "hold" and int(r["t"]) <= a.H)
-        nos = {int(r["seq"]) for r in a.run.R.dslog if r["event"] == "fuNoSync" and r.get("seq", "") != "" and int(r["t"]) <= a.H}
-        c["pred"] += len(pred)
-        c["rec"] += len(rec)
-        c["early"] += len(early)
-        c["nosync"] += sum(1 for s in early if s in nos)
-        before, last = [], set()
-        for f in a.run.R.sl:
-            if f["dir"] == 1 and f["type"] == L.SYNC:
-                last.add(f["seq"])
-            if f["dir"] == 1 and f["type"] == L.FU and f["seq"] not in last:
-                before.append(f["seq"])
-        if pred != rec or before or any(s not in nos for s in early):
-            c["bad"].append((a.cfg, a.rep, len(pred), len(rec), before[:3], [s for s in early if s not in nos][:3]))
+        ok, c, det = q5_run(a)
+        p = per[a.opt]
+        p["n"] += 1
+        for k in ("pred", "rec", "early", "nosync"):
+            p[k] += c[k]
+        if not ok:
+            p["bad"].append(det)
     for o, c in sorted(per.items(), key=lambda kv: list(L.OPTIONS).index(kv[0])):
         add(f"Q5 order safety {L.LABEL[o]}", f"{c['n']} runs: no Follow_Up before its Sync at the slave; DS-TT holds {c['rec']} = replay "
             f"(Follow_Up arriving while its Sync is queued) {c['pred']}; Follow_Ups arriving before their Sync reached the DS-TT: "
@@ -399,6 +440,8 @@ def q6_rows(out, A):
                       and n == "receivedPacketFromLowerLayer:vector(packetBytes)")
             defs[side] = txc - rxc
         good = defs["DL"] == tr["mac"]["rlc"] and defs["UL"] == tr["nrMac"]["rlc"]
+        o_, v_, h_ = L.parse_cfg(cfg)
+        TRACE[(o_, h_)] = (tr["mac"]["mac"], tr["mac"]["rlc"])
         ok &= good
         det.append(f"{cfg}: deleted MAC PDUs DL {tr['mac']['mac']} / UL {tr['nrMac']['mac']}, RLC PDUs inside DL {tr['mac']['rlc']} / "
                    f"UL {tr['nrMac']['rlc']}, RLC PDU deficit DL {defs['DL']} / UL {defs['UL']}")
@@ -573,7 +616,7 @@ def load_all(out, which):
     root = os.path.join(out, "runs")
     A = []
     for cfg in G.run_dirs(root):
-        if any(x in cfg for x in ("-N-", "-T-", "-M0-", "-B5", "-B6", "-B10")) or cfg.endswith(("-Ca", "-Bp100", "-Ca-sus")):
+        if any(x in cfg for x in ("-N-", "-T-", "-M0-", "-H-", "-B5", "-B6", "-B10")) or cfg.endswith(("-Ca", "-Bp100", "-Ca-sus")):
             continue
         opt, variant, harq = L.parse_cfg(cfg)
         if variant not in which:
@@ -662,12 +705,13 @@ def main():
     for a in A:
         groups[(a.opt, a.variant, a.harq)].append(a)
     stats = {k: summarize(v) for k, v in groups.items()}
-    report.append("Q2 distributions over the complete cohort pairs (+inf rule; seeds = replication unit)\n"
-                  "option | variant | HARQ | seeds | pairs | P(delivered, used) mean ± 95% CI | p50 lag | p99 lag pooled | "
+    report.append("Q2 distributions over the complete cohort pairs (+inf rule; seeds = replication unit; a ± interval is given only "
+                  "when the seeds produced different runs)\n"
+                  "option | variant | HARQ | seeds (distinct runs) | pairs | P(delivered, used) mean ± 95% CI | p50 lag | p99 lag pooled | "
                   "p99 lag per seed (mean ± CI) | p99 lag (delivered only) | lag min..max (delivered) | p99 residence | censored | classes | acceptance")
     for (o, v, h), s in sorted(stats.items(), key=lambda kv: (list(L.OPTIONS).index(kv[0][0]), kv[0][1], kv[0][2])):
         acc_cls = "measured-only" if L.OPTIONS[o][2] == "am" else "exact-replay"
-        report.append(f"{L.LABEL[o]}{' (EXPERIMENTAL)' if o in EXP else ''} | {v} | {h} | {len(s['seeds'])} | {s['n']} | "
+        report.append(f"{L.LABEL[o]}{' (EXPERIMENTAL)' if o in EXP else ''} | {v} | {h} | {len(s['seeds'])} ({s['distinct']}) | {s['n']} | "
                       f"{fmt_ci(s['p_deliv'], 'p')} | {us(s['p50_lag'])} us | {us(s['p99_lag'])} us | {fmt_ci(s['p99_lag_seed'])} | "
                       f"{us(s['p99_lag_deliv'])} us | {us(s['min_lag'])}..{us(s['max_lag'])} us | {us(s['p99_res'])} us | {s['censored']} | "
                       f"{dict(s['classes'])} | {acc_cls}")
@@ -704,14 +748,39 @@ def main():
             with open(os.path.join(out, "phase2-options.txt"), "w") as fh:
                 fh.write(f"{a_opt or 'qa'} {b_opt or 'qc'}\n")
     if mode != "phase1" and all(("q0", c) in st5 for c in conds):
-        cand = [o for o in have if o != "q0"]
+        # the formal rule compares Q-0 with the phase-2 non-experimental option only; exploratory runs (Q-d (UM)
+        # under sustained load, review 2026-10-22) are not candidates
+        a_formal = open(os.path.join(out, "phase2-options.txt")).read().split()[0]
+        cand = [o for o in have if o == a_formal]
         adm, better, notes = select(st5, elig, conds, ["q0"] + cand)
         rec = better[0] if better else "q0"
         report.append("Final selection (idle, 0-3 s load, sustained load; 5 HARQ; only the tested candidates):\n  " + "\n  ".join(notes)
                       + f"\n  admissible, ranked: {[L.LABEL[o] for o in adm]}; better than Q-0 under every load condition: "
                       f"{[L.LABEL[o] for o in better]}\n  RECOMMENDED: {L.LABEL[rec]} ({'measured-only' if L.OPTIONS[rec][2] == 'am' else 'exact-replay'} "
                       "acceptance); not a claim of global optimality")
+    if mode != "phase1":
+        exploratory(stats)
     return finish(out, mode)
+
+
+def exploratory(stats):
+    """review 2026-10-22, item 2: every option x variant, 5 and 16 HARQ processes side by side"""
+    out = ["EXPLORATORY COMPARISON, 5 vs 16 HARQ processes (not part of the selection; the formal result above is unchanged). "
+           "The HARQ process count is an experimental configuration, not an assumed reliability guarantee; no standards compliance "
+           "or operational recommendation is implied.",
+           "Columns: P(pair delivered and used) | conservative p99 lag over all complete cohort pairs (+inf for every pair not used) | "
+           "p99 lag over the used pairs only | Sync residence p99 over the Syncs that reached the slave link (Syncs that did not) | "
+           "censored pairs | lost pairs | DL RLC PDUs destroyed (Q0b replay: no reception) per DRB | MAC trace (seed 0, 0.6 s burst "
+           "at the sustained rate): MAC PDUs deleted without a free HARQ process, DL | replication",
+           "option | variant | HARQ | P(used) | p99 lag, all pairs | p99 lag, used only | Sync residence p99 (not delivered) | censored | lost | "
+           "destroyed DL RLC PDUs | MAC trace | replication"]
+    for (o, v, h), s in sorted(stats.items(), key=lambda kv: (list(L.OPTIONS).index(kv[0][0]), kv[0][1], kv[0][2])):
+        tr = TRACE.get((o, h))
+        out.append(f"{L.LABEL[o]}{' (EXPERIMENTAL)' if o in EXP else ''} | {v} | {h} | {fmt_ci(s['p_deliv'], 'p')} | {us(s['p99_lag'])} us | "
+                   f"{us(s['p99_lag_used'])} us | {us(s['p99_res_deliv'])} us ({s['syncs_undelivered']}) | {s['censored']} | "
+                   f"{s['classes'].get('lost', 0)} | {dict(s['destroyed'])} | "
+                   f"{'%d deleted MAC PDUs (%d RLC PDUs)' % tr if tr else '-'} | {repl(s)}")
+    report.append("\n".join(out))
 
 
 def extra_rows(out):
