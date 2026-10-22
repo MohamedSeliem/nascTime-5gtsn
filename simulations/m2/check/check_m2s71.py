@@ -780,11 +780,11 @@ def exploratory(stats):
            "Columns: P(pair delivered and used) | conservative p99 lag over all complete cohort pairs (+inf for every pair not used) | "
            "p99 lag over the used pairs only | Sync residence p99 over the Syncs that reached the slave link (Syncs that did not) | "
            "censored pairs | lost pairs | DL RLC PDUs destroyed (Q0b replay: no reception) per DRB | MAC trace (seed 0, 0.6 s burst "
-           "at the sustained rate): MAC PDUs deleted without a free HARQ process, DL | replication",
+           "at the sustained rate; shown on the load and sustained rows only): MAC PDUs deleted without a free HARQ process, DL | replication",
            "option | variant | HARQ | P(used) | p99 lag, all pairs | p99 lag, used only | Sync residence p99 (not delivered) | censored | lost | "
            "destroyed DL RLC PDUs | MAC trace | replication"]
     for (o, v, h), s in sorted(stats.items(), key=lambda kv: (list(L.OPTIONS).index(kv[0][0]), kv[0][1], kv[0][2])):
-        tr = TRACE.get((o, h))
+        tr = TRACE.get((o, h)) if v in ("load", "sus") else None     # the trace is a load burst; idle/frag rows have none
         out.append(f"{L.LABEL[o]}{' (EXPERIMENTAL)' if o in EXP else ''} | {v} | {h} | {fmt_ci(s['p_deliv'], 'p')} | {us(s['p99_lag'])} us | "
                    f"{us(s['p99_lag_used'])} us | {us(s['p99_res_deliv'])} us ({s['syncs_undelivered']}) | {s['censored']} | "
                    f"{s['classes'].get('lost', 0)} | {dict(s['destroyed'])} | "
