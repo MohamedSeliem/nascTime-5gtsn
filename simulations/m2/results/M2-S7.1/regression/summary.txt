@@ -1,4 +1,4 @@
-M2-S7.1 gate G0: regressions at e637e19 (final M2-S7.1 code + record), 2026-10-21 (start 19:13:56Z, done 20:30:35Z); runner order m2s1, m2s3, m2s0, m2s4, m2s5, then M1 s0, s1, s2, s2_phase, s3, o_s3_1, s4, o_tail, s5, upstream-issues, then m2s6; every runner rc 0 (16/16).
+M2-S7.1 gate G0 (closure): regressions at 80f2d11 (final M2-S7.1 code and record), 2026-10-22 (start 17:36:41Z, done 18:58:37Z); runner order m2s1, m2s3, m2s0, m2s4, m2s5, then M1 s0, s1, s2, s2_phase, s3, o_s3_1, s4, o_tail, s5, upstream-issues, then m2s6; every runner rc 0 (16/16).
 M2-S0: 327 .pcapng / per-frame, engine, TT-clock log hashes in the committed raw-outputs.sha256; differing: 13 (the 13 opp_scavetool CSV exports, run-id/date dependent, as recorded since M2-S0)
 M2-S1: 647 .pcapng / per-frame, engine, TT-clock log hashes in the committed raw-outputs.sha256; differing: 15 (the 15 opp_scavetool CSV exports, as recorded since M2-S1)
 M2-S4: 1648 .pcapng / per-frame, engine, TT-clock log hashes in the committed raw-outputs.sha256; differing: 0
@@ -151,6 +151,7 @@ IDENTICAL  cbbe6ca64cf17018  simulations/m2/results/M2-S6/stage-C.txt  (OVERALL:
 IDENTICAL  14301dff7cffba79  simulations/m2/results/M2-S6/stage-D.txt  (OVERALL: PASS (144/144))
 IDENTICAL  0fe93090fa87f637  simulations/m2/results/M2-S6/stage-E.txt  (OVERALL: PASS (832/832))
 IDENTICAL  e7262dc7e591f6c8  simulations/m2/results/M2-S6/stage-F.txt  (OVERALL: PASS (19/19))
-Not byte-reproducible (unchanged behaviour since the earlier milestones): every env*.txt (date, commit, host kernel, library hash); .sca/.vec hashes in raw-outputs.sha256; M2-S3 vec.sha256 (hashes the M2-S1 .vec files); M1-S0 fingerprints.log wall-clock line (-Ran 4 tests in 3.007s +Ran 4 tests in 3.812s ).
+Not byte-reproducible (unchanged behaviour since the earlier milestones): every env*.txt (date, commit, host kernel, library hash); .sca/.vec hashes in raw-outputs.sha256; M2-S3 vec.sha256 (hashes the M2-S1 .vec files); M1-S0 fingerprints.log wall-clock line (-Ran 4 tests in 3.007s +Ran 4 tests in 4.911s ).
 M1 O-tail: o_tail_investigation.sh deletes the committed raw-outputs.sha256 (.sca/.vci/.vec hashes): pre-existing runner behaviour, file restored from HEAD.
 Every tracked M1 and M2-S0..S6 record file was restored from HEAD after the comparison; none is changed by M2-S7.1.
+Supersedes the first-round G0 at e637e19 (same result).
