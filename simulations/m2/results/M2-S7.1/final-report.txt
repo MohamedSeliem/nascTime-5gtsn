@@ -491,66 +491,66 @@ Final selection (idle, 0-3 s load, sustained load; 5 HARQ; only the tested candi
   RECOMMENDED: Q-0 (exact-replay acceptance); not a claim of global optimality
 
 EXPLORATORY COMPARISON, 5 vs 16 HARQ processes (not part of the selection; the formal result above is unchanged). The HARQ process count is an experimental configuration, not an assumed reliability guarantee; no standards compliance or operational recommendation is implied.
-Columns: P(pair delivered and used) | conservative p99 lag over all complete cohort pairs (+inf for every pair not used) | p99 lag over the used pairs only | Sync residence p99 over the Syncs that reached the slave link (Syncs that did not) | censored pairs | lost pairs | DL RLC PDUs destroyed (Q0b replay: no reception) per DRB | MAC trace (seed 0, 0.6 s burst at the sustained rate): MAC PDUs deleted without a free HARQ process, DL | replication
+Columns: P(pair delivered and used) | conservative p99 lag over all complete cohort pairs (+inf for every pair not used) | p99 lag over the used pairs only | Sync residence p99 over the Syncs that reached the slave link (Syncs that did not) | censored pairs | lost pairs | DL RLC PDUs destroyed (Q0b replay: no reception) per DRB | MAC trace (seed 0, 0.6 s burst at the sustained rate; shown on the load and sustained rows only): MAC PDUs deleted without a free HARQ process, DL | replication
 option | variant | HARQ | P(used) | p99 lag, all pairs | p99 lag, used only | Sync residence p99 (not delivered) | censored | lost | destroyed DL RLC PDUs | MAC trace | replication
-Q-0 | frag | 5 | 1.0000 | 20000.240 us | 20000.240 us | 6002.176 us (0) | 0 | 0 | {'DRB1': 0} | 83 deleted MAC PDUs (431 RLC PDUs) | 1 seed
-Q-0 | frag | 16 | 1.0000 | 20000.240 us | 20000.240 us | 6002.176 us (0) | 0 | 0 | {'DRB1': 0} | 0 deleted MAC PDUs (0 RLC PDUs) | 1 seed
-Q-0 | idle | 5 | 1.0000 ± 0.0000 | 20000.240 us | 20000.240 us | 6002.176 us (0) | 0 | 0 | {'DRB1': 0} | 83 deleted MAC PDUs (431 RLC PDUs) | 10 seeds, 10 distinct runs
-Q-0 | idle | 16 | 1.0000 ± 0.0000 | 20000.240 us | 20000.240 us | 6002.176 us (0) | 0 | 0 | {'DRB1': 0} | 0 deleted MAC PDUs (0 RLC PDUs) | 10 seeds, 10 distinct runs
+Q-0 | frag | 5 | 1.0000 | 20000.240 us | 20000.240 us | 6002.176 us (0) | 0 | 0 | {'DRB1': 0} | - | 1 seed
+Q-0 | frag | 16 | 1.0000 | 20000.240 us | 20000.240 us | 6002.176 us (0) | 0 | 0 | {'DRB1': 0} | - | 1 seed
+Q-0 | idle | 5 | 1.0000 ± 0.0000 | 20000.240 us | 20000.240 us | 6002.176 us (0) | 0 | 0 | {'DRB1': 0} | - | 10 seeds, 10 distinct runs
+Q-0 | idle | 16 | 1.0000 ± 0.0000 | 20000.240 us | 20000.240 us | 6002.176 us (0) | 0 | 0 | {'DRB1': 0} | - | 10 seeds, 10 distinct runs
 Q-0 | load | 5 | 0.9316 ± 0.0086 | inf us | 124999.088 us | 6022.976 us (27) | 0 | 27 | {'DRB1': 12492} | 83 deleted MAC PDUs (431 RLC PDUs) | 5 seeds, 5 distinct runs
 Q-0 | load | 16 | 1.0000 ± 0.0000 | 124999.088 us | 124999.088 us | 6022.976 us (0) | 0 | 0 | {'DRB1': 0} | 0 deleted MAC PDUs (0 RLC PDUs) | 5 seeds, 5 distinct runs
 Q-0 | sus | 5 | 0.7924 ± 0.0179 | inf us | 12.448 us | 6022.976 us (82) | 0 | 82 | {'DRB1': 51308} | 83 deleted MAC PDUs (431 RLC PDUs) | 5 seeds, 5 distinct runs
 Q-0 | sus | 16 | 1.0000 ± 0.0000 | 943.232 us | 943.232 us | 6022.976 us (0) | 0 | 0 | {'DRB1': 0} | 0 deleted MAC PDUs (0 RLC PDUs) | 5 seeds, 5 distinct runs
-Q-0p | frag | 5 | 1.0000 | 20000.240 us | 20000.240 us | 6002.176 us (0) | 0 | 0 | {'DRB1': 0} | 83 deleted MAC PDUs (451 RLC PDUs) | 1 seed
-Q-0p | frag | 16 | 1.0000 | 20000.240 us | 20000.240 us | 6002.176 us (0) | 0 | 0 | {'DRB1': 0} | 0 deleted MAC PDUs (0 RLC PDUs) | 1 seed
-Q-0p | idle | 5 | 1.0000 | 20000.240 us | 20000.240 us | 6002.176 us (0) | 0 | 0 | {'DRB1': 0} | 83 deleted MAC PDUs (451 RLC PDUs) | 10 seeds, deterministic (one distinct run)
-Q-0p | idle | 16 | 1.0000 | 20000.240 us | 20000.240 us | 6002.176 us (0) | 0 | 0 | {'DRB1': 0} | 0 deleted MAC PDUs (0 RLC PDUs) | 10 seeds, deterministic (one distinct run)
+Q-0p | frag | 5 | 1.0000 | 20000.240 us | 20000.240 us | 6002.176 us (0) | 0 | 0 | {'DRB1': 0} | - | 1 seed
+Q-0p | frag | 16 | 1.0000 | 20000.240 us | 20000.240 us | 6002.176 us (0) | 0 | 0 | {'DRB1': 0} | - | 1 seed
+Q-0p | idle | 5 | 1.0000 | 20000.240 us | 20000.240 us | 6002.176 us (0) | 0 | 0 | {'DRB1': 0} | - | 10 seeds, deterministic (one distinct run)
+Q-0p | idle | 16 | 1.0000 | 20000.240 us | 20000.240 us | 6002.176 us (0) | 0 | 0 | {'DRB1': 0} | - | 10 seeds, deterministic (one distinct run)
 Q-0p | load | 5 | 0.9241 | inf us | 124999.088 us | 6022.976 us (30) | 0 | 30 | {'DRB1': 13090} | 83 deleted MAC PDUs (451 RLC PDUs) | 5 seeds, deterministic (one distinct run)
 Q-0p | load | 16 | 1.0000 | 124999.088 us | 124999.088 us | 6022.976 us (0) | 0 | 0 | {'DRB1': 0} | 0 deleted MAC PDUs (0 RLC PDUs) | 5 seeds, deterministic (one distinct run)
-Q-a | frag | 5 | 1.0000 | 0.912 us | 0.912 us | 6000.576 us (0) | 0 | 0 | {'DRB1': 0, 'DRB4': 0} | 83 deleted MAC PDUs (433 RLC PDUs) | 1 seed
-Q-a | frag | 16 | 1.0000 | 0.912 us | 0.912 us | 6000.576 us (0) | 0 | 0 | {'DRB1': 0, 'DRB4': 0} | 0 deleted MAC PDUs (0 RLC PDUs) | 1 seed
-Q-a | idle | 5 | 1.0000 ± 0.0000 | 0.912 us | 0.912 us | 6000.576 us (0) | 0 | 0 | {'DRB1': 0, 'DRB4': 0} | 83 deleted MAC PDUs (433 RLC PDUs) | 10 seeds, 10 distinct runs
-Q-a | idle | 16 | 1.0000 ± 0.0000 | 0.912 us | 0.912 us | 6000.576 us (0) | 0 | 0 | {'DRB1': 0, 'DRB4': 0} | 0 deleted MAC PDUs (0 RLC PDUs) | 10 seeds, 10 distinct runs
+Q-a | frag | 5 | 1.0000 | 0.912 us | 0.912 us | 6000.576 us (0) | 0 | 0 | {'DRB1': 0, 'DRB4': 0} | - | 1 seed
+Q-a | frag | 16 | 1.0000 | 0.912 us | 0.912 us | 6000.576 us (0) | 0 | 0 | {'DRB1': 0, 'DRB4': 0} | - | 1 seed
+Q-a | idle | 5 | 1.0000 ± 0.0000 | 0.912 us | 0.912 us | 6000.576 us (0) | 0 | 0 | {'DRB1': 0, 'DRB4': 0} | - | 10 seeds, 10 distinct runs
+Q-a | idle | 16 | 1.0000 ± 0.0000 | 0.912 us | 0.912 us | 6000.576 us (0) | 0 | 0 | {'DRB1': 0, 'DRB4': 0} | - | 10 seeds, 10 distinct runs
 Q-a | load | 5 | 0.9367 ± 0.0192 | inf us | 0.912 us | 8000.576 us (25) | 0 | 25 | {'DRB1': 12474, 'DRB4': 50} | 83 deleted MAC PDUs (433 RLC PDUs) | 5 seeds, 5 distinct runs
 Q-a | load | 16 | 1.0000 ± 0.0000 | 0.912 us | 0.912 us | 10000.576 us (0) | 0 | 0 | {'DRB1': 0, 'DRB4': 0} | 0 deleted MAC PDUs (0 RLC PDUs) | 5 seeds, 5 distinct runs
 Q-a | sus | 5 | 0.8101 ± 0.0369 | inf us | 0.912 us | 12000.576 us (75) | 0 | 75 | {'DRB1': 50781, 'DRB4': 180} | 83 deleted MAC PDUs (433 RLC PDUs) | 5 seeds, 5 distinct runs
 Q-a | sus | 16 | 1.0000 ± 0.0000 | 0.912 us | 0.912 us | 12000.576 us (0) | 0 | 0 | {'DRB1': 0, 'DRB4': 0} | 0 deleted MAC PDUs (0 RLC PDUs) | 5 seeds, 5 distinct runs
-Q-b | frag | 5 | 1.0000 | 2000.240 us | 2000.240 us | 6000.576 us (0) | 0 | 0 | {'DRB1': 0} | 83 deleted MAC PDUs (435 RLC PDUs) | 1 seed
-Q-b | frag | 16 | 1.0000 | 2000.240 us | 2000.240 us | 6000.576 us (0) | 0 | 0 | {'DRB1': 0} | 0 deleted MAC PDUs (0 RLC PDUs) | 1 seed
-Q-b | idle | 5 | 1.0000 ± 0.0000 | 2000.240 us | 2000.240 us | 6000.576 us (0) | 0 | 0 | {'DRB1': 0} | 83 deleted MAC PDUs (435 RLC PDUs) | 10 seeds, 10 distinct runs
-Q-b | idle | 16 | 1.0000 ± 0.0000 | 2000.240 us | 2000.240 us | 6000.576 us (0) | 0 | 0 | {'DRB1': 0} | 0 deleted MAC PDUs (0 RLC PDUs) | 10 seeds, 10 distinct runs
+Q-b | frag | 5 | 1.0000 | 2000.240 us | 2000.240 us | 6000.576 us (0) | 0 | 0 | {'DRB1': 0} | - | 1 seed
+Q-b | frag | 16 | 1.0000 | 2000.240 us | 2000.240 us | 6000.576 us (0) | 0 | 0 | {'DRB1': 0} | - | 1 seed
+Q-b | idle | 5 | 1.0000 ± 0.0000 | 2000.240 us | 2000.240 us | 6000.576 us (0) | 0 | 0 | {'DRB1': 0} | - | 10 seeds, 10 distinct runs
+Q-b | idle | 16 | 1.0000 ± 0.0000 | 2000.240 us | 2000.240 us | 6000.576 us (0) | 0 | 0 | {'DRB1': 0} | - | 10 seeds, 10 distinct runs
 Q-b | load | 5 | 0.9367 ± 0.0294 | inf us | 83000.240 us | 505000.576 us (0) | 0 | 0 | {'DRB1': 12268} | 83 deleted MAC PDUs (435 RLC PDUs) | 5 seeds, 5 distinct runs
 Q-b | load | 16 | 1.0000 ± 0.0000 | 6000.240 us | 6000.240 us | 9000.576 us (0) | 0 | 0 | {'DRB1': 0} | 0 deleted MAC PDUs (0 RLC PDUs) | 5 seeds, 5 distinct runs
-Q-c (EXPERIMENTAL) | frag | 5 | 0.3924 | inf us | 2000.240 us | 7000.576 us (0) | 0 | 0 | {'DRB1': 0, 'DRB4': 0, 'DRB5': 0} | 83 deleted MAC PDUs (441 RLC PDUs) | 1 seed
-Q-c (EXPERIMENTAL) | frag | 16 | 0.3924 | inf us | 2000.240 us | 7000.576 us (0) | 0 | 0 | {'DRB1': 0, 'DRB4': 0, 'DRB5': 0} | 0 deleted MAC PDUs (0 RLC PDUs) | 1 seed
-Q-c (EXPERIMENTAL) | idle | 5 | 0.4456 ± 0.0457 | inf us | 2000.240 us | 7000.576 us (0) | 0 | 0 | {'DRB1': 0, 'DRB4': 0, 'DRB5': 0} | 83 deleted MAC PDUs (441 RLC PDUs) | 10 seeds, 10 distinct runs
-Q-c (EXPERIMENTAL) | idle | 16 | 0.4456 ± 0.0457 | inf us | 2000.240 us | 7000.576 us (0) | 0 | 0 | {'DRB1': 0, 'DRB4': 0, 'DRB5': 0} | 0 deleted MAC PDUs (0 RLC PDUs) | 10 seeds, 10 distinct runs
+Q-c (EXPERIMENTAL) | frag | 5 | 0.3924 | inf us | 2000.240 us | 7000.576 us (0) | 0 | 0 | {'DRB1': 0, 'DRB4': 0, 'DRB5': 0} | - | 1 seed
+Q-c (EXPERIMENTAL) | frag | 16 | 0.3924 | inf us | 2000.240 us | 7000.576 us (0) | 0 | 0 | {'DRB1': 0, 'DRB4': 0, 'DRB5': 0} | - | 1 seed
+Q-c (EXPERIMENTAL) | idle | 5 | 0.4456 ± 0.0457 | inf us | 2000.240 us | 7000.576 us (0) | 0 | 0 | {'DRB1': 0, 'DRB4': 0, 'DRB5': 0} | - | 10 seeds, 10 distinct runs
+Q-c (EXPERIMENTAL) | idle | 16 | 0.4456 ± 0.0457 | inf us | 2000.240 us | 7000.576 us (0) | 0 | 0 | {'DRB1': 0, 'DRB4': 0, 'DRB5': 0} | - | 10 seeds, 10 distinct runs
 Q-c (EXPERIMENTAL) | load | 5 | 0.4329 ± 0.0560 | inf us | 7000.240 us | 12000.576 us (24) | 0 | 39 | {'DRB1': 12496, 'DRB4': 24, 'DRB5': 15} | 83 deleted MAC PDUs (441 RLC PDUs) | 5 seeds, 5 distinct runs
 Q-c (EXPERIMENTAL) | load | 16 | 0.4785 ± 0.0391 | inf us | 5000.240 us | 10000.576 us (0) | 0 | 0 | {'DRB1': 0, 'DRB4': 0, 'DRB5': 0} | 0 deleted MAC PDUs (0 RLC PDUs) | 5 seeds, 5 distinct runs
-Q-c' (EXPERIMENTAL) | frag | 5 | 0.3924 | inf us | 2000.240 us | 7000.576 us (0) | 0 | 0 | {'DRB1': 0} | 83 deleted MAC PDUs (437 RLC PDUs) | 1 seed
-Q-c' (EXPERIMENTAL) | frag | 16 | 0.3924 | inf us | 2000.240 us | 7000.576 us (0) | 0 | 0 | {'DRB1': 0} | 0 deleted MAC PDUs (0 RLC PDUs) | 1 seed
-Q-c' (EXPERIMENTAL) | idle | 5 | 0.4152 ± 0.0449 | inf us | 2000.240 us | 7000.576 us (0) | 0 | 0 | {'DRB1': 0} | 83 deleted MAC PDUs (437 RLC PDUs) | 10 seeds, 10 distinct runs
-Q-c' (EXPERIMENTAL) | idle | 16 | 0.4152 ± 0.0449 | inf us | 2000.240 us | 7000.576 us (0) | 0 | 0 | {'DRB1': 0} | 0 deleted MAC PDUs (0 RLC PDUs) | 10 seeds, 10 distinct runs
+Q-c' (EXPERIMENTAL) | frag | 5 | 0.3924 | inf us | 2000.240 us | 7000.576 us (0) | 0 | 0 | {'DRB1': 0} | - | 1 seed
+Q-c' (EXPERIMENTAL) | frag | 16 | 0.3924 | inf us | 2000.240 us | 7000.576 us (0) | 0 | 0 | {'DRB1': 0} | - | 1 seed
+Q-c' (EXPERIMENTAL) | idle | 5 | 0.4152 ± 0.0449 | inf us | 2000.240 us | 7000.576 us (0) | 0 | 0 | {'DRB1': 0} | - | 10 seeds, 10 distinct runs
+Q-c' (EXPERIMENTAL) | idle | 16 | 0.4152 ± 0.0449 | inf us | 2000.240 us | 7000.576 us (0) | 0 | 0 | {'DRB1': 0} | - | 10 seeds, 10 distinct runs
 Q-c' (EXPERIMENTAL) | load | 5 | 0.4835 ± 0.0623 | inf us | 84000.240 us | 89000.576 us (0) | 0 | 0 | {'DRB1': 12476} | 83 deleted MAC PDUs (437 RLC PDUs) | 5 seeds, 5 distinct runs
 Q-c' (EXPERIMENTAL) | load | 16 | 0.4684 ± 0.0786 | inf us | 5000.240 us | 10000.576 us (0) | 0 | 0 | {'DRB1': 0} | 0 deleted MAC PDUs (0 RLC PDUs) | 5 seeds, 5 distinct runs
-Q-d (UM) | frag | 5 | 1.0000 | 0.912 us | 0.912 us | 5000.576 us (0) | 0 | 0 | {'DRB1': 0, 'DRB4': 0} | 83 deleted MAC PDUs (440 RLC PDUs) | 1 seed
-Q-d (UM) | frag | 16 | 1.0000 | 0.912 us | 0.912 us | 5000.576 us (0) | 0 | 0 | {'DRB1': 0, 'DRB4': 0} | 0 deleted MAC PDUs (0 RLC PDUs) | 1 seed
-Q-d (UM) | idle | 5 | 1.0000 | 0.912 us | 0.912 us | 5000.576 us (0) | 0 | 0 | {'DRB1': 0, 'DRB4': 0} | 83 deleted MAC PDUs (440 RLC PDUs) | 10 seeds, deterministic (one distinct run)
-Q-d (UM) | idle | 16 | 1.0000 | 0.912 us | 0.912 us | 5000.576 us (0) | 0 | 0 | {'DRB1': 0, 'DRB4': 0} | 0 deleted MAC PDUs (0 RLC PDUs) | 10 seeds, deterministic (one distinct run)
+Q-d (UM) | frag | 5 | 1.0000 | 0.912 us | 0.912 us | 5000.576 us (0) | 0 | 0 | {'DRB1': 0, 'DRB4': 0} | - | 1 seed
+Q-d (UM) | frag | 16 | 1.0000 | 0.912 us | 0.912 us | 5000.576 us (0) | 0 | 0 | {'DRB1': 0, 'DRB4': 0} | - | 1 seed
+Q-d (UM) | idle | 5 | 1.0000 | 0.912 us | 0.912 us | 5000.576 us (0) | 0 | 0 | {'DRB1': 0, 'DRB4': 0} | - | 10 seeds, deterministic (one distinct run)
+Q-d (UM) | idle | 16 | 1.0000 | 0.912 us | 0.912 us | 5000.576 us (0) | 0 | 0 | {'DRB1': 0, 'DRB4': 0} | - | 10 seeds, deterministic (one distinct run)
 Q-d (UM) | load | 5 | 0.9494 | inf us | 0.912 us | 5000.576 us (20) | 0 | 20 | {'DRB1': 12930, 'DRB4': 40} | 83 deleted MAC PDUs (440 RLC PDUs) | 5 seeds, deterministic (one distinct run)
 Q-d (UM) | load | 16 | 1.0000 | 0.912 us | 0.912 us | 5000.576 us (0) | 0 | 0 | {'DRB1': 0, 'DRB4': 0} | 0 deleted MAC PDUs (0 RLC PDUs) | 5 seeds, deterministic (one distinct run)
 Q-d (UM) | sus | 5 | 0.8354 | inf us | 0.912 us | 5000.576 us (65) | 0 | 65 | {'DRB1': 53075, 'DRB4': 160} | 83 deleted MAC PDUs (440 RLC PDUs) | 5 seeds, deterministic (one distinct run)
 Q-d (UM) | sus | 16 | 1.0000 | 0.912 us | 0.912 us | 5000.576 us (0) | 0 | 0 | {'DRB1': 0, 'DRB4': 0} | 0 deleted MAC PDUs (0 RLC PDUs) | 5 seeds, deterministic (one distinct run)
-Q-d (AM) | frag | 5 | 1.0000 | 2000.240 us | 2000.240 us | 5000.576 us (0) | 0 | 0 | {'DRB1': 0} | 83 deleted MAC PDUs (446 RLC PDUs) | 1 seed
-Q-d (AM) | frag | 16 | 1.0000 | 2000.240 us | 2000.240 us | 5000.576 us (0) | 0 | 0 | {'DRB1': 0} | 0 deleted MAC PDUs (0 RLC PDUs) | 1 seed
-Q-d (AM) | idle | 5 | 1.0000 ± 0.0000 | 1000.240 us | 1000.240 us | 5000.576 us (0) | 0 | 0 | {'DRB1': 0} | 83 deleted MAC PDUs (446 RLC PDUs) | 10 seeds, 2 distinct runs
-Q-d (AM) | idle | 16 | 1.0000 ± 0.0000 | 1000.240 us | 1000.240 us | 5000.576 us (0) | 0 | 0 | {'DRB1': 0} | 0 deleted MAC PDUs (0 RLC PDUs) | 10 seeds, 2 distinct runs
+Q-d (AM) | frag | 5 | 1.0000 | 2000.240 us | 2000.240 us | 5000.576 us (0) | 0 | 0 | {'DRB1': 0} | - | 1 seed
+Q-d (AM) | frag | 16 | 1.0000 | 2000.240 us | 2000.240 us | 5000.576 us (0) | 0 | 0 | {'DRB1': 0} | - | 1 seed
+Q-d (AM) | idle | 5 | 1.0000 ± 0.0000 | 1000.240 us | 1000.240 us | 5000.576 us (0) | 0 | 0 | {'DRB1': 0} | - | 10 seeds, 2 distinct runs
+Q-d (AM) | idle | 16 | 1.0000 ± 0.0000 | 1000.240 us | 1000.240 us | 5000.576 us (0) | 0 | 0 | {'DRB1': 0} | - | 10 seeds, 2 distinct runs
 Q-d (AM) | load | 5 | 0.8987 | inf us | 1000.240 us | 461000.576 us (0) | 0 | 0 | {'DRB1': 12915} | 83 deleted MAC PDUs (446 RLC PDUs) | 5 seeds, deterministic (one distinct run)
 Q-d (AM) | load | 16 | 1.0000 | 1000.240 us | 1000.240 us | 5000.576 us (0) | 0 | 0 | {'DRB1': 0} | 0 deleted MAC PDUs (0 RLC PDUs) | 5 seeds, deterministic (one distinct run)
-Q-d' (EXPERIMENTAL) | frag | 5 | 1.0000 | 1000.240 us | 1000.240 us | 5000.576 us (0) | 0 | 0 | {'DRB1': 0, 'DRB4': 0, 'DRB5': 0} | 83 deleted MAC PDUs (442 RLC PDUs) | 1 seed
-Q-d' (EXPERIMENTAL) | frag | 16 | 1.0000 | 1000.240 us | 1000.240 us | 5000.576 us (0) | 0 | 0 | {'DRB1': 0, 'DRB4': 0, 'DRB5': 0} | 0 deleted MAC PDUs (0 RLC PDUs) | 1 seed
-Q-d' (EXPERIMENTAL) | idle | 5 | 0.9911 ± 0.0044 | 1000.240 us | 1000.240 us | 5000.576 us (0) | 0 | 0 | {'DRB1': 0, 'DRB4': 0, 'DRB5': 0} | 83 deleted MAC PDUs (442 RLC PDUs) | 10 seeds, 2 distinct runs
-Q-d' (EXPERIMENTAL) | idle | 16 | 0.9911 ± 0.0044 | 1000.240 us | 1000.240 us | 5000.576 us (0) | 0 | 0 | {'DRB1': 0, 'DRB4': 0, 'DRB5': 0} | 0 deleted MAC PDUs (0 RLC PDUs) | 10 seeds, 2 distinct runs
+Q-d' (EXPERIMENTAL) | frag | 5 | 1.0000 | 1000.240 us | 1000.240 us | 5000.576 us (0) | 0 | 0 | {'DRB1': 0, 'DRB4': 0, 'DRB5': 0} | - | 1 seed
+Q-d' (EXPERIMENTAL) | frag | 16 | 1.0000 | 1000.240 us | 1000.240 us | 5000.576 us (0) | 0 | 0 | {'DRB1': 0, 'DRB4': 0, 'DRB5': 0} | - | 1 seed
+Q-d' (EXPERIMENTAL) | idle | 5 | 0.9911 ± 0.0044 | 1000.240 us | 1000.240 us | 5000.576 us (0) | 0 | 0 | {'DRB1': 0, 'DRB4': 0, 'DRB5': 0} | - | 10 seeds, 2 distinct runs
+Q-d' (EXPERIMENTAL) | idle | 16 | 0.9911 ± 0.0044 | 1000.240 us | 1000.240 us | 5000.576 us (0) | 0 | 0 | {'DRB1': 0, 'DRB4': 0, 'DRB5': 0} | - | 10 seeds, 2 distinct runs
 Q-d' (EXPERIMENTAL) | load | 5 | 0.8886 ± 0.0070 | inf us | 1000.240 us | 6000.576 us (20) | 0 | 40 | {'DRB1': 12990, 'DRB4': 20, 'DRB5': 20} | 83 deleted MAC PDUs (442 RLC PDUs) | 5 seeds, 2 distinct runs
 Q-d' (EXPERIMENTAL) | load | 16 | 0.9975 ± 0.0070 | 1000.240 us | 1000.240 us | 5000.576 us (0) | 0 | 0 | {'DRB1': 0, 'DRB4': 0, 'DRB5': 0} | 0 deleted MAC PDUs (0 RLC PDUs) | 5 seeds, 2 distinct runs
 Q-d' (EXPERIMENTAL) | sus | 5 | 0.6608 ± 0.0070 | inf us | 1000.240 us | 6000.576 us (65) | 0 | 130 | {'DRB1': 53305, 'DRB4': 80, 'DRB5': 80} | 83 deleted MAC PDUs (442 RLC PDUs) | 5 seeds, 2 distinct runs

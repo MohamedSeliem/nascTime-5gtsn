@@ -1,9 +1,9 @@
-date_utc: 2026-10-22T16:23:06Z
+date_utc: 2026-10-22T16:59:54Z
 omnetpp: Version: 6.4.0, build: 260506-2cf25223fe, edition: Academic Public License -- NOT FOR COMMERCIAL USE
 inet_version_file: inet-4.7.0-dfe270b21f
 simu5g_version_file: 1.8.0
 compiler: Ubuntu clang version 18.1.3 (1ubuntu1)
-nascTime_commit: 8f7d91b4205ecf8b3c29c6049a3edc26236381f8
+nascTime_commit: dbba621f023614b746d00ba2f4711c6b0ceefb3b
 libnasctime_m2_sha256: 62be18caa2195596bddda79d024ace1852fdd3f9f3e7695106cb7ea82de24683
 python: Python 3.13.16
 os: Linux 6.18.44-fc-v140 x86_64
