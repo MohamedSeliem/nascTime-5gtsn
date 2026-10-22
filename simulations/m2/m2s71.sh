@@ -11,6 +11,8 @@
 #   ./m2s71.sh gates       gates P0, C0, C1, Q0a, Q0b                       -> gate-P0.txt, gate-Q0b.txt
 #   ./m2s71.sh check1      phase-1 check (needs the gate records)           -> phase1-check.txt, phase1-report.txt
 #   ./m2s71.sh phase2 A B  phase 2: sustained load for Q-0, option A (non-experimental), option B (experimental)
+#   ./m2s71.sh review      exploratory sustained-load runs (Q-0, Q-a, Q-d (UM)) not already run by phase 2
+#   ./m2s71.sh seeds       seed-invariance diagnostic                       -> diagnostics/seeds.txt
 #   ./m2s71.sh check2      phase-2 check                                    -> phase2-check.txt
 #   ./m2s71.sh check       final check over everything present              -> check.txt, report.txt
 #   ./m2s71.sh configs     run the "config reps" lines read from stdin into runs/
@@ -68,6 +70,30 @@ phase1_configs() {
 }
 accuracy_configs() { for o in $OPTS; do echo "M2S71-$o-Ca 0..4"; echo "M2S71-$o-Bp100 0..4"; done; }
 phase2_configs() { for o in q0 "$@"; do for h in "" -h16; do echo "M2S71-$o-sus$h 0..4"; done; echo "M2S71-$o-Ca-sus 0..4"; done; }
+# seed-invariance diagnostic (review 2026-10-22, item 5): RNG draws per module group, and one RNG varied at a time
+seeds_configs() {
+  for b in q0-idle q0-load qdu-idle qdu-load; do echo "M2S71-R-$b 0..4"; for k in 0 2 3 5 7; do echo "M2S71-R-$b-v$k 0..4"; done; done
+}
+seeds() {
+  seeds_configs | runlist runs
+  mkdir -p "$OUT/diagnostics"
+  python3 "$CHK/diag_m2s71_seeds.py" "$OUT" > "$OUT/diagnostics/seeds.txt"
+  # draws by call site (gdb), 2 s of Q-0 idle (MAXCI) and Q-d (UM) idle (QOS_PF), seed 0
+  local c
+  for c in M2S71-q0-idle M2S71-qdu-idle; do
+    (cd "$HERE" && gdb -q -batch -ex "python OUTF='$OUT/diagnostics/rng-callsites-$c.txt'" -ex "source $CHK/diag_m2s71_rng_gdb.py" -ex run \
+       --args "$(command -v opp_run)" -l "$NASCTIME/src/nasctime/m2/nasctime_m2" -l "$SIMU5G_ROOT/src/simu5g" \
+       -n "$NASCTIME/simulations:$NASCTIME/src:$SIMU5G_ROOT/src:$INET_ROOT/src" -x nasctime.nodes -u Cmdenv -f omnetpp.ini \
+       -c "$c" -r 0 --sim-time-limit=2s --result-dir="$OUT/runs-gdb" --cmdenv-express-mode=true > "$OUT/runs-gdb-$c.log" 2>&1)
+  done
+}
+# exploratory sustained-load comparison (review 2026-10-22, item 3): Q-0, Q-a and Q-d (UM) under sustained load,
+# same configs and seeds as phase 2; only those not already run by the formal phase 2
+review_configs() {
+  local A B; read -r A B < "$OUT/phase2-options.txt"
+  for o in q0 qa qdu; do case " q0 $A $B " in *" $o "*) ;; *) phase2_configs_one "$o" ;; esac; done
+}
+phase2_configs_one() { for h in "" -h16; do echo "M2S71-$1-sus$h 0..4"; done; echo "M2S71-$1-Ca-sus 0..4"; }
 # runs a list of lines "config reps [extra opp_run args]" read from stdin into root dir $1; $2... are
 # extra opp_run arguments for every line
 runlist() { local root=$1; shift; xargs -P "$JOBS" -L 1 bash -c 'runline "'"$root"'" "$@" '"$*" _; }
@@ -81,7 +107,7 @@ m0() {
 }
 extra() {
   printf '%s\n' "M2S71-qa-idle-B5 0" "M2S71-qa-idle-B6 0" "M2S71-q0-idle-B10 0" "M2S71-N-noRule 0..9" "M2S71-N-swap 0" \
-                "M2S71-N-noHold 0" "M2S71-N-prio 0..4" | runlist runs
+                "M2S71-N-noHold 0" "M2S71-N-prio 0..4" "M2S71-H-hold 0..4" "M2S71-H-noHold 0..4" | runlist runs
   # N-bound: bound = the residence of the first corrected Follow_Up of M2S71-qa-idle seed 0 (exact equality exercised)
   local b; b=$(python3 "$CHK/m2s71_tools.py" first-res "$OUT/runs/M2S71-qa-idle/m2log/M2S71-qa-idle-0")
   echo "M2S71-N-bound 0 --*.dsTt.eth[1].trafficConditionerLayer.monitor.residenceBound=${b}" | runlist runs
@@ -90,18 +116,18 @@ extra() {
   local t; t=$(python3 "$CHK/m2s71_tools.py" p99-lag "$OUT/runs/M2S71-q0-idle/m2log/M2S71-q0-idle-0")
   echo "M2S71-N-drop 0 --*.dsTt.eth[1].trafficConditionerLayer.syncOut.egressTest=\\\"dropLag:${t}\\\"" | runlist runs
   echo "$t" > "$OUT/runs/M2S71-N-drop.threshold"
-  # Q6: MAC debug traces (seed 0) of Q-0 and Q-a under 0-3 s load, 5 and 16 HARQ processes
-  printf '%s\n' "M2S71-T-q0-load 0" "M2S71-T-q0-load-h16 0" "M2S71-T-qa-load 0" "M2S71-T-qa-load-h16 0" | runlist runs-trace
+  # Q6: MAC debug traces (seed 0) of every option under the 0.6 s load burst, 5 and 16 HARQ processes
+  for o in $OPTS; do echo "M2S71-T-$o-load 0"; echo "M2S71-T-$o-load-h16 0"; done | runlist runs-trace
 }
 twins() {
   { phase1_configs | sed 's/ 0\.\.[0-9]*$/ 0/'; for o in $OPTS; do echo "M2S71-$o-Ca 0"; echo "M2S71-$o-Bp100 0"; done
-    if [ -f "$OUT/phase2-options.txt" ]; then phase2_configs $(cat "$OUT/phase2-options.txt") | sed 's/ 0\.\.[0-9]*$/ 0/'; fi; } \
+    if [ -f "$OUT/phase2-options.txt" ]; then { phase2_configs $(cat "$OUT/phase2-options.txt"); review_configs; } | sed 's/ 0\.\.[0-9]*$/ 0/'; fi; } \
     | runlist runs-10s --sim-time-limit=10s
   printf '%s\n' "M2S6-C-a 0..4" "M2S6-B-p100 0..4" | runlist runs-m2s6ref
 }
 h0() {
   { phase1_configs | sed 's/ 0\.\.[0-9]*$/ 0/'
-    if [ -f "$OUT/phase2-options.txt" ]; then phase2_configs $(cat "$OUT/phase2-options.txt") | sed 's/ 0\.\.[0-9]*$/ 0/'; fi
+    if [ -f "$OUT/phase2-options.txt" ]; then { phase2_configs $(cat "$OUT/phase2-options.txt"); review_configs; } | sed 's/ 0\.\.[0-9]*$/ 0/'; fi
     if [ -f "$OUT/h0-extra.txt" ]; then cat "$OUT/h0-extra.txt"; fi; } | sort -u | runlist runs-20s --sim-time-limit=20s
 }
 
@@ -117,6 +143,8 @@ case "$MODE" in
   check1) python3 "$CHK/check_m2s71.py" phase1 "$OUT" | tee "$OUT/phase1-check.txt" ;;
   phase2) shift; [ $# -eq 2 ] || { echo "usage: m2s71.sh phase2 <non-experimental option> <experimental option>" >&2; exit 2; }
           echo "$1 $2" > "$OUT/phase2-options.txt"; phase2_configs "$1" "$2" | runlist runs ;;
+  review) review_configs | runlist runs ;;
+  seeds) seeds ;;
   check2) python3 "$CHK/check_m2s71.py" phase2 "$OUT" | tee "$OUT/phase2-check.txt" ;;
   check) python3 "$CHK/check_m2s71.py" final "$OUT" | tee "$OUT/check.txt" ;;
   # all = all1 all2 all3 all4 (stages, so that each fits a bounded session; same steps, same order)
@@ -134,9 +162,11 @@ case "$MODE" in
   all3)
     read -r A B < "$OUT/phase2-options.txt"
     phase2_configs "$A" "$B" | runlist runs
+    review_configs | runlist runs           # exploratory: Q-d (UM) under sustained load (not part of the selection)
     REUSE=1 twins
     REUSE=1 h0 ;;
   all4)
+    seeds                                   # seed-invariance diagnostic (needs the primary runs for its section 3)
     python3 "$CHK/gate_m2s71.py" gates "$OUT" "$HERE/results" > "$OUT/gate-P0.txt" || true   # gates over the phase-2 runs too
     python3 "$CHK/check_m2s71.py" final "$OUT" > "$OUT/check.txt" || true
     REUSE=1 h0                              # second pass: runs listed in h0-extra.txt by the check
