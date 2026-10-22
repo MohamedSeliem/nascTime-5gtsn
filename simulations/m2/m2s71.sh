@@ -73,6 +73,7 @@ phase2_configs() { for o in q0 "$@"; do for h in "" -h16; do echo "M2S71-$o-sus$
 # seed-invariance diagnostic (review 2026-10-22, item 5): RNG draws per module group, and one RNG varied at a time
 seeds_configs() {
   for b in q0-idle q0-load qdu-idle qdu-load; do echo "M2S71-R-$b 0..4"; for k in 0 2 3 5 7; do echo "M2S71-R-$b-v$k 0..4"; done; done
+  for b in qda-idle qd2-idle; do echo "M2S71-R-$b 0..4"; echo "M2S71-R-$b-v0 0..4"; done
 }
 seeds() {
   seeds_configs | runlist runs

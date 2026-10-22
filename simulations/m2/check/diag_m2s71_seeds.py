@@ -23,7 +23,7 @@ import gate_m2s71_p0 as G  # noqa: E402
 GROUPS = {0: "direct getEnvir()->getRNG(0) callers (PF/QoS score jitter, PhyPisaData)", 1: "clocks", 2: "UE MAC",
           3: "UE NIC rest (PHY, channel model)", 4: "gNB MAC", 5: "gNB NIC rest (PHY, channel model)", 6: "applications",
           7: "everything else"}
-BASES = ("q0-idle", "q0-load", "qdu-idle", "qdu-load")
+BASES = ("q0-idle", "q0-load", "qdu-idle", "qdu-load", "qda-idle", "qd2-idle")
 
 
 def drawn(sca):
