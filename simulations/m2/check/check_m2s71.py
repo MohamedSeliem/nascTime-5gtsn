@@ -429,7 +429,7 @@ def trace_counts(path):
 def q6_rows(out, A):
     # (a) trace identity: deleted RLC PDUs = RLC PDU deficit (all DRBs, DL from the gNB "mac", UL from the UE "nrMac")
     troot = os.path.join(out, "runs-trace")
-    det, ok = [], True
+    det, ok, am_ne = [], True, []
     for cfg in G.run_dirs(troot):
         tr = trace_counts(os.path.join(troot, f"run-{cfg}.log"))
         run = L.Run(troot, cfg, 0)
@@ -442,10 +442,19 @@ def q6_rows(out, A):
         good = defs["DL"] == tr["mac"]["rlc"] and defs["UL"] == tr["nrMac"]["rlc"]
         o_, v_, h_ = L.parse_cfg(cfg)
         TRACE[(o_, h_)] = (tr["mac"]["mac"], tr["mac"]["rlc"])
+        if L.OPTIONS[o_][2] == "am":
+            # an RLC AM entity also sends and receives STATUS PDUs that its data-PDU statistics do not count, so the
+            # PDU deficit is not the destroyed-PDU count; like Q0b-4 the identity is NOT EVALUATED for AM options
+            am_ne.append(f"{cfg}: deleted MAC PDUs DL {tr['mac']['mac']} / UL {tr['nrMac']['mac']}, RLC PDUs inside DL {tr['mac']['rlc']} / "
+                         f"UL {tr['nrMac']['rlc']}, data-PDU deficit DL {defs['DL']} / UL {defs['UL']}")
+            continue
         ok &= good
         det.append(f"{cfg}: deleted MAC PDUs DL {tr['mac']['mac']} / UL {tr['nrMac']['mac']}, RLC PDUs inside DL {tr['mac']['rlc']} / "
                    f"UL {tr['nrMac']['rlc']}, RLC PDU deficit DL {defs['DL']} / UL {defs['UL']}")
-    add("Q6 (a) MAC discard model (seed-0 traces)", "; ".join(det), det and ok)
+    add("Q6 (a) MAC discard model (seed-0 traces, UM options)", "; ".join(det), det and ok)
+    if am_ne:
+        report.append("Q6 (a) AM options: NOT EVALUATED (STATUS PDUs are outside the data-PDU statistics; no validated AM model, as "
+                      "Q0b-4): " + "; ".join(am_ne))
     # (b) per-DRB DL deficits and lost gPTP pairs, 5 vs 16 HARQ (paired seeds)
     agg = defaultdict(Counter)
     for a in A:
@@ -616,7 +625,7 @@ def load_all(out, which):
     root = os.path.join(out, "runs")
     A = []
     for cfg in G.run_dirs(root):
-        if any(x in cfg for x in ("-N-", "-T-", "-M0-", "-H-", "-B5", "-B6", "-B10")) or cfg.endswith(("-Ca", "-Bp100", "-Ca-sus")):
+        if any(x in cfg for x in ("-N-", "-T-", "-M0-", "-H-", "-R-", "-B5", "-B6", "-B10")) or cfg.endswith(("-Ca", "-Bp100", "-Ca-sus")):
             continue
         opt, variant, harq = L.parse_cfg(cfg)
         if variant not in which:
