@@ -4,8 +4,10 @@
     m2s72_gen.py write              write simulations/m2/m2s72.ini
     m2s72_gen.py check              regenerate in memory; exit 1 unless byte-identical to the committed m2s72.ini
     m2s72_gen.py verify <opp_run..> also compare this generator's flattening of every source config with
-                                    OMNeT++'s own effective configuration (opp_run -q runconfig); exit 1 on any
-                                    difference. The opp_run command line (without -c/-r/-q) follows "verify".
+                                    OMNeT++'s own effective configuration (opp_run -q runconfig), and check on
+                                    OMNeT++'s resolution of m2s72.ini that no T0 config carries the static-listener
+                                    settings and every non-T0 config does (rev. 2.1 A-1); exit 1 on any difference.
+                                    The opp_run command line (without -c/-r/-q) follows "verify".
 
 Input: simulations/m2/omnetpp.ini (which includes ../m1/omnetpp.ini), read as text. For every source config in
 SOURCES, the generator
@@ -79,6 +81,17 @@ REQUIRED = {
     "**.pcapRecorder[*].pcapFile": None,
     "*.ue[*].mobility.initialX": "450m + 30m * ancestorIndex(1)",
 }
+# Checkpoint 1 repair (design rev. 2.1, A-1): fixed listener MAC (outside INET's auto range 0A-AA-xx-xx-xx-xx) and a
+# configuration-initialised UPF bridge entry (listener MAC, VID 42) -> dnEth, in every non-T0 config, never in T0
+LISTENER_MAC = "0A-AB-00-00-00-01"
+SL_VID = 42
+SL_INTERFACE = "dnEth"
+T0_FORBIDDEN = ("M2S72-SL", "M2S72-L", "M2S72-ev")   # T0 must inherit none of these (nor a D-4 or SL-control mixin)
+# for every source with non-T0 configs (the F0 sources): the VLAN the static entry is scoped to
+REQUIRED_NONT0 = {"**.app[0..1].tagger.vlanId": str(SL_VID)}
+# settings the generated mixins set; a source that already sets them would be silently overridden: refused
+ABSENT = (r"\*\.listener\.eth\[[0-9*]+\]\.address", r".*macTable\..*", r"\*\.listener\.\*\*?\.address")
+
 REQUIRED_NGT1 = {   # additionally, for sources generated at N > 1
     "*.listener.numApps": str(LISTENER_APPS),
     "*.talker.numApps": str(LISTENER_APPS),
@@ -441,6 +454,20 @@ def translate(cfg, ns, entries):
             raise GenError(f"{cfg}: missing required setting {k}")
         if v is not None and eff[k].value != v:
             raise GenError(f"{cfg}: required setting {k} = {eff[k].value}, expected {v}")
+    for e in entries:
+        for pat in ABSENT:
+            if re.fullmatch(pat, e.key):
+                raise GenError(f"{cfg}: source sets {e.key} = {e.value} ({e.file}:{e.line}), which the generated "
+                               f"static-listener mixin M2S72-SL owns")
+    if cfg in D4_SOURCES:
+        for k, v in REQUIRED_NONT0.items():
+            if k not in eff:
+                raise GenError(f"{cfg}: missing required setting {k} (VLAN of the static listener entry)")
+            if eff[k].value != v:
+                raise GenError(f"{cfg}: required setting {k} = {eff[k].value}, expected {v} (VLAN of the static listener entry)")
+        other = {e.key: e.value for e in eff.values() if e.key.endswith("tagger.vlanId") and e.value != str(SL_VID)}
+        if other:
+            raise GenError(f"{cfg}: traffic on a VLAN other than {SL_VID}: {other}; the static listener entry covers VID {SL_VID} only")
     out, used = [], {}
     for e in entries:
         hits = [(n, f) for n, p, f in RULES if p(e.key)]
@@ -491,11 +518,38 @@ description = "(mixin) F0-6 learning recorders: UPF N3 (ppp[0]) and N6 (dnEth), 
 *.upf.pcapRecorder[2..3].snaplen = 128
 
 [Config M2S72-ev]
-description = "(mixin) F0-7 eventlog over [0, 0.5 s]"
+description = "(mixin) F0-7 eventlog over [0, 0.5 s], INET log lines of the UPF MAC table only (run in non-express mode)"
 record-eventlog = true
 eventlog-file = ${resultdir}/${configname}/${repetition}.elog
 eventlog-recording-intervals = ..0.5s
-"""
+cmdenv-event-banners = false
+*.upf.ethBridge.macTable.cmdenv-log-level = info
+**.cmdenv-log-level = off
+
+[Config M2S72-SL]
+description = "(mixin) design rev. 2.1 A-1: fixed listener MAC and configuration-initialised UPF bridge entry (listener, VID 42) -> dnEth"
+*.listener.eth[0].address = "%(mac)s"
+*.upf.ethBridge.macTable.forwardingTable = [{address: "%(mac)s", vlan: %(vid)d, interface: "%(ifc)s"}]
+
+# F0-6 negative controls (design rev. 2.1; Checkpoint 1 rev. 2): each replaces one element of M2S72-SL
+[Config M2S72-SLN-missing]
+description = "(mixin, control) no configured entry (fixed listener MAC kept)"
+*.upf.ethBridge.macTable.forwardingTable = []
+
+[Config M2S72-SLN-vlan]
+description = "(mixin, control) configured entry on the wrong VLAN (43)"
+*.upf.ethBridge.macTable.forwardingTable = [{address: "%(mac)s", vlan: 43, interface: "%(ifc)s"}]
+
+[Config M2S72-SLN-age]
+description = "(mixin, control) ageing time too short for the run (1 s): the configured entry (inserted at -1 s) is ignored"
+*.upf.ethBridge.macTable.agingTime = 1s
+
+[Config M2S72-SLN-port]
+description = "(mixin, control) talker[1] uses the listener's MAC and sends its uplink flows to talker[0]: frames with the listener's source MAC and VID 42 enter on session 1 and move the entry"
+*.talker[1].eth[0].address = "%(mac)s"
+*.talker[1].app[0..1].io.remoteAddress = "talker[0]"
+""" % {"mac": LISTENER_MAC, "vid": SL_VID, "ifc": SL_INTERFACE}
+SL_CONTROLS = ("missing", "vlan", "age", "port")
 
 
 def generate():
@@ -505,7 +559,8 @@ def generate():
     gen_hash = hashlib.sha256(open(os.path.abspath(__file__), "rb").read()).hexdigest()
     out = ["# GENERATED by simulations/m2/tools/m2s72_gen.py -- do not edit; regenerate with",
            "#   python3 tools/m2s72_gen.py write     (check: python3 tools/m2s72_gen.py check)",
-           "# M2-S7.2a configurations (migration/m2-s7.2a-design.md rev. 2): F0 census and T0 equivalence (stages 1-3).",
+           "# M2-S7.2a configurations (migration/m2-s7.2a-design.md rev. 2.1): F0 census and T0 equivalence (stages 1-3,",
+           "# Checkpoint 1 rev. 2: static listener entry M2S72-SL in every non-T0 config, never in T0).",
            f"# generator sha256 {gen_hash}"]
     out += [f"# source sha256 {h}  {os.path.relpath(os.path.normpath(p), M2)}" for p, h in src_hash.items()]
     out += ["", "include omnetpp.ini", ""]
@@ -531,10 +586,12 @@ def generate():
             if cfg in D4_SOURCES:
                 out += mixin_d4(short, n) + [""]
     out += ["#" + "-" * 100, FIXED]
-    out += ["#" + "-" * 100, "# T0: numUe = 1 with the source timing (design 8.1)"]
+    ext = {}    # generated runnable config -> its extends list (for the inheritance assertions below)
+    out += ["#" + "-" * 100, "# T0: numUe = 1 with the source timing (design 8.1); never the static-listener mixin (rev. 2.1 A-1)"]
     for cfg, (short, ns) in SOURCES.items():
+        ext[f"M2S72-T0-{short}"] = [f"M2S72N1-{short}", f"M2S72B-{short}"]
         out += [f"[Config M2S72-T0-{short}]", f'description = "T0: {cfg} on M2S72Bridge, numUe = 1"',
-                f"extends = M2S72N1-{short}, M2S72B-{short}", ""]
+                f"extends = {', '.join(ext[f'M2S72-T0-{short}'])}", ""]
     out += ["#" + "-" * 100,
             "# F0 census (design 8.1): D-4 timing, learning recorders; twins -ev (eventlog, F0-7) and -norec (no",
             "# learning recorders: their non-perturbation)"]
@@ -542,13 +599,50 @@ def generate():
         short = SOURCES[cfg][0]
         for n in F0_N:
             base = f"M2S72-F0-{o}-n{n}"
-            out += [f"[Config {base}]", f'description = "F0 census: {cfg}, numUe = {n}, D-4 timing"',
-                    f"extends = M2S72-L, M2S72D4N{n}-{short}, M2S72N{n}-{short}, M2S72B-{short}", "",
+            ext[base] = ["M2S72-SL", "M2S72-L", f"M2S72D4N{n}-{short}", f"M2S72N{n}-{short}", f"M2S72B-{short}"]
+            ext[base + "-ev"] = ["M2S72-ev", base]
+            ext[base + "-norec"] = ["M2S72-SL", f"M2S72D4N{n}-{short}", f"M2S72N{n}-{short}", f"M2S72B-{short}"]
+            out += [f"[Config {base}]", f'description = "F0 census: {cfg}, numUe = {n}, D-4 timing, static listener entry"',
+                    f"extends = {', '.join(ext[base])}", "",
                     f"[Config {base}-ev]", f'description = "F0-7 twin: {base} with the eventlog over [0, 0.5 s]"',
-                    f"extends = M2S72-ev, {base}", "",
+                    f"extends = {', '.join(ext[base + '-ev'])}", "",
                     f"[Config {base}-norec]", f'description = "F0 twin: {base} without the learning recorders"',
-                    f"extends = M2S72D4N{n}-{short}, M2S72N{n}-{short}, M2S72B-{short}", ""]
+                    f"extends = {', '.join(ext[base + '-norec'])}", ""]
+    out += ["#" + "-" * 100,
+            "# F0-6 negative controls (Checkpoint 1 rev. 2): the Q-0 N = 2 census with one element of M2S72-SL replaced",
+            "# (the control mixin comes first, so it takes precedence); each with its eventlog twin"]
+    for c in SL_CONTROLS:
+        nm = f"M2S72-F0N-{c}"
+        ext[nm] = [f"M2S72-SLN-{c}", "M2S72-F0-q0-n2"]
+        ext[nm + "-ev"] = ["M2S72-ev", nm]
+        out += [f"[Config {nm}]", f'description = "F0-6 negative control {c}"', f"extends = {', '.join(ext[nm])}", "",
+                f"[Config {nm}-ev]", f'description = "eventlog twin of {nm}"', f"extends = {', '.join(ext[nm + '-ev'])}", ""]
+    check_inheritance(ext)
     return "\n".join(out).rstrip("\n") + "\n", summary
+
+
+def closure(ext, name):
+    """Every generated section a runnable config inherits from (its own extends, recursively)."""
+    seen, todo = [], list(ext.get(name, []))
+    while todo:
+        x = todo.pop(0)
+        if x not in seen:
+            seen.append(x)
+            todo += ext.get(x, [])
+    return seen
+
+
+def check_inheritance(ext):
+    """rev. 2.1 A-1: every non-T0 runnable config inherits M2S72-SL; no T0 config inherits M2S72-SL, an SL
+    control, the learning recorders, the eventlog mixin or a D-4 mixin."""
+    for name in ext:
+        cl = closure(ext, name)
+        if name.startswith("M2S72-T0-"):
+            bad = [x for x in cl if x in T0_FORBIDDEN or x.startswith("M2S72-SLN-") or x.startswith("M2S72D4")]
+            if bad:
+                raise GenError(f"{name}: T0 config inherits {bad}")
+        elif "M2S72-SL" not in cl:
+            raise GenError(f"{name}: non-T0 config does not inherit M2S72-SL")
 
 
 def runconfig_entries(text):
@@ -570,6 +664,46 @@ def runconfig_entries(text):
         k, v = s.split("=", 1)
         out.append((k.strip(), " ".join(v.split())))
     return out
+
+
+def verify_generated(cmd):
+    """rev. 2.1 A-1, checked on OMNeT++'s own resolution of the generated file: every M2S72-T0-* config has no
+    listener address and no UPF forwardingTable entry; every non-T0 runnable config has exactly the M2S72-SL values
+    as its effective (first) entries (the F0-6 controls: their replaced element)."""
+    text = open(OUT).read()
+    names = re.findall(r"^\[Config (M2S72-(?:T0|F0|F0N)-[^\]]+)\]", text, flags=re.M)
+    sl = {"*.listener.eth[0].address": f'"{LISTENER_MAC}"',
+          "*.upf.ethBridge.macTable.forwardingTable": f'[{{address: "{LISTENER_MAC}", vlan: {SL_VID}, interface: "{SL_INTERFACE}"}}]'}
+    ctrl = {"missing": ("*.upf.ethBridge.macTable.forwardingTable", "[]"),
+            "vlan": ("*.upf.ethBridge.macTable.forwardingTable", f'[{{address: "{LISTENER_MAC}", vlan: 43, interface: "{SL_INTERFACE}"}}]'),
+            "age": ("*.upf.ethBridge.macTable.agingTime", "1s"), "port": ("*.talker[1].eth[0].address", f'"{LISTENER_MAC}"'),
+            "port2": ("*.talker[1].app[0..1].io.remoteAddress", '"talker[0]"')}
+    bad = 0
+    for nm in names:
+        res = subprocess.run(cmd + ["-f", "m2s72.ini", "-c", nm, "-r", "0", "-q", "runconfig"], cwd=M2, capture_output=True, text=True)
+        ents = runconfig_entries(res.stdout)
+        eff = {}
+        for k, v in ents:
+            eff.setdefault(k, v)
+        keys = [k for k, _ in ents]
+        if nm.startswith("M2S72-T0-"):
+            found = [k for k in keys if k in sl or "macTable" in k or re.fullmatch(r"\*\.listener\.eth\[.*\]\.address", k)]
+            ok = not found
+            msg = "no listener address, no MAC-table setting" if ok else f"INHERITS {found}"
+        else:
+            exp = dict(sl)
+            m = re.match(r"M2S72-F0N-([a-z]+)", nm)
+            if m:
+                for c in (m.group(1), m.group(1) + "2"):
+                    if c in ctrl:
+                        k, v = ctrl[c]
+                        exp[k] = v
+            diff = {k: (eff.get(k), v) for k, v in exp.items() if eff.get(k) != v}
+            ok = not diff
+            msg = "effective static-listener settings as generated" if ok else f"DIFFERENT {diff}"
+        bad += not ok
+        print(f"{nm}: {msg}")
+    return bad
 
 
 def verify(cmd):
@@ -613,7 +747,11 @@ def main():
               f"{'IDENTICAL' if same else 'DIFFERENT'}")
         return 0 if same else 1
     if mode == "verify":
-        return 1 if verify(sys.argv[2:]) else 0
+        b1 = verify(sys.argv[2:] + ["-f", "omnetpp.ini"] if "-f" not in sys.argv[2:] else sys.argv[2:])
+        cmd = [x for i, x in enumerate(sys.argv[2:]) if not (x == "-f" or (i > 0 and sys.argv[2:][i - 1] == "-f"))]
+        b2 = verify_generated(cmd)
+        print(f"generated-config check (rev. 2.1 A-1): {'all as generated' if not b2 else str(b2) + ' DIFFERENT'}")
+        return 1 if (b1 or b2) else 0
     print(__doc__)
     return 2
 

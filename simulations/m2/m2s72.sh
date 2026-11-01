@@ -3,8 +3,9 @@
 # Stages 1-3 (Checkpoint 1): configuration regeneration, gate F0 (feasibility) and gate T0 (numUe = 1
 # equivalence). Builds libnasctime_m2 and runs m2s72.ini (generated, includes omnetpp.ini) and, for the T0
 # references, omnetpp.ini, on unmodified OMNeT++ 6.4.0 / INET 4.7.0 / Simu5G 1.8.0.
-#   ./m2s72.sh regen    regeneration check of m2s72.ini + flattening vs OMNeT++ runconfig -> results/M2-S7.2a/regen.txt
-#   ./m2s72.sh f0       F0 census runs (+ eventlog and no-learning-recorder twins), F0 check -> f0-check.txt,
+#   ./m2s72.sh regen    regeneration check of m2s72.ini + flattening vs OMNeT++ runconfig -> results/M2-S7.2a-cp1r2/regen.txt
+#   ./m2s72.sh f0       F0 census runs (+ eventlog and no-learning-recorder twins) and F0-6 negative controls,
+#                       F0 check (check_m2s72_f0r2.py, design rev. 2.1) -> f0-check.txt,
 #                       comparator canaries -> comparator-canaries.txt   (f0check: the checks only)
 #   ./m2s72.sh t0       T0 runs (M2S72-T0-*) and their M1Bridge references, T0 check     -> t0-check.txt (t0check: check only)
 #   ./m2s72.sh hashes   sha256 of every PCAP and log of the runs                             -> raw-outputs.sha256
@@ -19,7 +20,9 @@ export INET_ROOT=${INET_ROOT:-/root/stack/inet-4.7.0}
 SIMU5G_ROOT=${SIMU5G_ROOT:-/root/stack/simu5g-1.8.0}
 JOBS=${JOBS:-2}
 MODE=${1:-all}
-OUT=$HERE/results/M2-S7.2a
+# Checkpoint 1 revision 2 (design rev. 2.1): records go to results/M2-S7.2a-cp1r2; the Checkpoint 1 record
+# (results/M2-S7.2a, produced at dfedb52) is kept unchanged.
+OUT=$HERE/results/M2-S7.2a-cp1r2
 CHK=$HERE/check
 mkdir -p "$OUT"
 "$NASCTIME/src/nasctime/m2/build.sh" > "$OUT/build.log" 2>&1 || { echo "ERROR: build failed, see $OUT/build.log" >&2; exit 1; }
@@ -45,10 +48,12 @@ run() {
   local ini=$1 cfg=$2 reps=$3 root=$4; shift 4
   rm -rf "$OUT/$root/$cfg"
   mkdir -p "$OUT/$root"
+  local express=--cmdenv-express-mode=true
+  case "$cfg" in *-ev) express=--cmdenv-express-mode=false ;; esac   # eventlog twins: UPF MAC-table log lines (M2S72-ev)
   (cd "$HERE" && opp_run -l "$NASCTIME/src/nasctime/m2/nasctime_m2" -l "$SIMU5G_ROOT/src/simu5g" \
      -n "$NASCTIME/simulations:$NASCTIME/src:$SIMU5G_ROOT/src:$INET_ROOT/src" -x nasctime.nodes \
      -u Cmdenv -f "$ini" -c "$cfg" --repeat=10 -r "$reps" --result-dir="$OUT/$root/$cfg" \
-     --cmdenv-express-mode=true "$@" > "$OUT/$root/run-$cfg.log" 2>&1) \
+     "$express" "$@" > "$OUT/$root/run-$cfg.log" 2>&1) \
   || { echo "ERROR: $cfg failed, see $OUT/$root/run-$cfg.log" >&2; return 1; }
 }
 runline() { local root=$1 ini=$2 cfg=$3 reps=$4; shift 4; run "$ini" "$cfg" "$reps" "$root" "$@"; }
@@ -78,6 +83,7 @@ f0_configs() {
   for o in q0 qdu; do for n in 1 2 4 8; do
     for s in "" -ev -norec; do echo "m2s72.ini M2S72-F0-$o-n$n$s 0 --fingerprint=0000-0000/tplx"; done
   done; done
+  for c in missing vlan age port; do for s in "" -ev; do echo "m2s72.ini M2S72-F0N-$c$s 0 --fingerprint=0000-0000/tplx"; done; done
 }
 t0_configs() {
   for s in q0-idle qdu-idle q0-load C-a E-all; do echo "m2s72.ini M2S72-T0-$s 0"; done
@@ -89,11 +95,11 @@ t0_refs() {
 case "$MODE" in
   regen) regen ;;
   f0) f0_configs | runlist runs
-      python3 "$CHK/check_m2s72_f0.py" "$OUT" > "$OUT/f0-check.txt" || true
+      python3 "$CHK/check_m2s72_f0r2.py" "$OUT" > "$OUT/f0-check.txt" || true
       python3 "$CHK/test_m2s72_compare.py" "$OUT" M2S72-F0-q0-n2 > "$OUT/comparator-canaries.txt" 2>&1 || true
       tail -1 "$OUT/comparator-canaries.txt"
       tail -3 "$OUT/f0-check.txt" ;;
-  f0check) python3 "$CHK/check_m2s72_f0.py" "$OUT" > "$OUT/f0-check.txt" || true
+  f0check) python3 "$CHK/check_m2s72_f0r2.py" "$OUT" > "$OUT/f0-check.txt" || true
       python3 "$CHK/test_m2s72_compare.py" "$OUT" M2S72-F0-q0-n2 > "$OUT/comparator-canaries.txt" 2>&1 || true
       tail -1 "$OUT/comparator-canaries.txt"
       tail -3 "$OUT/f0-check.txt" ;;
