@@ -1,0 +1,14 @@
+M2-S7.2a gate T0 (design rev. 2, 8.1)
+
+T0-q0-idle | PASS | M2S72-T0-q0-idle vs M2S71-q0-idle: 37 files compared (29 vectors, 29819 scalar items); clockIdentity slave 3fc8affce2e4b2ad -> a32b05b736fc0270, GM 0000000000000000 -> 0000000000000000; frames with the identity substituted 72, log cells 169 (of which payload hashes of frames not yet transmitted at the end of the run, reconstructed: 1)
+T0-R-q0-idle | PASS | M2S71-q0-idle rerun vs results/M2-S7.1/raw-outputs.sha256 (runs/M2S71-q0-idle, repetition 0): 34 committed PCAP/log hashes, 34 files in the rerun, 0 different
+T0-qdu-idle | PASS | M2S72-T0-qdu-idle vs M2S71-qdu-idle: 37 files compared (34 vectors, 29911 scalar items); clockIdentity slave 3fc8affce2e4b2ad -> a32b05b736fc0270, GM 0000000000000000 -> 0000000000000000; frames with the identity substituted 72, log cells 169 (of which payload hashes of frames not yet transmitted at the end of the run, reconstructed: 1)
+T0-R-qdu-idle | PASS | M2S71-qdu-idle rerun vs results/M2-S7.1/raw-outputs.sha256 (runs/M2S71-qdu-idle, repetition 0): 34 committed PCAP/log hashes, 34 files in the rerun, 0 different
+T0-q0-load | PASS | M2S72-T0-q0-load vs M2S71-q0-load: 37 files compared (29 vectors, 34465 scalar items); clockIdentity slave 3fc8affce2e4b2ad -> a32b05b736fc0270, GM 0000000000000000 -> 0000000000000000; frames with the identity substituted 72, log cells 169 (of which payload hashes of frames not yet transmitted at the end of the run, reconstructed: 1)
+T0-R-q0-load | PASS | M2S71-q0-load rerun vs results/M2-S7.1/raw-outputs.sha256 (runs/M2S71-q0-load, repetition 0): 34 committed PCAP/log hashes, 34 files in the rerun, 0 different
+T0-C-a | PASS | M2S72-T0-C-a vs M2S6-C-a: 36 files compared (11 vectors, 29791 scalar items); clockIdentity slave 3fc8affce2e4b2ad -> a32b05b736fc0270, GM 0000000000000000 -> 0000000000000000; frames with the identity substituted 36, log cells 84 (of which payload hashes of frames not yet transmitted at the end of the run, reconstructed: 0)
+T0-R-C-a | PASS | M2S6-C-a rerun vs results/M2-S6/raw-outputs.sha256 (./M2S6-C-a, repetition 0): 33 committed PCAP/log hashes, 33 files in the rerun, 0 different
+T0-E-all | PASS | M2S72-T0-E-all vs M2S6-E-all: 38 files compared (11 vectors, 29793 scalar items); clockIdentity slave 3fc8affce2e4b2ad -> a32b05b736fc0270, GM 0000000000000000 -> 0000000000000000; frames with the identity substituted 36, log cells 84 (of which payload hashes of frames not yet transmitted at the end of the run, reconstructed: 0)
+T0-R-E-all | PASS | M2S6-E-all rerun vs results/M2-S6/raw-outputs.sha256 (./M2S6-E-all, repetition 0): 35 committed PCAP/log hashes, 35 files in the rerun, 0 different
+
+T0: 10 PASS, 0 FAIL
