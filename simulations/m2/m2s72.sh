@@ -9,7 +9,9 @@
 #                       comparator canaries -> comparator-canaries.txt   (f0check: the checks only)
 #   ./m2s72.sh t0       T0 runs (M2S72-T0-*) and their M1Bridge references, T0 check     -> t0-check.txt (t0check: check only)
 #   ./m2s72.sh hashes   sha256 of every PCAP and log of the runs                             -> raw-outputs.sha256
-#   ./m2s72.sh all      regen f0 t0 hashes
+#   ./m2s72.sh all      regen f0 t0 hashes                                           (Checkpoint 1 rev. 2)
+#   ./m2s72.sh b        stage 4 Block B runs and check (check_m2s72_b.py) -> results/M2-S7.2a-cp2/b-check.txt
+#   ./m2s72.sh cp2      regen, b, hashes into results/M2-S7.2a-cp2                        (Checkpoint 2)
 # Requires OMNETPP_ROOT, INET_ROOT, SIMU5G_ROOT (or the defaults below); T0 also needs the committed
 # results/M2-S7.1/raw-outputs.sha256 and results/M2-S6/raw-outputs.sha256.
 set -eo pipefail
@@ -23,6 +25,8 @@ MODE=${1:-all}
 # Checkpoint 1 revision 2 (design rev. 2.1): records go to results/M2-S7.2a-cp1r2; the Checkpoint 1 record
 # (results/M2-S7.2a, produced at dfedb52) is kept unchanged.
 OUT=$HERE/results/M2-S7.2a-cp1r2
+# Checkpoint 2 (stage 4, Block B): records go to results/M2-S7.2a-cp2
+case "$MODE" in b|bcheck|cp2|cp2regen|cp2hashes) OUT=$HERE/results/M2-S7.2a-cp2 ;; esac
 CHK=$HERE/check
 mkdir -p "$OUT"
 "$NASCTIME/src/nasctime/m2/build.sh" > "$OUT/build.log" 2>&1 || { echo "ERROR: build failed, see $OUT/build.log" >&2; exit 1; }
@@ -49,7 +53,7 @@ run() {
   rm -rf "$OUT/$root/$cfg"
   mkdir -p "$OUT/$root"
   local express=--cmdenv-express-mode=true
-  case "$cfg" in *-ev) express=--cmdenv-express-mode=false ;; esac   # eventlog twins: UPF MAC-table log lines (M2S72-ev)
+  case "$cfg" in *-ev|M2S72-B-*|M2S72-BN-*) express=--cmdenv-express-mode=false ;; esac   # eventlog (M2S72-ev): UPF MAC-table log lines
   (cd "$HERE" && opp_run -l "$NASCTIME/src/nasctime/m2/nasctime_m2" -l "$SIMU5G_ROOT/src/simu5g" \
      -n "$NASCTIME/simulations:$NASCTIME/src:$SIMU5G_ROOT/src:$INET_ROOT/src" -x nasctime.nodes \
      -u Cmdenv -f "$ini" -c "$cfg" --repeat=10 -r "$reps" --result-dir="$OUT/$root/$cfg" \
@@ -85,6 +89,12 @@ f0_configs() {
   done; done
   for c in missing vlan age port; do for s in "" -ev; do echo "m2s72.ini M2S72-F0N-$c$s 0 --fingerprint=0000-0000/tplx"; done; done
 }
+b_configs() {
+  for o in q0 qdu; do for c in ideal Ca Eall; do for n in 1 2 4; do
+    echo "m2s72.ini M2S72-B-$o-$c-n$n 0..4 --fingerprint=0000-0000/tplx"
+  done; done; done
+  echo "m2s72.ini M2S72-BN-theta1 0 --fingerprint=0000-0000/tplx"
+}
 t0_configs() {
   for s in q0-idle qdu-idle q0-load C-a E-all; do echo "m2s72.ini M2S72-T0-$s 0"; done
 }
@@ -109,6 +119,15 @@ case "$MODE" in
       t0_refs | runlist ref
       python3 "$CHK/check_m2s72_t0.py" "$OUT" "$HERE/results" > "$OUT/t0-check.txt" || true
       tail -2 "$OUT/t0-check.txt" ;;
+  b) b_configs | runlist runs
+     python3 "$CHK/check_m2s72_b.py" "$OUT" > "$OUT/b-check.txt" || true
+     tail -2 "$OUT/b-check.txt" ;;
+  bcheck) python3 "$CHK/check_m2s72_b.py" "$OUT" > "$OUT/b-check.txt" || true
+     tail -2 "$OUT/b-check.txt" ;;
+  cp2regen) regen ;;
+  cp2hashes) (cd "$OUT" && find runs -type f \( -name '*.pcapng' -o -name '*.csv' \) | LC_ALL=C sort | xargs sha256sum > raw-outputs.sha256)
+          wc -l < "$OUT/raw-outputs.sha256" ;;
+  cp2) for s in cp2regen b cp2hashes; do "$0" "$s" || exit $?; done ;;
   hashes) (cd "$OUT" && find runs ref -type f \( -name '*.pcapng' -o -name '*.csv' \) | LC_ALL=C sort | xargs sha256sum > raw-outputs.sha256)
           wc -l < "$OUT/raw-outputs.sha256" ;;
   all) for s in regen f0 t0 hashes; do "$0" "$s" || exit $?; done ;;

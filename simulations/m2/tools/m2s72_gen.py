@@ -51,8 +51,20 @@ SOURCES = {
     "M2S71-q0-load": ("q0-load", (1,)),
     "M2S6-C-a": ("C-a", (1,)),
     "M2S6-E-all": ("E-all", (1,)),
+    # stage 4 (Block B, design 9): the S7.1 accuracy configs with the M2-S6 C-a clocks (GM +100 ppm, slave -100 ppm)
+    "M2S71-q0-Ca": ("q0-Ca", (1, 2, 4)),
+    "M2S71-qdu-Ca": ("qdu-Ca", (1, 2, 4)),
 }
-D4_SOURCES = ("M2S71-q0-idle", "M2S71-qdu-idle")      # F0 census sources (D-4 timing)
+D4_SOURCES = ("M2S71-q0-idle", "M2S71-qdu-idle", "M2S71-q0-Ca", "M2S71-qdu-Ca")   # sources of non-T0 configs (D-4 timing)
+# Block B (design 9): option -> (ideal-clock source, C-a source); clocks ideal / Ca / Eall (Eall = C-a source + the
+# generated TT-clock mixin M2S72-TT-Eall); N = 2, 4 (correctness) and 1 (I-5 reference); seeds 0-4
+B_OPTS = {"q0": ("M2S71-q0-idle", "M2S71-q0-Ca"), "qdu": ("M2S71-qdu-idle", "M2S71-qdu-Ca")}
+B_N = (1, 2, 4)
+B_REPS = "0..4"
+# the E-all TT clocks: the sections of M2S6-E-all that are not those of M2S6-C-a (its own entries and M2S6-tt)
+EALL_CFG, EALL_BASE = "M2S6-E-all", "M2S6-C-a"
+# D-13: DS-TT k TT clock = M2-S6 E-all DS-TT (300 ns, -100 ppb, update phase 3 ms) + k x (100 ns, 50 ppb, 1 ms)
+D13 = {"theta0": (300, 100, "ns"), "freqOffsetPpb": (-100, 50, ""), "updateOffset": (3, 1, "ms")}
 F0 = {"q0": "M2S71-q0-idle", "qdu": "M2S71-qdu-idle"}  # option -> source (design 8.1: Q-0, Q-d (UM), idle)
 F0_N = (1, 2, 4, 8)
 LISTENER_APPS = 3          # idle base: app[0..1] DL sources, app[2] sink; extra DL apps start here
@@ -348,6 +360,15 @@ def r_ttrng(e, x):
 
 
 def r_dstt_ttparam(e, x):
+    if x.ngt1 and getattr(x, "per_ds_tt", False):
+        par = e.key.rsplit(".", 1)[1]
+        if par not in D13:
+            raise GenError(f"{x.cfg}: {e.key}: no D-13 per-DS-TT rule for {par}")
+        base, step, unit = D13[par]
+        if e.value != f"{base}{unit}":
+            raise GenError(f"{x.cfg}: {e.key} = {e.value}, expected the D-13 DS-TT 0 value {base}{unit}")
+        rest = e.key[len("*.dsTt."):]
+        return [f"*.dsTt[{k}].{rest} = {base + step * k}{unit}" for k in range(NMAX)], None
     if x.ngt1:
         raise GenError(f"{x.cfg}: {e.key}: per-DS-TT TT-clock parameters (D-13) have no stage-2 translation for N > 1")
     return [simple_line(e).replace("*.dsTt.", "*.dsTt[*].", 1)], "N1"
@@ -617,8 +638,48 @@ def generate():
         ext[nm + "-ev"] = ["M2S72-ev", nm]
         out += [f"[Config {nm}]", f'description = "F0-6 negative control {c}"', f"extends = {', '.join(ext[nm])}", "",
                 f"[Config {nm}-ev]", f'description = "eventlog twin of {nm}"', f"extends = {', '.join(ext[nm + '-ev'])}", ""]
+    out += ["#" + "-" * 100, "# Stage 4, Block B (design 9): per-slave and cross-slave correctness; N = 2, 4 and the N = 1 I-5 reference;",
+            "# every run carries M2S72-SL, the learning recorders and the eventlog (UPF MAC-table log; non-express mode)"]
+    out += tt_eall_mixin(sections) + [""]
+    for o, (src_i, src_c) in B_OPTS.items():
+        for clk in ("ideal", "Ca", "Eall"):
+            src = src_i if clk == "ideal" else src_c
+            short = SOURCES[src][0]
+            for n in B_N:
+                nm = f"M2S72-B-{o}-{clk}-n{n}"
+                ext[nm] = (["M2S72-TT-Eall"] if clk == "Eall" else []) + ["M2S72-SL", "M2S72-L", "M2S72-ev",
+                                                                       f"M2S72D4N{n}-{short}", f"M2S72N{n}-{short}", f"M2S72B-{short}"]
+                out += [f"[Config {nm}]", f'description = "Block B: {src}{" + E-all TT clocks" if clk == "Eall" else ""}, numUe = {n}"',
+                        f"extends = {', '.join(ext[nm])}", ""]
+    # Block B negative control (design 8.3 N-theta1): DS-TT 1 TT-clock offset + 1 us; the checker keeps the D-13 value
+    ext["M2S72-BN-theta1"] = ["M2S72-BNX-theta1", "M2S72-B-q0-Eall-n4"]
+    out += ["[Config M2S72-BNX-theta1]", 'description = "(mixin, control) DS-TT 1 TT-clock theta0 + 1 us"',
+            f"*.dsTt[1].eth[1].trafficConditionerLayer.ttClock.theta0 = {D13['theta0'][0] + D13['theta0'][1] + 1000}ns", "",
+            "[Config M2S72-BN-theta1]", 'description = "Block B negative control N-theta1 (q0, E-all, numUe = 4)"',
+            f"extends = {', '.join(ext['M2S72-BN-theta1'])}", ""]
     check_inheritance(ext)
     return "\n".join(out).rstrip("\n") + "\n", summary
+
+
+def tt_eall_mixin(sections):
+    """M2S72-TT-Eall: the entries of the sections of M2S6-E-all that M2S6-C-a does not have (M2S6-E-all itself and
+    M2S6-tt), in lookup order, translated with the same rules (every entry exactly one rule), the DS-TT TT-clock
+    parameters per DS-TT by D-13."""
+    own = [sec for sec in c3(sections, EALL_CFG) if sec not in c3(sections, EALL_BASE)]
+    entries = [e for sec in own for e in sections[sec]]
+    x = Ctx(EALL_CFG, (1, max(B_N)))
+    x.per_ds_tt = True
+    out = ["[Config M2S72-TT-Eall]",
+           f'description = "(mixin, generated) {EALL_CFG} TT clocks (sections {", ".join(own)}); DS-TT k per D-13"']
+    for e in entries:
+        hits = [(n, f) for n, p, f in RULES if p(e.key)]
+        if len(hits) != 1:
+            raise GenError(f"{EALL_CFG} TT mixin: {e.key} matches {len(hits)} rules")
+        name, f = hits[0]
+        lines, _ = f(e, x)
+        out.append(f"# [{e.section}] {e.file}:{e.line} rule {name}")
+        out += lines
+    return out
 
 
 def closure(ext, name):
@@ -671,7 +732,7 @@ def verify_generated(cmd):
     listener address and no UPF forwardingTable entry; every non-T0 runnable config has exactly the M2S72-SL values
     as its effective (first) entries (the F0-6 controls: their replaced element)."""
     text = open(OUT).read()
-    names = re.findall(r"^\[Config (M2S72-(?:T0|F0|F0N)-[^\]]+)\]", text, flags=re.M)
+    names = re.findall(r"^\[Config (M2S72-(?:T0|F0|F0N|B|BN)-[^\]]+)\]", text, flags=re.M)
     sl = {"*.listener.eth[0].address": f'"{LISTENER_MAC}"',
           "*.upf.ethBridge.macTable.forwardingTable": f'[{{address: "{LISTENER_MAC}", vlan: {SL_VID}, interface: "{SL_INTERFACE}"}}]'}
     ctrl = {"missing": ("*.upf.ethBridge.macTable.forwardingTable", "[]"),
