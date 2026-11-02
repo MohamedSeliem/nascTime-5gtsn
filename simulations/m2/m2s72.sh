@@ -14,6 +14,8 @@
 #   ./m2s72.sh cp2      regen, b, hashes into results/M2-S7.2a-cp2                        (Checkpoint 2)
 #   ./m2s72.sh b2       Checkpoint 2 rev. 2 runs (Block B, Block H, controls) and check -> results/M2-S7.2a-cp2r2/b-check.txt
 #   ./m2s72.sh cp2r2    regen, b2, hashes into results/M2-S7.2a-cp2r2                     (Checkpoint 2 revision 2)
+#   ./m2s72.sh i2h      I-2H focused validation: regen, Block H + HARQ16 runs, I-5 references, I-2H controls,
+#                       check (check_m2s72_i2h.py focused), hashes -> results/M2-S7.2a-i2h       (i2hcheck: check only)
 # Requires OMNETPP_ROOT, INET_ROOT, SIMU5G_ROOT (or the defaults below); T0 also needs the committed
 # results/M2-S7.1/raw-outputs.sha256 and results/M2-S6/raw-outputs.sha256.
 set -eo pipefail
@@ -31,6 +33,8 @@ OUT=$HERE/results/M2-S7.2a-cp1r2
 case "$MODE" in b|bcheck|cp2|cp2regen|cp2hashes) OUT=$HERE/results/M2-S7.2a-cp2 ;; esac
 # Checkpoint 2 revision 2 (corrective round): results/M2-S7.2a-cp2r2; the Checkpoint 2 record is kept unchanged
 case "$MODE" in b2|b2check|cp2r2|cp2r2regen|cp2r2hashes) OUT=$HERE/results/M2-S7.2a-cp2r2 ;; esac
+# I-2H focused validation (review 2026-11-02 16:12): results/M2-S7.2a-i2h
+case "$MODE" in i2h|i2hrun|i2hcheck|i2hregen|i2hhashes) OUT=$HERE/results/M2-S7.2a-i2h ;; esac
 CHK=$HERE/check
 mkdir -p "$OUT"
 "$NASCTIME/src/nasctime/m2/build.sh" > "$OUT/build.log" 2>&1 || { echo "ERROR: build failed, see $OUT/build.log" >&2; exit 1; }
@@ -57,7 +61,7 @@ run() {
   rm -rf "$OUT/$root/$cfg"
   mkdir -p "$OUT/$root"
   local express=--cmdenv-express-mode=true
-  case "$cfg" in *-ev|M2S72-B-*|M2S72-BN-*|M2S72-H-*) express=--cmdenv-express-mode=false ;; esac   # eventlog (M2S72-ev): UPF MAC-table log lines
+  case "$cfg" in *-ev|M2S72-B-*|M2S72-BN-*|M2S72-H-*|M2S72-H16*) express=--cmdenv-express-mode=false ;; esac   # eventlog (M2S72-ev): UPF MAC-table log lines
   (cd "$HERE" && opp_run -l "$NASCTIME/src/nasctime/m2/nasctime_m2" -l "$SIMU5G_ROOT/src/simu5g" \
      -n "$NASCTIME/simulations:$NASCTIME/src:$SIMU5G_ROOT/src:$INET_ROOT/src" -x nasctime.nodes \
      -u Cmdenv -f "$ini" -c "$cfg" --repeat=10 -r "$reps" --result-dir="$OUT/$root/$cfg" \
@@ -104,6 +108,12 @@ b2_configs() {
   for o in q0 qdu; do for n in 2 4; do echo "m2s72.ini M2S72-H-$o-Ca-n$n 0..4 --fingerprint=0000-0000/tplx"; done; done
   echo "m2s72.ini M2S72-BN-rng 0 --fingerprint=0000-0000/tplx"
 }
+i2h_configs() {
+  for o in q0 qdu; do echo "m2s72.ini M2S72-B-$o-Ca-n1 0..4 --fingerprint=0000-0000/tplx"; done
+  for n in 2 4; do echo "m2s72.ini M2S72-H16-q0-Ca-n$n 0..4 --fingerprint=0000-0000/tplx"; done
+  echo "m2s72.ini M2S72-H16-qdu-Ca-n2 0..4 --fingerprint=0000-0000/tplx"
+  for c in nohold hto; do echo "m2s72.ini M2S72-H16N-$c 0 --fingerprint=0000-0000/tplx"; done
+}
 t0_configs() {
   for s in q0-idle qdu-idle q0-load C-a E-all; do echo "m2s72.ini M2S72-T0-$s 0"; done
 }
@@ -146,6 +156,13 @@ case "$MODE" in
   cp2r2hashes) (cd "$OUT" && find runs -type f \( -name '*.pcapng' -o -name '*.csv' \) | LC_ALL=C sort | xargs sha256sum > raw-outputs.sha256)
           wc -l < "$OUT/raw-outputs.sha256" ;;
   cp2r2) for s in cp2r2regen b2 cp2r2hashes; do "$0" "$s" || exit $?; done ;;
+  i2hregen) regen ;;
+  i2hrun) i2h_configs | runlist runs ;;
+  i2hcheck) python3 "$CHK/check_m2s72_i2h.py" focused "$OUT" > "$OUT/i2h-check.txt" 2>&1 || true
+     tail -2 "$OUT/i2h-check.txt" ;;
+  i2hhashes) (cd "$OUT" && find runs -type f \( -name '*.pcapng' -o -name '*.csv' \) | LC_ALL=C sort | xargs sha256sum > raw-outputs.sha256)
+          wc -l < "$OUT/raw-outputs.sha256" ;;
+  i2h) for s in i2hregen i2hrun i2hcheck i2hhashes; do "$0" "$s" || exit $?; done ;;
   hashes) (cd "$OUT" && find runs ref -type f \( -name '*.pcapng' -o -name '*.csv' \) | LC_ALL=C sort | xargs sha256sum > raw-outputs.sha256)
           wc -l < "$OUT/raw-outputs.sha256" ;;
   all) for s in regen f0 t0 hashes; do "$0" "$s" || exit $?; done ;;

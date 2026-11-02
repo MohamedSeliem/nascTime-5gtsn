@@ -73,6 +73,9 @@ B_OPTS = {"q0": ("M2S71-q0-idle", "M2S71-q0-Ca"), "qdu": ("M2S71-qdu-idle", "M2S
 B_N = (1, 2, 4)
 B_REPS = "0..4"
 H_N = (2, 4)               # Block H (Checkpoint 2 rev. 2)
+# I-2H focused validation (review 2026-11-02 16:12): the existing M2S0-harq16 mixin as an EXPERIMENTAL CONTROL
+# (removes the MAC PDU deletion of P1; not an operational recommendation), its own entries translated by RULES
+HARQ16_SECTION = "M2S0-harq16"
 # the E-all TT clocks: the sections of M2S6-E-all that are not those of M2S6-C-a (its own entries and M2S6-tt)
 EALL_CFG, EALL_BASE = "M2S6-E-all", "M2S6-C-a"
 # D-13: DS-TT k TT clock = M2-S6 E-all DS-TT (300 ns, -100 ppb, update phase 3 ms) + k x (100 ns, 50 ppb, 1 ms)
@@ -732,6 +735,26 @@ def generate():
             "*.dsTt[2].eth[1].trafficConditionerLayer.ttClock.rng-0 = 3", "",
             "[Config M2S72-BN-rng]", 'description = "I-4 own-stream negative control (q0, E-all, numUe = 4)"',
             f"extends = {', '.join(ext['M2S72-BN-rng'])}", ""]
+    # I-2H focused validation (review 2026-11-02 16:12): Block H with HARQ16 (experimental control); Q-0 = correctness
+    # configuration, Q-d (UM) = diagnostic comparison; I-2H negative controls on M2S72-H16-q0-Ca-n2
+    out += ["#" + "-" * 100, "# I-2H focused validation: Block H + M2S72-HARQ16 (EXPERIMENTAL CONTROL: 16 HARQ processes, the existing",
+            "# M2S0-harq16 mixin; not an operational recommendation); Q-0 correctness configuration, Q-d (UM) diagnostic"]
+    out += section_mixin(sections, HARQ16_SECTION, "M2S72-HARQ16",
+                         "(mixin, generated, EXPERIMENTAL CONTROL) M2S0-harq16: 16 HARQ processes at the gNB and every UE") + [""]
+    for o in B_OPTS:
+        src = f"M2S71-{o}-Ca-sus"
+        short = SOURCES[src][0]
+        for n in H_N:
+            nm = f"M2S72-H16-{o}-Ca-n{n}"
+            ext[nm] = ["M2S72-HARQ16", "M2S72-SL", "M2S72-L", "M2S72-ev", f"M2S72D4N{n}-{short}", f"M2S72N{n}-{short}", f"M2S72B-{short}"]
+            out += [f"[Config {nm}]", f'description = "Block H + HARQ16 (experimental control): {src}, load on UE {LOAD_UE[src]} only, numUe = {n}"',
+                    f"extends = {', '.join(ext[nm])}", ""]
+    for c, line, desc in (("nohold", '*.dsTt[1].eth[1].trafficConditionerLayer.syncOut.egressTest = "noHold"', "DS-TT 1 hold disabled (TEST ONLY knob)"),
+                          ("hto", "*.dsTt[1].eth[1].trafficConditionerLayer.syncOut.holdTimeout = 5us", "DS-TT 1 holdTimeout 5 us, below the 10.864 us Sync queue wait")):
+        ext[f"M2S72-H16N-{c}"] = [f"M2S72-H16NX-{c}", "M2S72-H16-q0-Ca-n2"]
+        out += [f"[Config M2S72-H16NX-{c}]", f'description = "(mixin, I-2H control) {desc}"', line, "",
+                f"[Config M2S72-H16N-{c}]", f'description = "I-2H negative control: {desc}; M2S72-H16-q0-Ca-n2"',
+                f"extends = {', '.join(ext[f'M2S72-H16N-{c}'])}", ""]
     check_inheritance(ext)
     return "\n".join(out).rstrip("\n") + "\n", summary
 
@@ -753,6 +776,22 @@ def tt_eall_mixin(sections):
         name, f = hits[0]
         lines, _ = f(e, x)
         out.append(f"# [{e.section}] {e.file}:{e.line} rule {name}")
+        out += lines
+    return out
+
+
+def section_mixin(sections, sec, name, desc):
+    """[Config <name>]: the OWN entries of one source section (not its extends chain), each translated by exactly one
+    rule of RULES (as M2S72-TT-Eall)."""
+    x = Ctx(sec, (1, max(H_N)))
+    out = [f"[Config {name}]", f'description = "{desc}"']
+    for e in sections[sec]:
+        hits = [(n, f) for n, p, f in RULES if p(e.key)]
+        if len(hits) != 1:
+            raise GenError(f"{sec} mixin: {e.key} matches {len(hits)} rules")
+        rn, f = hits[0]
+        lines, _ = f(e, x)
+        out.append(f"# [{e.section}] {e.file}:{e.line} rule {rn}")
         out += lines
     return out
 
@@ -807,7 +846,7 @@ def verify_generated(cmd):
     listener address and no UPF forwardingTable entry; every non-T0 runnable config has exactly the M2S72-SL values
     as its effective (first) entries (the F0-6 controls: their replaced element)."""
     text = open(OUT).read()
-    names = re.findall(r"^\[Config (M2S72-(?:T0|F0|F0N|B|BN|H)-[^\]]+)\]", text, flags=re.M)
+    names = re.findall(r"^\[Config (M2S72-(?:T0|F0|F0N|B|BN|H|H16|H16N)-[^\]]+)\]", text, flags=re.M)
     sl = {"*.listener.eth[0].address": f'"{LISTENER_MAC}"',
           "*.upf.ethBridge.macTable.forwardingTable": f'[{{address: "{LISTENER_MAC}", vlan: {SL_VID}, interface: "{SL_INTERFACE}"}}]'}
     ctrl = {"missing": ("*.upf.ethBridge.macTable.forwardingTable", "[]"),

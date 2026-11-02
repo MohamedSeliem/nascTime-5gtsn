@@ -535,7 +535,7 @@ def evaluate(runs, cfg, rep, ref=None, conf_fn=None, swap=None, claimed=C_SET, f
         i_rows(ev)
     m2_rows(ev)
     stats = m3_rows(ev, claimed)
-    clk = re.match(r"M2S72-(?:BN?|H)-(?:q0|qdu)-(ideal|Ca|Eall)", cfg)
+    clk = re.match(r"M2S72-(?:BN?|H)-(?:q0|qdu)-(ideal|Ca|Eall)", BN_BASE.get(cfg, cfg))   # I-2H: H16 / observation configs map to their Block H config
     clk = clk.group(1) if clk else "Eall"
     m4_rows(ev, clk)
     if ref is not None:

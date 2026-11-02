@@ -75,6 +75,8 @@ CASES = [
     # Checkpoint 2 rev. 2: asymmetric-load sources (LOAD_UE)
     ("asymmetric load: listener load not addressed to the talker", sub(r'^\*\.listener\.app\[3\]\.io\.remoteAddress = "talker"$', '*.listener.app[3].io.remoteAddress = "server"'),
      r'unexpected \*\.listener\.app\[3\]\.io\.remoteAddress = "server"'),
+    ("HARQ16 mixin: an entry no rule translates", add_after("M2S0-harq16", "*.someNewModule.harqProcesses = 16"),
+     r"(M2S0-harq16 mixin: \*\.someNewModule\.harqProcesses matches 0 rules|unexpected setting \*\.someNewModule)"),
     ("asymmetric load: a load setting naming a per-UE module", add_after("M2S71-load-sustained", '**.app[3].io.localAddress = "talker"'),
      r"untranslatable value \*\*\.app\[3\]\.io\.localAddress"),
 ]
