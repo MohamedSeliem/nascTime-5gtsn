@@ -34,7 +34,7 @@ EALL_NW = TT.tt(theta0=200 * NS, y=100, U=10 * MS, sigma=10 * NS)
 
 def CONF(cfg, k, end):
     """Clock configuration of pair k of a Block B config M2S72-B-<opt>-<clk>-n<N> (or its I-5 reference)."""
-    m = re.match(r"M2S72-B[A-Z]*-(q0|qdu)-(ideal|Ca|Eall)-n(\d+)", cfg)
+    m = re.match(r"M2S72-(?:B|H)[A-Z]*-(q0|qdu)-(ideal|Ca|Eall)-n(\d+)", cfg)   # Block B, Block H (cp2 rev. 2)
     if not m:
         raise ValueError(f"no clock configuration for {cfg}")
     clk = m.group(2)

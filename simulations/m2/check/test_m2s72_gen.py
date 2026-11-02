@@ -72,6 +72,11 @@ CASES = [
      r"(load application app\[3\] has no N > 1 translation|required setting \*\.listener\.numApps = 4, expected 3)"),
     ("N = 1 only rule requested at N > 1 (E-all TT-clock parameters at N = 2)", ("SOURCES", "M2S6-E-all", (1, 2)),
      r"(per-DS-TT TT-clock parameters|missing required setting|required setting)"),
+    # Checkpoint 2 rev. 2: asymmetric-load sources (LOAD_UE)
+    ("asymmetric load: listener load not addressed to the talker", sub(r'^\*\.listener\.app\[3\]\.io\.remoteAddress = "talker"$', '*.listener.app[3].io.remoteAddress = "server"'),
+     r'unexpected \*\.listener\.app\[3\]\.io\.remoteAddress = "server"'),
+    ("asymmetric load: a load setting naming a per-UE module", add_after("M2S71-load-sustained", '**.app[3].io.localAddress = "talker"'),
+     r"untranslatable value \*\*\.app\[3\]\.io\.localAddress"),
 ]
 
 

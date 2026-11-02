@@ -30,6 +30,11 @@ Translations (design 1.3, 2.2, 3.3; D-3, D-4):
   clock -> RNG 2k+1 (k >= 1; the UE 0 clocks, GM and NW-TT keep RNG 1, so N = 1 is the M2-S6 mapping),
   num-rngs 2N, new RNG j seeded seed-j-mt = j00${repetition} (as M2-S6: seed-0-mt = ${repetition},
   seed-1-mt = 100${repetition}).
+Checkpoint 2 rev. 2 (stage 4 corrective round, path heterogeneity): for the sources in LOAD_UE the S7.1 load
+application app[3] is translated for N > 1 onto ONE UE L only (asymmetric load): talker[L] gets the talker side
+(numApps 4, app[3]: UL load to the listener), the listener gets the DL side as its last app
+(3 + 2(N - 1), remote talker[L]); every other talker keeps numApps 3. The DL load starts by D-4 at 0.3 s
+(+ 500 us, the S7.1 offset relative to the base flows).
 """
 import hashlib
 import os
@@ -54,13 +59,20 @@ SOURCES = {
     # stage 4 (Block B, design 9): the S7.1 accuracy configs with the M2-S6 C-a clocks (GM +100 ppm, slave -100 ppm)
     "M2S71-q0-Ca": ("q0-Ca", (1, 2, 4)),
     "M2S71-qdu-Ca": ("qdu-Ca", (1, 2, 4)),
+    # Checkpoint 2 rev. 2 (path heterogeneity): the S7.1 sustained-load accuracy configs, load on one UE only
+    "M2S71-q0-Ca-sus": ("q0-Ca-sus", (2, 4)),
+    "M2S71-qdu-Ca-sus": ("qdu-Ca-sus", (2, 4)),
 }
-D4_SOURCES = ("M2S71-q0-idle", "M2S71-qdu-idle", "M2S71-q0-Ca", "M2S71-qdu-Ca")   # sources of non-T0 configs (D-4 timing)
+LOAD_UE = {"M2S71-q0-Ca-sus": 1, "M2S71-qdu-Ca-sus": 1}   # source -> the one UE carrying the load (N > 1)
+LOAD_D4 = "0.3s + 500us"   # D-4 start of the DL load (S7.1: base + 500 us)
+LOAD_LINES = {}            # source -> [(rest, value)] of the listener side of app[3], in lookup order
+D4_SOURCES = ("M2S71-q0-idle", "M2S71-qdu-idle", "M2S71-q0-Ca", "M2S71-qdu-Ca", "M2S71-q0-Ca-sus", "M2S71-qdu-Ca-sus")   # sources of non-T0 configs (D-4 timing)
 # Block B (design 9): option -> (ideal-clock source, C-a source); clocks ideal / Ca / Eall (Eall = C-a source + the
 # generated TT-clock mixin M2S72-TT-Eall); N = 2, 4 (correctness) and 1 (I-5 reference); seeds 0-4
 B_OPTS = {"q0": ("M2S71-q0-idle", "M2S71-q0-Ca"), "qdu": ("M2S71-qdu-idle", "M2S71-qdu-Ca")}
 B_N = (1, 2, 4)
 B_REPS = "0..4"
+H_N = (2, 4)               # Block H (Checkpoint 2 rev. 2)
 # the E-all TT clocks: the sections of M2S6-E-all that are not those of M2S6-C-a (its own entries and M2S6-tt)
 EALL_CFG, EALL_BASE = "M2S6-E-all", "M2S6-C-a"
 # D-13: DS-TT k TT clock = M2-S6 E-all DS-TT (300 ns, -100 ppb, update phase 3 ms) + k x (100 ns, 50 ppb, 1 ms)
@@ -264,6 +276,7 @@ def listener_app(k, c):
 class Ctx:
     def __init__(self, cfg, ns):
         self.cfg, self.ns, self.ngt1 = cfg, ns, max(ns) > 1
+        self.load_ue = LOAD_UE.get(cfg)
 
 
 def r_meta(e, x):
@@ -333,7 +346,13 @@ def r_appsel(e, x):
     return out, None
 
 
+def load_app(n):
+    return LISTENER_APPS + 2 * (n - 1)
+
+
 def r_app3(e, x):
+    if x.ngt1 and getattr(x, "load_ue", None) is not None:
+        return r_app3_asym(e, x)
     if x.ngt1:
         raise GenError(f"{x.cfg}: {e.key}: load application app[3] has no N > 1 translation in stage 2")
     v = e.value
@@ -344,6 +363,31 @@ def r_app3(e, x):
     if PER_UE_VALUE.search(v):
         raise GenError(f"{x.cfg}: untranslatable value {e.key} = {v}")
     return [simple_line(e).replace("*.talker.", "*.talker[*].", 1)], "N1"
+
+
+def r_app3_asym(e, x):
+    """Asymmetric load (LOAD_UE): talker side on talker[L] only; listener side recorded for the N mixins."""
+    L, v = x.load_ue, e.value
+    rest = re.fullmatch(r"(?:\*\*|\*\.talker|\*\.listener)\.app\[3\]\.(.+)", e.key).group(1)
+    lines = LOAD_LINES.setdefault(x.cfg, [])
+    if e.key == "*.listener.app[3].io.remoteAddress":
+        if v != '"talker"':
+            raise GenError(f"{x.cfg}: unexpected {e.key} = {v}")
+        lines.append((rest, f'"talker[{L}]"'))
+        return [f"# {e.key} = {v}  (listener side: app[3 + 2(N - 1)] -> talker[{L}], in M2S72N<N>-<src>)"], "LOAD"
+    if e.key == "*.talker.app[3].io.remoteAddress":
+        if v != '"listener"':
+            raise GenError(f"{x.cfg}: unexpected {e.key} = {v}")
+        return [f"*.talker[{L}].app[3].{rest} = {v}"], "LOAD"
+    if PER_UE_VALUE.search(v) or "ancestorIndex" in v:
+        raise GenError(f"{x.cfg}: untranslatable value {e.key} = {v}")
+    if e.key.startswith("*.listener."):
+        lines.append((rest, v))
+        return [f"# {e.key} = {v}  (listener side, in M2S72N<N>-<src>)"], "LOAD"
+    if e.key.startswith("*.talker."):
+        return [f"*.talker[{L}].app[3].{rest} = {v}"], "LOAD"
+    lines.append((rest, v))
+    return [f"*.talker[{L}].app[3].{rest} = {v}"], "LOAD"
 
 
 def r_oscrng(e, x):
@@ -403,6 +447,9 @@ def r_dstt(e, x):
 
 
 def r_talker(e, x):
+    # the effective entry (REQUIRED: 4) gives the load UE app[3]; later (overridden) entries translate generically
+    if e.key == "*.talker.numApps" and x.ngt1 and getattr(x, "load_ue", None) is not None and e.value == "4":
+        return [f"*.talker[{x.load_ue}].numApps = 4", f"*.talker[*].numApps = {LISTENER_APPS}"], "LOAD"
     check_ident(e, x, allowed_values=('"listener"',))
     check_value(e, x)
     return [simple_line(e).replace("*.talker.", "*.talker[*].", 1)], None
@@ -470,6 +517,9 @@ def translate(cfg, ns, entries):
     req = dict(REQUIRED)
     if x.ngt1:
         req.update(REQUIRED_NGT1)
+        if x.load_ue is not None:   # the load sources: app[3] on both stations (translated by r_app3_asym)
+            req.update({"*.listener.numApps": "4", "*.talker.numApps": "4"})
+            LOAD_LINES[cfg] = []
     for k, v in req.items():
         if k not in eff:
             raise GenError(f"{cfg}: missing required setting {k}")
@@ -511,7 +561,11 @@ def mixin_n(cfg, short, n, eff):
          f"*.numUe = {n}",
          f"num-rngs = {2 * n}"]
     s += [f"seed-{j}-mt = {j}00${{repetition}}" for j in range(2, 2 * n)]   # as M2-S6: seed-1-mt = 100${repetition}
-    if n > 1:
+    if n > 1 and cfg in LOAD_UE:
+        s[1] = s[1][:-1] + f', DL load app[{load_app(n)}] -> talker[{LOAD_UE[cfg]}]"'
+        s.append(f"*.listener.numApps = {load_app(n) + 1}")
+        s += [f"*.listener.app[{load_app(n)}].{rest} = {v}" for rest, v in LOAD_LINES[cfg]]
+    elif n > 1:
         s.append(f"*.listener.numApps = {LISTENER_APPS + 2 * (n - 1)}")
     for key in ("*.bearerConfigurator.staticDrbs", "*.bearerConfigurator.ulQfiRules"):
         e = eff[key]
@@ -519,13 +573,15 @@ def mixin_n(cfg, short, n, eff):
     return s
 
 
-def mixin_d4(short, n):
+def mixin_d4(short, n, cfg=None):
     s = [f"[Config M2S72D4N{n}-{short}]",
          f'description = "(mixin, generated) D-4 (provisional): every DL flow to talker[k] starts at {D4_OFFSET} '
          f'(PCP 0 flow + 5 ms), numUe = {n}"',
          f"*.listener.app[0..1].source.initialProductionOffset = {D4_OFFSET} + 5ms * ancestorIndex(1)"]
     s += [f"*.listener.app[{listener_app(k, c)}].source.initialProductionOffset = {D4_OFFSET} + {5 * c}ms"
           for k in range(1, n) for c in (0, 1)]
+    if cfg in LOAD_UE and n > 1:
+        s.append(f"*.listener.app[{load_app(n)}].source.initialProductionOffset = {LOAD_D4}")
     return s
 
 
@@ -605,11 +661,13 @@ def generate():
         for n in ns:
             out += mixin_n(cfg, short, n, eff) + [""]
             if cfg in D4_SOURCES:
-                out += mixin_d4(short, n) + [""]
+                out += mixin_d4(short, n, cfg) + [""]
     out += ["#" + "-" * 100, FIXED]
     ext = {}    # generated runnable config -> its extends list (for the inheritance assertions below)
     out += ["#" + "-" * 100, "# T0: numUe = 1 with the source timing (design 8.1); never the static-listener mixin (rev. 2.1 A-1)"]
     for cfg, (short, ns) in SOURCES.items():
+        if 1 not in ns:      # T0 compares numUe = 1 with the source; the asymmetric-load sources have N > 1 only
+            continue
         ext[f"M2S72-T0-{short}"] = [f"M2S72N1-{short}", f"M2S72B-{short}"]
         out += [f"[Config M2S72-T0-{short}]", f'description = "T0: {cfg} on M2S72Bridge, numUe = 1"',
                 f"extends = {', '.join(ext[f'M2S72-T0-{short}'])}", ""]
@@ -657,6 +715,23 @@ def generate():
             f"*.dsTt[1].eth[1].trafficConditionerLayer.ttClock.theta0 = {D13['theta0'][0] + D13['theta0'][1] + 1000}ns", "",
             "[Config M2S72-BN-theta1]", 'description = "Block B negative control N-theta1 (q0, E-all, numUe = 4)"',
             f"extends = {', '.join(ext['M2S72-BN-theta1'])}", ""]
+    # Checkpoint 2 rev. 2: Block H (path heterogeneity): C-a clocks, S7.1 sustained load on UE 1 only, N = 2, 4
+    out += ["#" + "-" * 100, "# Checkpoint 2 rev. 2, Block H (path heterogeneity): M2S71-<opt>-Ca-sus with the load on UE 1 only;",
+            "# D-4 timing, M2S72-SL, learning recorders, eventlog"]
+    for o in B_OPTS:
+        src = f"M2S71-{o}-Ca-sus"
+        short = SOURCES[src][0]
+        for n in H_N:
+            nm = f"M2S72-H-{o}-Ca-n{n}"
+            ext[nm] = ["M2S72-SL", "M2S72-L", "M2S72-ev", f"M2S72D4N{n}-{short}", f"M2S72N{n}-{short}", f"M2S72B-{short}"]
+            out += [f"[Config {nm}]", f'description = "Block H: {src}, load on UE {LOAD_UE[src]} only, numUe = {n}"',
+                    f"extends = {', '.join(ext[nm])}", ""]
+    # Checkpoint 2 rev. 2 control (I-4 own stream): DS-TT 2's TT clock draws from DS-TT 1's RNG 3 (shared stream)
+    ext["M2S72-BN-rng"] = ["M2S72-BNX-rng", "M2S72-B-q0-Eall-n4"]
+    out += ["[Config M2S72-BNX-rng]", 'description = "(mixin, control) DS-TT 2 TT clock on RNG 3, the stream of DS-TT 1 (shared stream)"',
+            "*.dsTt[2].eth[1].trafficConditionerLayer.ttClock.rng-0 = 3", "",
+            "[Config M2S72-BN-rng]", 'description = "I-4 own-stream negative control (q0, E-all, numUe = 4)"',
+            f"extends = {', '.join(ext['M2S72-BN-rng'])}", ""]
     check_inheritance(ext)
     return "\n".join(out).rstrip("\n") + "\n", summary
 
@@ -732,7 +807,7 @@ def verify_generated(cmd):
     listener address and no UPF forwardingTable entry; every non-T0 runnable config has exactly the M2S72-SL values
     as its effective (first) entries (the F0-6 controls: their replaced element)."""
     text = open(OUT).read()
-    names = re.findall(r"^\[Config (M2S72-(?:T0|F0|F0N|B|BN)-[^\]]+)\]", text, flags=re.M)
+    names = re.findall(r"^\[Config (M2S72-(?:T0|F0|F0N|B|BN|H)-[^\]]+)\]", text, flags=re.M)
     sl = {"*.listener.eth[0].address": f'"{LISTENER_MAC}"',
           "*.upf.ethBridge.macTable.forwardingTable": f'[{{address: "{LISTENER_MAC}", vlan: {SL_VID}, interface: "{SL_INTERFACE}"}}]'}
     ctrl = {"missing": ("*.upf.ethBridge.macTable.forwardingTable", "[]"),

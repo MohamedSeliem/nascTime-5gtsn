@@ -39,7 +39,13 @@ Rows (one per run, or per run and pair; details list every failure):
   I-5    slave 0 at N = 2, 4 vs N = 1 (same option, clocks, seed), rule AR: identical DS-TT 0 / slave 0 clock
          parameters; per Follow_Up and term family (L, Rr, D, qG, step) every family whose inputs are identical is
          identical and every changed family has a changed input; delta(t) likewise per sample
-Negative controls (each must fail exactly its predicted row families):
+Checkpoint 2 revision 2 (corrective round, review 2026-11-02; results/M2-S7.2a-cp2r2-predictions.md, declared in advance):
+  I-4 stream  DS-TT 1 TT-clock noise draws (stamp order) at N = 2 vs N = 4, E-all, same seed: prefix-identical, >= 100
+  Block H     M2S72-H-<opt>-Ca-n<2|4>: C-a clocks, S7.1 sustained load on UE 1 only; every Block B row, I-5 vs
+              M2S72-B-<opt>-Ca-n1, and H-cov (pairs with UE 1: >= 10 % of common Follow_Ups with Res_i != Res_j, >= 1
+              non-zero (r - rho_G)(Res_i - Res_j)); case A / case B reported
+  controls    PRED below (NC-cancel qG2 replaced by Rr.TT_ds; NC-cfout +1 ns; NC-wirecf; NC-rngshare)
+Checkpoint 2 (rev. 1) negative controls, as recorded at ae2857c (predictions there unchanged):
   NC-swap   B-q0-Eall-n4 seed 0, slave 1 analysed with DS-TT 2's logs and frames             -> M2, M3
   NC-theta1 M2S72-BN-theta1 (DS-TT 1 theta0 + 1 us), checker keeps the D-13 parameters     -> M2, M4
   NC-cancel B-q0-Eall-n4 seed 0, Rr.mul (and separately qG2) claimed cancelling           -> M3d
@@ -70,6 +76,7 @@ import ttclock_model as TT  # noqa: E402
 
 NS, MS, S = RR.NS, RR.MS, RR.S
 OPTS, CLKS, NS_B, REPS = ("q0", "qdu"), ("ideal", "Ca", "Eall"), (2, 4), range(5)
+H_N = (2, 4)                                 # Block H (Checkpoint 2 rev. 2)
 Y_G = Fraction(100, 10 ** 6)                 # GM +100 ppm (C-a)
 C_SET = ("L.rrin", "L.trunc", "L.mul", "L.nrr", "L.TT", "L.qG", "L.stale", "qG1", "Rr.TT_nw")
 rows = []
@@ -79,7 +86,7 @@ def add(row, run, ok, detail):
     rows.append((row, run, "PASS" if ok else "FAIL", detail))
 
 
-BN_BASE = {"M2S72-BN-theta1": "M2S72-B-q0-Eall-n4"}   # control configs and the Block B config they extend
+BN_BASE = {"M2S72-BN-theta1": "M2S72-B-q0-Eall-n4", "M2S72-BN-rng": "M2S72-B-q0-Eall-n4"}   # control configs -> the Block B config they extend
 
 
 def opt_of(cfg):
@@ -375,6 +382,12 @@ def i_rows(ev):
         + (f"; FAIL {bad1[:4]}" if bad1 else ""))
     add("I-3", name, not bad3 and n3 > 0, f"{n3} Follow_Ups at the slaves carry their own DS-TT's cfOut; Syncs whose cfOut differs between DS-TTs: "
         f"{indep} of {len(cfouts)}" + (f"; FAIL {bad3[:4]}" if bad3 else ""))
+    i4_ident(ev)
+
+
+def i4_ident(ev):
+    """I-4 identities and recorded RNG mapping (needs ev.run, ev.views, ev.cfg, ev.rep only)."""
+    run, name = ev.run, f"{ev.cfg}-{ev.rep}"
     # I-4 identities and RNG mapping
     par = run.par
     n = run.n
@@ -401,7 +414,7 @@ def i_rows(ev):
     for k in range(1, n):
         if cfg_lines.get(f"*.talker[{k}].clock.oscillator.rng-0") != str(2 * k):
             probs.append(f"talker[{k}] oscillator rng {cfg_lines.get(f'*.talker[{k}].clock.oscillator.rng-0')}")
-        if "Eall" in ev.cfg and cfg_lines.get(f"*.dsTt[{k}].eth[1].trafficConditionerLayer.ttClock.rng-0") != str(2 * k + 1):
+        if "Eall" in BN_BASE.get(ev.cfg, ev.cfg) and cfg_lines.get(f"*.dsTt[{k}].eth[1].trafficConditionerLayer.ttClock.rng-0") != str(2 * k + 1):
             probs.append(f"dsTt[{k}] TT clock rng")
     add("I-4", name, not probs, f"distinct ttIds {[t[0] for t in ttids]}, Pdelay clockIdentities {cids}, slave identities {len(set(spi))}, "
         f"NR MAC node ids {sorted(run.node_id.values())}; RNG mapping recorded (num-rngs {nr})" + (f"; FAIL {probs}" if probs else ""))
@@ -522,7 +535,7 @@ def evaluate(runs, cfg, rep, ref=None, conf_fn=None, swap=None, claimed=C_SET, f
         i_rows(ev)
     m2_rows(ev)
     stats = m3_rows(ev, claimed)
-    clk = re.match(r"M2S72-BN?-(?:q0|qdu)-(ideal|Ca|Eall)", cfg)
+    clk = re.match(r"M2S72-(?:BN?|H)-(?:q0|qdu)-(ideal|Ca|Eall)", cfg)
     clk = clk.group(1) if clk else "Eall"
     m4_rows(ev, clk)
     if ref is not None:
@@ -531,7 +544,7 @@ def evaluate(runs, cfg, rep, ref=None, conf_fn=None, swap=None, claimed=C_SET, f
     return ev, stats, fails
 
 
-def mutate_log(runs, cfg, col, k=1):
+def mutate_log(runs, cfg, col, k=1, delta=1):
     tmp = tempfile.mkdtemp(prefix="m2s72bn-")
     shutil.copytree(os.path.join(runs, cfg), os.path.join(tmp, cfg))
     p = os.path.join(tmp, cfg, "m2log", f"{cfg}-0", f"{R.NET}.dsTt[{k}].eth[1].trafficConditionerLayer.syncOut.sync.csv")
@@ -541,18 +554,126 @@ def mutate_log(runs, cfg, col, k=1):
     idx = [i for i in range(1, len(L)) if L[i].startswith("corrected,")]
     i = idx[len(idx) // 2]
     c = L[i].split(",")
-    c[j] = str(int(c[j]) + 1)
+    c[j] = str(int(c[j]) + delta)
     L[i] = ",".join(c)
     open(p, "w").write("\n".join(L))
     return tmp, c[h.index("seq")]
+
+
+def mutate_wire_cf(runs, cfg, k=1, delta_raw=1 << 16):
+    """Copy of the run with ONE Follow_Up received by slave k (its talker[k] PCAP, the frame the slave read) given
+    a correctionField + delta_raw (wire units: 2^-16 ns; default + 1 ns) and a recomputed FCS. Nothing else changes."""
+    import zlib
+    tmp = tempfile.mkdtemp(prefix="m2s72bw-")
+    shutil.copytree(os.path.join(runs, cfg), os.path.join(tmp, cfg))
+    run = R.Run72(tmp, cfg, 0)
+    path = run.P(f"talker[{k}]", 0)
+    fus = [f for f in RR.C5.sel(run.ue_view(k).sl, 1, RR.FU) if f["g"]]
+    f = fus[len(fus) // 2]
+    blob = bytearray(open(path, "rb").read())
+    raw, d = f["g"]["cf_raw"], bytes(f["raw"])
+    if d[12:14] != b"\x88\xf7" or int.from_bytes(d[22:30], "big", signed=True) != raw:
+        raise ValueError("wire mutation: unexpected Follow_Up layout")
+    hits = [m.start() for m in re.finditer(re.escape(d), bytes(blob))]
+    if len(hits) != 1:
+        raise ValueError(f"wire mutation: frame found {len(hits)} times in {path}")
+    m = bytearray(d)
+    m[22:30] = (raw + delta_raw).to_bytes(8, "big", signed=True)          # PTP correctionField (header offset 8)
+    m[-4:] = (zlib.crc32(bytes(m[:-4])) & 0xFFFFFFFF).to_bytes(4, "little")  # FCS, as pcapng.ethernet checks it
+    blob[hits[0]:hits[0] + len(m)] = m
+    open(path, "wb").write(bytes(blob))
+    chk = [g for g in RR.C5.sel(R.Run72(tmp, cfg, 0).ue_view(k).sl, 1, RR.FU) if g["g"] and g["g"]["seq"] == f["g"]["seq"]]
+    if len(chk) != 1 or chk[0]["g"]["cf_raw"] != raw + delta_raw or not chk[0]["f"]["fcs_ok"]:
+        raise ValueError("wire mutation not read back as intended")
+    return tmp, f["g"]["seq"]
+
+
+def i4_stream(runs, opt, rep, k=1, n=(2, 4), cfg_b=None):
+    """I-4 own stream (cp2 rev. 2, decision 5): DS-TT k's TT-clock noise draws w (one normal draw per stamp,
+    TtClock.cc:84; test kinds 7-9 draw nothing) in stamp order, at N = n[0] and N = n[1], same option and seed: the
+    shorter sequence must be a prefix of the longer, over >= 100 draws (DS-TT k draws only from RNG 2k + 1)."""
+    seqs = []
+    names = [f"M2S72-B-{opt}-Eall-n{n[0]}", cfg_b or f"M2S72-B-{opt}-Eall-n{n[1]}"]
+    for cfg in names:
+        p = os.path.join(runs, cfg, "m2log", f"{cfg}-{rep}",
+                         f"{R.NET}.dsTt[{k}].eth[1].trafficConditionerLayer.ttClock.ttclock.csv")
+        seqs.append([r["w"] for r in TT.read_log(p) if r["kind"] not in TT.TEST_KINDS])
+    a, b = seqs
+    m = min(len(a), len(b))
+    first = next((i for i in range(m) if a[i] != b[i]), None)
+    ok = first is None and m >= 100
+    add("I-4 stream", f"{names[0]}-{rep} vs {names[1]}-{rep} DS-TT {k}", ok,
+        f"TT-clock noise draws in stamp order: {len(a)} / {len(b)}; common prefix {m} "
+        + ("identical" if first is None else f"DIFFERS from draw #{first} ({a[first]} vs {b[first]})")
+        + ("" if m >= 100 else "; fewer than 100 draws"))
+
+
+def h_cov(ev, stats, load_ue=1, share=Fraction(1, 10)):
+    """H-cov (cp2 rev. 2, decision 6; declared before the runs): per pair (i, j) containing the loaded UE: (a) at
+    least 10 % of the common Follow_Ups have Res_i != Res_j; (b) at least one common Follow_Up has a non-zero pairwise
+    GM-drift residence contribution (r - rho_G)(Res_i - Res_j) (its exact reconstruction is the M4 GM-drift row).
+    Reported (not required): s2 / s_F differences, case A / case B samples (from M3d)."""
+    ks = sorted(ev.series)
+    rhos = {d["f"]["rho_res"] for k in ks for d in ev.series[k]["terms"].values()}
+    rho_G = next(iter(rhos)) if len(rhos) == 1 else None
+    out = {}
+    for i in ks:
+        for j in ks:
+            if j <= i:
+                continue
+            ti, tj = ev.series[i]["terms"], ev.series[j]["terms"]
+            com = sorted(set(ti) & set(tj))
+            dres = [s for s in com if ti[s]["f"]["Res_s"] != tj[s]["f"]["Res_s"]]
+            ds2 = [s for s in com if ti[s]["f"]["s2"] != tj[s]["f"]["s2"]]
+            dsf = [s for s in com if ti[s]["f"]["sF"] != tj[s]["f"]["sF"]]
+            gm = [(ti[s]["f"]["r"] - rho_G) * (ti[s]["f"]["Res_s"] - tj[s]["f"]["Res_s"]) for s in com] if rho_G is not None else []
+            nz = [x for x in gm if x != 0]
+            st = stats.get((i, j), {})
+            out[(i, j)] = {"com": len(com), "dres": len(dres), "ds2": len(ds2), "dsf": len(dsf), "nz": len(nz),
+                           "gm_range": (float(min(nz)) / NS, float(max(nz)) / NS) if nz else None,
+                           "res_range": ((min(ti[s]["f"]["Res_s"] - tj[s]["f"]["Res_s"] for s in dres) / NS,
+                                          max(ti[s]["f"]["Res_s"] - tj[s]["f"]["Res_s"] for s in dres) / NS) if dres else None),
+                           "A": st.get("A", 0), "B": st.get("B", 0), "n": st.get("n", 0)}
+            if load_ue in (i, j):
+                o = out[(i, j)]
+                ok = rho_G is not None and len(com) > 0 and Fraction(len(dres), len(com)) >= share and len(nz) > 0
+                add("H-cov", f"{ev.cfg}-{ev.rep} pair ({i},{j})", ok,
+                    f"common Follow_Ups {len(com)}: Res_i != Res_j {len(dres)} ({100 * len(dres) / max(len(com), 1):.1f} %, required >= 10 %), "
+                    f"Res_i - Res_j range (ns) {o['res_range']}; s2 differ {len(ds2)}, s_F differ {len(dsf)}; non-zero GM-drift pair "
+                    f"contributions {len(nz)} (required >= 1), range (ns) {o['gm_range']}; samples case A {o['A']}, case B {o['B']} (reported)")
+    return out
+
+
+# Checkpoint 2 rev. 2: negative controls and their predicted failing row families, declared before any rev. 2 run
+# (results/M2-S7.2a-cp2r2-predictions.md). The rev. 1 predictions stay in the Checkpoint 2 record (commit ae2857c).
+PRED = {
+    "NC-swap": {"M2", "M3", "M3d", "M4"},
+    "NC-theta1": {"M2", "M4"},
+    "NC-cancel-Rr.mul": {"M3d"},
+    "NC-cancel-Rr.TT_ds": {"M3d"},
+    "NC-cfout-1ns": {"I-3", "M2", "M3", "M3d"},
+    "NC-wirecf": {"I-3"},
+    "NC-tse": {"I-1", "M2", "M3d", "M4"},
+    "NC-rngshare": {"I-4", "I-4 stream"},
+}
+
+
+class Lite:
+    """The parts of RunEval i4_ident needs (no oracle evaluation): run, per-UE views."""
+    def __init__(self, runs, cfg, rep=0):
+        self.cfg, self.rep = cfg, rep
+        self.run = R.Run72(runs, cfg, rep)
+        T = F1.t_end(self.run)
+        vec = RR.read_vectors(self.run.vec_path)
+        base = BN_BASE.get(cfg, cfg)
+        self.views = {k: V.S6View(self.run, k, V.CONF(base, k, T), vec) for k in range(self.run.n)}
 
 
 def main():
     out = sys.argv[1]
     runs = os.path.join(out, "runs")
     filt = sys.argv[2] if len(sys.argv) > 2 else None
-    summary = {}
-    refs = {}
+    summary, refs, hcov = {}, {}, {}
     for opt in OPTS:
         for clk in CLKS:
             for n in (1,) + NS_B:
@@ -568,11 +689,37 @@ def main():
                     if n == 1:
                         refs[(opt, clk, rep)] = ev
                     summary[(cfg, rep)] = stats
+    # I-4 own stream (cp2 rev. 2): DS-TT 1, E-all, N = 2 vs N = 4
+    for opt in OPTS:
+        for rep in REPS:
+            if filt and not re.search(filt, f"M2S72-B-{opt}-Eall-n4"):
+                continue
+            try:
+                i4_stream(runs, opt, rep)
+            except Exception as ex:
+                add("I-4 stream", f"M2S72-B-{opt}-Eall-{rep}", False, f"{type(ex).__name__}: {ex}")
+    # Block H (cp2 rev. 2): path heterogeneity, C-a clocks, sustained load on UE 1 only
+    for opt in OPTS:
+        for n in H_N:
+            cfg = f"M2S72-H-{opt}-Ca-n{n}"
+            if filt and not re.search(filt, cfg):
+                continue
+            for rep in REPS:
+                if not os.path.isdir(os.path.join(runs, cfg)):
+                    add("RUN", f"{cfg}-{rep}", False, "run missing")
+                    continue
+                ref = refs.get((opt, "Ca", rep))
+                if ref is None:
+                    add("I-5", f"{cfg}-{rep}", False, "reference M2S72-B-<opt>-Ca-n1 not evaluated")
+                ev, stats, fails = evaluate(runs, cfg, rep, ref=ref)
+                summary[(cfg, rep)] = stats
+                hcov[(cfg, rep)] = h_cov(ev, stats)
     # negative controls
     ctrl = []
     base = "M2S72-B-q0-Eall-n4"
     if not filt or re.search(filt, "controls"):
-        def control(name, exp, fn):
+        def control(name, key, fn):
+            exp = PRED[key]
             start = len(rows)
             try:
                 fails = fn()
@@ -581,25 +728,36 @@ def main():
             mine = rows[start:]
             del rows[start:]
             ctrl.append((name, fails == exp, fails, exp, mine))
-        control("NC-swap (slave 1 with DS-TT 2's evidence)", {"M2", "M3"},
+
+        def on_copy(make, **kw):
+            tmp, _ = make()
+            try:
+                return evaluate(tmp, base, 0, **kw)[2]
+            finally:
+                shutil.rmtree(tmp)
+
+        def rng_share():
+            start = len(rows)
+            i4_ident(Lite(runs, "M2S72-BN-rng", 0))
+            i4_stream(runs, "q0", 0, cfg_b="M2S72-BN-rng")
+            return {r[0] for r in rows[start:] if r[2] == "FAIL"}
+        control("NC-swap (slave 1 with DS-TT 2's evidence)", "NC-swap",
                 lambda: evaluate(runs, base, 0, swap=(1, 2), full=False)[2])
-        control("NC-theta1 (M2S72-BN-theta1: DS-TT 1 theta0 + 1 us; checker D-13)", {"M2", "M4"},
+        control("NC-theta1 (M2S72-BN-theta1: DS-TT 1 theta0 + 1 us; checker D-13)", "NC-theta1",
                 lambda: evaluate(runs, "M2S72-BN-theta1", 0, conf_fn=lambda k: V.CONF("M2S72-B-q0-Eall-n4", k, 12 * S))[2])
-        control("NC-cancel (Rr.mul claimed cancelling)", {"M3d"},
+        control("NC-cancel (Rr.mul claimed cancelling)", "NC-cancel-Rr.mul",
                 lambda: evaluate(runs, base, 0, claimed=C_SET + ("Rr.mul",), full=False)[2])
-        control("NC-cancel (qG2 claimed cancelling)", {"M3d"},
-                lambda: evaluate(runs, base, 0, claimed=C_SET + ("qG2",), full=False)[2])
-        for col, exp in (("cfOut", {"M2", "M3", "I-3"}), ("TSe", {"M2", "I-1", "M4"})):
-            def fn(col=col):
-                tmp, seq = mutate_log(runs, base, col)
-                try:
-                    _, _, fails = evaluate(tmp, base, 0)
-                    return fails
-                finally:
-                    shutil.rmtree(tmp)
-            control(f"NC-{col.lower()} (DS-TT 1 logged {col} + 1 ps on one Follow_Up)", exp, fn)
+        control("NC-cancel (Rr.TT_ds claimed cancelling)", "NC-cancel-Rr.TT_ds",
+                lambda: evaluate(runs, base, 0, claimed=C_SET + ("Rr.TT_ds",), full=False)[2])
+        control("NC-cfout (DS-TT 1 logged cfOut + 1 ns on one Follow_Up)", "NC-cfout-1ns",
+                lambda: on_copy(lambda: mutate_log(runs, base, "cfOut", delta=1000)))
+        control("NC-wirecf (slave 1 received correctionField + 1 ns on one Follow_Up, FCS recomputed)", "NC-wirecf",
+                lambda: on_copy(lambda: mutate_wire_cf(runs, base)))
+        control("NC-tse (DS-TT 1 logged TSe + 1 ps on one Follow_Up)", "NC-tse",
+                lambda: on_copy(lambda: mutate_log(runs, base, "TSe")))
+        control("NC-rngshare (M2S72-BN-rng: DS-TT 2's TT clock on DS-TT 1's RNG 3; I-4 rows only)", "NC-rngshare", rng_share)
     # report
-    print("M2-S7.2a stage 4 / Checkpoint 2: Block B (design rev. 2.1)\n")
+    print("M2-S7.2a stage 4 / Checkpoint 2 revision 2: Block B, I-4 stream, Block H (design rev. 2.1; corrective round)\n")
     for r in rows:
         print(" | ".join(r))
     nf = sum(1 for r in rows if r[2] == "FAIL")
@@ -635,7 +793,24 @@ def main():
             print(f"{cfg} | {p}:")
         if lo != 0 or hi != 0:
             print(f"    {key}: [{lo:.6f}, {hi:.6f}]")
-    print("\nnegative controls (each must fail exactly its predicted row families):")
+    print("\nBlock H coverage per pair (all seeds): config | pair | common FUs | Res differ | s2 differ | sF differ | "
+          "non-zero GM-drift pair contributions [range ns] | used samples: case A / case B")
+    hagg = defaultdict(lambda: Counter())
+    hrng = defaultdict(lambda: [None, None])
+    for (cfg, rep), cov in hcov.items():
+        for p, x in cov.items():
+            a = hagg[(cfg, p)]
+            for key in ("com", "dres", "ds2", "dsf", "nz", "A", "B", "n"):
+                a[key] += x[key]
+            if x["gm_range"]:
+                r_ = hrng[(cfg, p)]
+                r_[0] = x["gm_range"][0] if r_[0] is None else min(r_[0], x["gm_range"][0])
+                r_[1] = x["gm_range"][1] if r_[1] is None else max(r_[1], x["gm_range"][1])
+    for (cfg, p), a in sorted(hagg.items()):
+        rg = hrng[(cfg, p)]
+        print(f"{cfg} | {p} | {a['com']} | {a['dres']} | {a['ds2']} | {a['dsf']} | {a['nz']} "
+              f"[{'' if rg[0] is None else f'{rg[0]:.6f}, {rg[1]:.6f}'}] | {a['A']} / {a['B']} of {a['n']}")
+    print("\nnegative controls (each must fail exactly its predicted row families, declared in advance):")
     for name, ok, fails, exp, mine in ctrl:
         print(f"{'PASS' if ok else 'FAIL'} | {name} | failed {sorted(fails)}, predicted {sorted(exp)}")
         for r in mine:
