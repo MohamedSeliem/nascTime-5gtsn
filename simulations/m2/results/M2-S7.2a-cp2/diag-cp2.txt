@@ -1,0 +1,73 @@
+1. per run: common Follow_Ups | Follow_Ups whose se / s2 / sF / Res differ between slaves
+M2S72-B-q0-ideal-n2-0 | 95 | se 9 s2 9 sF 0 Res 9
+M2S72-B-q0-ideal-n2-1 | 95 | se 10 s2 10 sF 1 Res 10
+M2S72-B-q0-ideal-n2-2 | 95 | se 12 s2 12 sF 1 Res 12
+M2S72-B-q0-ideal-n2-3 | 95 | se 11 s2 11 sF 0 Res 11
+M2S72-B-q0-ideal-n2-4 | 95 | se 12 s2 12 sF 0 Res 12
+M2S72-B-q0-ideal-n4-0 | 95 | se 21 s2 21 sF 1 Res 21
+M2S72-B-q0-ideal-n4-1 | 95 | se 20 s2 20 sF 0 Res 20
+M2S72-B-q0-ideal-n4-2 | 95 | se 19 s2 19 sF 1 Res 19
+M2S72-B-q0-ideal-n4-3 | 95 | se 22 s2 22 sF 1 Res 22
+M2S72-B-q0-ideal-n4-4 | 95 | se 22 s2 22 sF 1 Res 22
+M2S72-B-q0-Ca-n2-0 | 95 | se 0 s2 0 sF 0 Res 0
+M2S72-B-q0-Ca-n2-1 | 95 | se 0 s2 0 sF 0 Res 0
+M2S72-B-q0-Ca-n2-2 | 95 | se 0 s2 0 sF 0 Res 0
+M2S72-B-q0-Ca-n2-3 | 95 | se 0 s2 0 sF 0 Res 0
+M2S72-B-q0-Ca-n2-4 | 95 | se 0 s2 0 sF 0 Res 0
+M2S72-B-q0-Ca-n4-0 | 95 | se 0 s2 0 sF 0 Res 0
+M2S72-B-q0-Ca-n4-1 | 95 | se 0 s2 0 sF 0 Res 0
+M2S72-B-q0-Ca-n4-2 | 95 | se 0 s2 0 sF 0 Res 0
+M2S72-B-q0-Ca-n4-3 | 95 | se 0 s2 0 sF 0 Res 0
+M2S72-B-q0-Ca-n4-4 | 95 | se 0 s2 0 sF 0 Res 0
+M2S72-B-q0-Eall-n2-0 | 95 | se 0 s2 0 sF 0 Res 0
+M2S72-B-q0-Eall-n2-1 | 95 | se 0 s2 0 sF 0 Res 0
+M2S72-B-q0-Eall-n2-2 | 95 | se 0 s2 0 sF 0 Res 0
+M2S72-B-q0-Eall-n2-3 | 95 | se 0 s2 0 sF 0 Res 0
+M2S72-B-q0-Eall-n2-4 | 95 | se 0 s2 0 sF 0 Res 0
+M2S72-B-q0-Eall-n4-0 | 95 | se 0 s2 0 sF 0 Res 0
+M2S72-B-q0-Eall-n4-1 | 95 | se 0 s2 0 sF 0 Res 0
+M2S72-B-q0-Eall-n4-2 | 95 | se 0 s2 0 sF 0 Res 0
+M2S72-B-q0-Eall-n4-3 | 95 | se 0 s2 0 sF 0 Res 0
+M2S72-B-q0-Eall-n4-4 | 95 | se 0 s2 0 sF 0 Res 0
+M2S72-B-qdu-ideal-n2-0 | 95 | se 0 s2 0 sF 0 Res 0
+M2S72-B-qdu-ideal-n2-1 | 95 | se 0 s2 0 sF 0 Res 0
+M2S72-B-qdu-ideal-n2-2 | 95 | se 0 s2 0 sF 0 Res 0
+M2S72-B-qdu-ideal-n2-3 | 95 | se 0 s2 0 sF 0 Res 0
+M2S72-B-qdu-ideal-n2-4 | 95 | se 0 s2 0 sF 0 Res 0
+M2S72-B-qdu-ideal-n4-0 | 95 | se 0 s2 0 sF 0 Res 0
+M2S72-B-qdu-ideal-n4-1 | 95 | se 0 s2 0 sF 0 Res 0
+M2S72-B-qdu-ideal-n4-2 | 95 | se 0 s2 0 sF 0 Res 0
+M2S72-B-qdu-ideal-n4-3 | 95 | se 0 s2 0 sF 0 Res 0
+M2S72-B-qdu-ideal-n4-4 | 95 | se 0 s2 0 sF 0 Res 0
+M2S72-B-qdu-Ca-n2-0 | 95 | se 0 s2 0 sF 0 Res 0
+M2S72-B-qdu-Ca-n2-1 | 95 | se 0 s2 0 sF 0 Res 0
+M2S72-B-qdu-Ca-n2-2 | 95 | se 0 s2 0 sF 0 Res 0
+M2S72-B-qdu-Ca-n2-3 | 95 | se 0 s2 0 sF 0 Res 0
+M2S72-B-qdu-Ca-n2-4 | 95 | se 0 s2 0 sF 0 Res 0
+M2S72-B-qdu-Ca-n4-0 | 95 | se 0 s2 0 sF 0 Res 0
+M2S72-B-qdu-Ca-n4-1 | 95 | se 0 s2 0 sF 0 Res 0
+M2S72-B-qdu-Ca-n4-2 | 95 | se 0 s2 0 sF 0 Res 0
+M2S72-B-qdu-Ca-n4-3 | 95 | se 0 s2 0 sF 0 Res 0
+M2S72-B-qdu-Ca-n4-4 | 95 | se 0 s2 0 sF 0 Res 0
+M2S72-B-qdu-Eall-n2-0 | 95 | se 0 s2 0 sF 0 Res 0
+M2S72-B-qdu-Eall-n2-1 | 95 | se 0 s2 0 sF 0 Res 0
+M2S72-B-qdu-Eall-n2-2 | 95 | se 0 s2 0 sF 0 Res 0
+M2S72-B-qdu-Eall-n2-3 | 95 | se 0 s2 0 sF 0 Res 0
+M2S72-B-qdu-Eall-n2-4 | 95 | se 0 s2 0 sF 0 Res 0
+M2S72-B-qdu-Eall-n4-0 | 95 | se 0 s2 0 sF 0 Res 0
+M2S72-B-qdu-Eall-n4-1 | 95 | se 0 s2 0 sF 0 Res 0
+M2S72-B-qdu-Eall-n4-2 | 95 | se 0 s2 0 sF 0 Res 0
+M2S72-B-qdu-Eall-n4-3 | 95 | se 0 s2 0 sF 0 Res 0
+M2S72-B-qdu-Eall-n4-4 | 95 | se 0 s2 0 sF 0 Res 0
+
+2. E-all DS-TT 1 noise w, N = 2 vs N = 4 (same seed)
+q0-0 | common instants 105: equal w 105 | common update intervals 107: equal 107
+q0-1 | common instants 99: equal w 99 | common update intervals 107: equal 107
+q0-2 | common instants 99: equal w 99 | common update intervals 107: equal 107
+q0-3 | common instants 101: equal w 101 | common update intervals 107: equal 107
+q0-4 | common instants 103: equal w 103 | common update intervals 107: equal 107
+qdu-0 | common instants 105: equal w 105 | common update intervals 107: equal 107
+qdu-1 | common instants 99: equal w 99 | common update intervals 107: equal 107
+qdu-2 | common instants 99: equal w 99 | common update intervals 107: equal 107
+qdu-3 | common instants 101: equal w 101 | common update intervals 107: equal 107
+qdu-4 | common instants 103: equal w 103 | common update intervals 107: equal 107
