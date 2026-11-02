@@ -1,0 +1,143 @@
+M2-S7.2a configuration regeneration record (design rev. 2, 1.4, D-2 (a))
+m2s72.ini sha256 b94c748b9aedd18e58659afe9abdffc75b4ab827915912ebfc080dee0954ca25
+omnetpp.ini sha256 8a5e9139525aa5d91e66870e72a8d424202b0f79e55f33234b1a1c2c07b94637
+../m1/omnetpp.ini sha256 f35f81191ef86846dfbb133e7dff2546ec8be7fe1e8022e7fa1451cc48530f66
+tools/m2s72_gen.py sha256 e09ca807ccb3cc7db821cb5075b508df7e23cb679f9d8fd06f7555e05d0544df
+
+== python3 tools/m2s72_gen.py check (regenerate in memory, compare byte for byte)
+M2S71-q0-idle: 202 entries; rules {'anyTt': 18, 'appSel': 11, 'bearerGlobal': 1, 'dsTt': 6, 'dsTtClockId': 1, 'dsTtTtId': 3, 'general': 8, 'hasPassThroughTts': 1, 'listener': 20, 'listenerNumApps': 1, 'listenerRemote': 1, 'meta': 34, 'modulesShared': 26, 'network': 2, 'oscRng': 1, 'perUeList': 2, 'sinkAddress': 1, 'starstar': 38, 'talker': 23, 'ue0': 4}
+M2S71-qdu-idle: 207 entries; rules {'anyTt': 18, 'appSel': 11, 'bearerGlobal': 3, 'dsTt': 6, 'dsTtClockId': 1, 'dsTtTtId': 3, 'general': 8, 'hasPassThroughTts': 1, 'listener': 20, 'listenerNumApps': 1, 'listenerRemote': 1, 'meta': 34, 'modulesShared': 28, 'network': 2, 'oscRng': 1, 'perUeList': 3, 'sinkAddress': 1, 'starstar': 38, 'talker': 23, 'ue0': 4}
+M2S71-q0-load: 219 entries; rules {'anyTt': 18, 'app3': 12, 'appSel': 12, 'bearerGlobal': 1, 'dsTt': 6, 'dsTtClockId': 1, 'dsTtTtId': 3, 'general': 8, 'hasPassThroughTts': 1, 'listener': 20, 'listenerNumApps': 2, 'listenerRemote': 1, 'meta': 36, 'modulesShared': 26, 'network': 2, 'oscRng': 1, 'perUeList': 2, 'sinkAddress': 1, 'starstar': 38, 'talker': 24, 'ue0': 4}
+M2S6-C-a: 210 entries; rules {'anyTt': 18, 'appSel': 11, 'bearerGlobal': 1, 'dsTt': 3, 'dsTtClockId': 1, 'dsTtTtId': 3, 'general': 7, 'hasPassThroughTts': 1, 'listener': 23, 'listenerNumApps': 1, 'listenerRemote': 1, 'meta': 37, 'modulesShared': 32, 'network': 2, 'oscRng': 1, 'perUeList': 2, 'sinkAddress': 1, 'starstar': 35, 'talker': 26, 'ue0': 4}
+M2S6-E-all: 224 entries; rules {'anyTt': 21, 'appSel': 11, 'bearerGlobal': 1, 'dsTt': 3, 'dsTtClockId': 1, 'dsTtTtId': 3, 'dsTtTtParam': 3, 'general': 7, 'hasPassThroughTts': 1, 'listener': 23, 'listenerNumApps': 1, 'listenerRemote': 1, 'meta': 40, 'modulesShared': 35, 'network': 2, 'oscRng': 1, 'perUeList': 2, 'sinkAddress': 1, 'starstar': 36, 'talker': 26, 'ttRng': 1, 'ue0': 4}
+M2S71-q0-Ca: 220 entries; rules {'anyTt': 18, 'appSel': 11, 'bearerGlobal': 1, 'dsTt': 6, 'dsTtClockId': 1, 'dsTtTtId': 3, 'general': 8, 'hasPassThroughTts': 1, 'listener': 23, 'listenerNumApps': 1, 'listenerRemote': 1, 'meta': 40, 'modulesShared': 32, 'network': 2, 'oscRng': 1, 'perUeList': 2, 'sinkAddress': 1, 'starstar': 38, 'talker': 26, 'ue0': 4}
+M2S71-qdu-Ca: 225 entries; rules {'anyTt': 18, 'appSel': 11, 'bearerGlobal': 3, 'dsTt': 6, 'dsTtClockId': 1, 'dsTtTtId': 3, 'general': 8, 'hasPassThroughTts': 1, 'listener': 23, 'listenerNumApps': 1, 'listenerRemote': 1, 'meta': 40, 'modulesShared': 34, 'network': 2, 'oscRng': 1, 'perUeList': 3, 'sinkAddress': 1, 'starstar': 38, 'talker': 26, 'ue0': 4}
+M2S71-q0-Ca-sus: 241 entries; rules {'anyTt': 18, 'app3': 13, 'appSel': 13, 'bearerGlobal': 1, 'dsTt': 6, 'dsTtClockId': 1, 'dsTtTtId': 3, 'general': 8, 'hasPassThroughTts': 1, 'listener': 23, 'listenerNumApps': 2, 'listenerRemote': 1, 'meta': 44, 'modulesShared': 32, 'network': 2, 'oscRng': 1, 'perUeList': 2, 'sinkAddress': 1, 'starstar': 38, 'talker': 27, 'ue0': 4}
+M2S71-qdu-Ca-sus: 246 entries; rules {'anyTt': 18, 'app3': 13, 'appSel': 13, 'bearerGlobal': 3, 'dsTt': 6, 'dsTtClockId': 1, 'dsTtTtId': 3, 'general': 8, 'hasPassThroughTts': 1, 'listener': 23, 'listenerNumApps': 2, 'listenerRemote': 1, 'meta': 44, 'modulesShared': 34, 'network': 2, 'oscRng': 1, 'perUeList': 3, 'sinkAddress': 1, 'starstar': 38, 'talker': 27, 'ue0': 4}
+regenerated sha256 b94c748b9aedd18e58659afe9abdffc75b4ab827915912ebfc080dee0954ca25; committed b94c748b9aedd18e58659afe9abdffc75b4ab827915912ebfc080dee0954ca25: IDENTICAL
+check rc 0
+
+== python3 tools/m2s72_gen.py verify (flattening vs opp_run -q runconfig)
+M2S71-q0-idle: 202 entries; rules {'anyTt': 18, 'appSel': 11, 'bearerGlobal': 1, 'dsTt': 6, 'dsTtClockId': 1, 'dsTtTtId': 3, 'general': 8, 'hasPassThroughTts': 1, 'listener': 20, 'listenerNumApps': 1, 'listenerRemote': 1, 'meta': 34, 'modulesShared': 26, 'network': 2, 'oscRng': 1, 'perUeList': 2, 'sinkAddress': 1, 'starstar': 38, 'talker': 23, 'ue0': 4}
+M2S71-qdu-idle: 207 entries; rules {'anyTt': 18, 'appSel': 11, 'bearerGlobal': 3, 'dsTt': 6, 'dsTtClockId': 1, 'dsTtTtId': 3, 'general': 8, 'hasPassThroughTts': 1, 'listener': 20, 'listenerNumApps': 1, 'listenerRemote': 1, 'meta': 34, 'modulesShared': 28, 'network': 2, 'oscRng': 1, 'perUeList': 3, 'sinkAddress': 1, 'starstar': 38, 'talker': 23, 'ue0': 4}
+M2S71-q0-load: 219 entries; rules {'anyTt': 18, 'app3': 12, 'appSel': 12, 'bearerGlobal': 1, 'dsTt': 6, 'dsTtClockId': 1, 'dsTtTtId': 3, 'general': 8, 'hasPassThroughTts': 1, 'listener': 20, 'listenerNumApps': 2, 'listenerRemote': 1, 'meta': 36, 'modulesShared': 26, 'network': 2, 'oscRng': 1, 'perUeList': 2, 'sinkAddress': 1, 'starstar': 38, 'talker': 24, 'ue0': 4}
+M2S6-C-a: 210 entries; rules {'anyTt': 18, 'appSel': 11, 'bearerGlobal': 1, 'dsTt': 3, 'dsTtClockId': 1, 'dsTtTtId': 3, 'general': 7, 'hasPassThroughTts': 1, 'listener': 23, 'listenerNumApps': 1, 'listenerRemote': 1, 'meta': 37, 'modulesShared': 32, 'network': 2, 'oscRng': 1, 'perUeList': 2, 'sinkAddress': 1, 'starstar': 35, 'talker': 26, 'ue0': 4}
+M2S6-E-all: 224 entries; rules {'anyTt': 21, 'appSel': 11, 'bearerGlobal': 1, 'dsTt': 3, 'dsTtClockId': 1, 'dsTtTtId': 3, 'dsTtTtParam': 3, 'general': 7, 'hasPassThroughTts': 1, 'listener': 23, 'listenerNumApps': 1, 'listenerRemote': 1, 'meta': 40, 'modulesShared': 35, 'network': 2, 'oscRng': 1, 'perUeList': 2, 'sinkAddress': 1, 'starstar': 36, 'talker': 26, 'ttRng': 1, 'ue0': 4}
+M2S71-q0-Ca: 220 entries; rules {'anyTt': 18, 'appSel': 11, 'bearerGlobal': 1, 'dsTt': 6, 'dsTtClockId': 1, 'dsTtTtId': 3, 'general': 8, 'hasPassThroughTts': 1, 'listener': 23, 'listenerNumApps': 1, 'listenerRemote': 1, 'meta': 40, 'modulesShared': 32, 'network': 2, 'oscRng': 1, 'perUeList': 2, 'sinkAddress': 1, 'starstar': 38, 'talker': 26, 'ue0': 4}
+M2S71-qdu-Ca: 225 entries; rules {'anyTt': 18, 'appSel': 11, 'bearerGlobal': 3, 'dsTt': 6, 'dsTtClockId': 1, 'dsTtTtId': 3, 'general': 8, 'hasPassThroughTts': 1, 'listener': 23, 'listenerNumApps': 1, 'listenerRemote': 1, 'meta': 40, 'modulesShared': 34, 'network': 2, 'oscRng': 1, 'perUeList': 3, 'sinkAddress': 1, 'starstar': 38, 'talker': 26, 'ue0': 4}
+M2S71-q0-Ca-sus: 241 entries; rules {'anyTt': 18, 'app3': 13, 'appSel': 13, 'bearerGlobal': 1, 'dsTt': 6, 'dsTtClockId': 1, 'dsTtTtId': 3, 'general': 8, 'hasPassThroughTts': 1, 'listener': 23, 'listenerNumApps': 2, 'listenerRemote': 1, 'meta': 44, 'modulesShared': 32, 'network': 2, 'oscRng': 1, 'perUeList': 2, 'sinkAddress': 1, 'starstar': 38, 'talker': 27, 'ue0': 4}
+M2S71-qdu-Ca-sus: 246 entries; rules {'anyTt': 18, 'app3': 13, 'appSel': 13, 'bearerGlobal': 3, 'dsTt': 6, 'dsTtClockId': 1, 'dsTtTtId': 3, 'general': 8, 'hasPassThroughTts': 1, 'listener': 23, 'listenerNumApps': 2, 'listenerRemote': 1, 'meta': 44, 'modulesShared': 34, 'network': 2, 'oscRng': 1, 'perUeList': 3, 'sinkAddress': 1, 'starstar': 38, 'talker': 27, 'ue0': 4}
+M2S71-q0-idle: generator 202 entries, OMNeT++ runconfig 202 entries: IDENTICAL (keys, values, order)
+M2S71-qdu-idle: generator 207 entries, OMNeT++ runconfig 207 entries: IDENTICAL (keys, values, order)
+M2S71-q0-load: generator 219 entries, OMNeT++ runconfig 219 entries: IDENTICAL (keys, values, order)
+M2S6-C-a: generator 210 entries, OMNeT++ runconfig 210 entries: IDENTICAL (keys, values, order)
+M2S6-E-all: generator 224 entries, OMNeT++ runconfig 224 entries: IDENTICAL (keys, values, order)
+M2S71-q0-Ca: generator 220 entries, OMNeT++ runconfig 220 entries: IDENTICAL (keys, values, order)
+M2S71-qdu-Ca: generator 225 entries, OMNeT++ runconfig 225 entries: IDENTICAL (keys, values, order)
+M2S71-q0-Ca-sus: generator 241 entries, OMNeT++ runconfig 241 entries: IDENTICAL (keys, values, order)
+M2S71-qdu-Ca-sus: generator 246 entries, OMNeT++ runconfig 246 entries: IDENTICAL (keys, values, order)
+M2S72-T0-q0-idle: no listener address, no MAC-table setting
+M2S72-T0-qdu-idle: no listener address, no MAC-table setting
+M2S72-T0-q0-load: no listener address, no MAC-table setting
+M2S72-T0-C-a: no listener address, no MAC-table setting
+M2S72-T0-E-all: no listener address, no MAC-table setting
+M2S72-T0-q0-Ca: no listener address, no MAC-table setting
+M2S72-T0-qdu-Ca: no listener address, no MAC-table setting
+M2S72-F0-q0-n1: effective static-listener settings as generated
+M2S72-F0-q0-n1-ev: effective static-listener settings as generated
+M2S72-F0-q0-n1-norec: effective static-listener settings as generated
+M2S72-F0-q0-n2: effective static-listener settings as generated
+M2S72-F0-q0-n2-ev: effective static-listener settings as generated
+M2S72-F0-q0-n2-norec: effective static-listener settings as generated
+M2S72-F0-q0-n4: effective static-listener settings as generated
+M2S72-F0-q0-n4-ev: effective static-listener settings as generated
+M2S72-F0-q0-n4-norec: effective static-listener settings as generated
+M2S72-F0-q0-n8: effective static-listener settings as generated
+M2S72-F0-q0-n8-ev: effective static-listener settings as generated
+M2S72-F0-q0-n8-norec: effective static-listener settings as generated
+M2S72-F0-qdu-n1: effective static-listener settings as generated
+M2S72-F0-qdu-n1-ev: effective static-listener settings as generated
+M2S72-F0-qdu-n1-norec: effective static-listener settings as generated
+M2S72-F0-qdu-n2: effective static-listener settings as generated
+M2S72-F0-qdu-n2-ev: effective static-listener settings as generated
+M2S72-F0-qdu-n2-norec: effective static-listener settings as generated
+M2S72-F0-qdu-n4: effective static-listener settings as generated
+M2S72-F0-qdu-n4-ev: effective static-listener settings as generated
+M2S72-F0-qdu-n4-norec: effective static-listener settings as generated
+M2S72-F0-qdu-n8: effective static-listener settings as generated
+M2S72-F0-qdu-n8-ev: effective static-listener settings as generated
+M2S72-F0-qdu-n8-norec: effective static-listener settings as generated
+M2S72-F0N-missing: effective static-listener settings as generated
+M2S72-F0N-missing-ev: effective static-listener settings as generated
+M2S72-F0N-vlan: effective static-listener settings as generated
+M2S72-F0N-vlan-ev: effective static-listener settings as generated
+M2S72-F0N-age: effective static-listener settings as generated
+M2S72-F0N-age-ev: effective static-listener settings as generated
+M2S72-F0N-port: effective static-listener settings as generated
+M2S72-F0N-port-ev: effective static-listener settings as generated
+M2S72-B-q0-ideal-n1: effective static-listener settings as generated
+M2S72-B-q0-ideal-n2: effective static-listener settings as generated
+M2S72-B-q0-ideal-n4: effective static-listener settings as generated
+M2S72-B-q0-Ca-n1: effective static-listener settings as generated
+M2S72-B-q0-Ca-n2: effective static-listener settings as generated
+M2S72-B-q0-Ca-n4: effective static-listener settings as generated
+M2S72-B-q0-Eall-n1: effective static-listener settings as generated
+M2S72-B-q0-Eall-n2: effective static-listener settings as generated
+M2S72-B-q0-Eall-n4: effective static-listener settings as generated
+M2S72-B-qdu-ideal-n1: effective static-listener settings as generated
+M2S72-B-qdu-ideal-n2: effective static-listener settings as generated
+M2S72-B-qdu-ideal-n4: effective static-listener settings as generated
+M2S72-B-qdu-Ca-n1: effective static-listener settings as generated
+M2S72-B-qdu-Ca-n2: effective static-listener settings as generated
+M2S72-B-qdu-Ca-n4: effective static-listener settings as generated
+M2S72-B-qdu-Eall-n1: effective static-listener settings as generated
+M2S72-B-qdu-Eall-n2: effective static-listener settings as generated
+M2S72-B-qdu-Eall-n4: effective static-listener settings as generated
+M2S72-BN-theta1: effective static-listener settings as generated
+M2S72-H-q0-Ca-n2: effective static-listener settings as generated
+M2S72-H-q0-Ca-n4: effective static-listener settings as generated
+M2S72-H-qdu-Ca-n2: effective static-listener settings as generated
+M2S72-H-qdu-Ca-n4: effective static-listener settings as generated
+M2S72-BN-rng: effective static-listener settings as generated
+M2S72-H16-q0-Ca-n2: effective static-listener settings as generated
+M2S72-H16-q0-Ca-n4: effective static-listener settings as generated
+M2S72-H16-qdu-Ca-n2: effective static-listener settings as generated
+M2S72-H16-qdu-Ca-n4: effective static-listener settings as generated
+M2S72-H16N-nohold: effective static-listener settings as generated
+M2S72-H16N-hto: effective static-listener settings as generated
+generated-config check (rev. 2.1 A-1): all as generated
+verify rc 0
+
+== generator negative tests (each must stop with an error and write nothing)
+PASS | missing required: DS-TT clockIdentity removed | ERROR M2S71-q0-idle: missing required setting *.dsTt.eth[1].trafficConditionerLayer.engine.clockIdentity
+PASS | missing required: ulQfiRules removed (in ../m1/omnetpp.ini) | ERROR M2S71-q0-idle: missing required setting *.bearerConfigurator.ulQfiRules
+PASS | unexpected setting: unknown key in M2S71-base | ERROR M2S71-q0-idle: unexpected setting *.someNewModule.param = 1 (omnetpp.ini:1775, [M2S71-base])
+PASS | unexpected setting: a DS-TT identity no per-UE rule knows | ERROR M2S71-q0-idle: per-UE identity or address setting without a per-UE rule: *.dsTt.eth[1].trafficConditionerLayer.engine.ttId = 2 (omnetpp.ini:1775)
+PASS | unexpected setting: a talker address no per-UE rule knows | ERROR M2S71-q0-idle: per-UE identity or address setting without a per-UE rule: *.talker.eth[0].address = "0A-AA-00-00-00-0A" (omnetpp.ini:1775)
+PASS | allowed: a shared DS-TT setting is vectorised | generated (no error expected)
+PASS | untranslatable value: a shared module pointing at talker | ERROR M2S71-q0-idle: untranslatable value naming a per-UE module: *.nwTt.eth[1].trafficConditionerLayer.peer = "talker" (omnetpp.ini:1775)
+PASS | untranslatable: listener DL flow not to talker (in ../m1/omnetpp.ini) | ERROR M2S71-q0-idle: required setting *.listener.app[0..1].io.remoteAddress = "server", expected "talker"
+PASS | untranslatable: ancestorIndex outside source.* | ERROR M2S71-q0-idle: untranslatable ancestorIndex in **.app[0..1].io.steal = ancestorIndex(1) > 0
+PASS | required value: num-rngs changed | ERROR M2S71-q0-idle: required setting num-rngs = 3, expected 2
+PASS | required value: DS-TT ttId changed | ERROR M2S71-q0-idle: required setting *.dsTt.eth[1].trafficConditionerLayer.syncOut.ttId = 7, expected 2
+PASS | staticDrbs entry of another UE | ERROR *.bearerConfigurator.staticDrbs: entry without ue: "ue[0]": {coreNetwork: "5gc", ue: "ue[1]", drbId: 4, mappedQfis: [10], lcg: 2, rlcMode: "UM", profile: "nasc-gptp"}
+PASS | source sets the listener MAC (owned by M2S72-SL) | ERROR M2S71-q0-idle: source sets *.listener.eth[0].address = "0A-AA-00-00-00-77" (omnetpp.ini:1775), which the generated static-listener mixin M2S72-SL owns
+PASS | source sets a UPF MAC-table parameter (owned by M2S72-SL) | ERROR M2S71-q0-idle: source sets *.upf.ethBridge.macTable.agingTime = 300s (omnetpp.ini:1775), which the generated static-listener mixin M2S72-SL owns
+PASS | VLAN-42 assumption: base flows on VLAN 43 (in ../m1/omnetpp.ini) | ERROR M2S71-q0-idle: required setting **.app[0..1].tagger.vlanId = 43, expected 42 (VLAN of the static listener entry)
+PASS | VLAN-42 assumption: base-flow VLAN setting removed (in ../m1/omnetpp.ini) | ERROR M2S71-q0-idle: missing required setting **.app[0..1].tagger.vlanId (VLAN of the static listener entry)
+PASS | VLAN-42 assumption: a further flow on VLAN 43 | ERROR M2S71-q0-idle: traffic on a VLAN other than 42: {'**.app[2].tagger.vlanId': '43'}; the static listener entry covers VID 42 only
+PASS | N = 1 only rule requested at N > 1 (load app at N = 2) | ERROR M2S71-q0-load: required setting *.listener.numApps = 4, expected 3
+PASS | N = 1 only rule requested at N > 1 (E-all TT-clock parameters at N = 2) | ERROR M2S6-E-all: *.dsTt.eth[1].trafficConditionerLayer.ttClock.theta0: per-DS-TT TT-clock parameters (D-13) have no stage-2 translation for N > 1
+PASS | asymmetric load: listener load not addressed to the talker | ERROR M2S71-q0-load: unexpected *.listener.app[3].io.remoteAddress = "server"
+PASS | HARQ16 mixin: an entry no rule translates | ERROR M2S0-harq16 mixin: *.someNewModule.harqProcesses matches 0 rules
+PASS | asymmetric load: a load setting naming a per-UE module | ERROR M2S71-q0-Ca-sus: untranslatable value **.app[3].io.localAddress = "talker"
+PASS | inheritance: T0 inheriting M2S72-SL directly | ERROR M2S72-T0-x: T0 config inherits ['M2S72-SL']
+PASS | inheritance: T0 inheriting M2S72-SL through a census config | ERROR M2S72-T0-x: T0 config inherits ['M2S72-SL']
+PASS | inheritance: T0 inheriting a control mixin | ERROR M2S72-T0-x: T0 config inherits ['M2S72-SLN-age']
+PASS | inheritance: non-T0 config without M2S72-SL | ERROR M2S72-F0-q0-n2: non-T0 config does not inherit M2S72-SL
+PASS | inheritance: allowed: census with M2S72-SL, T0 without | accepted
+PASS | unmodified sources in a temporary copy | identical to the committed m2s72.ini
+generator negative tests: 28 PASS, 0 FAIL
+6635
+controls: 13 PASS, 0 FAIL
+Checkpoint 2 revision 2 verdict: PASS
