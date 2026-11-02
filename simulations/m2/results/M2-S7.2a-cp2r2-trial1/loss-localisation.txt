@@ -1,0 +1,17 @@
+Trial (read-only): per UE, gPTP Sync (type 0) / Follow_Up (8) sequenceIds transmitted by ue[k] eth0 towards dsTt[k] vs the GM cohort
+M2S72-H-q0-Ca-n2-0 ue[0] type 0: GM 96, UE tx 95, not transmitted by the UE 1: [95]
+M2S72-H-q0-Ca-n2-0 ue[0] type 8: GM 96, UE tx 95, not transmitted by the UE 1: [95]
+M2S72-H-q0-Ca-n2-0 ue[1] type 0: GM 96, UE tx 79, not transmitted by the UE 17: [5, 11, 17, 23, 29, 35, 36, 41, 47, 53, 59, 65, 71, 77, 82, 94]...
+M2S72-H-q0-Ca-n2-0 ue[1] type 8: GM 96, UE tx 73, not transmitted by the UE 23: [5, 6, 7, 11, 12, 17, 18, 23, 29, 35, 36, 41, 47, 53, 59, 65]...
+M2S72-H-qdu-Ca-n2-0 ue[0] type 0: GM 96, UE tx 95, not transmitted by the UE 1: [95]
+M2S72-H-qdu-Ca-n2-0 ue[0] type 8: GM 96, UE tx 95, not transmitted by the UE 1: [95]
+M2S72-H-qdu-Ca-n2-0 ue[1] type 0: GM 96, UE tx 79, not transmitted by the UE 17: [5, 11, 17, 23, 29, 35, 41, 47, 53, 59, 65, 71, 77, 82, 88, 94]...
+M2S72-H-qdu-Ca-n2-0 ue[1] type 8: GM 96, UE tx 79, not transmitted by the UE 17: [5, 11, 17, 23, 29, 35, 41, 47, 53, 59, 65, 71, 77, 82, 88, 94]...
+M2S72-B-q0-Ca-n2-0 ue[0] type 0: GM 96, UE tx 95, not transmitted by the UE 1: [95]
+M2S72-B-q0-Ca-n2-0 ue[0] type 8: GM 96, UE tx 95, not transmitted by the UE 1: [95]
+M2S72-B-q0-Ca-n2-0 ue[1] type 0: GM 96, UE tx 95, not transmitted by the UE 1: [95]
+M2S72-B-q0-Ca-n2-0 ue[1] type 8: GM 96, UE tx 95, not transmitted by the UE 1: [95]
+M2S72-B-qdu-Ca-n2-0 ue[0] type 0: GM 96, UE tx 95, not transmitted by the UE 1: [95]
+M2S72-B-qdu-Ca-n2-0 ue[0] type 8: GM 96, UE tx 95, not transmitted by the UE 1: [95]
+M2S72-B-qdu-Ca-n2-0 ue[1] type 0: GM 96, UE tx 95, not transmitted by the UE 1: [95]
+M2S72-B-qdu-Ca-n2-0 ue[1] type 8: GM 96, UE tx 95, not transmitted by the UE 1: [95]

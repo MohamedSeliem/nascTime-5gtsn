@@ -1,0 +1,9 @@
+F0-1 | P-q0-1ms-0 | FAIL | cohort 92 Sync + 92 Follow_Up (GM end <= T_end - 0.5 s) x 2 DS-TTs; N3 384 DL gPTP copies on tunnels [1, 2], QFI [0]; tail deliveries outside the cohort 10; dsTt[1]: missing [(0, 5), (0, 11), (0, 17), (0, 23)]... (41), duplicated [] (0), not from the GM []
+I-2 | P-q0-1ms-0 | FAIL | 163 corrected Follow_Up copies over 2 DS-TTs; NW-TT corrected 96; dsTt[1] Follow_Up 28: event hold  Sync still queued; dsTt[1] Follow_Up 28: event release  2 frames; dsTt[1] Follow_Up 42: event hold  Sync still queued; dsTt[1] Follow_Up 42: event release  1 frames; dsTt[1] Follow_Up 43: event hold  Sync
+M2 | P-q0-1ms-0 slave 0 | PASS | 18 M2-S6 rows ({'K': 5, 'S': 1, 'R': 4, 'E': 8}) all exact
+M2 | P-q0-1ms-0 slave 1 | PASS | 18 M2-S6 rows ({'K': 5, 'S': 1, 'R': 4, 'E': 8}) all exact
+M3 | P-q0-1ms-0 pair (0,1) | PASS | 11870 samples of 12001: measured e_i - e_j = predicted exactly; excluded {'no update yet': 130, 'recording ambiguous': 1}
+M3d | P-q0-1ms-0 pair (0,1) | PASS | case A (same Sync) 8466 = 71.3 %, case B (different Syncs) 3404 = 28.7 %; per-slave identity e = sum of terms exact; Rr.TT = TT_nw + TT_ds exact; claimed-cancelling set 9 terms bit-identical in case A yes; path-specific (A) / full (B) differences sum to the measured difference exactly
+M4 | P-q0-1ms-0 GM drift | PASS | GM rate over every residence interval of every slave one value rho_G = 1.000100000000 (rho_G - (1 + 100 ppm) = 4.545e-20) (1 distinct); rate part of E_res = (r - rho_G) Res: 163 slave Follow_Ups; per pair and common Sync, difference = (r - rho_G) (Res_i - Res_j): 68
+H-cov | P-q0-1ms-0 pair (0,1) | PASS | common Follow_Ups 68: Res_i != Res_j 59 (86.8 %, required >= 10 %), Res_i - Res_j range (ns) (-1033936.0, -22400.0); s2 differ 59, s_F differ 59; non-zero GM-drift pair contributions 59 (required >= 1), range (ns) (2.4771851236948805e-13, 3.393600000000002); samples case A 8466, case B 3404
+fails {'I-2', 'F0-1'}
