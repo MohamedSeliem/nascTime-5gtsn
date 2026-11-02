@@ -14,6 +14,9 @@
 #   ./m2s72.sh cp2      regen, b, hashes into results/M2-S7.2a-cp2                        (Checkpoint 2)
 #   ./m2s72.sh b2       Checkpoint 2 rev. 2 runs (Block B, Block H, controls) and check -> results/M2-S7.2a-cp2r2/b-check.txt
 #   ./m2s72.sh cp2r2    regen, b2, hashes into results/M2-S7.2a-cp2r2                     (Checkpoint 2 revision 2)
+#   ./m2s72.sh r2       Checkpoint 2 revision 2 complete campaign (review 2026-11-02 16:58): regen, Block B, BN controls,
+#                       Block H16 (Q-0 correctness, Q-d diagnostic), I-2H controls, check (check_m2s72_cp2r2.py), hashes
+#                       -> results/M2-S7.2a-cp2r2 (must not exist before; r2check: check only)
 #   ./m2s72.sh i2h      I-2H focused validation: regen, Block H + HARQ16 runs, I-5 references, I-2H controls,
 #                       check (check_m2s72_i2h.py focused), hashes -> results/M2-S7.2a-i2h       (i2hcheck: check only)
 # Requires OMNETPP_ROOT, INET_ROOT, SIMU5G_ROOT (or the defaults below); T0 also needs the committed
@@ -35,6 +38,9 @@ case "$MODE" in b|bcheck|cp2|cp2regen|cp2hashes) OUT=$HERE/results/M2-S7.2a-cp2 
 case "$MODE" in b2|b2check|cp2r2|cp2r2regen|cp2r2hashes) OUT=$HERE/results/M2-S7.2a-cp2r2 ;; esac
 # I-2H focused validation (review 2026-11-02 16:12): results/M2-S7.2a-i2h
 case "$MODE" in i2h|i2hrun|i2hcheck|i2hregen|i2hhashes) OUT=$HERE/results/M2-S7.2a-i2h ;; esac
+# Checkpoint 2 revision 2 complete campaign: results/M2-S7.2a-cp2r2 (empty at the start; r2 refuses an existing one)
+case "$MODE" in r2|r2run|r2check|r2regen|r2hashes) OUT=$HERE/results/M2-S7.2a-cp2r2 ;; esac
+if [ "$MODE" = r2 ] && [ -e "$OUT" ]; then echo "ERROR: $OUT exists; the campaign starts from an empty directory" >&2; exit 1; fi
 CHK=$HERE/check
 mkdir -p "$OUT"
 "$NASCTIME/src/nasctime/m2/build.sh" > "$OUT/build.log" 2>&1 || { echo "ERROR: build failed, see $OUT/build.log" >&2; exit 1; }
@@ -114,6 +120,13 @@ i2h_configs() {
   echo "m2s72.ini M2S72-H16-qdu-Ca-n2 0..4 --fingerprint=0000-0000/tplx"
   for c in nohold hto; do echo "m2s72.ini M2S72-H16N-$c 0 --fingerprint=0000-0000/tplx"; done
 }
+r2_configs() {
+  b_configs
+  echo "m2s72.ini M2S72-BN-rng 0 --fingerprint=0000-0000/tplx"
+  for n in 2 4; do echo "m2s72.ini M2S72-H16-q0-Ca-n$n 0..4 --fingerprint=0000-0000/tplx"; done
+  echo "m2s72.ini M2S72-H16-qdu-Ca-n2 0..4 --fingerprint=0000-0000/tplx"
+  for c in nohold hto; do echo "m2s72.ini M2S72-H16N-$c 0 --fingerprint=0000-0000/tplx"; done
+}
 t0_configs() {
   for s in q0-idle qdu-idle q0-load C-a E-all; do echo "m2s72.ini M2S72-T0-$s 0"; done
 }
@@ -163,6 +176,13 @@ case "$MODE" in
   i2hhashes) (cd "$OUT" && find runs -type f \( -name '*.pcapng' -o -name '*.csv' \) | LC_ALL=C sort | xargs sha256sum > raw-outputs.sha256)
           wc -l < "$OUT/raw-outputs.sha256" ;;
   i2h) for s in i2hregen i2hrun i2hcheck i2hhashes; do "$0" "$s" || exit $?; done ;;
+  r2regen) regen ;;
+  r2run) r2_configs | runlist runs ;;
+  r2check) python3 "$CHK/check_m2s72_cp2r2.py" "$OUT" > "$OUT/cp2r2-check.txt" 2>&1 || true
+     tail -2 "$OUT/cp2r2-check.txt" ;;
+  r2hashes) (cd "$OUT" && find runs -type f \( -name '*.pcapng' -o -name '*.csv' \) | LC_ALL=C sort | xargs sha256sum > raw-outputs.sha256)
+          wc -l < "$OUT/raw-outputs.sha256" ;;
+  r2) for s in r2regen r2run r2hashes r2check; do "$0" "$s" || exit $?; done ;;
   hashes) (cd "$OUT" && find runs ref -type f \( -name '*.pcapng' -o -name '*.csv' \) | LC_ALL=C sort | xargs sha256sum > raw-outputs.sha256)
           wc -l < "$OUT/raw-outputs.sha256" ;;
   all) for s in regen f0 t0 hashes; do "$0" "$s" || exit $?; done ;;

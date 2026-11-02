@@ -105,6 +105,10 @@ def i2h(ev, k):
                         probs.append(f"release of {cur}: note '{r['note']}', expected '{n} frames'")
                     held_counts.append(len(held_open[cur]))
                 cur = None
+            elif e == "holdExpired":
+                # message bookkeeping only: an expired hold ends the hold (TtSyncEgress::release(true)). holdExpired is
+                # outside ALLOWED, so every log containing it already FAILS rule 1; no verdict changes
+                cur = None
         elif e == "held":
             if cur is None:
                 probs.append(f"'held' frame at {r['t']} outside a hold")
@@ -153,7 +157,7 @@ def i2h(ev, k):
             if int(slots[0]["t"]) >= T - MAXF and evs in ([], ["hold"]):
                 end_run.append(f"Sync {s} queued at {slots[0]['t']} ps, not transmitted by T_end" + (" (FU held)" if evs else ""))
                 continue
-            probs.append(f"seq {s}: Sync queued, never transmitted, FU events {evs}")
+            probs.append(f"seq {s}: Sync queued at the egress without a syncTx event (an expired hold removes it from the pending set), FU events {evs}")
             continue
         if not evs:
             continue                    # Sync transmitted; its FU never reached DS-TT k (accounted below, eth[0])

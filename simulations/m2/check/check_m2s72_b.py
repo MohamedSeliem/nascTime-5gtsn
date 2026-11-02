@@ -669,6 +669,52 @@ class Lite:
         self.views = {k: V.S6View(self.run, k, V.CONF(base, k, T), vec) for k in range(self.run.n)}
 
 
+def stage4_controls(runs):
+    """The eight Stage 4 negative controls (predictions PRED, declared at 61b68d4); returns
+    [(name, ok, failed families, predicted, rows)]."""
+    ctrl = []
+    base = "M2S72-B-q0-Eall-n4"
+    def control(name, key, fn):
+        exp = PRED[key]
+        start = len(rows)
+        try:
+            fails = fn()
+        except Exception as ex:
+            fails = {f"EXCEPTION {type(ex).__name__}: {ex}"}
+        mine = rows[start:]
+        del rows[start:]
+        ctrl.append((name, fails == exp, fails, exp, mine))
+
+    def on_copy(make, **kw):
+        tmp, _ = make()
+        try:
+            return evaluate(tmp, base, 0, **kw)[2]
+        finally:
+            shutil.rmtree(tmp)
+
+    def rng_share():
+        start = len(rows)
+        i4_ident(Lite(runs, "M2S72-BN-rng", 0))
+        i4_stream(runs, "q0", 0, cfg_b="M2S72-BN-rng")
+        return {r[0] for r in rows[start:] if r[2] == "FAIL"}
+    control("NC-swap (slave 1 with DS-TT 2's evidence)", "NC-swap",
+            lambda: evaluate(runs, base, 0, swap=(1, 2), full=False)[2])
+    control("NC-theta1 (M2S72-BN-theta1: DS-TT 1 theta0 + 1 us; checker D-13)", "NC-theta1",
+            lambda: evaluate(runs, "M2S72-BN-theta1", 0, conf_fn=lambda k: V.CONF("M2S72-B-q0-Eall-n4", k, 12 * S))[2])
+    control("NC-cancel (Rr.mul claimed cancelling)", "NC-cancel-Rr.mul",
+            lambda: evaluate(runs, base, 0, claimed=C_SET + ("Rr.mul",), full=False)[2])
+    control("NC-cancel (Rr.TT_ds claimed cancelling)", "NC-cancel-Rr.TT_ds",
+            lambda: evaluate(runs, base, 0, claimed=C_SET + ("Rr.TT_ds",), full=False)[2])
+    control("NC-cfout (DS-TT 1 logged cfOut + 1 ns on one Follow_Up)", "NC-cfout-1ns",
+            lambda: on_copy(lambda: mutate_log(runs, base, "cfOut", delta=1000)))
+    control("NC-wirecf (slave 1 received correctionField + 1 ns on one Follow_Up, FCS recomputed)", "NC-wirecf",
+            lambda: on_copy(lambda: mutate_wire_cf(runs, base)))
+    control("NC-tse (DS-TT 1 logged TSe + 1 ps on one Follow_Up)", "NC-tse",
+            lambda: on_copy(lambda: mutate_log(runs, base, "TSe")))
+    control("NC-rngshare (M2S72-BN-rng: DS-TT 2's TT clock on DS-TT 1's RNG 3; I-4 rows only)", "NC-rngshare", rng_share)
+    return ctrl
+
+
 def main():
     out = sys.argv[1]
     runs = os.path.join(out, "runs")
@@ -715,47 +761,7 @@ def main():
                 summary[(cfg, rep)] = stats
                 hcov[(cfg, rep)] = h_cov(ev, stats)
     # negative controls
-    ctrl = []
-    base = "M2S72-B-q0-Eall-n4"
-    if not filt or re.search(filt, "controls"):
-        def control(name, key, fn):
-            exp = PRED[key]
-            start = len(rows)
-            try:
-                fails = fn()
-            except Exception as ex:
-                fails = {f"EXCEPTION {type(ex).__name__}: {ex}"}
-            mine = rows[start:]
-            del rows[start:]
-            ctrl.append((name, fails == exp, fails, exp, mine))
-
-        def on_copy(make, **kw):
-            tmp, _ = make()
-            try:
-                return evaluate(tmp, base, 0, **kw)[2]
-            finally:
-                shutil.rmtree(tmp)
-
-        def rng_share():
-            start = len(rows)
-            i4_ident(Lite(runs, "M2S72-BN-rng", 0))
-            i4_stream(runs, "q0", 0, cfg_b="M2S72-BN-rng")
-            return {r[0] for r in rows[start:] if r[2] == "FAIL"}
-        control("NC-swap (slave 1 with DS-TT 2's evidence)", "NC-swap",
-                lambda: evaluate(runs, base, 0, swap=(1, 2), full=False)[2])
-        control("NC-theta1 (M2S72-BN-theta1: DS-TT 1 theta0 + 1 us; checker D-13)", "NC-theta1",
-                lambda: evaluate(runs, "M2S72-BN-theta1", 0, conf_fn=lambda k: V.CONF("M2S72-B-q0-Eall-n4", k, 12 * S))[2])
-        control("NC-cancel (Rr.mul claimed cancelling)", "NC-cancel-Rr.mul",
-                lambda: evaluate(runs, base, 0, claimed=C_SET + ("Rr.mul",), full=False)[2])
-        control("NC-cancel (Rr.TT_ds claimed cancelling)", "NC-cancel-Rr.TT_ds",
-                lambda: evaluate(runs, base, 0, claimed=C_SET + ("Rr.TT_ds",), full=False)[2])
-        control("NC-cfout (DS-TT 1 logged cfOut + 1 ns on one Follow_Up)", "NC-cfout-1ns",
-                lambda: on_copy(lambda: mutate_log(runs, base, "cfOut", delta=1000)))
-        control("NC-wirecf (slave 1 received correctionField + 1 ns on one Follow_Up, FCS recomputed)", "NC-wirecf",
-                lambda: on_copy(lambda: mutate_wire_cf(runs, base)))
-        control("NC-tse (DS-TT 1 logged TSe + 1 ps on one Follow_Up)", "NC-tse",
-                lambda: on_copy(lambda: mutate_log(runs, base, "TSe")))
-        control("NC-rngshare (M2S72-BN-rng: DS-TT 2's TT clock on DS-TT 1's RNG 3; I-4 rows only)", "NC-rngshare", rng_share)
+    ctrl = stage4_controls(runs) if not filt or re.search(filt, "controls") else []
     # report
     print("M2-S7.2a stage 4 / Checkpoint 2 revision 2: Block B, I-4 stream, Block H (design rev. 2.1; corrective round)\n")
     for r in rows:
