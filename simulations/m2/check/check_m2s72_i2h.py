@@ -282,6 +282,7 @@ PRED = {
     "NC-txStart": {"I-2H"},
 }
 BASE = "M2S72-H16-q0-Ca-n2"
+BASE_H = "M2S72-H-q0-Ca-n2"      # the Block H config BASE is evaluated as (clock configuration, option)
 
 
 def copy_run(runs, cfg):
@@ -346,14 +347,14 @@ def controls(runs):
         out.append((name, fails == PRED[name], fails, PRED[name], info, mine))
 
     def on_cfg(cfg):
-        return lambda: evaluate_h(runs, cfg, 0, None, BASE)[4:]
+        return lambda: evaluate_h(runs, cfg, 0, None, BASE_H)[4:]
 
     def on_copy(mut):
         def f():
             tmp = copy_run(runs, BASE)
             try:
                 mut(tmp)
-                return evaluate_h(tmp, BASE, 0, None, BASE)[4:]
+                return evaluate_h(tmp, BASE, 0, None, BASE_H)[4:]
             finally:
                 shutil.rmtree(tmp)
         return f

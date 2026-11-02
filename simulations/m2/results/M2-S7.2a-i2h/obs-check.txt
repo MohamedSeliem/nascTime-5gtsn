@@ -1,0 +1,25 @@
+I-2H on the observation record O-q0-h16 (evaluated as M2S72-H-q0-Ca-n2), seed 0
+
+F0-1 | O-q0-h16-0 | PASS | cohort 92 Sync + 92 Follow_Up (GM end <= T_end - 0.5 s) x 2 DS-TTs; N3 384 DL gPTP copies on tunnels [1, 2], QFI [0]; tail deliveries outside the cohort 12
+I-2 strict (info) | O-q0-h16-0 | FAIL | 190 corrected Follow_Up copies over 2 DS-TTs; NW-TT corrected 96; dsTt[1] Follow_Up 21: event hold  Sync still queued; dsTt[1] Follow_Up 21: event release  1 frames; dsTt[1] Follow_Up 22: event hold  Sync still queued; dsTt[1] Follow_Up 22: event release  1 frames; dsTt[1] Follow_Up 23: event hold  Sync still queued
+F0-3 | O-q0-h16-0 | PASS | gPTP on N3 uplink 0; out of DS-TT eth[0] {0: 0, 1: 0}; UPF dnEth out 0; NW-TT eth[0] in 0
+F0-4 | O-q0-h16-0 | PASS | misdirected M_j [0, 0] (destinations {}); conservation per (source, VID): UL t0/42: 1189 in, 1189 out on dnEth, 0 in flight, 0 on tunnels; UL t1/42: 48333 in, 48333 out on dnEth, 0 in flight, 0 on tunnels; DL t0/42: 1170 in, 1170 out on own tunnel, 0 in flight, 0 on other tunnels; DL t1/42: 47968 in, 47968 out on own tunnel, 0 in flight, 0 on other tunnels
+F0-5 | O-q0-h16-0 | PASS | DRBs [1, 2], gPTP on DRB 1: SDUs/N3 copies ['ue[0] node 2049: 192/192', 'ue[1] node 2050: 192/192']
+F0-7d | O-q0-h16-0 | PASS | UPF-internal delays from this run's eventlog: UL [(0, 3)] DL [(0, 3)] (ps: count)
+F0-6 | O-q0-h16-0 | PASS | 3 unicast keys, 0 problems: listener VID 42: STATIC-VALID (configured; required STATIC-VALID): S1 ok (recorded [('0A-AB-00-00-00-01', 42, 'dnEth')]); S2 ok (I_dn [100], first table line Updating entry on interface 100 at 0.300002180000 s, 'Adding entry' lines 0); S3 ok (agingTime 120s, T_end 12.000000000000 s); S4 ok; S5 ok (0 frames from the listener MAC, VID 42, on session tunnels); talker[0] VID 42: DYNAMIC-VALID (required DYNAMIC-VALID): lambda 0.109000185200 s (N3 tunnel of 0), tau 0.300002180000 s, margin 0.191001994800 s; talker[1] VID 42: DYNAMIC-VALID (required DYNAMIC-VALID): lambda 0.109000320400 s (N3 tunnel of 1), tau 0.300003316000 s, margin 0.191002995600 s
+F0-8 | O-q0-h16-0 | PASS | agingTime 120s: agingTime - 1 s > T_end (12.000000000000 s) holds; frames with the listener's source MAC and VID 42 entering on session tunnels: 0
+I-1 | O-q0-h16-0 | PASS | 190 corrected Follow_Ups over 2 DS-TTs paired with their own Sync (syncFrameId, TSe = own egress stamp)
+I-3 | O-q0-h16-0 | PASS | 190 Follow_Ups at the slaves carry their own DS-TT's cfOut; Syncs whose cfOut differs between DS-TTs: 93 of 95
+I-4 | O-q0-h16-0 | PASS | distinct ttIds ['2', '3'], Pdelay clockIdentities ['"\\"0x00000000000000d1\\""', '"\\"0x00000000000000d2\\""'], slave identities 2, NR MAC node ids [2049, 2050]; RNG mapping recorded (num-rngs 4)
+M2 | O-q0-h16-0 slave 0 | PASS | 18 M2-S6 rows ({'K': 5, 'S': 1, 'R': 4, 'E': 8}) all exact
+M2 | O-q0-h16-0 slave 1 | PASS | 18 M2-S6 rows ({'K': 5, 'S': 1, 'R': 4, 'E': 8}) all exact
+M3 | O-q0-h16-0 pair (0,1) | PASS | 11870 samples of 12001: measured e_i - e_j = predicted exactly; excluded {'no update yet': 130, 'recording ambiguous': 1}
+M3d | O-q0-h16-0 pair (0,1) | PASS | case A (same Sync) 11271 = 95.0 %, case B (different Syncs) 599 = 5.0 %; per-slave identity e = sum of terms exact; Rr.TT = TT_nw + TT_ds exact; claimed-cancelling set 9 terms bit-identical in case A yes; path-specific (A) / full (B) differences sum to the measured difference exactly
+M4 | O-q0-h16-0 GM drift | PASS | GM rate over every residence interval of every slave one value rho_G = 1.000100000000 (rho_G - (1 + 100 ppm) = 4.545e-20) (1 distinct); rate part of E_res = (r - rho_G) Res: 190 slave Follow_Ups; per pair and common Sync, difference = (r - rho_G) (Res_i - Res_j): 95
+H-cov | O-q0-h16-0 pair (0,1) | PASS | common Follow_Ups 95: Res_i != Res_j 93 (97.9 %, required >= 10 %), Res_i - Res_j range (ns) (-1057008.0, -20800.0); s2 differ 93, s_F differ 93; non-zero GM-drift pair contributions 93 (required >= 1), range (ns) (2.300243329145246e-13, 6.854400000000004); samples case A 11271, case B 599 (reported)
+I-2H | O-q0-h16-0 DS-TT 0 | PASS | FU corrected 95 (held 0); hold 0, release 0, held frames 0, expired 0, discarded 0; egress FIFO replay 1385 frames, 0 deviations; end-of-run none
+I-2H | O-q0-h16-0 DS-TT 1 | PASS | FU corrected 95 (held 63); hold 63, release 63, held frames 0, expired 0, discarded 0; egress FIFO replay 48163 frames, 0 deviations; end-of-run none
+
+rows per family: F0-1 1 PASS / 0 FAIL, F0-3 1 PASS / 0 FAIL, F0-4 1 PASS / 0 FAIL, F0-5 1 PASS / 0 FAIL, F0-6 1 PASS / 0 FAIL, F0-7d 1 PASS / 0 FAIL, F0-8 1 PASS / 0 FAIL, H-cov 1 PASS / 0 FAIL, I-1 1 PASS / 0 FAIL, I-2 strict (info) 0 PASS / 1 FAIL, I-2H 2 PASS / 0 FAIL, I-3 1 PASS / 0 FAIL, I-4 1 PASS / 0 FAIL, M2 2 PASS / 0 FAIL, M3 1 PASS / 0 FAIL, M3d 1 PASS / 0 FAIL, M4 1 PASS / 0 FAIL
+gate rows: 18 PASS, 0 FAIL (information rows I-2 strict (info), H-cov (diagnostic) excluded)
+DS-TT 1: hold 63, release 63, corrected 95, held FUs 63, FIFO replay 48163 frames / 0 deviations
