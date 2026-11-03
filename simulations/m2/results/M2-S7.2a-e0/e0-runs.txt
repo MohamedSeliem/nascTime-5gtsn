@@ -1,0 +1,19 @@
+E0 batch start 2026-11-03T12:14:59Z: free 23 GB (required >= 20 GB)
+M2S72-E0-q0-f1 | factor 1 | rc 0 | wall 143 s (limit 720 s) | raw 651592756 B + log 57071279 B | free before 23 GB, after 23 GB
+M2S72-E0-q0-f1: cohort GM Syncs 80, not received by DS-TT 0 by T_end 0 (0.0000)
+M2S72-E0-qdu-f1 | factor 1 | rc 0 | wall 105 s (limit 720 s) | raw 410469867 B + log 36506337 B | free before 23 GB, after 22 GB
+M2S72-E0-qdu-f1: cohort GM Syncs 80, not received by DS-TT 0 by T_end 0 (0.0000)
+M2S72-E0-q0-f2 | factor 2 | rc 0 | wall 193 s (limit 1080 s) | raw 876560942 B + log 61126323 B | free before 22 GB, after 22 GB
+M2S72-E0-q0-f2: cohort GM Syncs 80, not received by DS-TT 0 by T_end 21 (0.2625)
+M2S72-E0-qdu-f2 | factor 2 | rc 0 | wall 142 s (limit 1080 s) | raw 633529090 B + log 39658323 B | free before 22 GB, after 21 GB
+M2S72-E0-qdu-f2: cohort GM Syncs 80, not received by DS-TT 0 by T_end 0 (0.0000)
+M2S72-E0-q0-f4 | factor 4 | rc 0 | wall 247 s (limit 1800 s) | raw 1295567279 B + log 63965159 B | free before 21 GB, after 20 GB
+M2S72-E0-q0-f4: cohort GM Syncs 80, not received by DS-TT 0 by T_end 50 (0.6250)
+M2S72-E0-qdu-f4 | factor 4 | rc 0 | wall 230 s (limit 1800 s) | raw 1052764817 B + log 42388473 B | free before 20 GB, after 19 GB
+M2S72-E0-qdu-f4: cohort GM Syncs 80, not received by DS-TT 0 by T_end 0 (0.0000)
+M2S72-E0-q0-f8 | factor 8 | rc 0 | wall 409 s (limit 3240 s) | raw 2136192896 B + log 69173796 B | free before 19 GB, after 17 GB
+M2S72-E0-q0-f8: cohort GM Syncs 80, not received by DS-TT 0 by T_end 64 (0.8000)
+M2S72-E0-qdu-f8 | factor 8 | rc 0 | wall 377 s (limit 3240 s) | raw 1892543707 B + log 47455311 B | free before 17 GB, after 15 GB
+M2S72-E0-qdu-f8: cohort GM Syncs 80, not received by DS-TT 0 by T_end 0 (0.0000)
+M2S72-E0NL-q0-f8 | factor 8 | rc 0 | wall 388 s (limit 3240 s) | raw 2101086533 B + log 411463 B | free before 15 GB, after 13 GB
+E0 batch end 2026-11-03T12:52:15Z

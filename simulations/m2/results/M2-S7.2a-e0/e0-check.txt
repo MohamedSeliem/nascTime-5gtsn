@@ -1,0 +1,319 @@
+M2-S7.2a Stage 5 E0 capacity calibration check (protocol results/M2-S7.2a-e0-protocol.md)
+
+F0-1 | M2S72-E0-q0-f1-0 | PASS | cohort 92 Sync + 92 Follow_Up (GM end <= T_end - 0.5 s) x 1 DS-TTs; N3 192 DL gPTP copies on tunnels [1], QFI [0]; tail deliveries outside the cohort 6
+I-2 strict (info) | M2S72-E0-q0-f1-0 | FAIL | 95 corrected Follow_Up copies over 1 DS-TTs; NW-TT corrected 96; dsTt[0] Follow_Up 16: event hold  Sync still queued; dsTt[0] Follow_Up 16: event release  2 frames; dsTt[0] Follow_Up 20: event hold  Sync still queued; dsTt[0] Follow_Up 20: event release  1 frames; dsTt[0] Follow_Up 21: event hold  Sync still queued
+F0-3 | M2S72-E0-q0-f1-0 | PASS | gPTP on N3 uplink 0; out of DS-TT eth[0] {0: 0}; UPF dnEth out 0; NW-TT eth[0] in 0
+F0-4 | M2S72-E0-q0-f1-0 | PASS | misdirected M_j [0] (destinations {}); conservation per (source, VID): UL t0/42: 48394 in, 48394 out on dnEth, 0 in flight, 0 on tunnels; DL t0/42: 47968 in, 47968 out on own tunnel, 0 in flight, 0 on other tunnels
+F0-5 | M2S72-E0-q0-f1-0 | PASS | DRBs [1, 2], gPTP on DRB 1: SDUs/N3 copies ['ue[0] node 2049: 192/192']
+F0-7d | M2S72-E0-q0-f1-0 | PASS | UPF-internal delays from this run's eventlog: UL [(0, 2)] DL [(0, 2)] (ps: count)
+F0-6 | M2S72-E0-q0-f1-0 | PASS | 2 unicast keys, 0 problems: listener VID 42: STATIC-VALID (configured; required STATIC-VALID): S1 ok (recorded [('0A-AB-00-00-00-01', 42, 'dnEth')]); S2 ok (I_dn [100], first table line Updating entry on interface 100 at 0.300002180000 s, 'Adding entry' lines 0); S3 ok (agingTime 120s, T_end 12.000000000000 s); S4 ok; S5 ok (0 frames from the listener MAC, VID 42, on session tunnels); talker[0] VID 42: DYNAMIC-VALID (required DYNAMIC-VALID): lambda 0.109000185200 s (N3 tunnel of 0), tau 0.300002180000 s, margin 0.191001994800 s
+F0-8 | M2S72-E0-q0-f1-0 | PASS | agingTime 120s: agingTime - 1 s > T_end (12.000000000000 s) holds; frames with the listener's source MAC and VID 42 entering on session tunnels: 0
+I-1 | M2S72-E0-q0-f1-0 | PASS | 95 corrected Follow_Ups over 1 DS-TTs paired with their own Sync (syncFrameId, TSe = own egress stamp)
+I-3 | M2S72-E0-q0-f1-0 | PASS | 95 Follow_Ups at the slaves carry their own DS-TT's cfOut; Syncs whose cfOut differs between DS-TTs: 0 of 95
+I-4 | M2S72-E0-q0-f1-0 | PASS | distinct ttIds ['2'], Pdelay clockIdentities ['"\\"0x00000000000000d1\\""'], slave identities 1, NR MAC node ids [2049]; RNG mapping recorded (num-rngs 2)
+M2 | M2S72-E0-q0-f1-0 slave 0 | PASS | 18 M2-S6 rows ({'K': 5, 'S': 1, 'R': 4, 'E': 8}) all exact
+M4 | M2S72-E0-q0-f1-0 GM drift | PASS | GM rate over every residence interval of every slave one value rho_G = 1.000100000000 (rho_G - (1 + 100 ppm) = 4.545e-20) (1 distinct); rate part of E_res = (r - rho_G) Res: 95 slave Follow_Ups; per pair and common Sync, difference = (r - rho_G) (Res_i - Res_j): 0
+I-2H | M2S72-E0-q0-f1-0 DS-TT 0 | PASS | FU corrected 95 (held 65); hold 65, release 65, held frames 1, expired 0, discarded 0; egress FIFO replay 48163 frames, 0 deviations; end-of-run none
+Q8 | M2S72-E0-q0-f1-0 | PASS | GM frames 192: {'delivered': 190, 'censored': 2}; undelivered by (fate, last confirmed location) {('censored', 'gNB MAC / air'): 2}; pairs {'used': 95, 'censored': 1}, incomplete GM events 0; replay: 47556 deliveries predicted and observed, 0 observed not predicted
+Q8-eq | M2S72-E0-q0-f1-0 | PASS | memory-light replay = m2s71_lib.replay_um / pdu_owner on this run (47574 SDUs, queue 1 at T_end)
+Q8-x | M2S72-E0-q0-f1-0 | PASS | MAC log {'mac': 11253790, 'other': 96554, 'rlc-tx': 274142, 'rlc-rx': 107393}; RLC TX/RX log vs vectors, UNCLASSIFIED, overflow vs scalar, deletion vs delivered: consistent
+CFG-rate | M2S72-E0-q0-f1-0 | PASS | DL every 250 us from 0.3005 s, UL every 250 us from 0.1005 s, exact
+EOR | M2S72-E0-q0-f1-0 DS-TT 0 | PASS | GM Sync+Follow_Up 192: delivered 190, end-of-run 2 ['S95', 'F95'], LOST 0; L_max 6.150179001 ms
+I-5 | M2S72-E0-q0-f1-0 | NOT APPLICABLE | E0 is N = 1: no reference of another N
+M3 | M2S72-E0-q0-f1-0 | NOT APPLICABLE | cross-slave pair oracle: no pair of slaves at N = 1
+M3d | M2S72-E0-q0-f1-0 | NOT APPLICABLE | cross-slave pair decomposition: no pair of slaves at N = 1
+H-cov | M2S72-E0-q0-f1-0 | NOT APPLICABLE | no residence heterogeneity declared at N = 1
+I-4 stream | M2S72-E0-q0-f1-0 | NOT APPLICABLE | needs N = 2 and N = 4
+F0-1 | M2S72-E0-qdu-f1-0 | PASS | cohort 92 Sync + 92 Follow_Up (GM end <= T_end - 0.5 s) x 1 DS-TTs; N3 192 DL gPTP copies on tunnels [1], QFI [10]; tail deliveries outside the cohort 6
+I-2 strict (info) | M2S72-E0-qdu-f1-0 | PASS | 95 corrected Follow_Up copies over 1 DS-TTs; NW-TT corrected 96
+F0-3 | M2S72-E0-qdu-f1-0 | PASS | gPTP on N3 uplink 0; out of DS-TT eth[0] {0: 0}; UPF dnEth out 0; NW-TT eth[0] in 0
+F0-4 | M2S72-E0-qdu-f1-0 | PASS | misdirected M_j [0] (destinations {}); conservation per (source, VID): UL t0/42: 3259 in, 3259 out on dnEth, 0 in flight, 0 on tunnels; DL t0/42: 47968 in, 47968 out on own tunnel, 0 in flight, 0 on other tunnels
+F0-5 | M2S72-E0-qdu-f1-0 | PASS | DRBs [1, 2, 4], gPTP on DRB 4: SDUs/N3 copies ['ue[0] node 2049: 192/192']
+F0-7d | M2S72-E0-qdu-f1-0 | PASS | UPF-internal delays from this run's eventlog: UL [(0, 2)] DL [(0, 2)] (ps: count)
+F0-6 | M2S72-E0-qdu-f1-0 | PASS | 2 unicast keys, 0 problems: listener VID 42: STATIC-VALID (configured; required STATIC-VALID): S1 ok (recorded [('0A-AB-00-00-00-01', 42, 'dnEth')]); S2 ok (I_dn [100], first table line Updating entry on interface 100 at 0.300002180000 s, 'Adding entry' lines 0); S3 ok (agingTime 120s, T_end 12.000000000000 s); S4 ok; S5 ok (0 frames from the listener MAC, VID 42, on session tunnels); talker[0] VID 42: DYNAMIC-VALID (required DYNAMIC-VALID): lambda 0.109000185200 s (N3 tunnel of 0), tau 0.300002180000 s, margin 0.191001994800 s
+F0-8 | M2S72-E0-qdu-f1-0 | PASS | agingTime 120s: agingTime - 1 s > T_end (12.000000000000 s) holds; frames with the listener's source MAC and VID 42 entering on session tunnels: 0
+I-1 | M2S72-E0-qdu-f1-0 | PASS | 95 corrected Follow_Ups over 1 DS-TTs paired with their own Sync (syncFrameId, TSe = own egress stamp)
+I-3 | M2S72-E0-qdu-f1-0 | PASS | 95 Follow_Ups at the slaves carry their own DS-TT's cfOut; Syncs whose cfOut differs between DS-TTs: 0 of 95
+I-4 | M2S72-E0-qdu-f1-0 | PASS | distinct ttIds ['2'], Pdelay clockIdentities ['"\\"0x00000000000000d1\\""'], slave identities 1, NR MAC node ids [2049]; RNG mapping recorded (num-rngs 2)
+M2 | M2S72-E0-qdu-f1-0 slave 0 | PASS | 18 M2-S6 rows ({'K': 5, 'S': 1, 'R': 4, 'E': 8}) all exact
+M4 | M2S72-E0-qdu-f1-0 GM drift | PASS | GM rate over every residence interval of every slave one value rho_G = 1.000100000000 (rho_G - (1 + 100 ppm) = 4.545e-20) (1 distinct); rate part of E_res = (r - rho_G) Res: 95 slave Follow_Ups; per pair and common Sync, difference = (r - rho_G) (Res_i - Res_j): 0
+I-2H | M2S72-E0-qdu-f1-0 DS-TT 0 | PASS | FU corrected 95 (held 0); hold 0, release 0, held frames 0, expired 0, discarded 0; egress FIFO replay 48163 frames, 0 deviations; end-of-run none
+Q8 | M2S72-E0-qdu-f1-0 | PASS | GM frames 192: {'delivered': 190, 'censored': 2}; undelivered by (fate, last confirmed location) {('censored', 'gNB MAC / air'): 2}; pairs {'used': 95, 'censored': 1}, incomplete GM events 0; replay: 190 deliveries predicted and observed, 0 observed not predicted
+Q8-eq | M2S72-E0-qdu-f1-0 | PASS | memory-light replay = m2s71_lib.replay_um / pdu_owner on this run (192 SDUs, queue 0 at T_end)
+Q8-x | M2S72-E0-qdu-f1-0 | PASS | MAC log {'mac': 5927272, 'other': 51419, 'rlc-tx': 273851, 'rlc-rx': 107299}; RLC TX/RX log vs vectors, UNCLASSIFIED, overflow vs scalar, deletion vs delivered: consistent
+CFG-rate | M2S72-E0-qdu-f1-0 | PASS | DL every 250 us from 0.3005 s, UL every 250 us from 0.1005 s, exact
+EOR | M2S72-E0-qdu-f1-0 DS-TT 0 | PASS | GM Sync+Follow_Up 192: delivered 190, end-of-run 2 ['S95', 'F95'], LOST 0; L_max 4.98933 ms
+I-5 | M2S72-E0-qdu-f1-0 | NOT APPLICABLE | E0 is N = 1: no reference of another N
+M3 | M2S72-E0-qdu-f1-0 | NOT APPLICABLE | cross-slave pair oracle: no pair of slaves at N = 1
+M3d | M2S72-E0-qdu-f1-0 | NOT APPLICABLE | cross-slave pair decomposition: no pair of slaves at N = 1
+H-cov | M2S72-E0-qdu-f1-0 | NOT APPLICABLE | no residence heterogeneity declared at N = 1
+I-4 stream | M2S72-E0-qdu-f1-0 | NOT APPLICABLE | needs N = 2 and N = 4
+F0-1 (info) | M2S72-E0-q0-f2-0 | FAIL | cohort 92 Sync + 92 Follow_Up (GM end <= T_end - 0.5 s) x 1 DS-TTs; N3 192 DL gPTP copies on tunnels [1], QFI [0]; tail deliveries outside the cohort 0; dsTt[0]: missing [(0, 59), (0, 60), (0, 61), (0, 62)]... (66), duplicated [] (0), not from the GM []
+I-2 strict (info) | M2S72-E0-q0-f2-0 | FAIL | 59 corrected Follow_Up copies over 1 DS-TTs; NW-TT corrected 96; dsTt[0] Follow_Up 3: event hold  Sync still queued; dsTt[0] Follow_Up 3: event release  1 frames; dsTt[0] Follow_Up 4: event hold  Sync still queued; dsTt[0] Follow_Up 4: event release  2 frames; dsTt[0] Follow_Up 5: event hold  Sync still queued
+F0-3 | M2S72-E0-q0-f2-0 | PASS | gPTP on N3 uplink 0; out of DS-TT eth[0] {0: 0}; UPF dnEth out 0; NW-TT eth[0] in 0
+F0-4 | M2S72-E0-q0-f2-0 | PASS | misdirected M_j [0] (destinations {}); conservation per (source, VID): UL t0/42: 48394 in, 48394 out on dnEth, 0 in flight, 0 on tunnels; DL t0/42: 94766 in, 94766 out on own tunnel, 0 in flight, 0 on other tunnels
+F0-5 | M2S72-E0-q0-f2-0 | PASS | DRBs [1, 2], gPTP on DRB 1: SDUs/N3 copies ['ue[0] node 2049: 192/192']
+F0-7d | M2S72-E0-q0-f2-0 | PASS | UPF-internal delays from this run's eventlog: UL [(0, 2)] DL [(0, 2)] (ps: count)
+F0-6 | M2S72-E0-q0-f2-0 | PASS | 2 unicast keys, 0 problems: listener VID 42: STATIC-VALID (configured; required STATIC-VALID): S1 ok (recorded [('0A-AB-00-00-00-01', 42, 'dnEth')]); S2 ok (I_dn [100], first table line Updating entry on interface 100 at 0.300002180000 s, 'Adding entry' lines 0); S3 ok (agingTime 120s, T_end 12.000000000000 s); S4 ok; S5 ok (0 frames from the listener MAC, VID 42, on session tunnels); talker[0] VID 42: DYNAMIC-VALID (required DYNAMIC-VALID): lambda 0.109000185200 s (N3 tunnel of 0), tau 0.300002180000 s, margin 0.191001994800 s
+F0-8 | M2S72-E0-q0-f2-0 | PASS | agingTime 120s: agingTime - 1 s > T_end (12.000000000000 s) holds; frames with the listener's source MAC and VID 42 entering on session tunnels: 0
+I-1 | M2S72-E0-q0-f2-0 | PASS | 59 corrected Follow_Ups over 1 DS-TTs paired with their own Sync (syncFrameId, TSe = own egress stamp)
+I-3 | M2S72-E0-q0-f2-0 | PASS | 59 Follow_Ups at the slaves carry their own DS-TT's cfOut; Syncs whose cfOut differs between DS-TTs: 0 of 59
+I-4 | M2S72-E0-q0-f2-0 | PASS | distinct ttIds ['2'], Pdelay clockIdentities ['"\\"0x00000000000000d1\\""'], slave identities 1, NR MAC node ids [2049]; RNG mapping recorded (num-rngs 2)
+M2 | M2S72-E0-q0-f2-0 slave 0 | PASS | 18 M2-S6 rows ({'K': 5, 'S': 1, 'R': 4, 'E': 8}) all exact
+M4 | M2S72-E0-q0-f2-0 GM drift | PASS | GM rate over every residence interval of every slave one value rho_G = 1.000100000000 (rho_G - (1 + 100 ppm) = 4.545e-20) (1 distinct); rate part of E_res = (r - rho_G) Res: 59 slave Follow_Ups; per pair and common Sync, difference = (r - rho_G) (Res_i - Res_j): 0
+I-2H | M2S72-E0-q0-f2-0 DS-TT 0 | PASS | FU corrected 59 (held 56); hold 56, release 56, held frames 2, expired 0, discarded 0; egress FIFO replay 57675 frames, 0 deviations; end-of-run none
+Q8 | M2S72-E0-q0-f2-0 | PASS | GM frames 192: {'delivered': 118, 'censored': 74}; undelivered by (fate, last confirmed location) {('censored', 'gNB RLC UM TX buffer'): 74}; pairs {'used': 59, 'censored': 37}, incomplete GM events 0; replay: 57069 deliveries predicted and observed, 0 observed not predicted
+Q8-eq | M2S72-E0-q0-f2-0 | NOT EVALUATED | queue 37283 SDUs at T_end: the original replay's per-slot snapshots are not affordable; equivalence is established on the runs where it is evaluated
+Q8-x | M2S72-E0-q0-f2-0 | PASS | MAC log {'mac': 11887043, 'other': 143352, 'rlc-tx': 396223, 'rlc-rx': 126398}; RLC TX/RX log vs vectors, UNCLASSIFIED, overflow vs scalar, deletion vs delivered: consistent
+CFG-rate | M2S72-E0-q0-f2-0 | PASS | DL every 125 us from 0.3005 s, UL every 250 us from 0.1005 s, exact
+EOR | M2S72-E0-q0-f2-0 DS-TT 0 | NOT APPLICABLE | bounded latency not verified (L_max 4624.784436257 ms vs 2 Sync intervals = 250.0 ms; sustained backlog growth True); Q8 packet-level censoring governs
+I-5 | M2S72-E0-q0-f2-0 | NOT APPLICABLE | E0 is N = 1: no reference of another N
+M3 | M2S72-E0-q0-f2-0 | NOT APPLICABLE | cross-slave pair oracle: no pair of slaves at N = 1
+M3d | M2S72-E0-q0-f2-0 | NOT APPLICABLE | cross-slave pair decomposition: no pair of slaves at N = 1
+H-cov | M2S72-E0-q0-f2-0 | NOT APPLICABLE | no residence heterogeneity declared at N = 1
+I-4 stream | M2S72-E0-q0-f2-0 | NOT APPLICABLE | needs N = 2 and N = 4
+F0-1 (info) | M2S72-E0-qdu-f2-0 | PASS | cohort 92 Sync + 92 Follow_Up (GM end <= T_end - 0.5 s) x 1 DS-TTs; N3 192 DL gPTP copies on tunnels [1], QFI [10]; tail deliveries outside the cohort 6
+I-2 strict (info) | M2S72-E0-qdu-f2-0 | PASS | 95 corrected Follow_Up copies over 1 DS-TTs; NW-TT corrected 96
+F0-3 | M2S72-E0-qdu-f2-0 | PASS | gPTP on N3 uplink 0; out of DS-TT eth[0] {0: 0}; UPF dnEth out 0; NW-TT eth[0] in 0
+F0-4 | M2S72-E0-qdu-f2-0 | PASS | misdirected M_j [0] (destinations {}); conservation per (source, VID): UL t0/42: 3259 in, 3259 out on dnEth, 0 in flight, 0 on tunnels; DL t0/42: 94766 in, 94766 out on own tunnel, 0 in flight, 0 on other tunnels
+F0-5 | M2S72-E0-qdu-f2-0 | PASS | DRBs [1, 2, 4], gPTP on DRB 4: SDUs/N3 copies ['ue[0] node 2049: 192/192']
+F0-7d | M2S72-E0-qdu-f2-0 | PASS | UPF-internal delays from this run's eventlog: UL [(0, 2)] DL [(0, 2)] (ps: count)
+F0-6 | M2S72-E0-qdu-f2-0 | PASS | 2 unicast keys, 0 problems: listener VID 42: STATIC-VALID (configured; required STATIC-VALID): S1 ok (recorded [('0A-AB-00-00-00-01', 42, 'dnEth')]); S2 ok (I_dn [100], first table line Updating entry on interface 100 at 0.300002180000 s, 'Adding entry' lines 0); S3 ok (agingTime 120s, T_end 12.000000000000 s); S4 ok; S5 ok (0 frames from the listener MAC, VID 42, on session tunnels); talker[0] VID 42: DYNAMIC-VALID (required DYNAMIC-VALID): lambda 0.109000185200 s (N3 tunnel of 0), tau 0.300002180000 s, margin 0.191001994800 s
+F0-8 | M2S72-E0-qdu-f2-0 | PASS | agingTime 120s: agingTime - 1 s > T_end (12.000000000000 s) holds; frames with the listener's source MAC and VID 42 entering on session tunnels: 0
+I-1 | M2S72-E0-qdu-f2-0 | PASS | 95 corrected Follow_Ups over 1 DS-TTs paired with their own Sync (syncFrameId, TSe = own egress stamp)
+I-3 | M2S72-E0-qdu-f2-0 | PASS | 95 Follow_Ups at the slaves carry their own DS-TT's cfOut; Syncs whose cfOut differs between DS-TTs: 0 of 95
+I-4 | M2S72-E0-qdu-f2-0 | PASS | distinct ttIds ['2'], Pdelay clockIdentities ['"\\"0x00000000000000d1\\""'], slave identities 1, NR MAC node ids [2049]; RNG mapping recorded (num-rngs 2)
+M2 | M2S72-E0-qdu-f2-0 slave 0 | PASS | 18 M2-S6 rows ({'K': 5, 'S': 1, 'R': 4, 'E': 8}) all exact
+M4 | M2S72-E0-qdu-f2-0 GM drift | PASS | GM rate over every residence interval of every slave one value rho_G = 1.000100000000 (rho_G - (1 + 100 ppm) = 4.545e-20) (1 distinct); rate part of E_res = (r - rho_G) Res: 95 slave Follow_Ups; per pair and common Sync, difference = (r - rho_G) (Res_i - Res_j): 0
+I-2H | M2S72-E0-qdu-f2-0 DS-TT 0 | PASS | FU corrected 95 (held 0); hold 0, release 0, held frames 0, expired 0, discarded 0; egress FIFO replay 57275 frames, 0 deviations; end-of-run none
+Q8 | M2S72-E0-qdu-f2-0 | PASS | GM frames 192: {'delivered': 190, 'censored': 2}; undelivered by (fate, last confirmed location) {('censored', 'gNB MAC / air'): 2}; pairs {'used': 95, 'censored': 1}, incomplete GM events 0; replay: 190 deliveries predicted and observed, 0 observed not predicted
+Q8-eq | M2S72-E0-qdu-f2-0 | PASS | memory-light replay = m2s71_lib.replay_um / pdu_owner on this run (192 SDUs, queue 0 at T_end)
+Q8-x | M2S72-E0-qdu-f2-0 | PASS | MAC log {'mac': 6508889, 'other': 98217, 'rlc-tx': 394750, 'rlc-rx': 125513}; RLC TX/RX log vs vectors, UNCLASSIFIED, overflow vs scalar, deletion vs delivered: consistent
+CFG-rate | M2S72-E0-qdu-f2-0 | PASS | DL every 125 us from 0.3005 s, UL every 250 us from 0.1005 s, exact
+EOR | M2S72-E0-qdu-f2-0 DS-TT 0 | PASS | GM Sync+Follow_Up 192: delivered 190, end-of-run 2 ['S95', 'F95'], LOST 0; L_max 4.98933 ms
+I-5 | M2S72-E0-qdu-f2-0 | NOT APPLICABLE | E0 is N = 1: no reference of another N
+M3 | M2S72-E0-qdu-f2-0 | NOT APPLICABLE | cross-slave pair oracle: no pair of slaves at N = 1
+M3d | M2S72-E0-qdu-f2-0 | NOT APPLICABLE | cross-slave pair decomposition: no pair of slaves at N = 1
+H-cov | M2S72-E0-qdu-f2-0 | NOT APPLICABLE | no residence heterogeneity declared at N = 1
+I-4 stream | M2S72-E0-qdu-f2-0 | NOT APPLICABLE | needs N = 2 and N = 4
+F0-1 (info) | M2S72-E0-q0-f4-0 | FAIL | cohort 92 Sync + 92 Follow_Up (GM end <= T_end - 0.5 s) x 1 DS-TTs; N3 192 DL gPTP copies on tunnels [1], QFI [0]; tail deliveries outside the cohort 0; dsTt[0]: missing [(0, 30), (0, 31), (0, 32), (0, 33)]... (124), duplicated [] (0), not from the GM []
+I-2 strict (info) | M2S72-E0-q0-f4-0 | FAIL | 30 corrected Follow_Up copies over 1 DS-TTs; NW-TT corrected 96; dsTt[0] Follow_Up 2: event hold  Sync still queued; dsTt[0] Follow_Up 2: event release  1 frames; dsTt[0] Follow_Up 3: event hold  Sync still queued; dsTt[0] Follow_Up 3: event release  1 frames; dsTt[0] Follow_Up 4: event hold  Sync still queued
+F0-3 | M2S72-E0-q0-f4-0 | PASS | gPTP on N3 uplink 0; out of DS-TT eth[0] {0: 0}; UPF dnEth out 0; NW-TT eth[0] in 0
+F0-4 | M2S72-E0-q0-f4-0 | PASS | misdirected M_j [0] (destinations {}); conservation per (source, VID): UL t0/42: 48394 in, 48394 out on dnEth, 0 in flight, 0 on tunnels; DL t0/42: 188362 in, 188362 out on own tunnel, 0 in flight, 0 on other tunnels
+F0-5 | M2S72-E0-q0-f4-0 | PASS | DRBs [1, 2], gPTP on DRB 1: SDUs/N3 copies ['ue[0] node 2049: 192/192']
+F0-7d | M2S72-E0-q0-f4-0 | PASS | UPF-internal delays from this run's eventlog: UL [(0, 2)] DL [(0, 2)] (ps: count)
+F0-6 | M2S72-E0-q0-f4-0 | PASS | 2 unicast keys, 0 problems: listener VID 42: STATIC-VALID (configured; required STATIC-VALID): S1 ok (recorded [('0A-AB-00-00-00-01', 42, 'dnEth')]); S2 ok (I_dn [100], first table line Updating entry on interface 100 at 0.300002180000 s, 'Adding entry' lines 0); S3 ok (agingTime 120s, T_end 12.000000000000 s); S4 ok; S5 ok (0 frames from the listener MAC, VID 42, on session tunnels); talker[0] VID 42: DYNAMIC-VALID (required DYNAMIC-VALID): lambda 0.109000185200 s (N3 tunnel of 0), tau 0.300002180000 s, margin 0.191001994800 s
+F0-8 | M2S72-E0-q0-f4-0 | PASS | agingTime 120s: agingTime - 1 s > T_end (12.000000000000 s) holds; frames with the listener's source MAC and VID 42 entering on session tunnels: 0
+I-1 | M2S72-E0-q0-f4-0 | PASS | 30 corrected Follow_Ups over 1 DS-TTs paired with their own Sync (syncFrameId, TSe = own egress stamp)
+I-3 | M2S72-E0-q0-f4-0 | PASS | 30 Follow_Ups at the slaves carry their own DS-TT's cfOut; Syncs whose cfOut differs between DS-TTs: 0 of 30
+I-4 | M2S72-E0-q0-f4-0 | PASS | distinct ttIds ['2'], Pdelay clockIdentities ['"\\"0x00000000000000d1\\""'], slave identities 1, NR MAC node ids [2049]; RNG mapping recorded (num-rngs 2)
+M2 | M2S72-E0-q0-f4-0 slave 0 | PASS | 18 M2-S6 rows ({'K': 5, 'S': 1, 'R': 4, 'E': 8}) all exact
+M4 | M2S72-E0-q0-f4-0 GM drift | PASS | GM rate over every residence interval of every slave one value rho_G = 1.000100000000 (rho_G - (1 + 100 ppm) = 4.545e-20) (1 distinct); rate part of E_res = (r - rho_G) Res: 30 slave Follow_Ups; per pair and common Sync, difference = (r - rho_G) (Res_i - Res_j): 0
+I-2H | M2S72-E0-q0-f4-0 DS-TT 0 | PASS | FU corrected 30 (held 28); hold 28, release 28, held frames 1, expired 0, discarded 0; egress FIFO replay 57458 frames, 0 deviations; end-of-run none
+Q8 | M2S72-E0-q0-f4-0 | PASS | GM frames 192: {'delivered': 60, 'censored': 132}; undelivered by (fate, last confirmed location) {('censored', 'gNB RLC UM TX buffer'): 132}; pairs {'used': 30, 'censored': 66}, incomplete GM events 0; replay: 56853 deliveries predicted and observed, 0 observed not predicted
+Q8-eq | M2S72-E0-q0-f4-0 | NOT EVALUATED | queue 131096 SDUs at T_end: the original replay's per-slot snapshots are not affordable; equivalence is established on the runs where it is evaluated
+Q8-x | M2S72-E0-q0-f4-0 | PASS | MAC log {'mac': 11979907, 'other': 236948, 'rlc-tx': 582683, 'rlc-rx': 125939}; RLC TX/RX log vs vectors, UNCLASSIFIED, overflow vs scalar, deletion vs delivered: consistent
+CFG-rate | M2S72-E0-q0-f4-0 | PASS | DL every 62.5 us from 0.3005 s, UL every 250 us from 0.1005 s, exact
+EOR | M2S72-E0-q0-f4-0 DS-TT 0 | NOT APPLICABLE | bounded latency not verified (L_max 7956.398938 ms vs 2 Sync intervals = 250.0 ms; sustained backlog growth True); Q8 packet-level censoring governs
+I-5 | M2S72-E0-q0-f4-0 | NOT APPLICABLE | E0 is N = 1: no reference of another N
+M3 | M2S72-E0-q0-f4-0 | NOT APPLICABLE | cross-slave pair oracle: no pair of slaves at N = 1
+M3d | M2S72-E0-q0-f4-0 | NOT APPLICABLE | cross-slave pair decomposition: no pair of slaves at N = 1
+H-cov | M2S72-E0-q0-f4-0 | NOT APPLICABLE | no residence heterogeneity declared at N = 1
+I-4 stream | M2S72-E0-q0-f4-0 | NOT APPLICABLE | needs N = 2 and N = 4
+F0-1 (info) | M2S72-E0-qdu-f4-0 | PASS | cohort 92 Sync + 92 Follow_Up (GM end <= T_end - 0.5 s) x 1 DS-TTs; N3 192 DL gPTP copies on tunnels [1], QFI [10]; tail deliveries outside the cohort 6
+I-2 strict (info) | M2S72-E0-qdu-f4-0 | PASS | 95 corrected Follow_Up copies over 1 DS-TTs; NW-TT corrected 96
+F0-3 | M2S72-E0-qdu-f4-0 | PASS | gPTP on N3 uplink 0; out of DS-TT eth[0] {0: 0}; UPF dnEth out 0; NW-TT eth[0] in 0
+F0-4 | M2S72-E0-qdu-f4-0 | PASS | misdirected M_j [0] (destinations {}); conservation per (source, VID): UL t0/42: 3259 in, 3259 out on dnEth, 0 in flight, 0 on tunnels; DL t0/42: 188362 in, 188362 out on own tunnel, 0 in flight, 0 on other tunnels
+F0-5 | M2S72-E0-qdu-f4-0 | PASS | DRBs [1, 2, 4], gPTP on DRB 4: SDUs/N3 copies ['ue[0] node 2049: 192/192']
+F0-7d | M2S72-E0-qdu-f4-0 | PASS | UPF-internal delays from this run's eventlog: UL [(0, 2)] DL [(0, 2)] (ps: count)
+F0-6 | M2S72-E0-qdu-f4-0 | PASS | 2 unicast keys, 0 problems: listener VID 42: STATIC-VALID (configured; required STATIC-VALID): S1 ok (recorded [('0A-AB-00-00-00-01', 42, 'dnEth')]); S2 ok (I_dn [100], first table line Updating entry on interface 100 at 0.300002180000 s, 'Adding entry' lines 0); S3 ok (agingTime 120s, T_end 12.000000000000 s); S4 ok; S5 ok (0 frames from the listener MAC, VID 42, on session tunnels); talker[0] VID 42: DYNAMIC-VALID (required DYNAMIC-VALID): lambda 0.109000185200 s (N3 tunnel of 0), tau 0.300002180000 s, margin 0.191001994800 s
+F0-8 | M2S72-E0-qdu-f4-0 | PASS | agingTime 120s: agingTime - 1 s > T_end (12.000000000000 s) holds; frames with the listener's source MAC and VID 42 entering on session tunnels: 0
+I-1 | M2S72-E0-qdu-f4-0 | PASS | 95 corrected Follow_Ups over 1 DS-TTs paired with their own Sync (syncFrameId, TSe = own egress stamp)
+I-3 | M2S72-E0-qdu-f4-0 | PASS | 95 Follow_Ups at the slaves carry their own DS-TT's cfOut; Syncs whose cfOut differs between DS-TTs: 0 of 95
+I-4 | M2S72-E0-qdu-f4-0 | PASS | distinct ttIds ['2'], Pdelay clockIdentities ['"\\"0x00000000000000d1\\""'], slave identities 1, NR MAC node ids [2049]; RNG mapping recorded (num-rngs 2)
+M2 | M2S72-E0-qdu-f4-0 slave 0 | PASS | 18 M2-S6 rows ({'K': 5, 'S': 1, 'R': 4, 'E': 8}) all exact
+M4 | M2S72-E0-qdu-f4-0 GM drift | PASS | GM rate over every residence interval of every slave one value rho_G = 1.000100000000 (rho_G - (1 + 100 ppm) = 4.545e-20) (1 distinct); rate part of E_res = (r - rho_G) Res: 95 slave Follow_Ups; per pair and common Sync, difference = (r - rho_G) (Res_i - Res_j): 0
+I-2H | M2S72-E0-qdu-f4-0 DS-TT 0 | PASS | FU corrected 95 (held 0); hold 0, release 0, held frames 0, expired 0, discarded 0; egress FIFO replay 57117 frames, 0 deviations; end-of-run none
+Q8 | M2S72-E0-qdu-f4-0 | PASS | GM frames 192: {'delivered': 190, 'censored': 2}; undelivered by (fate, last confirmed location) {('censored', 'gNB MAC / air'): 2}; pairs {'used': 95, 'censored': 1}, incomplete GM events 0; replay: 190 deliveries predicted and observed, 0 observed not predicted
+Q8-eq | M2S72-E0-qdu-f4-0 | PASS | memory-light replay = m2s71_lib.replay_um / pdu_owner on this run (192 SDUs, queue 0 at T_end)
+Q8-x | M2S72-E0-qdu-f4-0 | PASS | MAC log {'mac': 6601984, 'other': 191813, 'rlc-tx': 581381, 'rlc-rx': 125167}; RLC TX/RX log vs vectors, UNCLASSIFIED, overflow vs scalar, deletion vs delivered: consistent
+CFG-rate | M2S72-E0-qdu-f4-0 | PASS | DL every 62.5 us from 0.3005 s, UL every 250 us from 0.1005 s, exact
+EOR | M2S72-E0-qdu-f4-0 DS-TT 0 | PASS | GM Sync+Follow_Up 192: delivered 190, end-of-run 2 ['S95', 'F95'], LOST 0; L_max 4.98933 ms
+I-5 | M2S72-E0-qdu-f4-0 | NOT APPLICABLE | E0 is N = 1: no reference of another N
+M3 | M2S72-E0-qdu-f4-0 | NOT APPLICABLE | cross-slave pair oracle: no pair of slaves at N = 1
+M3d | M2S72-E0-qdu-f4-0 | NOT APPLICABLE | cross-slave pair decomposition: no pair of slaves at N = 1
+H-cov | M2S72-E0-qdu-f4-0 | NOT APPLICABLE | no residence heterogeneity declared at N = 1
+I-4 stream | M2S72-E0-qdu-f4-0 | NOT APPLICABLE | needs N = 2 and N = 4
+F0-1 (info) | M2S72-E0-q0-f8-0 | FAIL | cohort 92 Sync + 92 Follow_Up (GM end <= T_end - 0.5 s) x 1 DS-TTs; N3 192 DL gPTP copies on tunnels [1], QFI [0]; tail deliveries outside the cohort 0; dsTt[0]: missing [(0, 16), (0, 17), (0, 18), (0, 19)]... (152), duplicated [] (0), not from the GM []
+I-2 strict (info) | M2S72-E0-q0-f8-0 | FAIL | 16 corrected Follow_Up copies over 1 DS-TTs; NW-TT corrected 96; dsTt[0] Follow_Up 2: event hold  Sync still queued; dsTt[0] Follow_Up 2: event release  1 frames; dsTt[0] Follow_Up 3: event hold  Sync still queued; dsTt[0] Follow_Up 3: event release  1 frames; dsTt[0] Follow_Up 4: event hold  Sync still queued
+F0-3 | M2S72-E0-q0-f8-0 | PASS | gPTP on N3 uplink 0; out of DS-TT eth[0] {0: 0}; UPF dnEth out 0; NW-TT eth[0] in 0
+F0-4 | M2S72-E0-q0-f8-0 | PASS | misdirected M_j [0] (destinations {}); conservation per (source, VID): UL t0/42: 48394 in, 48394 out on dnEth, 0 in flight, 0 on tunnels; DL t0/42: 375554 in, 375554 out on own tunnel, 0 in flight, 0 on other tunnels
+F0-5 | M2S72-E0-q0-f8-0 | PASS | DRBs [1, 2], gPTP on DRB 1: SDUs/N3 copies ['ue[0] node 2049: 192/192']
+F0-7d | M2S72-E0-q0-f8-0 | PASS | UPF-internal delays from this run's eventlog: UL [(0, 2)] DL [(0, 2)] (ps: count)
+F0-6 | M2S72-E0-q0-f8-0 | PASS | 2 unicast keys, 0 problems: listener VID 42: STATIC-VALID (configured; required STATIC-VALID): S1 ok (recorded [('0A-AB-00-00-00-01', 42, 'dnEth')]); S2 ok (I_dn [100], first table line Updating entry on interface 100 at 0.300002180000 s, 'Adding entry' lines 0); S3 ok (agingTime 120s, T_end 12.000000000000 s); S4 ok; S5 ok (0 frames from the listener MAC, VID 42, on session tunnels); talker[0] VID 42: DYNAMIC-VALID (required DYNAMIC-VALID): lambda 0.109000185200 s (N3 tunnel of 0), tau 0.300002180000 s, margin 0.191001994800 s
+F0-8 | M2S72-E0-q0-f8-0 | PASS | agingTime 120s: agingTime - 1 s > T_end (12.000000000000 s) holds; frames with the listener's source MAC and VID 42 entering on session tunnels: 0
+I-1 | M2S72-E0-q0-f8-0 | PASS | 16 corrected Follow_Ups over 1 DS-TTs paired with their own Sync (syncFrameId, TSe = own egress stamp)
+I-3 | M2S72-E0-q0-f8-0 | PASS | 16 Follow_Ups at the slaves carry their own DS-TT's cfOut; Syncs whose cfOut differs between DS-TTs: 0 of 16
+I-4 | M2S72-E0-q0-f8-0 | PASS | distinct ttIds ['2'], Pdelay clockIdentities ['"\\"0x00000000000000d1\\""'], slave identities 1, NR MAC node ids [2049]; RNG mapping recorded (num-rngs 2)
+M2 | M2S72-E0-q0-f8-0 slave 0 | PASS | 18 M2-S6 rows ({'K': 5, 'S': 1, 'R': 4, 'E': 8}) all exact
+M4 | M2S72-E0-q0-f8-0 GM drift | PASS | GM rate over every residence interval of every slave one value rho_G = 1.000100000000 (rho_G - (1 + 100 ppm) = 4.545e-20) (1 distinct); rate part of E_res = (r - rho_G) Res: 16 slave Follow_Ups; per pair and common Sync, difference = (r - rho_G) (Res_i - Res_j): 0
+I-2H | M2S72-E0-q0-f8-0 DS-TT 0 | PASS | FU corrected 16 (held 14); hold 14, release 14, held frames 0, expired 0, discarded 0; egress FIFO replay 57351 frames, 0 deviations; end-of-run none
+Q8 | M2S72-E0-q0-f8-0 | PASS | GM frames 192: {'delivered': 32, 'censored': 160}; undelivered by (fate, last confirmed location) {('censored', 'gNB RLC UM TX buffer'): 160}; pairs {'used': 16, 'censored': 80}, incomplete GM events 0; replay: 56745 deliveries predicted and observed, 0 observed not predicted
+Q8-eq | M2S72-E0-q0-f8-0 | NOT EVALUATED | queue 318395 SDUs at T_end: the original replay's per-slot snapshots are not affordable; equivalence is established on the runs where it is evaluated
+Q8-x | M2S72-E0-q0-f8-0 | PASS | MAC log {'mac': 12166868, 'other': 424140, 'rlc-tx': 956836, 'rlc-rx': 125753}; RLC TX/RX log vs vectors, UNCLASSIFIED, overflow vs scalar, deletion vs delivered: consistent
+CFG-rate | M2S72-E0-q0-f8-0 | PASS | DL every 31.25 us from 0.3005 s, UL every 250 us from 0.1005 s, exact
+EOR | M2S72-E0-q0-f8-0 DS-TT 0 | NOT APPLICABLE | bounded latency not verified (L_max 9537.212382001 ms vs 2 Sync intervals = 250.0 ms; sustained backlog growth True); Q8 packet-level censoring governs
+I-5 | M2S72-E0-q0-f8-0 | NOT APPLICABLE | E0 is N = 1: no reference of another N
+M3 | M2S72-E0-q0-f8-0 | NOT APPLICABLE | cross-slave pair oracle: no pair of slaves at N = 1
+M3d | M2S72-E0-q0-f8-0 | NOT APPLICABLE | cross-slave pair decomposition: no pair of slaves at N = 1
+H-cov | M2S72-E0-q0-f8-0 | NOT APPLICABLE | no residence heterogeneity declared at N = 1
+I-4 stream | M2S72-E0-q0-f8-0 | NOT APPLICABLE | needs N = 2 and N = 4
+F0-1 (info) | M2S72-E0-qdu-f8-0 | PASS | cohort 92 Sync + 92 Follow_Up (GM end <= T_end - 0.5 s) x 1 DS-TTs; N3 192 DL gPTP copies on tunnels [1], QFI [10]; tail deliveries outside the cohort 6
+I-2 strict (info) | M2S72-E0-qdu-f8-0 | PASS | 95 corrected Follow_Up copies over 1 DS-TTs; NW-TT corrected 96
+F0-3 | M2S72-E0-qdu-f8-0 | PASS | gPTP on N3 uplink 0; out of DS-TT eth[0] {0: 0}; UPF dnEth out 0; NW-TT eth[0] in 0
+F0-4 | M2S72-E0-qdu-f8-0 | PASS | misdirected M_j [0] (destinations {}); conservation per (source, VID): UL t0/42: 3259 in, 3259 out on dnEth, 0 in flight, 0 on tunnels; DL t0/42: 375554 in, 375554 out on own tunnel, 0 in flight, 0 on other tunnels
+F0-5 | M2S72-E0-qdu-f8-0 | PASS | DRBs [1, 2, 4], gPTP on DRB 4: SDUs/N3 copies ['ue[0] node 2049: 192/192']
+F0-7d | M2S72-E0-qdu-f8-0 | PASS | UPF-internal delays from this run's eventlog: UL [(0, 2)] DL [(0, 2)] (ps: count)
+F0-6 | M2S72-E0-qdu-f8-0 | PASS | 2 unicast keys, 0 problems: listener VID 42: STATIC-VALID (configured; required STATIC-VALID): S1 ok (recorded [('0A-AB-00-00-00-01', 42, 'dnEth')]); S2 ok (I_dn [100], first table line Updating entry on interface 100 at 0.300002180000 s, 'Adding entry' lines 0); S3 ok (agingTime 120s, T_end 12.000000000000 s); S4 ok; S5 ok (0 frames from the listener MAC, VID 42, on session tunnels); talker[0] VID 42: DYNAMIC-VALID (required DYNAMIC-VALID): lambda 0.109000185200 s (N3 tunnel of 0), tau 0.300002180000 s, margin 0.191001994800 s
+F0-8 | M2S72-E0-qdu-f8-0 | PASS | agingTime 120s: agingTime - 1 s > T_end (12.000000000000 s) holds; frames with the listener's source MAC and VID 42 entering on session tunnels: 0
+I-1 | M2S72-E0-qdu-f8-0 | PASS | 95 corrected Follow_Ups over 1 DS-TTs paired with their own Sync (syncFrameId, TSe = own egress stamp)
+I-3 | M2S72-E0-qdu-f8-0 | PASS | 95 Follow_Ups at the slaves carry their own DS-TT's cfOut; Syncs whose cfOut differs between DS-TTs: 0 of 95
+I-4 | M2S72-E0-qdu-f8-0 | PASS | distinct ttIds ['2'], Pdelay clockIdentities ['"\\"0x00000000000000d1\\""'], slave identities 1, NR MAC node ids [2049]; RNG mapping recorded (num-rngs 2)
+M2 | M2S72-E0-qdu-f8-0 slave 0 | PASS | 18 M2-S6 rows ({'K': 5, 'S': 1, 'R': 4, 'E': 8}) all exact
+M4 | M2S72-E0-qdu-f8-0 GM drift | PASS | GM rate over every residence interval of every slave one value rho_G = 1.000100000000 (rho_G - (1 + 100 ppm) = 4.545e-20) (1 distinct); rate part of E_res = (r - rho_G) Res: 95 slave Follow_Ups; per pair and common Sync, difference = (r - rho_G) (Res_i - Res_j): 0
+I-2H | M2S72-E0-qdu-f8-0 DS-TT 0 | PASS | FU corrected 95 (held 0); hold 0, release 0, held frames 0, expired 0, discarded 0; egress FIFO replay 57036 frames, 0 deviations; end-of-run none
+Q8 | M2S72-E0-qdu-f8-0 | PASS | GM frames 192: {'delivered': 190, 'censored': 2}; undelivered by (fate, last confirmed location) {('censored', 'gNB MAC / air'): 2}; pairs {'used': 95, 'censored': 1}, incomplete GM events 0; replay: 190 deliveries predicted and observed, 0 observed not predicted
+Q8-eq | M2S72-E0-qdu-f8-0 | PASS | memory-light replay = m2s71_lib.replay_um / pdu_owner on this run (192 SDUs, queue 0 at T_end)
+Q8-x | M2S72-E0-qdu-f8-0 | PASS | MAC log {'mac': 6788942, 'other': 379005, 'rlc-tx': 955531, 'rlc-rx': 125008}; RLC TX/RX log vs vectors, UNCLASSIFIED, overflow vs scalar, deletion vs delivered: consistent
+CFG-rate | M2S72-E0-qdu-f8-0 | PASS | DL every 31.25 us from 0.3005 s, UL every 250 us from 0.1005 s, exact
+EOR | M2S72-E0-qdu-f8-0 DS-TT 0 | PASS | GM Sync+Follow_Up 192: delivered 190, end-of-run 2 ['S95', 'F95'], LOST 0; L_max 4.98933 ms
+I-5 | M2S72-E0-qdu-f8-0 | NOT APPLICABLE | E0 is N = 1: no reference of another N
+M3 | M2S72-E0-qdu-f8-0 | NOT APPLICABLE | cross-slave pair oracle: no pair of slaves at N = 1
+M3d | M2S72-E0-qdu-f8-0 | NOT APPLICABLE | cross-slave pair decomposition: no pair of slaves at N = 1
+H-cov | M2S72-E0-qdu-f8-0 | NOT APPLICABLE | no residence heterogeneity declared at N = 1
+I-4 stream | M2S72-E0-qdu-f8-0 | NOT APPLICABLE | needs N = 2 and N = 4
+NONPERT | M2S72-E0-q0-f8 vs M2S72-E0NL-q0-f8 | PASS | {'elog': 1, 'sca': 1, 'vci excluded': 1, 'vec': 1, 'raw': 36} compared; fingerprints ['3d78-fb29/tplx', '3d78-fb29/tplx']
+
+rows per family: CFG-rate 8 PASS, EOR 5 PASS/3 NOT APPLICABLE, F0-1 2 PASS, F0-1 (info) 3 PASS/3 FAIL, F0-3 8 PASS, F0-4 8 PASS, F0-5 8 PASS, F0-6 8 PASS, F0-7d 8 PASS, F0-8 8 PASS, H-cov 8 NOT APPLICABLE, I-1 8 PASS, I-2 strict (info) 4 PASS/4 FAIL, I-2H 8 PASS, I-3 8 PASS, I-4 8 PASS, I-4 stream 8 NOT APPLICABLE, I-5 8 NOT APPLICABLE, M2 8 PASS, M3 8 NOT APPLICABLE, M3d 8 NOT APPLICABLE, M4 8 PASS, NONPERT 1 PASS, Q8 8 PASS, Q8-eq 5 PASS/3 NOT EVALUATED, Q8-x 8 PASS
+gate rows: 133 PASS, 0 FAIL; information rows ['F0-1 (info)', 'H-cov (diagnostic)', 'I-2 strict (info)']; NOT APPLICABLE 43, NOT EVALUATED 3
+
+per run: run | gate rows PASS / FAIL | failing families | NOT APPLICABLE / NOT EVALUATED families
+M2S72-E0-q0-f1-0 | 18 | 0 | [] | ['H-cov', 'I-4 stream', 'I-5', 'M3', 'M3d']
+M2S72-E0-qdu-f1-0 | 18 | 0 | [] | ['H-cov', 'I-4 stream', 'I-5', 'M3', 'M3d']
+M2S72-E0-q0-f2-0 | 15 | 0 | [] | ['EOR', 'H-cov', 'I-4 stream', 'I-5', 'M3', 'M3d', 'Q8-eq']
+M2S72-E0-qdu-f2-0 | 17 | 0 | [] | ['H-cov', 'I-4 stream', 'I-5', 'M3', 'M3d']
+M2S72-E0-q0-f4-0 | 15 | 0 | [] | ['EOR', 'H-cov', 'I-4 stream', 'I-5', 'M3', 'M3d', 'Q8-eq']
+M2S72-E0-qdu-f4-0 | 17 | 0 | [] | ['H-cov', 'I-4 stream', 'I-5', 'M3', 'M3d']
+M2S72-E0-q0-f8-0 | 15 | 0 | [] | ['EOR', 'H-cov', 'I-4 stream', 'I-5', 'M3', 'M3d', 'Q8-eq']
+M2S72-E0-qdu-f8-0 | 17 | 0 | [] | ['H-cov', 'I-4 stream', 'I-5', 'M3', 'M3d']
+
+metrics per run (reported, never gated):
+run | option | factor | dl_offered_cfg_Mbps | dl_offered_rlc_Mbps | dl_achieved_rlc_Mbps | dl_app_achieved_Mbps | mac_dl_grant_Mbps | mac_dl_tti_share | ul_offered_Mbps | ul_achieved_Mbps | backlog_end_bytes | sustained_growth | rlc_left_sdus_end | load_drb1_backlog_end_bytes | load_drb1_sustained_growth | mac_harq_deletions | mac_max_busy_harq | mac_nack | mac_overflow | sca_macBufferOverFlowDl_samples | mac_rlc_tx_drops | mac_unclassified | cohort_n | P_used_cohort | censored_cohort_fraction | first_lost_or_censored_pair | res_p50_ms | res_p99_ms | res_delivered_max_ms | lag_p99_ms | deadline_res_gt_5p5ms | deadline_lag_gt_sync_interval | max_e_ns | update_gap_max_ms | slave_updates | holds
+M2S72-E0-q0-f1-0 | q0 | 1 | 44.8 | 45.44 | 45.4445 | 44.8 | 45.6375 | 1.0001 | 44.8011 | 44.8112 | 1420 | False | 1 | 1420 | False | 0 | 6 | 0 | 0 | 0 | 0 | 0 | 80 | 1 | 0 | None | 4.55792 | 5.94634 | 5.94634 | 1.9317 | 1 | 0 | 5 | 126 | 95 | 65
+M2S72-E0-qdu-f1-0 | qdu | 1 | 44.8 | 45.44 | 45.4445 | 44.8 | 45.6337 | 1.0001 | 44.8011 | 2.4808 | 0 | False | 0 | 4260 | False | 0 | 6 | 0 | 0 | 0 | 0 | 0 | 80 | 1 | 0 | None | 4.48846 | 4.98846 | 4.98846 | 0.000912 | 0 | 0 | 3 | 125 | 95 | 0
+M2S72-E0-q0-f2-0 | q0 | 2 | 89.6 | 90.88 | 54.9779 | 54.1979 | 55.155 | 1.0001 | 44.8011 | 44.8112 | 52542178 | True | 37283 | 52542178 | True | 0 | 6 | 0 | 0 | 0 | 0 | 0 | 80 | 0.7375 | 0.2625 | (59, 7.499261536) | 3074.51 | inf | 4624.79 | inf | 78 | 21 | 4 | 207.965 | 59 | 56
+M2S72-E0-qdu-f2-0 | qdu | 2 | 89.6 | 90.88 | 54.5223 | 53.7477 | 54.6953 | 1.0001 | 44.8011 | 2.4808 | 0 | False | 0 | 53209920 | True | 0 | 6 | 0 | 0 | 0 | 0 | 0 | 80 | 1 | 0 | None | 4.48846 | 4.98846 | 4.98846 | 0.000912 | 0 | 0 | 3 | 125 | 95 | 0
+M2S72-E0-q0-f4-0 | q0 | 4 | 179.2 | 181.76 | 54.9972 | 54.2158 | 55.155 | 1.0001 | 44.8011 | 44.8112 | 185448644 | True | 131096 | 185448644 | True | 0 | 6 | 0 | 0 | 0 | 0 | 0 | 80 | 0.375 | 0.625 | (30, 3.874612538747) | inf | inf | 7956.41 | inf | 78 | 50 | 4 | 414.977 | 30 | 28
+M2S72-E0-qdu-f4-0 | qdu | 4 | 179.2 | 181.76 | 54.5371 | 53.7634 | 54.6953 | 1.0001 | 44.8011 | 2.4808 | 0 | False | 0 | 186114520 | True | 0 | 6 | 0 | 0 | 0 | 0 | 0 | 80 | 1 | 0 | None | 4.48846 | 4.98846 | 4.98846 | 0.000912 | 0 | 0 | 3 | 125 | 95 | 0
+M2S72-E0-q0-f8-0 | q0 | 8 | 358.4 | 363.52 | 55.004 | 54.2237 | 55.155 | 1.0001 | 44.8011 | 44.8112 | 451261220 | True | 318395 | 451261220 | True | 0 | 6 | 0 | 0 | 0 | 0 | 0 | 80 | 0.2 | 0.8 | (16, 2.124792786) | inf | inf | 9537.22 | inf | 78 | 64 | 2 | 827 | 16 | 14
+M2S72-E0-qdu-f8-0 | qdu | 8 | 358.4 | 363.52 | 54.5428 | 53.769 | 54.6953 | 1.0001 | 44.8011 | 2.4808 | 0 | False | 0 | 451927780 | True | 0 | 6 | 0 | 0 | 0 | 0 | 0 | 80 | 1 | 0 | None | 4.48846 | 4.98846 | 4.98846 | 0.000912 | 0 | 0 | 3 | 125 | 95 | 0
+
+per run detail: Q8 frames, undelivered by location, pairs, backlog (0.5 s steps), per-second offered / achieved DL bytes, MAC minimum buffer space, stage latencies, onset flags
+M2S72-E0-q0-f1-0: q8 {'delivered': 190, 'censored': 2}; undelivered {'censored@gNB MAC / air': 2}; pairs {'used': 95, 'censored': 1}; cohort {'used': 80}
+    backlog [92, 92, 92, 92, 92, 1420, 1420, 1420, 1420, 1420, 1420, 1420, 1420, 1420, 1420, 1420, 1420, 1420, 1420, 1420, 1420, 1420, 1420, 1420]
+    window minima [4 s .. 12 s) [1420, 1420, 1420, 1420, 1420, 1420, 1420, 1420]
+    load DRB 1 backlog [92, 92, 92, 92, 92, 1420, 1420, 1420, 1420, 1420, 1420, 1420, 1420, 1420, 1420, 1420, 1420, 1420, 1420, 1420, 1420, 1420, 1420, 1420]
+    load DRB 1 window minima [1420, 1420, 1420, 1420, 1420, 1420, 1420, 1420]; accounting {'predicted_observed': 47556, 'destroyed': 0, 'inflight': 18, 'unexplained': 0, 'observed_not_predicted': 0, 'queued_end': 1}
+    DL offered / s [3973160, 5680000, 5680000, 5680000, 5680000, 5680000, 5680000, 5680000, 5680000, 5680000, 5680000, 5680000]
+    DL achieved / s [3943340, 5680000, 5680000, 5680000, 5680000, 5680000, 5680000, 5680000, 5680000, 5680000, 5680000, 5680000]
+    MAC min space {'2049-1': 2089904, '2049-2': 2097032}; DL grant bytes per lcid {1: 56985327, 2: 61500}; load SDU sizes [1420]; DL load frames listener egress / talker ingress (46799, 46777)
+    stage latency max (us) {'UE RLC->UE tx': 59.168, 'UE tx->DS-TT rx': 0.05, 'DS-TT rx->tx': 10.864, 'DS-TT tx->slave': 0.866, 'N3->RLC': 0.05, 'NW-TT rx': 0.866, 'NW-TT tx': 11.44, 'UPF N6 rx': 0.05, 'UPF N3 tx': 0.592}
+    onset {'lost_or_censored_pair': False, 'res_p99>2.75ms': True, 'res_p99>5.5ms': True, 'res_p99>11ms': False, 'max|e|>500ns': False, 'max|e|>1000ns': False, 'max|e|>2000ns': False, 'P(used)<0.95': False, 'P(used)<0.99': False, 'P(used)<0.999': False}
+M2S72-E0-qdu-f1-0: q8 {'delivered': 190, 'censored': 2}; undelivered {'censored@gNB MAC / air': 2}; pairs {'used': 95, 'censored': 1}; cohort {'used': 80}
+    backlog [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+    window minima [4 s .. 12 s) [0, 0, 0, 0, 0, 0, 0, 0]
+    load DRB 1 backlog [7100, 7100, 7100, 7100, 7100, 7100, 7100, 7100, 7100, 7100, 7100, 7100, 7100, 7100, 7100, 7100, 7100, 7100, 7100, 7100, 4260, 4260, 4260, 4260]
+    load DRB 1 window minima [7100, 7100, 7100, 7100, 7100, 7100, 4260, 4260]; accounting {'predicted_observed': 47366, 'destroyed': 0, 'inflight': 14, 'unexplained': 0, 'observed_not_predicted': 0, 'queued_end': 3}
+    DL offered / s [3973160, 5680000, 5680000, 5680000, 5680000, 5680000, 5680000, 5680000, 5680000, 5680000, 5680000, 5680000]
+    DL achieved / s [3943340, 5680000, 5680000, 5680000, 5680000, 5680000, 5680000, 5680000, 5680000, 5680000, 5680000, 5680000]
+    MAC min space {'2049-4': 2096998, '2049-1': 2089904, '2049-2': 2097032}; DL grant bytes per lcid {4: 12636, 1: 56967999, 2: 61500}; load SDU sizes []; DL load frames listener egress / talker ingress (46799, 46777)
+    stage latency max (us) {'UE RLC->UE tx': 1.488, 'UE tx->DS-TT rx': 0.05, 'DS-TT rx->tx': 0.0, 'DS-TT tx->slave': 0.866, 'N3->RLC': 0.05, 'NW-TT rx': 0.866, 'NW-TT tx': 11.44, 'UPF N6 rx': 0.05, 'UPF N3 tx': 0.592}
+    onset {'lost_or_censored_pair': False, 'res_p99>2.75ms': True, 'res_p99>5.5ms': False, 'res_p99>11ms': False, 'max|e|>500ns': False, 'max|e|>1000ns': False, 'max|e|>2000ns': False, 'P(used)<0.95': False, 'P(used)<0.99': False, 'P(used)<0.999': False}
+M2S72-E0-q0-f2-0: q8 {'delivered': 118, 'censored': 74}; undelivered {'censored@gNB RLC UM TX buffer': 74}; pairs {'used': 59, 'censored': 37}; cohort {'used': 59, 'censored': 21}
+    backlog [893814, 3138922, 5385176, 7630284, 9875238, 12121766, 14366874, 16613248, 18858356, 21103310, 23349718, 25594826, 27841200, 30086308, 32332682, 34577790, 36822744, 39069272, 41314260, 43560634, 45805742, 48052116, 50297224, 52542178]
+    window minima [4 s .. 12 s) [16613248, 21103310, 25594826, 30086308, 34577790, 39069272, 43560634, 48052116]
+    load DRB 1 backlog [893814, 3138922, 5385176, 7630284, 9875238, 12121766, 14366874, 16613248, 18858356, 21103310, 23349718, 25594826, 27841200, 30086308, 32332682, 34577790, 36822744, 39069272, 41314260, 43560634, 45805742, 48052116, 50297224, 52542178]
+    load DRB 1 window minima [16613248, 21103310, 25594826, 30086308, 34577790, 39069272, 43560634, 48052116]; accounting {'predicted_observed': 57069, 'destroyed': 0, 'inflight': 21, 'unexplained': 0, 'observed_not_predicted': 0, 'queued_end': 37283}
+    DL offered / s [7946320, 11360000, 11360000, 11360000, 11360000, 11360000, 11360000, 11360000, 11360000, 11360000, 11360000, 11360000]
+    DL achieved / s [4772620, 6872800, 6871380, 6871380, 6871380, 6871380, 6871380, 6872800, 6871380, 6871380, 6871380, 6871380]
+    MAC min space {'2049-1': 2089904, '2049-2': 2097032}; DL grant bytes per lcid {1: 68882250, 2: 61500}; load SDU sizes [1420]; DL load frames listener egress / talker ingress (93597, 56592)
+    stage latency max (us) {'UE RLC->UE tx': 59.168, 'UE tx->DS-TT rx': 0.05, 'DS-TT rx->tx': 10.864, 'DS-TT tx->slave': 0.866, 'N3->RLC': 0.05, 'NW-TT rx': 0.866, 'NW-TT tx': 11.44, 'UPF N6 rx': 0.05, 'UPF N3 tx': 0.592}
+    onset {'lost_or_censored_pair': True, 'res_p99>2.75ms': True, 'res_p99>5.5ms': True, 'res_p99>11ms': True, 'max|e|>500ns': False, 'max|e|>1000ns': False, 'max|e|>2000ns': False, 'P(used)<0.95': True, 'P(used)<0.99': True, 'P(used)<0.999': True}
+M2S72-E0-qdu-f2-0: q8 {'delivered': 190, 'censored': 2}; undelivered {'censored@gNB MAC / air': 2}; pairs {'used': 95, 'censored': 1}; cohort {'used': 80}
+    backlog [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+    window minima [4 s .. 12 s) [0, 0, 0, 0, 0, 0, 0, 0]
+    load DRB 1 backlog [909280, 3182480, 5457100, 7730300, 10004920, 12279540, 14552740, 16827360, 19100560, 21375180, 23648380, 25923000, 28196200, 30470820, 32744020, 35018640, 37291840, 39566460, 41839660, 44114280, 46388900, 48662100, 50936720, 53209920]
+    load DRB 1 window minima [16827360, 21375180, 25923000, 30470820, 35018640, 39566460, 44114280, 48662100]; accounting {'predicted_observed': 56480, 'destroyed': 0, 'inflight': 15, 'unexplained': 0, 'observed_not_predicted': 0, 'queued_end': 37686}
+    DL offered / s [7946320, 11360000, 11360000, 11360000, 11360000, 11360000, 11360000, 11360000, 11360000, 11360000, 11360000, 11360000]
+    DL achieved / s [4735700, 6814580, 6814580, 6814580, 6814580, 6814580, 6814580, 6814580, 6814580, 6814580, 6814580, 6813160]
+    MAC min space {'2049-4': 2096998, '2049-1': 2089904, '2049-2': 2097032}; DL grant bytes per lcid {4: 12636, 1: 68295000, 2: 61500}; load SDU sizes []; DL load frames listener egress / talker ingress (93597, 56123)
+    stage latency max (us) {'UE RLC->UE tx': 1.488, 'UE tx->DS-TT rx': 0.05, 'DS-TT rx->tx': 0.0, 'DS-TT tx->slave': 0.866, 'N3->RLC': 0.05, 'NW-TT rx': 0.866, 'NW-TT tx': 11.44, 'UPF N6 rx': 0.05, 'UPF N3 tx': 0.592}
+    onset {'lost_or_censored_pair': False, 'res_p99>2.75ms': True, 'res_p99>5.5ms': False, 'res_p99>11ms': False, 'max|e|>500ns': False, 'max|e|>1000ns': False, 'max|e|>2000ns': False, 'P(used)<0.95': False, 'P(used)<0.99': False, 'P(used)<0.999': False}
+M2S72-E0-q0-f4-0: q8 {'delivered': 60, 'censored': 132}; undelivered {'censored@gNB RLC UM TX buffer': 132}; pairs {'used': 30, 'censored': 66}; cohort {'used': 30, 'censored': 50}
+    backlog [3159228, 11085176, 19011398, 26936080, 34862182, 42788404, 50712932, 58639154, 66565256, 74490058, 82416160, 90340808, 98266910, 106193012, 114117814, 122043762, 129969984, 137894666, 145820888, 153746990, 161671518, 169597740, 177523842, 185448644]
+    window minima [4 s .. 12 s) [58639154, 74490058, 90340808, 106193012, 122043762, 137894666, 153746990, 169597740]
+    load DRB 1 backlog [3159228, 11085176, 19011398, 26936080, 34862182, 42788404, 50712932, 58639154, 66565256, 74490058, 82416160, 90340808, 98266910, 106193012, 114117814, 122043762, 129969984, 137894666, 145820888, 153746990, 161671518, 169597740, 177523842, 185448644]
+    load DRB 1 window minima [58639154, 74490058, 90340808, 106193012, 122043762, 137894666, 153746990, 169597740]; accounting {'predicted_observed': 56853, 'destroyed': 0, 'inflight': 20, 'unexplained': 0, 'observed_not_predicted': 0, 'queued_end': 131096}
+    DL offered / s [15892640, 22720000, 22720000, 22720000, 22720000, 22720000, 22720000, 22720000, 22720000, 22720000, 22720000, 22720000]
+    DL achieved / s [4774040, 6874220, 6874220, 6874220, 6872800, 6874220, 6874220, 6872800, 6874220, 6874220, 6874220, 6872800]
+    MAC min space {'2049-1': 2089904, '2049-2': 2097032}; DL grant bytes per lcid {1: 68882250, 2: 61500}; load SDU sizes [1420]; DL load frames listener egress / talker ingress (187193, 56610)
+    stage latency max (us) {'UE RLC->UE tx': 59.168, 'UE tx->DS-TT rx': 0.05, 'DS-TT rx->tx': 10.864, 'DS-TT tx->slave': 0.866, 'N3->RLC': 0.05, 'NW-TT rx': 0.866, 'NW-TT tx': 11.44, 'UPF N6 rx': 0.05, 'UPF N3 tx': 0.592}
+    onset {'lost_or_censored_pair': True, 'res_p99>2.75ms': True, 'res_p99>5.5ms': True, 'res_p99>11ms': True, 'max|e|>500ns': False, 'max|e|>1000ns': False, 'max|e|>2000ns': False, 'P(used)<0.95': True, 'P(used)<0.99': True, 'P(used)<0.999': True}
+M2S72-E0-qdu-f4-0: q8 {'delivered': 190, 'censored': 2}; undelivered {'censored@gNB MAC / air': 2}; pairs {'used': 95, 'censored': 1}; cohort {'used': 80}
+    backlog [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+    window minima [4 s .. 12 s) [0, 0, 0, 0, 0, 0, 0, 0]
+    load DRB 1 backlog [3173120, 11127160, 19081320, 27035360, 34989520, 42943560, 50897720, 58851760, 66805920, 74759960, 82712700, 90666740, 98620900, 106574940, 114529100, 122483140, 130437300, 138391340, 146345500, 154299540, 162252280, 170206320, 178160480, 186114520]
+    load DRB 1 window minima [58851760, 74759960, 90666740, 106574940, 122483140, 138391340, 154299540, 170206320]; accounting {'predicted_observed': 56321, 'destroyed': 0, 'inflight': 15, 'unexplained': 0, 'observed_not_predicted': 0, 'queued_end': 131441}
+    DL offered / s [15892640, 22720000, 22720000, 22720000, 22720000, 22720000, 22720000, 22720000, 22720000, 22720000, 22720000, 22720000]
+    DL achieved / s [4738540, 6816000, 6817420, 6816000, 6816000, 6816000, 6816000, 6817420, 6816000, 6816000, 6816000, 6817420]
+    MAC min space {'2049-4': 2096998, '2049-1': 2089904, '2049-2': 2097032}; DL grant bytes per lcid {4: 12636, 1: 68295000, 2: 61500}; load SDU sizes []; DL load frames listener egress / talker ingress (187193, 56140)
+    stage latency max (us) {'UE RLC->UE tx': 1.488, 'UE tx->DS-TT rx': 0.05, 'DS-TT rx->tx': 0.0, 'DS-TT tx->slave': 0.866, 'N3->RLC': 0.05, 'NW-TT rx': 0.866, 'NW-TT tx': 11.44, 'UPF N6 rx': 0.05, 'UPF N3 tx': 0.592}
+    onset {'lost_or_censored_pair': False, 'res_p99>2.75ms': True, 'res_p99>5.5ms': False, 'res_p99>11ms': False, 'max|e|>500ns': False, 'max|e|>1000ns': False, 'max|e|>2000ns': False, 'P(used)<0.95': False, 'P(used)<0.99': False, 'P(used)<0.999': False}
+M2S72-E0-q0-f8-0: q8 {'delivered': 32, 'censored': 160}; undelivered {'censored@gNB RLC UM TX buffer': 160}; pairs {'used': 16, 'censored': 80}; cohort {'used': 16, 'censored': 64}
+    backlog [7691988, 26978570, 46264006, 65549168, 84834330, 104121066, 123406348, 142691664, 161976826, 181263408, 200548724, 219834006, 239119322, 258405904, 277691066, 296976382, 316261664, 335548400, 354833562, 374118724, 393404160, 412690742, 431976058, 451261220]
+    window minima [4 s .. 12 s) [142691664, 181263408, 219834006, 258405904, 296976382, 335548400, 374118724, 412690742]
+    load DRB 1 backlog [7691988, 26978570, 46264006, 65549168, 84834330, 104121066, 123406348, 142691664, 161976826, 181263408, 200548724, 219834006, 239119322, 258405904, 277691066, 296976382, 316261664, 335548400, 354833562, 374118724, 393404160, 412690742, 431976058, 451261220]
+    load DRB 1 window minima [142691664, 181263408, 219834006, 258405904, 296976382, 335548400, 374118724, 412690742]; accounting {'predicted_observed': 56745, 'destroyed': 0, 'inflight': 21, 'unexplained': 0, 'observed_not_predicted': 0, 'queued_end': 318395}
+    DL offered / s [31785280, 45440000, 45440000, 45440000, 45440000, 45440000, 45440000, 45440000, 45440000, 45440000, 45440000, 45440000]
+    DL achieved / s [4775460, 6875640, 6874220, 6875640, 6874220, 6874220, 6875640, 6875640, 6874220, 6874220, 6875640, 6874220]
+    MAC min space {'2049-1': 2089904, '2049-2': 2097032}; DL grant bytes per lcid {1: 68882250, 2: 61500}; load SDU sizes [1420]; DL load frames listener egress / talker ingress (374385, 56619)
+    stage latency max (us) {'UE RLC->UE tx': 59.168, 'UE tx->DS-TT rx': 0.05, 'DS-TT rx->tx': 10.864, 'DS-TT tx->slave': 0.866, 'N3->RLC': 0.05, 'NW-TT rx': 0.866, 'NW-TT tx': 11.44, 'UPF N6 rx': 0.05, 'UPF N3 tx': 0.592}
+    onset {'lost_or_censored_pair': True, 'res_p99>2.75ms': True, 'res_p99>5.5ms': True, 'res_p99>11ms': True, 'max|e|>500ns': False, 'max|e|>1000ns': False, 'max|e|>2000ns': False, 'P(used)<0.95': True, 'P(used)<0.99': True, 'P(used)<0.999': True}
+M2S72-E0-qdu-f8-0: q8 {'delivered': 190, 'censored': 2}; undelivered {'censored@gNB MAC / air': 2}; pairs {'used': 95, 'censored': 1}; cohort {'used': 80}
+    backlog [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+    window minima [4 s .. 12 s) [0, 0, 0, 0, 0, 0, 0, 0]
+    load DRB 1 backlog [7705880, 27020400, 46335040, 65648140, 84962660, 104275760, 123590400, 142903500, 162218020, 181532540, 200845760, 220160280, 239473380, 258787900, 278101120, 297415640, 316730160, 336043260, 355357900, 374671000, 393985520, 413298620, 432613260, 451927780]
+    load DRB 1 window minima [142903500, 181532540, 220160280, 258787900, 297415640, 336043260, 374671000, 413298620]; accounting {'predicted_observed': 56240, 'destroyed': 0, 'inflight': 15, 'unexplained': 0, 'observed_not_predicted': 0, 'queued_end': 318714}
+    DL offered / s [31785280, 45440000, 45440000, 45440000, 45440000, 45440000, 45440000, 45440000, 45440000, 45440000, 45440000, 45440000]
+    DL achieved / s [4739960, 6817420, 6816000, 6817420, 6817420, 6817420, 6817420, 6817420, 6816000, 6817420, 6817420, 6817420]
+    MAC min space {'2049-4': 2096998, '2049-1': 2089904, '2049-2': 2097032}; DL grant bytes per lcid {4: 12636, 1: 68295000, 2: 61500}; load SDU sizes []; DL load frames listener egress / talker ingress (374385, 56147)
+    stage latency max (us) {'UE RLC->UE tx': 1.488, 'UE tx->DS-TT rx': 0.05, 'DS-TT rx->tx': 0.0, 'DS-TT tx->slave': 0.866, 'N3->RLC': 0.05, 'NW-TT rx': 0.866, 'NW-TT tx': 11.44, 'UPF N6 rx': 0.05, 'UPF N3 tx': 0.592}
+    onset {'lost_or_censored_pair': False, 'res_p99>2.75ms': True, 'res_p99>5.5ms': False, 'res_p99>11ms': False, 'max|e|>500ns': False, 'max|e|>1000ns': False, 'max|e|>2000ns': False, 'P(used)<0.95': False, 'P(used)<0.99': False, 'P(used)<0.999': False}
+
+negative controls (predictions in results/M2-S7.2a-e0-protocol.md §6; each must fail exactly its predicted families):
+PASS | NC-q8-deliv | failed ['Q8'], predicted ['Q8']
+      Q8 | M2S72-E0-q0-f1-0 | FAIL | GM frames 192: {'delivered': 189, 'UNEXPLAINED': 1, 'censored': 2}; undelivered by (fate, last confirmed location) {('UNEXPLAINED', 'gNB RLC UM TX'): 1, ('censored', 'gNB MAC / air'): 2}; pairs {'used': 94, 'UNEXPLAINED': 1, 'censored': 1}, incomplete GM events 0; replay: 47555 deliveries predicted and observed, 0 observed not predicted; FAIL 1 replayed SDUs (any flow) whose delivery was due by T_end, not observed, no destroyed PDU: first [(5999401450795, 62, 60000
+PASS | NC-q8-seg | failed ['Q8'], predicted ['Q8']
+      Q8 | M2S72-E0-q0-f1-0 | FAIL | GM frames 192: {'delivered': 190, 'censored': 2}; undelivered by (fate, last confirmed location) {('censored', 'gNB MAC / air'): 2}; pairs {'used': 95, 'censored': 1}, incomplete GM events 0; replay: 47556 deliveries predicted and observed, 57882 observed not predicted; FAIL 57882 observed UE RLC deliveries not predicted by the replay, first [(129000000000, None), (129000000000, None)] | 47556 delivered SDUs with a PDU never received (inconsistent evidence), first 
+PASS | NC-q8-noevid | failed ['Q8'], predicted ['Q8']
+      Q8 | M2S72-E0-q0-f1-0 | FAIL | GM frames 192: {'delivered': 189, 'UNEXPLAINED': 1, 'censored': 2}; undelivered by (fate, last confirmed location) {('UNEXPLAINED', 'gNB MAC / air'): 1, ('censored', 'gNB MAC / air'): 2}; pairs {'used': 94, 'UNEXPLAINED': 1, 'censored': 1}, incomplete GM events 0; replay: 47555 deliveries predicted and observed, 0 observed not predicted; FAIL 1 destroyed SDUs (any flow) without an observed MAC discard, first [(5999401450795, 62, 6000000000000, True)] | 1 UNEXPLAINE
+PASS | NC-maclog-del | failed ['Q8-x'], predicted ['Q8-x']
+      Q8-x | M2S72-E0-q0-f1-0 | FAIL | MAC log {'mac': 11253790, 'other': 96554, 'rlc-tx': 274142, 'rlc-rx': 107393}; RLC TX/RX log vs vectors, UNCLASSIFIED, overflow vs scalar, deletion vs delivered: FAIL MAC log deletes the PDU of delivered gPTP frames [(0, 47), (8, 47)]
+FAIL | PC-q8-lost | failed ['Q8-x'], predicted []
+      Q8-x | M2S72-E0-q0-f1-0 | FAIL | MAC log {'mac': 11253790, 'other': 96554, 'rlc-tx': 274142, 'rlc-rx': 107393}; RLC TX/RX log vs vectors, UNCLASSIFIED, overflow vs scalar, deletion vs delivered: FAIL MAC log deletes the PDU of delivered gPTP frames [(8, 47)]
+      PC-q8-lost | fate | FAIL | Sync (0, 47): ('lost', 'gNB MAC / HARQ', 'own PDU destroyed; observed discard: HARQ-process MAC PDU deletion at 6000 ms')
+PASS | NC-nonpert | failed ['nonpert'], predicted ['nonpert']
+      nonpert | canary | FAIL | {'elog': 1, 'sca': 1, 'vci excluded': 1, 'vec': 1, 'raw': 36} compared; fingerprints ['3d78-fb29/tplx', '3d78-fb29/tplx']; DIFFERENT: pcap/<config>-0/M2S72Bridge.dsTt[0].pcapRecorder[0].pcapng differs
+control mutations target Sync (0, 47)
+controls: 5 PASS, 1 FAIL
+E0 correctness verdict: FAIL (stop and report)
