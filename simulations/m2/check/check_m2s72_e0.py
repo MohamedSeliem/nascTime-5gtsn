@@ -163,10 +163,12 @@ class Q8:
       UNEXPLAINED anything else, including a destroyed PDU without an observed discard. Never reclassified.
     """
 
-    def __init__(self, ev, mlog, opt, mut=None, k=0):
+    def __init__(self, ev, mlog, opt, mut=None, k=0, attr=None):
         """k: the UE / DS-TT / slave evaluated (E0: k = 0 at N = 1; k > 0 only for the read-only P1 feasibility
         diagnostic, where N3 copies are taken from UE k's tunnel and MAC deletions must be attributable to UE k)"""
         self.ev, self.mlog, self.opt, self.mut, self.k = ev, mlog, opt, mut or {}, k
+        self.attr = attr                  # None: E0 rule; "exclusion": the strict shared-TTI exclusion rule (N > 1, opt-in)
+        self.attr_log = {}
         run, T = ev.run, ev.T
         self.T = T
         u = run.ue_view(k)
@@ -288,6 +290,12 @@ class Q8:
         if self.mlog is None:
             return None
         tti = t_pdu // MS
+        if self.attr == "exclusion" and self.ev.run.n > 1:
+            ok, why = self.exclusion(tti)
+            self.attr_log[tti] = (ok, why)
+            if ok:
+                return f"HARQ-process MAC PDU deletion at {tti} ms (strict exclusion: {why})"
+            return None
         for d in self.mlog.pdus:
             if d["deleted"] and d["t"] // MS == tti:
                 if self.ev.run.n > 1 and tti in self.other_ttis:
@@ -300,6 +308,64 @@ class Q8:
             if res == "NACK" and t // MS in range(tti, tti + 40):
                 return f"HARQ NACK at {t // MS} ms"
         return None
+
+    def exclusion_data(self):
+        """per UE j: its gNB RLC TX PDUs (all DRBs) and which of them have a matched UE-j RLC reception (same greedy
+        rule as gate_m2s71_p0.pdu_receptions, per entity)"""
+        if hasattr(self, "_excl"):
+            return self._excl
+        rev = {v: j for j, v in self.ev.run.node_id.items()}
+        out = defaultdict(list)                           # j -> [(tti, received?)]
+        mut = self.mut.get("excl", {})
+        for (mod, name), vals in self.ev.vec.items():
+            mm = re.search(r"gnb1\.cellularNic\.rlc-um-(\d+)-(\d+)\.tx$", mod)
+            if not (mm and name == "sentPduSize:vector") or int(mm.group(1)) not in rev:
+                continue
+            j, drb = rev[int(mm.group(1))], int(mm.group(2))
+            tx = [(t, int(float(v))) for t, v in vals if t <= self.T]
+            rxk = (f"{R.NET}.ue[{j}].cellularNic.nrRlc-um-1-{drb}.rx", "receivedPacketFromLowerLayer:vector(packetBytes)")
+            rx = [(t, int(float(v))) for t, v in self.ev.vec.get(rxk, []) if t <= self.T]
+            for x in mut.get("drop_rx", {}).get((j, drb), []):          # controls only
+                rx.remove(x)
+            rx = sorted(rx + list(mut.get("add_rx", {}).get((j, drb), [])))
+            got = reception_map(tx, rx)
+            for i, (t, s_) in enumerate(tx):
+                out[j].append((t // MS, i in got, t + G.AIR <= self.T))
+        self._excl = out
+        return out
+
+    def exclusion(self, tti):
+        """Strict shared-TTI exclusion rule (decision 2026-11-03 14:01, Part B; results/M2-S7.2a-attr-predictions.md).
+        Attribute the deletion in TTI tti to UE k only if:
+          E1 the MAC log establishes the TTI's DL MAC PDU count n and deleted count d >= 1;
+          E2 the candidate set = the UEs with gNB RLC PDUs sent in that TTI, one MAC PDU each: |candidates| = n;
+          E3 every PDU of every candidate has a closed reception window (sent + AIR <= T_end);
+          E4 per candidate, its PDUs of that TTI are either all received (MAC PDU not deleted, shown positively) or
+             all missing (a deleted MAC PDU loses all of its content); a partly received candidate is inconsistent;
+          E5 the all-missing candidates are exactly d, and UE k is one of them (the assignment is then the only one);
+        anything else: not attributable (UNEXPLAINED). Logging order is not used. E6 / E7 (no delivered SDU attributed
+        to a deleted PDU, every affected SDU accounted) are the Q8 model rows (delivered SDU with a PDU never received;
+        destroyed SDUs without an observed discard)."""
+        dele = [d for d in self.mlog.pdus if d["t"] // MS == tti]
+        n, d = len(dele), sum(1 for x in dele if x["deleted"])
+        if tti in self.mut.get("excl", {}).get("drop_deletion", ()):
+            d = 0
+        if d < 1:
+            return False, f"E1: {n} MAC PDUs, {d} deleted"
+        data = self.exclusion_data()
+        cand = {j: [(rcv, closed) for t, rcv, closed in v if t == tti] for j, v in data.items()}
+        cand = {j: v for j, v in cand.items() if v}
+        if len(cand) != n:
+            return False, f"E2: {len(cand)} candidate UEs, {n} MAC PDUs"
+        if not all(c for v in cand.values() for _, c in v):
+            return False, "E3: a reception window still open at T_end"
+        allmiss = {j for j, v in cand.items() if not any(r for r, _ in v)}
+        partial = {j for j, v in cand.items() if any(r for r, _ in v) and not all(r for r, _ in v)}
+        if partial:
+            return False, f"E4: UEs {sorted(partial)} partly received"
+        if len(allmiss) != d or self.k not in allmiss:
+            return False, f"E5: all-missing UEs {sorted(allmiss)}, deleted {d}, UE {self.k}"
+        return True, f"n {n}, d {d}, candidates {sorted(cand)}, deleted {sorted(allmiss)}"
 
     def classify(self):
         T, st = self.T, self.st
@@ -1093,6 +1159,96 @@ def p1_diag(runs, cfg, mlog_path, k, alias):
     print("MAC log summary", {kk: v for kk, v in mlog.summary().items() if kk != "min_space"})
 
 
+# ------------------------------------------------------------- strict shared-TTI attribution on P1 (Part B, read-only) --
+# declared before evaluation: results/M2-S7.2a-attr-predictions.md
+# expected rule code: E4 when the mutated UE keeps at least one PDU of the other kind in that TTI (partly received),
+# E5 when the mutation leaves it all-missing / all-received (structural, decided from the TTI's PDU counts before evaluation)
+PRED_ATTR = {"PC-attr": ("lost", None), "NC-attr-ambiguous": ("UNEXPLAINED", "E5"), "NC-attr-partial": ("UNEXPLAINED", "E4|E5"),
+             "NC-attr-count": ("UNEXPLAINED", "E1"), "NC-attr-received": ("UNEXPLAINED", "E4|E5")}
+
+
+def attr_diag(runs, cfg, mlog_path, k, alias):
+    T = B.F1.t_end(R.Run72(runs, cfg, 0))
+    ev = B.RunEval(runs, cfg, 0, conf_fn=lambda kk: V.CONF(cfg, kk, T))
+    opt = B.opt_of(cfg)
+    P = print
+    q0 = Q8(ev, ML.MacLog(mlog_path, alias=alias), opt, k=k)                     # revision-2 rule (unchanged)
+    q1 = Q8(ev, ML.MacLog(mlog_path, alias=alias), opt, k=k, attr="exclusion")   # strict exclusion rule
+    une0 = sorted(kk for kk, x in q0.fate.items() if x[0] == "UNEXPLAINED")
+    res = Counter(q1.fate[kk][0] for kk in une0)
+    P(f"P1 {cfg} UE {k}: frames UNEXPLAINED under the revision-2 rule {len(une0)}; under the strict exclusion rule: {dict(res)}")
+    for kk in une0:
+        x = q1.fate[kk]
+        tti = None
+        mm = re.search(r"PDU times \[(\d+)", q0.fate[kk][2])
+        if mm:
+            tti = int(mm.group(1)) // MS
+        P(f"   {('S' if kk[0] == 0 else 'F')}{kk[1]} TTI {tti}: {x[0]} | {x[2][:160]} | rule: {q1.attr_log.get(tti)}")
+    others = sorted(kk for kk in q0.fate if kk not in une0 and q0.fate[kk] != q1.fate[kk])
+    P(f"fates changed outside the UNEXPLAINED set: {others}")
+    name = f"{cfg}-0 UE {k} (strict exclusion)"
+    s0 = len(rows)
+    q8_rows(name, q1)
+    for r in rows[s0:]:
+        P(" | ".join(r)[:1500])
+    del rows[s0:]
+    # controls on the first frame (GM time order) that the strict rule attributes
+    newly = sorted((kk for kk in une0 if q1.fate[kk][0] == "lost"), key=lambda kk: q1.st["GM"][kk])
+    if not newly:
+        P("controls NOT EVALUABLE: the strict rule attributes no frame (stop: recommend UE-ID instrumentation)")
+        return
+    tgt = newly[0]
+    tti = int(re.search(r"deletion at (\d+) ms", q1.fate[tgt][2]).group(1))
+    data = q1.exclusion_data()
+    rev = {v: j for j, v in ev.run.node_id.items()}
+    others_j = [j for j in data if j != k]
+    vec = lambda m, n: [(t, int(float(v))) for t, v in ev.vec.get((f"{R.NET}.{m}", n), []) if t <= T]  # noqa: E731
+
+    def pdus_at(j):
+        out = []
+        for (mod, name), vals in ev.vec.items():
+            mm = re.search(r"gnb1\.cellularNic\.rlc-um-(\d+)-(\d+)\.tx$", mod)
+            if mm and name == "sentPduSize:vector" and rev.get(int(mm.group(1))) == j:
+                drb = int(mm.group(2))
+                tx = [(t, int(float(v))) for t, v in vals if t <= T]
+                rx = vec(f"ue[{j}].cellularNic.nrRlc-um-1-{drb}.rx", "receivedPacketFromLowerLayer:vector(packetBytes)")
+                got = reception_map(tx, rx)
+                out += [(drb, i, tx[i], got.get(i)) for i in range(len(tx)) if tx[i][0] // MS == tti]
+        return out
+    o_at = [x for j in others_j for x in [(j,) + y for y in pdus_at(j)]]
+    k_at = pdus_at(k)
+    P(f"control target {('S' if tgt[0] == 0 else 'F')}{tgt[1]}, TTI {tti}: UE {k} PDUs {[(d, x[1]) for d, i, x, r in k_at]}, "
+      f"other-UE PDUs {[(j, d, x[1], r is not None) for j, d, i, x, r in o_at]}")
+    muts = {"PC-attr": {},
+            "NC-attr-ambiguous": {"excl": {"drop_rx": _group([(j, d, r) for j, d, i, x, r in o_at])}},
+            "NC-attr-partial": {"excl": {"drop_rx": _group([(j, d, r) for j, d, i, x, r in o_at][:1])}},
+            "NC-attr-count": {"excl": {"drop_deletion": {tti}}},
+            "NC-attr-received": {"excl": {"add_rx": _group([(k, d, (x[0] + G.AIR, x[1])) for d, i, x, r in k_at][:1])}}}
+    nf = 0
+    for cname, mut in muts.items():
+        qc = Q8(ev, ML.MacLog(mlog_path, alias=alias), opt, k=k, attr="exclusion", mut=mut)
+        f_ = qc.fate[tgt]
+        why = qc.attr_log.get(tti)
+        exp_fate, exp_code = PRED_ATTR[cname]
+        if exp_code == "E4|E5":
+            nother = len(o_at) if cname == "NC-attr-partial" else len(k_at)
+            exp_code = "E4" if nother >= 2 else "E5"
+        ok = f_[0] == exp_fate and (exp_code is None or (why is not None and why[1].startswith(exp_code)))
+        changed = sorted(kk for kk in q1.fate if kk != tgt and (kk[1] != tgt[1]) and qc.fate[kk] != q1.fate[kk])
+        nf += not ok
+        P(f"{'PASS' if ok else 'FAIL'} | {cname} | target fate {f_[0]} ({f_[2][:120]}); rule {why}; predicted {exp_fate}"
+          f"{'' if exp_code is None else ' by ' + exp_code}; other pairs changed {changed[:6]}")
+    P(f"attribution controls: {len(muts) - nf} PASS, {nf} FAIL")
+
+
+def _group(items):
+    out = defaultdict(list)
+    for j, d, x in items:
+        if x is not None:
+            out[(j, d)].append(x)
+    return dict(out)
+
+
 # -------------------------------------------------------------------------------------------------------- main -----
 def quick(runs, cfg):
     run = R.Run72(runs, cfg, 0)
@@ -1232,6 +1388,10 @@ if __name__ == "__main__":
         sys.exit(0 if ok else 1)
     if len(sys.argv) > 1 and sys.argv[1] == "r2":
         sys.exit(main(sys.argv[2], sys.argv[3], r2=True))
+    if len(sys.argv) > 1 and sys.argv[1] == "attr":
+        import json
+        attr_diag(sys.argv[2], sys.argv[3], sys.argv[4], int(sys.argv[5]), json.loads(sys.argv[6]))
+        sys.exit(0)
     if len(sys.argv) > 1 and sys.argv[1] == "p1":
         import json
         p1_diag(sys.argv[2], sys.argv[3], sys.argv[4], int(sys.argv[5]), json.loads(sys.argv[6]))

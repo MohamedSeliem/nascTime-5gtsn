@@ -26,6 +26,11 @@
 #   ./m2s72.sh e0r2     E0 revision 2 (decision 2026-11-03 13:27): NO simulation. Verifies the E0 raw outputs against the
 #                       committed results/M2-S7.2a-e0/raw-outputs.sha256, then reruns the E0 check with the corrected positive
 #                       control (check_m2s72_e0.py r2) -> results/M2-S7.2a-e0r2 (must not exist before)
+#   SIMU5G_ROOT=<isolated candidate build> ./m2s72.sh cfqd
+#                       Q-d uplink scheduler counterfactual (decision 2026-11-03 14:01): refuses the accepted /root/stack
+#                       Simu5G and any build whose LteSchedulerEnb.cc differs from 1.8.0 by other than the committed
+#                       results/M2-S7.2a-cfqd-candidate-fix.patch; runs M2S72-E0-q0-f1 and M2S72-E0-qdu-f1 on it, hashes,
+#                       check (check_m2s72_cfqd.py, E0 outputs re-used as the original-build side) -> results/M2-S7.2a-cfqd
 # Requires OMNETPP_ROOT, INET_ROOT, SIMU5G_ROOT (or the defaults below); T0 also needs the committed
 # results/M2-S7.1/raw-outputs.sha256 and results/M2-S6/raw-outputs.sha256.
 set -eo pipefail
@@ -52,6 +57,19 @@ if [ "$MODE" = r2 ] && [ -e "$OUT" ]; then echo "ERROR: $OUT exists; the campaig
 case "$MODE" in e0|e0run|e0check|e0regen|e0hashes) OUT=$HERE/results/M2-S7.2a-e0 ;; esac
 if [ "$MODE" = e0 ] && [ -e "$OUT" ]; then echo "ERROR: $OUT exists; E0 starts from an empty directory" >&2; exit 1; fi
 case "$MODE" in e0r2) OUT=$HERE/results/M2-S7.2a-e0r2; E0OUT=$HERE/results/M2-S7.2a-e0 ;; esac
+if [ "$MODE" = cfqd ]; then
+  OUT=$HERE/results/M2-S7.2a-cfqd; E0OUT=$HERE/results/M2-S7.2a-e0
+  [ -e "$OUT" ] && { echo "ERROR: $OUT exists" >&2; exit 1; }
+  ACCEPTED=/root/stack/simu5g-1.8.0
+  [ "$(cd "$SIMU5G_ROOT" && pwd -P)" = "$(cd "$ACCEPTED" && pwd -P)" ] && { echo "ERROR: cfqd must not use the accepted Simu5G $ACCEPTED" >&2; exit 1; }
+  F=src/simu5g/stack/mac/scheduler/LteSchedulerEnb.cc
+  diff -u "$ACCEPTED/$F" "$SIMU5G_ROOT/$F" | tail -n +3 > /tmp/cfqd-actual.patch || true
+  tail -n +3 "$HERE/results/M2-S7.2a-cfqd-candidate-fix.patch" | cmp -s - /tmp/cfqd-actual.patch \
+    || { echo "ERROR: the candidate build's $F differs from 1.8.0 by other than the committed patch" >&2; exit 1; }
+  (cd "$SIMU5G_ROOT/src" && diff -rq --exclude='*.o' --exclude='*.so' --exclude='*.d' --exclude='*_m.cc' --exclude='*_m.h' \
+     --exclude=Makefile --exclude=features.h --exclude=out "$ACCEPTED/src" . | grep -v "^Files .*$F and" ) \
+    && { echo "ERROR: the candidate build differs from 1.8.0 in other source files" >&2; exit 1; } || true
+fi
 if [ "$MODE" = e0r2 ] && [ -e "$OUT" ]; then echo "ERROR: $OUT exists; revision 2 starts from an empty directory" >&2; exit 1; fi
 E0_MIN_FREE_START_GB=20     # declared stop conditions (protocol §7)
 E0_MIN_FREE_RUN_GB=10
@@ -241,6 +259,17 @@ case "$MODE" in
   e0check) python3 "$CHK/check_m2s72_e0.py" "$OUT" > "$OUT/e0-check.txt" 2>&1 || true
           tail -3 "$OUT/e0-check.txt" ;;
   e0) for s in e0regen e0run e0hashes e0check; do "$0" "$s" || exit $?; done ;;
+  cfqd) {
+          echo "candidate Simu5G build: $SIMU5G_ROOT"
+          echo "candidate libsimu5g.so sha256: $(sha256sum "$SIMU5G_ROOT/src/libsimu5g.so" | cut -d' ' -f1)"
+          echo "accepted libsimu5g.so sha256 (unchanged, not used): $(sha256sum /root/stack/simu5g-1.8.0/src/libsimu5g.so | cut -d' ' -f1)"
+          echo "source difference vs 1.8.0 (= results/M2-S7.2a-cfqd-candidate-fix.patch):"; cat /tmp/cfqd-actual.patch
+        } > "$OUT/build-provenance.txt"
+        fr=$(free_gb "$OUT"); echo "cfqd start $(date -u +%FT%TZ): free $fr GB" | tee "$OUT/e0-runs.txt"
+        for c in M2S72-E0-q0-f1 M2S72-E0-qdu-f1; do e0one "$c" 1 || exit $?; done
+        (cd "$OUT" && find runs -type f \( -name '*.pcapng' -o -name '*.csv' -o -name '*.log.gz' \) | LC_ALL=C sort | xargs sha256sum > raw-outputs.sha256)
+        python3 "$CHK/check_m2s72_cfqd.py" "$OUT" "$E0OUT" > "$OUT/cfqd-check.txt" 2>&1 || true
+        tail -3 "$OUT/cfqd-check.txt" ;;
   e0r2) (cd "$E0OUT" && sha256sum -c --quiet raw-outputs.sha256) > "$OUT/raw-verify.txt" 2>&1 \
           && echo "all $(wc -l < "$E0OUT/raw-outputs.sha256") committed raw-output hashes of $E0OUT verified" >> "$OUT/raw-verify.txt" \
           || { echo "ERROR: E0 raw outputs differ from the committed hashes, see $OUT/raw-verify.txt" >&2; exit 1; }
