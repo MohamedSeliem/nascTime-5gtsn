@@ -79,6 +79,16 @@ CASES = [
      r"(M2S0-harq16 mixin: \*\.someNewModule\.harqProcesses matches 0 rules|unexpected setting \*\.someNewModule)"),
     ("asymmetric load: a load setting naming a per-UE module", add_after("M2S71-load-sustained", '**.app[3].io.localAddress = "talker"'),
      r"untranslatable value \*\*\.app\[3\]\.io\.localAddress"),
+    # Stage 5: load-capable variants (LOAD_REQ: the values the load mixins scale must be the S7.1 L_tot ones)
+    ("load variant: L_tot interval not 0.25 ms", sub(r"^(\[Config M2S71-load-sustained\]\n(?:.*\n)*?)\*\*\.app\[3\]\.source\.productionInterval = 0\.25ms$",
+                                                   r"\g<1>**.app[3].source.productionInterval = 0.3ms"),
+     r"required setting \*\*\.app\[3\]\.source\.productionInterval = 0\.3ms, expected 0\.25ms"),
+    ("load variant: L_tot frame length not 1400 B", sub(r"^\*\*\.app\[3\]\.source\.packetLength = 1400B$", "**.app[3].source.packetLength = 1000B"),
+     r"required setting \*\*\.app\[3\]\.source\.packetLength = 1000B, expected 1400B"),
+    ("load variant: load PCP not 0", sub(r"^\*\*\.app\[3\]\.tagger\.pcp = 0$", "**.app[3].tagger.pcp = 5"),
+     r"required setting \*\*\.app\[3\]\.tagger\.pcp = 5, expected 0"),
+    ("load variant: load app setting removed", sub(r"^\*\*\.app\[3\]\.source\.initialProductionOffset = 0\.1s \+ 500us\n", ""),
+     r"missing required setting \*\*\.app\[3\]\.source\.initialProductionOffset"),
 ]
 
 
@@ -112,6 +122,94 @@ def run_case(edit):
         shutil.rmtree(d)
 
 
+V = "M2S71-q0-Ca-sus@L"
+
+
+def _err(fn):
+    try:
+        fn()
+        return None
+    except G.GenError as ex:
+        return str(ex)
+
+
+def _ents(spec, extra=()):
+    """runconfig-like entries of a load placement as generated (the verify_load_entries input), plus extra entries first"""
+    ents = list(extra) + [(f"*.{m}.{r}", v) for (m, r), v in spec.items()]
+    ents += [("*.gnb1.cellularNic.mac.harqProcesses", "16"), ("*.ue[*].cellularNic.nrMac.harqProcesses", "16"),
+             ("*.listener.eth[0].address", f'"{G.LISTENER_MAC}"'), ("*.numUe", "1")]
+    return ents + [(k, "x") for k in G.MACLOG_KEYS]
+
+
+def _sym8():
+    spec, ues, dl, ul = G.load_spec(V, "sym", 8, 1)
+    ok = (ues == list(range(8)) and dl == "2000us" and ul == "2000us" and spec[("listener", "numApps")] == "25"
+          and spec[("listener.app[17]", "io.remoteAddress")] == '"talker[0]"' and spec[("listener.app[24]", "io.remoteAddress")] == '"talker[7]"'
+          and spec[("listener.app[24]", "source.initialProductionOffset")] == G.LOAD_D4 and spec[("talker[7]", "numApps")] == "4")
+    return None if ok else f"unexpected sym n8 spec {dl} {ul} {spec[('listener', 'numApps')]}"
+
+
+def _one0_4():
+    spec, ues, dl, ul = G.load_spec(V, "one0", 4, 2)
+    ok = (ues == [0] and dl == "125us" and ul == "250us" and spec[("listener", "numApps")] == "10" and spec[("talker[3]", "numApps")] == "3"
+          and ("listener.app[9]", "io.remoteAddress") in spec)
+    return None if ok else "unexpected one0 n4 spec"
+
+
+def _foreign():
+    G.APPSEL_RESTS[V].setdefault(0, set()).add("source.someNewParameter")
+    try:
+        G.load_spec(V, "one0", 1, 1)
+    finally:
+        G.APPSEL_RESTS[V][0].discard("source.someNewParameter")
+
+
+def _vl(mut, maclog=True):
+    spec, *_ = G.load_spec(V, "one0", 1, 2)
+    ents = _ents(spec)
+    ents = mut(ents)
+    import io
+    import contextlib
+    with contextlib.redirect_stdout(io.StringIO()):
+        return G.verify_load_entries("test", ents, V, "one0", 1, 2, 1, maclog)
+
+
+LOAD_CASES = [
+    ("load interval not an integer ns (factor 3)", lambda: _err(lambda: G.load_interval(1, 3)), r"not an integer number of ns"),
+    ("load factor 0", lambda: _err(lambda: G.load_spec(V, "one0", 1, 0)), r"must be > 0"),
+    ("unknown placement", lambda: _err(lambda: G.load_spec(V, "half", 2, 1)), r"unknown load placement"),
+    ("sym at numUe = 1 (one name per configuration)", lambda: _err(lambda: G.load_spec(V, "sym", 1, 1)), r"placement sym at numUe = 1"),
+    ("numUe not generated (3)", lambda: _err(lambda: G.load_spec(V, "one0", 3, 1)), r"numUe 3 not generated"),
+    ("numUe above NMAX (16)", lambda: _err(lambda: G.loaded_ues("one0", 16)), r"numUe 16 outside"),
+    ("not a load-capable variant (plain -sus source)", lambda: _err(lambda: G.load_effective("M2S71-q0-Ca-sus")), r"not a translated load-capable variant"),
+    ("a base-flow setting reaching a load app", lambda: _err(_foreign), r"base-flow settings \['source\.someNewParameter'\] of app\[0\] reach load app"),
+    ("allowed: sym n8 values exact", _sym8, None),
+    ("allowed: one0 n4 DL factor 2 values exact", _one0_4, None),
+    ("verify: as generated passes", lambda: None if _vl(lambda e: e) else "verify_load_entries rejected the generated values", None),
+    ("verify: DL interval changed is detected", lambda: "detected" if not _vl(lambda e: [("*.listener.app[3].source.productionInterval", "250us")] + e) else None, r"detected"),
+    ("verify: a foreign load-app setting is detected", lambda: "detected" if not _vl(lambda e: [("*.listener.app[3].display-string", '"x"')] + e) else None, r"detected"),
+    ("verify: a wildcard app setting reaching the load app is detected", lambda: "detected" if not _vl(lambda e: [("**.app[*].source.foo", "1")] + e) else None, r"detected"),
+    ("verify: HARQ16 missing is detected", lambda: "detected" if not _vl(lambda e: [x for x in e if "harq" not in x[0]]) else None, r"detected"),
+    ("verify: MAC log missing is detected", lambda: "detected" if not _vl(lambda e: [x for x in e if x[0] != "cmdenv-log-prefix"]) else None, r"detected"),
+    ("verify: MAC log in a no-log twin is detected", lambda: "detected" if not _vl(lambda e: e, maclog=False) else None, r"detected"),
+]
+
+
+def load_tests():
+    G.INI, G.M2, G.OUT = os.path.join(M2, "omnetpp.ini"), M2, os.path.join(M2, "m2s72.ini")
+    G.generate()                      # translation state (LOAD_REC, APPSEL_RESTS) of the unmodified sources
+    bad = 0
+    for name, fn, expect in LOAD_CASES:
+        try:
+            res = fn()
+        except Exception as ex:      # an unexpected exception fails the case
+            res = f"EXCEPTION {type(ex).__name__}: {ex}"
+        ok = (res is None) if expect is None else (res is not None and re.search(expect, res) is not None)
+        bad += not ok
+        print(f"{'PASS' if ok else 'FAIL'} | load: {name} | {res if res else 'accepted'}")
+    return bad
+
+
 def main():
     bad = 0
     for name, edit, expect in CASES:
@@ -140,6 +238,9 @@ def main():
         ok = (err is None) if expect is None else (err is not None and re.search(expect, err) is not None)
         bad += not ok
         print(f"{'PASS' if ok else 'FAIL'} | inheritance: {name} | {'ERROR ' + err if err else 'accepted'}")
+    # Stage 5 load placement (load_spec / load_mixin / verify_load_entries), on the unmodified sources
+    nf = load_tests()
+    bad += nf
     # the unmodified copy regenerates the committed file (except the header's source path lines, which are relative)
     err, out, wrote = run_case(None)
     committed = open(os.path.join(M2, "m2s72.ini")).read()
@@ -147,7 +248,7 @@ def main():
     bad += not ok
     print(f"{'PASS' if ok else 'FAIL'} | unmodified sources in a temporary copy | "
           f"{'identical to the committed m2s72.ini' if ok else (err or 'output differs from the committed m2s72.ini')}")
-    print(f"generator negative tests: {len(CASES) + 6 - bad} PASS, {bad} FAIL")
+    print(f"generator negative tests: {len(CASES) + 6 + len(LOAD_CASES) - bad} PASS, {bad} FAIL")
     return 1 if bad else 0
 
 

@@ -35,9 +35,18 @@ application app[3] is translated for N > 1 onto ONE UE L only (asymmetric load):
 (numApps 4, app[3]: UL load to the listener), the listener gets the DL side as its last app
 (3 + 2(N - 1), remote talker[L]); every other talker keeps numApps 3. The DL load starts by D-4 at 0.3 s
 (+ 500 us, the S7.1 offset relative to the base flows).
+Stage 5 (E0 authorisation, review 2026-11-03 11:35): load-capable variants "<src>@L" of the sustained-load sources
+(LOAD_VAR). Their base carries NO load: every app[3] entry is recorded (LOAD_REC) and the talker / listener numApps
+are 3. The load is placed by generated load mixins M2S72LD-<short>-<placement>-n<N>-f<F>[-u<U>] (load_mixin):
+placement one0 = L_tot on UE 0; sym = L_tot divided equally over the N UEs. Loaded UE k gets talker[k].app[3] (UL to
+the listener, interval 0.25 ms * n_loaded / U, the source's UL offset) and the j-th loaded UE the listener app
+3 + 2(N - 1) + j (DL to talker[k], interval 0.25 ms * n_loaded / F, D-4 start 0.3 s + 500 us). Every other app[3]
+setting is the source's effective value; anything else fails closed (LOAD_REQ, exact-ns intervals, no foreign base
+setting reaching a load app). M2S72-MACLOG: observation-only gNB MAC / RLC log capture (stdout, module-path prefix).
 """
 import hashlib
 import os
+from fractions import Fraction
 import re
 import subprocess
 import sys
@@ -62,11 +71,28 @@ SOURCES = {
     # Checkpoint 2 rev. 2 (path heterogeneity): the S7.1 sustained-load accuracy configs, load on one UE only
     "M2S71-q0-Ca-sus": ("q0-Ca-sus", (2, 4)),
     "M2S71-qdu-Ca-sus": ("qdu-Ca-sus", (2, 4)),
+    # Stage 5: load-capable variants (no load in the base; load mixins place it), N = 1, 2, 4, 8
+    "M2S71-q0-Ca-sus@L": ("q0-Ca-L", (1, 2, 4, 8)),
+    "M2S71-qdu-Ca-sus@L": ("qdu-Ca-L", (1, 2, 4, 8)),
 }
+LOAD_VAR = {"M2S71-q0-Ca-sus@L": "M2S71-q0-Ca-sus", "M2S71-qdu-Ca-sus@L": "M2S71-qdu-Ca-sus"}   # variant -> source config
+# effective app[3] settings every load-variant source must have (fail closed: the load mixins scale these values)
+LOAD_REQ = {"**.app[3].typename": '"EthernetSourceApp"', "**.app[3].source.packetLength": "1400B",
+            "**.app[3].source.productionInterval": "0.25ms", "**.app[3].source.initialProductionOffset": "0.1s + 500us",
+            "**.app[3].tagger.vlanId": "42", "**.app[3].tagger.pcp": "0",
+            "*.talker.app[3].io.remoteAddress": '"listener"', "*.listener.app[3].io.remoteAddress": '"talker"'}
+LOAD_BASE_NS = 250000      # L_tot interval per direction (0.25 ms), one 1400 B frame
+LOAD_REC = {}              # variant -> [(side, rest, value)] of every app[3] entry, lookup order (side: both | talker | listener)
+APPSEL_RESTS = {}          # variant -> {c: {rest}} of the base-flow entries **.app[c] (replicated to listener apps 3 + 2(k-1) + c)
+PLACEMENTS = ("one0", "sym")
+E0_FACTORS = (1, 2, 4, 8)  # E0: DL load factor on UE 0 at N = 1 (UL stays 1 x L_tot)
+E0_TWIN = "q0"             # MAC-log non-perturbation twins M2S72-E0NL-q0-f<F> (same config without M2S72-MACLOG); the runner
+                           # runs the one of the highest Q-0 factor executed
 LOAD_UE = {"M2S71-q0-Ca-sus": 1, "M2S71-qdu-Ca-sus": 1}   # source -> the one UE carrying the load (N > 1)
 LOAD_D4 = "0.3s + 500us"   # D-4 start of the DL load (S7.1: base + 500 us)
 LOAD_LINES = {}            # source -> [(rest, value)] of the listener side of app[3], in lookup order
-D4_SOURCES = ("M2S71-q0-idle", "M2S71-qdu-idle", "M2S71-q0-Ca", "M2S71-qdu-Ca", "M2S71-q0-Ca-sus", "M2S71-qdu-Ca-sus")   # sources of non-T0 configs (D-4 timing)
+D4_SOURCES = ("M2S71-q0-idle", "M2S71-qdu-idle", "M2S71-q0-Ca", "M2S71-qdu-Ca", "M2S71-q0-Ca-sus", "M2S71-qdu-Ca-sus",
+              "M2S71-q0-Ca-sus@L", "M2S71-qdu-Ca-sus@L")   # sources of non-T0 configs (D-4 timing)
 # Block B (design 9): option -> (ideal-clock source, C-a source); clocks ideal / Ca / Eall (Eall = C-a source + the
 # generated TT-clock mixin M2S72-TT-Eall); N = 2, 4 (correctness) and 1 (I-5 reference); seeds 0-4
 B_OPTS = {"q0": ("M2S71-q0-idle", "M2S71-q0-Ca"), "qdu": ("M2S71-qdu-idle", "M2S71-qdu-Ca")}
@@ -280,6 +306,12 @@ class Ctx:
     def __init__(self, cfg, ns):
         self.cfg, self.ns, self.ngt1 = cfg, ns, max(ns) > 1
         self.load_ue = LOAD_UE.get(cfg)
+        self.load_var = cfg in LOAD_VAR
+
+
+def src_of(cfg):
+    """the source config of a SOURCES key (a load-capable variant "<src>@L" is its source)"""
+    return LOAD_VAR.get(cfg, cfg)
 
 
 def r_meta(e, x):
@@ -336,6 +368,9 @@ def r_appsel(e, x):
     rest = m.group(2)
     if PER_UE_VALUE.search(e.value):
         raise GenError(f"{x.cfg}: untranslatable value {e.key} = {e.value}")
+    if getattr(x, "load_var", False):
+        for c in sel:
+            APPSEL_RESTS.setdefault(x.cfg, {}).setdefault(c, set()).add(rest)
     out = [e.raw]
     if x.ngt1:
         for k in range(1, NMAX):
@@ -354,6 +389,8 @@ def load_app(n):
 
 
 def r_app3(e, x):
+    if getattr(x, "load_var", False):
+        return r_app3_var(e, x)
     if x.ngt1 and getattr(x, "load_ue", None) is not None:
         return r_app3_asym(e, x)
     if x.ngt1:
@@ -391,6 +428,27 @@ def r_app3_asym(e, x):
         return [f"*.talker[{L}].app[3].{rest} = {v}"], "LOAD"
     lines.append((rest, v))
     return [f"*.talker[{L}].app[3].{rest} = {v}"], "LOAD"
+
+
+def r_app3_var(e, x):
+    """Load-capable variant (LOAD_VAR): the base carries no load; the entry is recorded for the load mixins."""
+    m = re.fullmatch(r"(\*\*|\*\.talker|\*\.listener)\.app\[3\]\.(.+)", e.key)
+    side = {"**": "both", "*.talker": "talker", "*.listener": "listener"}[m.group(1)]
+    rest, v = m.group(2), e.value
+    if rest == "io.remoteAddress":
+        if (side, v) not in (("talker", '"listener"'), ("listener", '"talker"')):
+            raise GenError(f"{x.cfg}: unexpected {e.key} = {v}")
+    elif PER_UE_VALUE.search(v) or "ancestorIndex" in v:
+        raise GenError(f"{x.cfg}: untranslatable value {e.key} = {v}")
+    LOAD_REC.setdefault(x.cfg, []).append((side, rest, v))
+    return [f"# {e.key} = {v}  (load app: placed by the load mixins M2S72LD-*)"], "LOAD"
+
+
+def r_lnumapps(e, x):
+    if getattr(x, "load_var", False) and e.value == "4":
+        return [f"# {e.key} = 4  (load-capable base: no load app; the load mixins set numApps)",
+                f"*.listener.numApps = {LISTENER_APPS}"], "LOAD"
+    return r_keep(e, x)
 
 
 def r_oscrng(e, x):
@@ -453,6 +511,9 @@ def r_talker(e, x):
     # the effective entry (REQUIRED: 4) gives the load UE app[3]; later (overridden) entries translate generically
     if e.key == "*.talker.numApps" and x.ngt1 and getattr(x, "load_ue", None) is not None and e.value == "4":
         return [f"*.talker[{x.load_ue}].numApps = 4", f"*.talker[*].numApps = {LISTENER_APPS}"], "LOAD"
+    if e.key == "*.talker.numApps" and getattr(x, "load_var", False) and e.value == "4":
+        return [f"# {e.key} = 4  (load-capable base: no load app; the load mixins set numApps)",
+                f"*.talker[*].numApps = {LISTENER_APPS}"], "LOAD"
     check_ident(e, x, allowed_values=('"listener"',))
     check_value(e, x)
     return [simple_line(e).replace("*.talker.", "*.talker[*].", 1)], None
@@ -491,7 +552,7 @@ RULES = [
     ("dsTtTtId", lambda k: re.fullmatch(r"\*\.dsTt\.eth\[[01]\]\.(measurementLayer|trafficConditionerLayer\.syncOut)\.ttId", k), r_ttid),
     ("sinkAddress", lambda k: k == "*.talker.app[2].io.localAddress", r_sink),
     ("listenerRemote", lambda k: k == "*.listener.app[0..1].io.remoteAddress", r_lremote),
-    ("listenerNumApps", lambda k: k == "*.listener.numApps", r_keep),
+    ("listenerNumApps", lambda k: k == "*.listener.numApps", r_lnumapps),
     ("appSel", lambda k: re.fullmatch(r"\*\*\.app\[(0\.\.1|0|1)\]\..+", k), r_appsel),
     ("app3", lambda k: re.fullmatch(r"(\*\*|\*\.talker|\*\.listener)\.app\[3\]\..+", k), r_app3),
     ("oscRng", lambda k: k == "**.clock.oscillator.rng-0", r_oscrng),
@@ -520,9 +581,14 @@ def translate(cfg, ns, entries):
     req = dict(REQUIRED)
     if x.ngt1:
         req.update(REQUIRED_NGT1)
-        if x.load_ue is not None:   # the load sources: app[3] on both stations (translated by r_app3_asym)
+        if x.load_ue is not None or x.load_var:   # the load sources: app[3] on both stations
             req.update({"*.listener.numApps": "4", "*.talker.numApps": "4"})
             LOAD_LINES[cfg] = []
+    if x.load_var:
+        req.update({"*.listener.numApps": "4", "*.talker.numApps": "4"})
+        req.update(LOAD_REQ)
+        LOAD_REC[cfg] = []
+        APPSEL_RESTS[cfg] = {}
     for k, v in req.items():
         if k not in eff:
             raise GenError(f"{cfg}: missing required setting {k}")
@@ -646,14 +712,17 @@ def generate():
     out += ["", "include omnetpp.ini", ""]
     summary = []
     for cfg, (short, ns) in SOURCES.items():
-        if cfg not in sections:
-            raise GenError(f"source config {cfg} not found")
-        entries = flatten(sections, cfg)
+        src = src_of(cfg)
+        if src not in sections:
+            raise GenError(f"source config {src} not found")
+        entries = flatten(sections, src)
         tr, eff, used = translate(cfg, ns, entries)
         summary.append((cfg, len(entries), used))
+        var = (" as a load-capable variant (Stage 5: no load in the base; placed by the load mixins M2S72LD-*)"
+               if cfg in LOAD_VAR else "")
         out += ["#" + "-" * 100,
-                f"# Abstract base: {cfg} flattened ({len(entries)} entries in OMNeT++ lookup order: "
-                f"{' > '.join(c3(sections, cfg))} > General) and translated for {NETWORK}.",
+                f"# Abstract base: {src} flattened ({len(entries)} entries in OMNeT++ lookup order: "
+                f"{' > '.join(c3(sections, src))} > General) and translated for {NETWORK}{var}.",
                 f"[Config M2S72B-{short}]",
                 f'description = "(abstract, generated) {cfg} on M2S72Bridge"',
                 f"network = {NETWORK}"]
@@ -669,7 +738,7 @@ def generate():
     ext = {}    # generated runnable config -> its extends list (for the inheritance assertions below)
     out += ["#" + "-" * 100, "# T0: numUe = 1 with the source timing (design 8.1); never the static-listener mixin (rev. 2.1 A-1)"]
     for cfg, (short, ns) in SOURCES.items():
-        if 1 not in ns:      # T0 compares numUe = 1 with the source; the asymmetric-load sources have N > 1 only
+        if 1 not in ns or cfg in LOAD_VAR:   # T0 compares numUe = 1 with the source (not a load-capable variant)
             continue
         ext[f"M2S72-T0-{short}"] = [f"M2S72N1-{short}", f"M2S72B-{short}"]
         out += [f"[Config M2S72-T0-{short}]", f'description = "T0: {cfg} on M2S72Bridge, numUe = 1"',
@@ -755,8 +824,143 @@ def generate():
         out += [f"[Config M2S72-H16NX-{c}]", f'description = "(mixin, I-2H control) {desc}"', line, "",
                 f"[Config M2S72-H16N-{c}]", f'description = "I-2H negative control: {desc}; M2S72-H16-q0-Ca-n2"',
                 f"extends = {', '.join(ext[f'M2S72-H16N-{c}'])}", ""]
+    out += e0_section(ext)
     check_inheritance(ext)
     return "\n".join(out).rstrip("\n") + "\n", summary
+
+
+# ---------------------------------------------------------------- Stage 5: load placement, MAC log, E0 ------------
+MACLOG = """\
+[Config M2S72-MACLOG]
+description = "(mixin, Stage 5, OBSERVATION ONLY) gNB MAC and RLC UM TX log lines and UE RLC UM RX log lines on stdout, prefix simulation time | context module path (non-express mode; non-perturbation proven per batch)"
+*.gnb1.cellularNic.mac.cmdenv-log-level = info
+*.gnb1.cellularNic.rlc-um-*.tx.cmdenv-log-level = info
+*.ue[*].cellularNic.nrRlc-um-*.rx.cmdenv-log-level = info
+cmdenv-log-prefix = "%t|%M|"
+"""
+
+
+def flabel(f):
+    f = Fraction(str(f))
+    if f <= 0:
+        raise GenError(f"load factor {f} must be > 0")
+    s = str(float(f)).rstrip("0").rstrip(".") if f.denominator != 1 else str(f.numerator)
+    return s.replace(".", "p")
+
+
+def load_interval(n_loaded, f):
+    """0.25 ms * n_loaded / f as an exact ini quantity (integer ns; fail closed otherwise)"""
+    v = Fraction(LOAD_BASE_NS * n_loaded) / Fraction(str(f))
+    if v.denominator != 1:
+        raise GenError(f"load interval 0.25 ms * {n_loaded} / {f} is not an integer number of ns")
+    v = int(v)
+    return f"{v // 1000}us" if v % 1000 == 0 else f"{v}ns"
+
+
+def loaded_ues(placement, n):
+    if placement not in PLACEMENTS:
+        raise GenError(f"unknown load placement {placement!r} (known: {PLACEMENTS})")
+    if not 1 <= n <= NMAX:
+        raise GenError(f"numUe {n} outside 1..{NMAX}")
+    if placement == "sym" and n == 1:
+        raise GenError("placement sym at numUe = 1 is placement one0 (one name per configuration)")
+    return [0] if placement == "one0" else list(range(n))
+
+
+def load_name(short, placement, n, fdl, ful=1):
+    return f"M2S72LD-{short}-{placement}-n{n}-f{flabel(fdl)}" + ("" if Fraction(str(ful)) == 1 else f"-u{flabel(ful)}")
+
+
+def load_effective(cfg):
+    """per side (talker, listener): {rest: value}, the first app[3] entry of that side or of both (lookup order)"""
+    if cfg not in LOAD_VAR or cfg not in LOAD_REC:
+        raise GenError(f"{cfg}: not a translated load-capable variant")
+    eff = {"talker": {}, "listener": {}}
+    for side, rest, v in LOAD_REC[cfg]:
+        for sd in (("talker", "listener") if side == "both" else (side,)):
+            eff[sd].setdefault(rest, v)
+    for sd, d in eff.items():
+        for need in ("typename", "source.productionInterval", "source.initialProductionOffset", "io.remoteAddress"):
+            if need not in d:
+                raise GenError(f"{cfg}: load app ({sd} side) without {need}")
+        if d["source.productionInterval"] != "0.25ms":
+            raise GenError(f"{cfg}: load app ({sd} side) productionInterval {d['source.productionInterval']}, expected 0.25ms")
+    return eff
+
+
+def load_spec(cfg, placement, n, fdl, ful=1):
+    """expected effective values {(module, rest): value} of the load placement (also the verify_load reference)"""
+    if n not in SOURCES[cfg][1]:
+        raise GenError(f"{cfg}: numUe {n} not generated (N values {SOURCES[cfg][1]})")
+    for f in (fdl, ful):
+        if Fraction(str(f)) <= 0:
+            raise GenError(f"load factor {f} must be > 0")
+    ues = loaded_ues(placement, n)
+    eff = load_effective(cfg)
+    dl, ul = load_interval(len(ues), fdl), load_interval(len(ues), ful)
+    spec = {}
+    for k in ues:
+        spec[(f"talker[{k}]", "numApps")] = "4"
+        for rest, v in eff["talker"].items():
+            spec[(f"talker[{k}].app[3]", rest)] = ul if rest == "source.productionInterval" else v
+    for k in range(n):
+        if k not in ues:
+            spec[(f"talker[{k}]", "numApps")] = str(LISTENER_APPS)
+    spec[("listener", "numApps")] = str(LISTENER_APPS + 2 * (n - 1) + len(ues))
+    for j, k in enumerate(ues):
+        la = LISTENER_APPS + 2 * (n - 1) + j
+        for rest, v in eff["listener"].items():
+            if rest == "source.productionInterval":
+                v = dl
+            elif rest == "source.initialProductionOffset":
+                v = LOAD_D4
+            elif rest == "io.remoteAddress":
+                v = f'"talker[{k}]"'
+            spec[(f"listener.app[{la}]", rest)] = v
+        # a base-flow setting replicated to this listener app index (apps 3 + 2(k' - 1) + c) that the load does not set
+        for kk in range(1, NMAX):
+            for c in (0, 1):
+                if listener_app(kk, c) == la:
+                    foreign = APPSEL_RESTS.get(cfg, {}).get(c, set()) - set(eff["listener"])
+                    if foreign:
+                        raise GenError(f"{cfg}: base-flow settings {sorted(foreign)} of app[{c}] reach load app listener.app[{la}]")
+    return spec, ues, dl, ul
+
+
+def load_mixin(cfg, placement, n, fdl, ful=1):
+    short = SOURCES[cfg][0]
+    spec, ues, dl, ul = load_spec(cfg, placement, n, fdl, ful)
+    nm = load_name(short, placement, n, fdl, ful)
+    s = [f"[Config {nm}]",
+         f'description = "(mixin, generated) S7.1 sustained load L_tot, placement {placement}, numUe = {n}: loaded UEs {ues}; '
+         f'DL factor {flabel(fdl).replace("p", ".")} (per UE every {dl}), UL factor {flabel(ful).replace("p", ".")} (per UE every {ul})"']
+    s += [f"*.{mod}.{rest} = {v}" for (mod, rest), v in spec.items() if rest == "numApps"]
+    s += [f"*.{mod}.{rest} = {v}" for (mod, rest), v in spec.items() if rest != "numApps"]
+    return nm, s
+
+
+def e0_section(ext):
+    out = ["#" + "-" * 100,
+           "# Stage 5 E0 capacity calibration (authorisation 2026-11-03 11:35): N = 1, S7.1 sustained load on UE 0 with DL factor",
+           "# 1, 2, 4, 8 (UL 1 x L_tot), Q-0 and Q-d (UM), HARQ16 (EXPERIMENTAL CONTROL), C-a, M2S72-SL, learning recorders, eventlog,",
+           "# MAC log (M2S72-MACLOG; the E0NL twin is the same config without it: non-perturbation)", MACLOG]
+    for o in B_OPTS:
+        cfg = f"M2S71-{o}-Ca-sus@L"
+        short = SOURCES[cfg][0]
+        for f in E0_FACTORS:
+            ld, lines = load_mixin(cfg, "one0", 1, f)
+            out += lines + [""]
+            nm = f"M2S72-E0-{o}-f{flabel(f)}"
+            ext[nm] = ["M2S72-MACLOG", ld, "M2S72-HARQ16", "M2S72-SL", "M2S72-L", "M2S72-ev", f"M2S72D4N1-{short}",
+                       f"M2S72N1-{short}", f"M2S72B-{short}"]
+            out += [f"[Config {nm}]", f'description = "E0: {src_of(cfg)}, load on UE 0, DL factor {f}, numUe = 1, HARQ16 (experimental control), MAC log"',
+                    f"extends = {', '.join(ext[nm])}", ""]
+            if o == E0_TWIN:
+                tw = f"M2S72-E0NL-{o}-f{flabel(f)}"
+                ext[tw] = ext[nm][1:]
+                out += [f"[Config {tw}]", f'description = "E0 MAC-log non-perturbation twin: {nm} without M2S72-MACLOG"',
+                        f"extends = {', '.join(ext[tw])}", ""]
+    return out
 
 
 def tt_eall_mixin(sections):
@@ -846,7 +1050,7 @@ def verify_generated(cmd):
     listener address and no UPF forwardingTable entry; every non-T0 runnable config has exactly the M2S72-SL values
     as its effective (first) entries (the F0-6 controls: their replaced element)."""
     text = open(OUT).read()
-    names = re.findall(r"^\[Config (M2S72-(?:T0|F0|F0N|B|BN|H|H16|H16N)-[^\]]+)\]", text, flags=re.M)
+    names = re.findall(r"^\[Config (M2S72-(?:T0|F0|F0N|B|BN|H|H16|H16N|E0|E0NL)-[^\]]+)\]", text, flags=re.M)
     sl = {"*.listener.eth[0].address": f'"{LISTENER_MAC}"',
           "*.upf.ethBridge.macTable.forwardingTable": f'[{{address: "{LISTENER_MAC}", vlan: {SL_VID}, interface: "{SL_INTERFACE}"}}]'}
     ctrl = {"missing": ("*.upf.ethBridge.macTable.forwardingTable", "[]"),
@@ -881,10 +1085,158 @@ def verify_generated(cmd):
     return bad
 
 
+def pat_re(p):
+    """OMNeT++ ini key pattern -> regex over full parameter paths (** any, * no dot, ? one char, [a..b] / [*] index)"""
+    out, i = "", 0
+    while i < len(p):
+        if p.startswith("**", i):
+            out, i = out + ".*", i + 2
+        elif p[i] == "*":
+            out, i = out + "[^.]*", i + 1
+        elif p[i] == "?":
+            out, i = out + "[^.]", i + 1
+        elif p[i] == "[":
+            j = p.index("]", i)
+            inner = p[i + 1:j]
+            if inner == "*":
+                out += r"\[\d+\]"
+            elif ".." in inner:
+                a, b = inner.split("..")
+                out += r"\[(?:" + "|".join(str(v) for v in range(int(a or 0), int(b or 999) + 1)) + r")\]"
+            else:
+                out += re.escape(p[i:j + 1])
+            i = j + 1
+        elif p[i] == "{":
+            raise GenError(f"pattern {p!r}: {{...}} ranges are not supported by this checker (fail closed)")
+        else:
+            out, i = out + re.escape(p[i]), i + 1
+    return re.compile(out + r"\Z")
+
+
+def first_match(ents, path):
+    full = NETWORK.rsplit(".", 1)[1] + "." + path
+    for k, v in ents:
+        if "." in k and pat_re(k).match(full):
+            return k, v
+    return None, None
+
+
+E0_EXPECT = {"gnb1.cellularNic.mac.harqProcesses": "16", "ue[0].cellularNic.nrMac.harqProcesses": "16",
+             "listener.eth[0].address": f'"{LISTENER_MAC}"', "numUe": "1"}
+MACLOG_KEYS = ("*.gnb1.cellularNic.mac.cmdenv-log-level", "*.gnb1.cellularNic.rlc-um-*.tx.cmdenv-log-level",
+               "*.ue[*].cellularNic.nrRlc-um-*.rx.cmdenv-log-level", "cmdenv-log-prefix")
+
+
+def verify_load_entries(nm, ents, cfg, placement, n, fdl, ful=1, maclog=True):
+    """exact configuration check of one generated load config on OMNeT++'s own resolution (opp_run -q runconfig):
+    every expected load value is the first match of its parameter path; no app setting outside the load set
+    reaches a load app; HARQ16, the static listener MAC and numUe as generated; M2S72-MACLOG present iff maclog."""
+    spec, ues, dl, ul = load_spec(cfg, placement, n, fdl, ful)
+    probs = []
+    for (mod, rest), v in spec.items():
+        k, got = first_match(ents, f"{mod}.{rest}")
+        if got != v:
+            probs.append(f"{mod}.{rest}: effective {got!r} (from {k!r}), expected {v!r}")
+    mods = {}
+    for (mod, rest) in spec:
+        m = re.fullmatch(r"(.+)\.app\[(\d+)\]", mod)
+        if m:
+            mods.setdefault((m.group(1), int(m.group(2))), set()).add(rest)
+    net = NETWORK.rsplit(".", 1)[1]
+    for k, v in ents:
+        j = k.find(".app[")
+        if j < 0:
+            continue
+        e = k.index("]", j)
+        prefix, idx, suffix = k[:j], k[j + 5:e], k[e + 2:]
+        for (owner, a), rests in mods.items():
+            if pat_re(prefix).match(f"{net}.{owner}") and pat_re(f"x[{idx}]").match(f"x[{a}]") and suffix not in rests:
+                probs.append(f"foreign setting {k} = {v} reaches load app {owner}.app[{a}]")
+    for path, v in E0_EXPECT.items():
+        if n != 1 and path == "numUe":
+            continue
+        k, got = first_match(ents, path)
+        if got != v:
+            probs.append(f"{path}: effective {got!r}, expected {v!r}")
+    keys = {k for k, _ in ents}
+    has = [x for x in MACLOG_KEYS if x in keys]
+    if maclog and len(has) != len(MACLOG_KEYS):
+        probs.append(f"M2S72-MACLOG incomplete: {has}")
+    if not maclog and has:
+        probs.append(f"M2S72-MACLOG present in a no-log twin: {has}")
+    print(f"{nm}: {'exact load configuration (' + str(len(spec)) + ' values), ' + ('MAC log' if maclog else 'no MAC log') if not probs else 'DIFFERENT ' + str(probs[:6])}")
+    return not probs
+
+
+def verify_load(cmd):
+    bad = 0
+    got = {}
+    for o in B_OPTS:
+        cfg = f"M2S71-{o}-Ca-sus@L"
+        for f in E0_FACTORS:
+            names = [(f"M2S72-E0-{o}-f{flabel(f)}", True)]
+            if o == E0_TWIN:
+                names.append((f"M2S72-E0NL-{o}-f{flabel(f)}", False))
+            for nm, ml in names:
+                res = subprocess.run(cmd + ["-f", "m2s72.ini", "-c", nm, "-r", "0", "-q", "runconfig"], cwd=M2, capture_output=True, text=True)
+                ents = runconfig_entries(res.stdout)
+                got[nm] = ents
+                bad += not verify_load_entries(nm, ents, cfg, "one0", 1, f, 1, ml)
+    o = E0_TWIN
+    meta = ("description", "extends")
+    for f in E0_FACTORS:
+        na, nb = f"M2S72-E0-{o}-f{flabel(f)}", f"M2S72-E0NL-{o}-f{flabel(f)}"
+        a = [(k, v.replace(na, "<config>")) for k, v in got[na] if k not in meta]     # ${configname} in result paths
+        b = [(k, v.replace(nb, "<config>")) for k, v in got[nb] if k not in meta]
+        extra = [x for x in a if x not in b]
+        ok = [x for x in a if x[0] not in MACLOG_KEYS] == b and sorted(k for k, _ in extra) == sorted(MACLOG_KEYS)
+        print(f"E0 twin {nb}: effective configuration = {na} without exactly the M2S72-MACLOG entries: {'yes' if ok else 'NO ' + str(extra[:6])}")
+        bad += not ok
+    return bad
+
+
+PLACEMENT_MATRIX = [("one0", n, f, 1) for n in (1, 2, 4, 8) for f in (0.5, 1, 2, 4, 8)] + \
+                   [("sym", n, f, 1) for n in (2, 4, 8) for f in (0.5, 1, 2, 4, 8)] + [("sym", 4, 2, 2), ("one0", 4, 2, 0.5)]
+
+
+def verify_placements(cmd):
+    """the load mixins of placements one0 / sym at every generated N and factor (not runnable configs of m2s72.ini;
+    E1 / E2 need their own authorisation): each is written with a test config into a temporary ini that includes
+    m2s72.ini and checked exactly on OMNeT++'s resolution (verify_load_entries)"""
+    import tempfile
+    bad = 0
+    tmp = tempfile.mkdtemp(prefix="m2s72place-")
+    try:
+        for o in B_OPTS:
+            cfg = f"M2S71-{o}-Ca-sus@L"
+            short = SOURCES[cfg][0]
+            for pl, n, f, u in PLACEMENT_MATRIX:
+                ld, lines = load_mixin(cfg, pl, n, f, u)
+                nm = "X" + ld
+                text = "\n".join([f"include {OUT}", ""] + lines + ["", f"[Config {nm}]",
+                                  f"extends = {ld}, M2S72-HARQ16, M2S72-SL, M2S72D4N{n}-{short}, M2S72N{n}-{short}, M2S72B-{short}", ""])
+                path = os.path.join(tmp, "place.ini")
+                open(path, "w").write(text)
+                res = subprocess.run(cmd + ["-f", path, "-c", nm, "-r", "0", "-q", "runconfig"], cwd=M2, capture_output=True, text=True)
+                try:
+                    ents = runconfig_entries(res.stdout)
+                    ok = verify_load_entries(nm, ents, cfg, pl, n, f, u, maclog=False)
+                except GenError as ex:
+                    print(f"{nm}: ERROR {ex} {res.stderr[-300:]}")
+                    ok = False
+                bad += not ok
+    finally:
+        import shutil
+        shutil.rmtree(tmp)
+    return bad
+
+
 def verify(cmd):
     sections, _ = parse(INI)
     bad = 0
     for cfg in SOURCES:
+        if cfg in LOAD_VAR:       # the same source config as its plain entry
+            continue
         mine = [(e.key, " ".join(expand(e.value, cfg).replace("\\", " ").split())) for e in flatten(sections, cfg)]
         res = subprocess.run(cmd + ["-c", cfg, "-r", "0", "-q", "runconfig"], cwd=M2, capture_output=True, text=True)
         theirs = runconfig_entries(res.stdout)
@@ -926,7 +1278,12 @@ def main():
         cmd = [x for i, x in enumerate(sys.argv[2:]) if not (x == "-f" or (i > 0 and sys.argv[2:][i - 1] == "-f"))]
         b2 = verify_generated(cmd)
         print(f"generated-config check (rev. 2.1 A-1): {'all as generated' if not b2 else str(b2) + ' DIFFERENT'}")
-        return 1 if (b1 or b2) else 0
+        b3 = verify_load(cmd)
+        print(f"Stage 5 load-configuration check (exact): {'all as generated' if not b3 else str(b3) + ' DIFFERENT'}")
+        b4 = verify_placements(cmd)
+        print(f"Stage 5 placement check (one0 / sym mixins, {2 * len(PLACEMENT_MATRIX)} test configs, exact): "
+              f"{'all as generated' if not b4 else str(b4) + ' DIFFERENT'}")
+        return 1 if (b1 or b2 or b3 or b4) else 0
     print(__doc__)
     return 2
 

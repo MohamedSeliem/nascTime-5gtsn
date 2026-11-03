@@ -19,6 +19,10 @@
 #                       -> results/M2-S7.2a-cp2r2 (must not exist before; r2check: check only)
 #   ./m2s72.sh i2h      I-2H focused validation: regen, Block H + HARQ16 runs, I-5 references, I-2H controls,
 #                       check (check_m2s72_i2h.py focused), hashes -> results/M2-S7.2a-i2h       (i2hcheck: check only)
+#   ./m2s72.sh e0       Stage 5 E0 capacity calibration (authorisation 2026-11-03 11:35; protocol
+#                       results/M2-S7.2a-e0-protocol.md): regen, the E0 runs one at a time in increasing DL load factor
+#                       with the declared stop conditions (free space, run time, escalation stop), the MAC-log twin, hashes,
+#                       check (check_m2s72_e0.py) -> results/M2-S7.2a-e0 (must not exist before; e0check: check only)
 # Requires OMNETPP_ROOT, INET_ROOT, SIMU5G_ROOT (or the defaults below); T0 also needs the committed
 # results/M2-S7.1/raw-outputs.sha256 and results/M2-S6/raw-outputs.sha256.
 set -eo pipefail
@@ -41,6 +45,12 @@ case "$MODE" in i2h|i2hrun|i2hcheck|i2hregen|i2hhashes) OUT=$HERE/results/M2-S7.
 # Checkpoint 2 revision 2 complete campaign: results/M2-S7.2a-cp2r2 (empty at the start; r2 refuses an existing one)
 case "$MODE" in r2|r2run|r2check|r2regen|r2hashes) OUT=$HERE/results/M2-S7.2a-cp2r2 ;; esac
 if [ "$MODE" = r2 ] && [ -e "$OUT" ]; then echo "ERROR: $OUT exists; the campaign starts from an empty directory" >&2; exit 1; fi
+# Stage 5 E0: results/M2-S7.2a-e0 (empty at the start; e0 refuses an existing one)
+case "$MODE" in e0|e0run|e0check|e0regen|e0hashes) OUT=$HERE/results/M2-S7.2a-e0 ;; esac
+if [ "$MODE" = e0 ] && [ -e "$OUT" ]; then echo "ERROR: $OUT exists; E0 starts from an empty directory" >&2; exit 1; fi
+E0_MIN_FREE_START_GB=20     # declared stop conditions (protocol §7)
+E0_MIN_FREE_RUN_GB=10
+declare -A E0_EST_MIN=([1]=4 [2]=6 [4]=10 [8]=18)   # run-time estimate (min) per DL factor; a run is stopped at 3 x
 CHK=$HERE/check
 mkdir -p "$OUT"
 "$NASCTIME/src/nasctime/m2/build.sh" > "$OUT/build.log" 2>&1 || { echo "ERROR: build failed, see $OUT/build.log" >&2; exit 1; }
@@ -134,6 +144,42 @@ t0_refs() {
   for c in M2S71-q0-idle M2S71-qdu-idle M2S71-q0-load M2S6-C-a M2S6-E-all; do echo "omnetpp.ini $c 0"; done
 }
 
+free_gb() { df -B1G --output=avail "$1" | tail -1 | tr -d ' '; }
+# e0one <config> <factor>: one E0 run (non-express, stdout = MAC log, gzip), with the stop conditions; appends to e0-runs.txt
+e0one() {
+  local cfg=$1 f=$2 fr t0 rc lim
+  fr=$(free_gb "$OUT")
+  if [ "$fr" -lt "$E0_MIN_FREE_RUN_GB" ]; then echo "STOP before $cfg: free $fr GB < $E0_MIN_FREE_RUN_GB GB" | tee -a "$OUT/e0-runs.txt"; return 3; fi
+  lim=$(( ${E0_EST_MIN[$f]} * 3 * 60 ))
+  rm -rf "$OUT/runs/$cfg"; mkdir -p "$OUT/runs"
+  t0=$(date +%s)
+  set +e
+  (cd "$HERE" && timeout "$lim" "${OPP[@]}" -f m2s72.ini -c "$cfg" --repeat=10 -r 0 --result-dir="$OUT/runs/$cfg" \
+     --cmdenv-express-mode=false --fingerprint=0000-0000/tplx 2>&1 | gzip -n -1 > "$OUT/runs/run-$cfg.log.gz"; exit "${PIPESTATUS[0]}")
+  rc=$?
+  set -e
+  echo "$cfg | factor $f | rc $rc | wall $(( $(date +%s) - t0 )) s (limit $lim s) | raw $(du -sb "$OUT/runs/$cfg" | cut -f1) B + log $(stat -c %s "$OUT/runs/run-$cfg.log.gz") B | free before $fr GB, after $(free_gb "$OUT") GB" | tee -a "$OUT/e0-runs.txt"
+  if [ "$rc" -ne 0 ]; then echo "STOP: $cfg rc $rc ($( [ "$rc" = 124 ] && echo 'run time > 3 x estimate' || echo 'simulator error'))" | tee -a "$OUT/e0-runs.txt"; return 4; fi
+}
+e0run() {
+  local fr f o top=0 frac stop
+  fr=$(free_gb "$OUT")
+  echo "E0 batch start $(date -u +%FT%TZ): free $fr GB (required >= $E0_MIN_FREE_START_GB GB)" | tee "$OUT/e0-runs.txt"
+  if [ "$fr" -lt "$E0_MIN_FREE_START_GB" ]; then echo "STOP: free space below the batch-start requirement" | tee -a "$OUT/e0-runs.txt"; return 3; fi
+  for f in 1 2 4 8; do
+    stop=1
+    for o in q0 qdu; do
+      e0one "M2S72-E0-$o-f$f" "$f" || return $?
+      frac=$(cd "$CHK" && python3 check_m2s72_e0.py quick "$OUT/runs" "M2S72-E0-$o-f$f" | tee -a "$OUT/e0-runs.txt" | sed 's/.*(\([0-9.]*\))$/\1/')
+      python3 -c "import sys; sys.exit(0 if float('$frac') > 0.5 else 1)" || stop=0
+    done
+    top=$f
+    if [ "$stop" = 1 ] && [ "$f" != 8 ]; then echo "escalation stop after factor $f: cohort Syncs not received by T_end > 50 % in Q-0 and Q-d (declared rule)" | tee -a "$OUT/e0-runs.txt"; break; fi
+  done
+  e0one "M2S72-E0NL-q0-f$top" "$top" || return $?
+  echo "E0 batch end $(date -u +%FT%TZ)" | tee -a "$OUT/e0-runs.txt"
+}
+
 case "$MODE" in
   regen) regen ;;
   f0) f0_configs | runlist runs
@@ -183,6 +229,13 @@ case "$MODE" in
   r2hashes) (cd "$OUT" && find runs -type f \( -name '*.pcapng' -o -name '*.csv' \) | LC_ALL=C sort | xargs sha256sum > raw-outputs.sha256)
           wc -l < "$OUT/raw-outputs.sha256" ;;
   r2) for s in r2regen r2run r2hashes r2check; do "$0" "$s" || exit $?; done ;;
+  e0regen) regen ;;
+  e0run) e0run ;;
+  e0hashes) (cd "$OUT" && find runs -type f \( -name '*.pcapng' -o -name '*.csv' -o -name '*.log.gz' \) | LC_ALL=C sort | xargs sha256sum > raw-outputs.sha256)
+          wc -l < "$OUT/raw-outputs.sha256" ;;
+  e0check) python3 "$CHK/check_m2s72_e0.py" "$OUT" > "$OUT/e0-check.txt" 2>&1 || true
+          tail -3 "$OUT/e0-check.txt" ;;
+  e0) for s in e0regen e0run e0hashes e0check; do "$0" "$s" || exit $?; done ;;
   hashes) (cd "$OUT" && find runs ref -type f \( -name '*.pcapng' -o -name '*.csv' \) | LC_ALL=C sort | xargs sha256sum > raw-outputs.sha256)
           wc -l < "$OUT/raw-outputs.sha256" ;;
   all) for s in regen f0 t0 hashes; do "$0" "$s" || exit $?; done ;;
