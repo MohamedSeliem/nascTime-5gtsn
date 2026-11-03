@@ -1,0 +1,10 @@
+PASS | SC-1 capped grant at 10, not candidate 11..13, no arrival | {confirmed_403: 3, unexplained: 0, served: 1} (expected {'confirmed_403': 3, 'unexplained': 0, 'served': 1})
+PASS | SC-2 as SC-1 with an arrival at 11.5 ms | {confirmed_403: 1, unexplained: 2} (expected {'confirmed_403': 1, 'unexplained': 2})
+PASS | SC-3 uncapped grant (MaxCI: no limit) | {confirmed_403: 0, unexplained: 3} (expected {'confirmed_403': 0, 'unexplained': 3})
+PASS | SC-4 candidate without a grant | {cand_not_served: 2, confirmed_403: 0, unexplained: 0} (expected {'cand_not_served': 2, 'confirmed_403': 0, 'unexplained': 0})
+PASS | SC-5 arrival exactly at the start of TTI 12 | {confirmed_403: 1, unexplained: 2} (expected {'confirmed_403': 1, 'unexplained': 2})
+PASS | SC-6 not candidate, no preceding grant | {confirmed_403: 0, unexplained: 2} (expected {'confirmed_403': 0, 'unexplained': 2})
+PASS | RC-1 M2S72-E0-qdu-f2 unmodified: (confirmed, unexplained) = (0, 0) (expected (0, 0))
+PASS | RC-2 candidate 2049-1 removed at TTI 6003 after the capped grant at 6002 (7250 B): unexplained 1, confirmed 0 (expected 1, 0)
+PASS | RC-3 as RC-2, arrival evidence in [6002000000000, 6003000000000] ps removed: confirmed 1, unexplained 0 (expected 1, 0)
+classification controls: 9 / 9 as declared

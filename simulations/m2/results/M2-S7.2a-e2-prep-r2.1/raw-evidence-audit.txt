@@ -1,0 +1,32 @@
+Raw-evidence audit (decision 2026-11-03 22:35): every file of results/M2-S7.2a-e0/runs opened for reading while
+(a) the complete E0 revision-2 check (check_m2s72_e0.py r2: all E0 gate rows, Q8, Q8-x, Q8-eq, timing oracles M2/M4/I-1..I-4/I-2H/EOR,
+    F0-*, CFG-rate, metrics, the 5 original controls, PC-q8-lost-r2, the MAC-log non-perturbation comparison q0-f8 vs E0NL-q0-f8),
+(b) the E2 row controls, (c) the SG-403 classification controls, (d) the re-baseline plumbing dry run
+ran under a Python file-open audit hook (audit_run.py). Read-only; outputs of (a) written to a scratch directory.
+
+Reproduction check of (a): e0-metrics.csv byte-identical to the committed results/M2-S7.2a-e0r2/e0-metrics.csv;
+check text identical to results/M2-S7.2a-e0r2/e0r2-check.txt; verdict 'E0 revision-2 verdict: PASS', controls 6 / 6.
+
+Per file class, all E0 runs (9 run directories):
+  pcapng             99 files  6.052 GB | read by at least one check:   99 files  6.052 GB
+  elog                9 files  2.554 GB | read by at least one check:    9 files  2.554 GB
+  m2log csv         225 files  2.262 GB | read by at least one check:  120 files  1.312 GB
+  MAC/run log .gz     9 files  0.418 GB | read by at least one check:    9 files  0.418 GB
+  vec                 9 files  0.166 GB | read by at least one check:    9 files  0.166 GB
+  sca                 9 files  0.013 GB | read by at least one check:    9 files  0.013 GB
+  vci                 9 files  0.004 GB | read by at least one check:    0 files  0.000 GB
+
+The 105 csv files not read by the per-run gates are the measurement-layer logs of dsTt[0] eth[0..1] and nwTt eth[0..1];
+the non-perturbation control reads all 25 csv files of q0-f8 and E0NL-q0-f8, so every csv CLASS is required by a check.
+Only the .vci vector indexes (4 MB) are read by no check.
+
+Conclusion: Q8 (vec, MAC log, pcapng), Q8-x (MAC log, sca), timing oracles (trafficConditioner sync / pdelay /
+monitor csv, pcapng), F0-7d (elog), CFG-rate / NO-UL (egress / ingress csv, sca) and the non-perturbation control
+(every csv, pcapng, vec, sca, MAC log) together need every raw file class. A retention rule that deletes PCAP, CSV or
+eventlog files (the rev. 2 D-S2 candidate) would make these checks unreproducible: it is WITHDRAWN as a candidate.
+
+Lossless compression, one sampled file per class of E0 q0-f2 (gzip -1): upf.pcapRecorder[0].pcapng (33 kB) 0.164,
+nwTt.eth[1] ingress csv (21.8 MB) 0.109, 0.elog (246 MB) 0.141 of the original; not measured on the large pcapng files.
+Not applied: it would modify existing raw outputs, and the checkers read uncompressed files.
+
+Free space 2026-11-03T22:57:20Z: 11 GB on / (session allowance; df Size 252G, Used 33G).

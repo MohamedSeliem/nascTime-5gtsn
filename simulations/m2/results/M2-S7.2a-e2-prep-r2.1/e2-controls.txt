@@ -1,0 +1,40 @@
+PASS | CFG-rate-DL | M2S72-E0-q0-f1-0 | 1 DL load stream(s) to talker[0], every [250.0] us from 0.3005 s, 46799 frames, exact
+PASS | control PC-rate-e0-f1 (E0 DL source = E2 one0 n1 spec) | rows ['PASS'] (expected all PASS)
+FAIL | CFG-rate-DL | M2S72-E0-q0-f1-0 [mut] | 1 DL load stream(s) to talker[0], every [250.0] us from 0.3005 s, 46798 frames, exact; FAIL egress timestamps differ from the configured streams: 0 unexpected (first []), 1 missing (first [325500000000]); load-app packets 46799 != listener egress load frames 46798
+PASS | control NC-rate-drop (one egress frame removed) | rows ['FAIL'] (expected all FAIL)
+FAIL | CFG-rate-DL | M2S72-E0-q0-f1-0 [mut] | 1 DL load stream(s) to talker[0], every [250.0] us from 0.3005 s, 46799 frames, exact; FAIL egress timestamps differ from the configured streams: 1 unexpected (first [425500000001]), 1 missing (first [425500000000])
+PASS | control NC-rate-shift (one frame + 1 ps) | rows ['FAIL'] (expected all FAIL)
+FAIL | CFG-rate-DL | M2S72-E0-q0-f1-0 [mut] | 1 DL load stream(s) to talker[0], every [250.0] us from 0.3005 s, 46799 frames, exact; FAIL listener.app[3] (-> talker[0]): 46797 packets, expected 46798..46799; load-app packets 46797 != listener egress load frames 46799
+PASS | control NC-rate-appcount (load-app statistic altered) | rows ['FAIL'] (expected all FAIL)
+FAIL | CFG-rate-DL | M2S72-E0-q0-f1-0 [mut] | missing evidence (listener egress log or .sca)
+PASS | control NC-rate-noevidence (egress log absent) | rows ['FAIL'] (expected all FAIL)
+FAIL | NO-UL | M2S72-E0-q0-f1-0 | no UL load app or statistic on talker[0..0], 0 UL load frames at 1 talker egress and the listener ingress; FAIL talker[0].numApps = '4' (from '*.talker[0].numApps'), expected 3; 11 configuration entries can address a talker app[3] (first '*.talker[0].app[3].source.productionInterval = 250us'); 19 talker[k].app[3] statistics (first 'scalar M2S72Bridge.talker[0].app[3].source packets:count 47599'); talker[0]: 47599 UL load frames at egress (first 0.1005 s); listener: 47209 UL load frames at ingress
+PASS | control NC-noul-e0 (E0 has UL load) | rows ['FAIL'] (expected all FAIL)
+PASS | NO-UL | M2S72-E0-q0-f1-0 [filtered] | no UL load app or statistic on talker[0..0], 0 UL load frames at 1 talker egress and the listener ingress
+PASS | control PC-noul-filtered (E0 evidence with every UL load frame, entry and statistic removed) | rows ['PASS'] (expected all PASS)
+FAIL | NO-UL | M2S72-E0-q0-f1-0 [mut] | no UL load app or statistic on talker[0..0], 0 UL load frames at 1 talker egress and the listener ingress; FAIL 1 talker[k].app[3] statistics (first 'scalar M2S72Bridge.talker[0].app[3].source packets:count 1')
+PASS | control NC-noul-stat (one talker app[3] statistic only) | rows ['FAIL'] (expected all FAIL)
+FAIL | NO-UL | M2S72-E0-q0-f1-0 [mut] | no UL load app or statistic on talker[0..0], 0 UL load frames at 1 talker egress and the listener ingress; FAIL talker[0]: 1 UL load frames at egress (first 0.1005 s)
+PASS | control NC-noul-frame (one UL load frame at talker[0] egress) | rows ['FAIL'] (expected all FAIL)
+FAIL | NO-UL | M2S72-E0-q0-f1-0 [mut] | no UL load app or statistic on talker[0..0], 0 UL load frames at 1 talker egress and the listener ingress; FAIL talker[0].numApps = '4' (from '*.talker[0].numApps'), expected 3
+PASS | control NC-noul-numapps (talker[0].numApps 4 restored, nothing else) | rows ['FAIL'] (expected all FAIL)
+FAIL | NO-UL | M2S72-E0-q0-f1-0 [mut] | no UL load app or statistic on talker[0..0], 0 UL load frames at 1 talker egress and the listener ingress; FAIL missing evidence: talker[0] egress log
+PASS | control NC-noul-noevidence (talker[0] egress log absent) | rows ['FAIL'] (expected all FAIL)
+FAIL | CFG-ident | M2S72-E0-q0-f1-0 | extends = 'M2S72-MACLOG, M2S72LD-q0-Ca-L-one0-n1-f1, M2S72-HARQ16, M2S72-SL, M2S72-L, M2S72-ev, M2S72D4N1-q0-Ca-L, M2S72N1-q0-Ca-L, M2S72B-q0-Ca-L'; expected 'M2S72-MACLOG, M2S72LD-q0-Ca-L-one0-n1-f1-u0, M2S72-HARQ16, M2S72-SL, M2S72-L, M2S72-ev, M2S72D4N1-q0-Ca-L, M2S72N1-q0-Ca-L, M2S72B-q0-Ca-L'
+PASS | control NC-ident-e0 (E0 extends is not an E2 configuration) | rows ['FAIL'] (expected all FAIL)
+PASS | CFG-rate-DL | M2S72-E0-q0-f2-0 | 1 DL load stream(s) to talker[0], every [125.0] us from 0.3005 s, 93597 frames, exact
+PASS | control PC-rate-e0-f2 (E0 DL source = E2 one0 n1 spec) | rows ['PASS'] (expected all PASS)
+PASS | CFG-rate-DL | M2S72-E2-qdu-sym-n4-f1p1 [synthetic] | 4 DL load stream(s) to talker[0, 1, 2, 3], every [909.091] us from 0.3005 s, 51480 frames, exact
+PASS | control PC-rate-synth M2S72-E2-qdu-sym-n4-f1p1 (4 streams) | rows ['PASS'] (expected all PASS)
+FAIL | CFG-rate-DL | M2S72-E2-qdu-sym-n4-f1p1 [mut] | 4 DL load stream(s) to talker[0, 1, 2, 3], every [909.091] us from 0.3005 s, 38610 frames, exact; FAIL listener.app[9] (-> talker[0]): no source packets:count statistic; egress timestamps differ from the configured streams: 0 unexpected (first []), 12869 missing (first [300500000000, 301409091000])
+PASS | control NC-rate-synth-missing-stream M2S72-E2-qdu-sym-n4-f1p1 | rows ['FAIL'] (expected all FAIL)
+FAIL | CFG-rate-DL | M2S72-E2-qdu-sym-n4-f1p1 [mut] | 4 DL load stream(s) to talker[0, 1, 2, 3], every [909.091] us from 0.3005 s, 64350 frames, exact; FAIL egress timestamps differ from the configured streams: 12869 unexpected (first [300500000000, 301409091000]), 0 missing (first []); last slot 11999592079000: 5 frames, expected <= 4; load-app packets 51480 != listener egress load frames 64350
+PASS | control NC-rate-synth-doubled-stream M2S72-E2-qdu-sym-n4-f1p1 | rows ['FAIL'] (expected all FAIL)
+PASS | CFG-ident | M2S72-E2-qdu-sym-n4-f1p1 [synthetic] | extends = 'M2S72-MACLOG, M2S72LD-qdu-Ca-L-sym-n4-f1p1-u0, M2S72-HARQ16, M2S72-SL, M2S72-L, M2S72-ev, M2S72D4N4-qdu-Ca-L, M2S72N4-qdu-Ca-L, M2S72B-qdu-Ca-L'
+PASS | control PC-ident-synth M2S72-E2-qdu-sym-n4-f1p1 | rows ['PASS'] (expected all PASS)
+PASS | CFG-rate-DL | M2S72-E2-q0-one0-n8-f1p3 [synthetic] | 1 DL load stream(s) to talker[0], every [192.308] us from 0.3005 s, 60838 frames, exact
+PASS | control PC-rate-synth M2S72-E2-q0-one0-n8-f1p3 (1 streams) | rows ['PASS'] (expected all PASS)
+PASS | CFG-ident | M2S72-E2-q0-one0-n8-f1p3 [synthetic] | extends = 'M2S72-MACLOG, M2S72LD-q0-Ca-L-one0-n8-f1p3-u0, M2S72-HARQ16, M2S72-SL, M2S72-L, M2S72-ev, M2S72D4N8-q0-Ca-L, M2S72N8-q0-Ca-L, M2S72B-q0-Ca-L'
+PASS | control PC-ident-synth M2S72-E2-q0-one0-n8-f1p3 | rows ['PASS'] (expected all PASS)
+PASS | diagnostic self-test on M2S72-E0-qdu-f2: candidate of 2049-1 removed at TTI 6001 -> DEACTIVATED 0 -> 1 (first [6001])
+E2 row controls: 20 / 20 as declared

@@ -18,6 +18,11 @@ Rows of every E2 run (the E0 run-level gates are added for the N = 1 re-baseline
                listener ingress
   DL-active (info)  diag_m2s72_dl_active per DL connection: backlogged TTIs in which the connection is not a scheduler
                candidate (reported; never interpreted as loss; never a gate)
+  SG-403       (protocol rev. 2.1 safeguard, every E2 run, Q-0 and Q-d, every N and factor; not an RB row)
+               diag_m2s72_dl_active revision-2 classification of every backlogged-but-not-candidate DL TTI:
+               CLEAR iff 0 CONFIRMED-403 and 0 UNEXPLAINED. CONFIRMED-403 > 0: the run is ":403-affected", excluded
+               from clean scheduler-comparison claims, STOP for review. UNEXPLAINED > 0 (or missing evidence): STOP
+               for review. CAND-NOT-SERVED (legitimate ineligibility / non-selection) is reported only
 Missing evidence (a file or statistic absent) makes a row FAIL ("missing evidence"), never a silent PASS.
 """
 import csv
@@ -246,6 +251,24 @@ def dl_active_rows(runs, cfg):
     return res
 
 
+def sg403_row(runs, cfg):
+    name = f"{cfg}-0"
+    try:
+        res = D.analyse2(runs, cfg)
+    except Exception as ex:
+        add("SG-403", name, FAIL, f"STOP FOR REVIEW: missing evidence ({type(ex).__name__}: {ex})")
+        return False
+    a, u = D.safeguard(res)
+    det = "; ".join(f"{r['node']}-{r['drb']}: backlogged {r['backlogged_ttis']}, served {r['served']}, cand-not-served "
+                    f"{r['cand_not_served']}, CONFIRMED-403 {r['confirmed_403']}, UNEXPLAINED {r['unexplained']}" for r in res)
+    if (a, u) == (0, 0):
+        add("SG-403", name, PASS, "CLEAR; " + det)
+        return True
+    add("SG-403", name, FAIL, ("Simu5G :403-AFFECTED (excluded from clean scheduler-comparison claims); " if a else "")
+        + f"STOP FOR REVIEW (CONFIRMED-403 {a}, UNEXPLAINED {u}); " + det)
+    return False
+
+
 def run_rows(runs, cfg, diag=True):
     c = parse_cfg(cfg)
     name = f"{cfg}-0"
@@ -256,6 +279,7 @@ def run_rows(runs, cfg, diag=True):
     ok &= noul_rows(name, c["n"], ev["talker"], ev["lingress"], ev["sca"])
     if diag:
         dl_active_rows(runs, cfg)
+        sg403_row(runs, cfg)
     return ok
 
 
@@ -276,7 +300,7 @@ def rebaseline(out, e0out):
     RB-3 DL capacity vs E0; RB-P* predictions reported (not acceptance rows), see the protocol"""
     runs = os.path.join(out, "runs")
     ref = e0_metrics(e0out)
-    acc = True
+    acc, sg = True, True
     for opt, f in RB_RUNS:
         cfg = f"M2S72-E2-{opt}-one0-n1-f{f}"
         name = f"{cfg}-0"
@@ -284,7 +308,9 @@ def rebaseline(out, e0out):
             add("RB", name, FAIL, "missing evidence: run directory absent")
             acc = False
             continue
-        rb2 = run_rows(runs, cfg)
+        rb2 = run_rows(runs, cfg, diag=False)
+        dl_active_rows(runs, cfg)
+        sg &= sg403_row(runs, cfg)
         E.cfg_rate = lambda *a, **k: None          # E0's UL-loaded CFG-rate replaced by CFG-rate-DL + NO-UL above
         if f == 1:
             E.LOSS_FREE.add(cfg)                   # F0-1 gated at F = 1, as for E0 (protocol §4, RB-1)
@@ -305,7 +331,9 @@ def rebaseline(out, e0out):
             add("RB-P (info)", name, INFO, f"{k}: E2 {m.get(k, 'n/a')} | E0 {r.get(k)}")
     add("RB checkpoint", "step 0", PASS if acc else FAIL, "ACCEPTED: the sweep may be proposed" if acc
         else "NOT ACCEPTED: STOP, report, no further E2 run")
-    return acc
+    add("SG-403 safeguard", "step 0", PASS if sg else FAIL, "CLEAR on every run" if sg
+        else "STOP FOR REVIEW: at least one run is :403-affected or unexplained (rev. 2.1); RB rows above are as declared")
+    return acc and sg
 
 
 # ---------------------------------------------------------------------------------------------- row controls ----

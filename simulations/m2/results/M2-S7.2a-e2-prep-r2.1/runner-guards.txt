@@ -1,0 +1,10 @@
+ERROR: e2rb is not authorised (set M2S72_E2_AUTH to the decision reference)
+rc 1
+ERROR: e2rb runs only on the accepted Simu5G 1.8.0 (/root/stack/simu5g-1.8.0)
+rc 1
+ls: cannot access 'results/M2-S7.2a-e2rb': No such file or directory
+== start attempt with the accepted Simu5G and the authorisation reference (decision 2026-11-03 22:35, conditional)
+2026-11-03T22:58:32Z
+STOP: free 11 GB < 20 GB (start rule); nothing created
+rc 3
+ls: cannot access 'results/M2-S7.2a-e2rb': No such file or directory

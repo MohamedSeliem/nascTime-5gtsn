@@ -1,0 +1,29 @@
+M2-S7.2a upstream: duplicate search, round 2 (decision 2026-11-03 22:35: "complete a duplicate search of open and closed
+issues before recommending submission"). Searched 2026-11-03 ~22:45 UTC. provenance.txt (round 1) is unchanged.
+
+Finding: an issue on this defect is ALREADY OPEN upstream.
+  https://github.com/Unipisa/Simu5G/issues/308
+  title   "scheduleGrant: a capped grant marks a still-backlogged connection inactive (LteSchedulerEnb.cc:403)."
+  author  MohamedSeliem; state open; opened Nov 3, 2026; labels none; no visible comments; no linked branch or PR
+  body    (read through WebFetch, summarised by the tool): the capped-grant mechanism at :403 / :408, UL served once per
+          SR/RAC -> BSR cycle, uncapped LteMaxCI unaffected, the one-line comparison against the pre-grant queueLength.
+          It matches the text of draft revision 1 (results/M2-S7.2a-simu5g-issue-draft.md).
+  This session did not create it: it has no GitHub write access or credentials (anonymous git reads only), and no
+  submission was made from here. Whether the account is the project's own is for the user to confirm.
+  Found by: WebSearch (extended) "github.com Unipisa Simu5G issues closed scheduler grant active connection uplink";
+  first result. Round 1 (earlier on 2026-11-03) read open-issues page 1 and found no match; when #308 was opened
+  relative to that read is not known from here.
+
+Coverage
+  pull requests, open and closed: complete (round 1, pr-scan.txt: 31 refs, none changes the :403 update)
+  issues, open: #308 found; open-issues page 1 checked in round 1, no other match
+  issues, closed: NOT enumerable from this session. Tried: GitHub REST API from the shell (403 "No linked GitHub
+    account" / "GitHub access to this repository is not enabled"); api.github.com through WebFetch (not on the
+    allowlist); github.com issue search pages through WebFetch (robots_disallowed); individual issue pages are readable
+    (#308) but there are ~277 issue numbers. Two web searches (standard and extended) returned no other matching
+    open or closed issue (results: #4, #6, #16, #37, #42, #110 -- unrelated build / topology questions).
+
+Recommendation (no action taken): do not open a new issue. If anything is added upstream, it is the revision-2
+material (unmodified standalone_drb reproduction; upstream-format patch, which applies to master 466f9a96 and v1.8.0;
+the untested-case list) as a comment on #308, or a PR referencing #308 -- each only with separate approval. A manual
+search of closed issues (GitHub UI, is:issue is:closed) remains to be done by the user.

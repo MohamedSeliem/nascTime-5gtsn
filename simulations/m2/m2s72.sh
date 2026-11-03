@@ -37,6 +37,8 @@
 #                       existing results/M2-S7.2a-e2rb; regen, the 4 runs M2S72-E2-<q0|qdu>-one0-n1-f<1|2> with the E0 stop
 #                       conditions, hashes, check (check_m2s72_e2.py rebaseline: the acceptance checkpoint of
 #                       results/M2-S7.2a-e2-protocol.md section 4) -> results/M2-S7.2a-e2rb       (e2rbcheck: check only)
+#                       Revision 2.1: the SG-403 safeguard (diag_m2s72_dl_active.py --classify) after every run; a
+#                       CONFIRMED-403 or UNEXPLAINED TTI stops the batch for review; no raw output is ever deleted
 # Requires OMNETPP_ROOT, INET_ROOT, SIMU5G_ROOT (or the defaults below); T0 also needs the committed
 # results/M2-S7.1/raw-outputs.sha256 and results/M2-S6/raw-outputs.sha256.
 set -eo pipefail
@@ -85,6 +87,9 @@ if [ "$MODE" = e2rb ]; then
     || { echo "ERROR: e2rb runs only on the accepted Simu5G 1.8.0 (/root/stack/simu5g-1.8.0)" >&2; exit 1; }
   [ "$(sha256sum "$SIMU5G_ROOT/src/libsimu5g.so" | cut -d' ' -f1)" = "$ACCEPTED_LIBSIMU5G_SHA256" ] \
     || { echo "ERROR: libsimu5g.so differs from the accepted library" >&2; exit 1; }
+  # rev. 2.1: the >= 20 GB start rule is checked before anything is built or created
+  fr0=$(df -B1G --output=avail "$HERE" | tail -1 | tr -d ' ')
+  [ "$fr0" -ge 20 ] || { echo "STOP: free $fr0 GB < 20 GB (start rule); nothing created" >&2; exit 3; }
 fi
 if [ "$MODE" = e0r2 ] && [ -e "$OUT" ]; then echo "ERROR: $OUT exists; revision 2 starts from an empty directory" >&2; exit 1; fi
 E0_MIN_FREE_START_GB=20     # declared stop conditions (protocol §7)
@@ -290,7 +295,13 @@ case "$MODE" in
         regen > /dev/null
         fr=$(free_gb "$OUT"); echo "E2 step-0 start $(date -u +%FT%TZ): free $fr GB (required >= $E0_MIN_FREE_START_GB GB)" | tee "$OUT/e0-runs.txt"
         [ "$fr" -lt "$E0_MIN_FREE_START_GB" ] && { echo "STOP: free space below the batch-start requirement" | tee -a "$OUT/e0-runs.txt"; exit 3; }
-        for f in 1 2; do for o in q0 qdu; do e0one "M2S72-E2-$o-one0-n1-f$f" "$f" || exit $?; done; done
+        for f in 1 2; do for o in q0 qdu; do
+          e0one "M2S72-E2-$o-one0-n1-f$f" "$f" || exit $?
+          # protocol rev. 2.1 safeguard after every run: CONFIRMED-403 or UNEXPLAINED -> STOP for review (raw retained)
+          sgrc=0; python3 "$CHK/diag_m2s72_dl_active.py" "$OUT/runs" --classify "M2S72-E2-$o-one0-n1-f$f" > "$OUT/sg403-$o-f$f.txt" 2>&1 || sgrc=$?
+          tail -1 "$OUT/sg403-$o-f$f.txt" | tee -a "$OUT/e0-runs.txt"
+          [ "$sgrc" = 0 ] || { echo "STOP FOR REVIEW after M2S72-E2-$o-one0-n1-f$f: SG-403 safeguard (rev. 2.1), rc $sgrc" | tee -a "$OUT/e0-runs.txt"; exit 5; }
+        done; done
         (cd "$OUT" && find runs -type f \( -name '*.pcapng' -o -name '*.csv' -o -name '*.log.gz' \) | LC_ALL=C sort | xargs sha256sum > raw-outputs.sha256)
         python3 "$CHK/check_m2s72_e2.py" rebaseline "$OUT" "$E0OUT" > "$OUT/e2rb-check.txt" 2>&1 || true
         tail -2 "$OUT/e2rb-check.txt" ;;
