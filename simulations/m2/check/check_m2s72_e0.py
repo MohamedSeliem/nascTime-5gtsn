@@ -85,6 +85,53 @@ def cfgs():
     return [(f"M2S72-E0-{o}-f{f}", o, f) for f in FACTORS for o in OPTS]
 
 
+def replay_um(sdus, pdus):
+    """m2s71_lib.replay_um with identical rules and results (done, left), without the per-slot queue snapshots
+    ("slots", unused here; they grow with queue length x slots and exhausted memory on the E0 overload runs) and with
+    a deque. Equivalence with m2s71_lib.replay_um is checked on every run whose backlog stays small (row Q8-eq)."""
+    from collections import deque
+    queue, i, done = deque(), 0, []
+    for t, s in pdus:
+        while i < len(sdus) and sdus[i][0] <= t:
+            queue.append({"arr": sdus[i][0], "size": int(sdus[i][1]), "sent": 0})
+            i += 1
+        s = int(s)
+        if not queue:
+            raise ValueError(f"PDU at {t} with an empty queue")
+        h = queue[0]
+        if h["sent"] == 0:
+            pay = h["size"] if s == h["size"] + 1 else s - 2
+        else:
+            pay = s - 4
+        h["sent"] += pay
+        if h["sent"] >= h["size"]:
+            done.append((h["arr"], h["size"], t))
+            queue.popleft()
+    while i < len(sdus):
+        queue.append({"arr": sdus[i][0], "size": int(sdus[i][1]), "sent": 0})
+        i += 1
+    return done, None, list(queue)
+
+
+def pdu_owner(sdus, pdus):
+    """m2s71_lib.pdu_owner with a deque (identical rules)"""
+    from collections import deque
+    queue, i, own, k = deque(), 0, [], 0
+    for t, s in pdus:
+        while i < len(sdus) and sdus[i][0] <= t:
+            queue.append([int(sdus[i][1]), 0])
+            i += 1
+        h = queue[0]
+        s = int(s)
+        pay = (h[0] if s == h[0] + 1 else s - 2) if h[1] == 0 else s - 4
+        own.append(k)
+        h[1] += pay
+        if h[1] >= h[0]:
+            queue.popleft()
+            k += 1
+    return own
+
+
 def first(fr, d):
     out = {}
     for f in fr:
@@ -175,14 +222,14 @@ class Q8:
             pdus = [(t, s + 1) for t, s in pdus]
         self.model_err = None
         try:
-            done, slots, left = L.replay_um(sdus, pdus)
+            done, slots, left = replay_um(sdus, pdus)
             matched, unmatched, rest, lostpdu = G.deliveries(done, [x for x in self.deliv if x[0] <= T],
                                                              [x for x in self.rxpdus if x[0] <= T], pdus, sdus, T)
         except (ValueError, IndexError, KeyError) as ex:
             self.model_err = f"{type(ex).__name__}: {ex}"
             done, left, matched, unmatched, rest, lostpdu = [], [], [], [], [], []
         self.done, self.left, self.matched, self.unmatched, self.rest, self.lostpdu = done, left, matched, unmatched, rest, lostpdu
-        self.own = L.pdu_owner(sdus, pdus) if self.model_err is None else []
+        self.own = pdu_owner(sdus, pdus) if self.model_err is None else []
         self.pdus_h = pdus
         self.sdus_h = sdus
 
@@ -459,7 +506,7 @@ class DrbReplay:
         vec = lambda m, n: [(t, int(float(v))) for t, v in ev.vec.get((f"{R.NET}.{m}", n), []) if t <= T]  # noqa: E731
         tx, rx = f"gnb1.cellularNic.rlc-um-{node}-{drb}.tx", f"ue[0].cellularNic.nrRlc-um-1-{drb}.rx"
         self.sdus_h, pdus = vec(tx, "receivedPacketFromUpperLayer:vector(packetBytes)"), vec(tx, "sentPduSize:vector")
-        self.done, _, self.left = L.replay_um(self.sdus_h, pdus)
+        self.done, _, self.left = replay_um(self.sdus_h, pdus)
         matched, unmatched, rest, lostpdu = G.deliveries(self.done, vec(rx, "sentPacketToUpperLayer:vector(packetBytes)"),
                                                          vec(rx, "receivedPacketFromLowerLayer:vector(packetBytes)"), pdus, self.sdus_h, T)
         self.acc = {"predicted_observed": len(matched), "destroyed": sum(1 for x in unmatched if x[3] is True),
@@ -566,6 +613,14 @@ def evaluate(runs, cfg, opt, f, mlog_path=None, mut=None, gates=True):
                 break
     q = Q8(ev, mlog, opt, mut=mut)
     pairs = q8_rows(name, q)
+    if q.model_err is None and len(q.left) <= 100 and not mut:
+        d0, _, l0 = L.replay_um(q.sdus_h, q.pdus_h)
+        o0 = L.pdu_owner(q.sdus_h, q.pdus_h)
+        add("Q8-eq", name, d0 == q.done and l0 == q.left and o0 == q.own,
+            f"memory-light replay = m2s71_lib.replay_um / pdu_owner on this run ({len(q.done)} SDUs, queue {len(q.left)} at T_end)")
+    elif not mut:
+        add("Q8-eq", name, NE, f"queue {len(q.left)} SDUs at T_end: the original replay's per-slot snapshots are not affordable; "
+            "equivalence is established on the runs where it is evaluated")
     sca = ev.run.sca_path
     q8x(name, q, mlog, sca_samples(sca, "macBufferOverFlowDl"))
     if gates:
@@ -809,7 +864,7 @@ def controls(runs, out):
     sdu = q.sdu_of[k]
     tl = {(a, s): t for a, s, t in q.done}[sdu]
     deliv = next(m_ for m_ in q.matched if (m_[0], m_[1]) == sdu)
-    own = L.pdu_owner(q.sdus_h, q.pdus_h)
+    own = pdu_owner(q.sdus_h, q.pdus_h)
     idx = {(a, s): i for i, (a, s, _) in enumerate(q.done)}[sdu]
     pdu = next(q.pdus_h[j] for j, o in enumerate(own) if o == idx)
     got, _ = G.pdu_receptions(q.pdus_h, q.rxpdus)
