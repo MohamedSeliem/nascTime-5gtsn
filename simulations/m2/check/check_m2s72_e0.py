@@ -163,12 +163,14 @@ class Q8:
       UNEXPLAINED anything else, including a destroyed PDU without an observed discard. Never reclassified.
     """
 
-    def __init__(self, ev, mlog, opt, mut=None):
-        self.ev, self.mlog, self.opt, self.mut = ev, mlog, opt, mut or {}
+    def __init__(self, ev, mlog, opt, mut=None, k=0):
+        """k: the UE / DS-TT / slave evaluated (E0: k = 0 at N = 1; k > 0 only for the read-only P1 feasibility
+        diagnostic, where N3 copies are taken from UE k's tunnel and MAC deletions must be attributable to UE k)"""
+        self.ev, self.mlog, self.opt, self.mut, self.k = ev, mlog, opt, mut or {}, k
         run, T = ev.run, ev.T
         self.T = T
-        u = run.ue_view(0)
-        self.node = run.node_id[0]
+        u = run.ue_view(k)
+        self.node = run.node_id[k]
         ds, df, mode = L.OPTIONS[opt][:3]
         if ds != df or mode != "um":
             raise ValueError(f"{opt}: E0 expects Sync and Follow_Up on one UM DRB")
@@ -180,8 +182,15 @@ class Q8:
         st["UPF N6 rx"] = {k: f["end"] for k, f in first(run.dn, 1).items()}
         n3 = {}
         self.n3_bad = []
+        teid = None
+        if run.n > 1:                                     # UE k's tunnel (the one carrying talker[k]'s uplink)
+            tk, _ = B.F2.macs(run)
+            tmap, probs = B.F1.sessions(run, R.n3_records(run.learn_n3), tk)
+            teid = tmap.get(k)
+            if teid is None:
+                self.n3_bad.append(f"no tunnel of UE {k}: {probs}")
         for r in R.n3_records(run.n3path):
-            if r["gtype"] in (SYNC, FU) and r["dir"] == 2 and not r["frag"]:
+            if r["gtype"] in (SYNC, FU) and r["dir"] == 2 and not r["frag"] and (teid is None or r["teid"] == teid):
                 key = (r["gtype"], r["gseq"])
                 if key in n3:
                     self.n3_bad.append(f"duplicate N3 DL copy {key}")
@@ -198,8 +207,14 @@ class Q8:
                 self.dslog[(int(r["msgType"]), int(r["seq"]))].append(r["event"])
         # RLC (vectors), the replay, the UE side
         tx = f"gnb1.cellularNic.rlc-um-{self.node}-{self.drb}.tx"
-        rx = f"ue[0].cellularNic.nrRlc-um-1-{self.drb}.rx"
+        rx = f"ue[{k}].cellularNic.nrRlc-um-1-{self.drb}.rx"
         vec = lambda m, n: [(t, int(float(v))) for t, v in ev.vec.get((f"{R.NET}.{m}", n), [])]  # noqa: E731
+        # TTIs in which another UE's gNB RLC entities emitted PDUs (N > 1: a MAC deletion there is not attributable)
+        self.other_ttis = set()
+        for (mod, name), vals in ev.vec.items():
+            mm = re.search(r"gnb1\.cellularNic\.rlc-um-(\d+)-\d+\.tx$", mod)
+            if mm and name == "sentPduSize:vector" and int(mm.group(1)) != self.node:
+                self.other_ttis |= {t // MS for t, _ in vals}
         self.sdus = vec(tx, "receivedPacketFromUpperLayer:vector(packetBytes)")
         self.pdus = vec(tx, "sentPduSize:vector")
         self.deliv = vec(rx, "sentPacketToUpperLayer:vector(packetBytes)")
@@ -210,6 +225,15 @@ class Q8:
             self.deliv = [x for x in self.deliv if x != self.mut["drop_deliv"][0]]
             for d in (self.ds_rx, self.ue_tx, self.ds_tx, self.sl_rx):
                 d.pop(self.mut["drop_deliv"][1], None)
+        if "mac_pdu" in self.mut:                         # control PC-q8-lost-r2: one whole MAC PDU deleted
+            mp = self.mut["mac_pdu"]
+            for x in mp["rxpdus"]:
+                self.rxpdus.remove(x)
+            for x in mp["deliv"]:
+                self.deliv.remove(x)
+            for key in mp["keys"]:
+                for d in (self.ds_rx, self.ue_tx, self.ds_tx, self.sl_rx):
+                    d.pop(key, None)
         self.replay()
         self.map_sdus()
         self.classify()
@@ -266,6 +290,8 @@ class Q8:
         tti = t_pdu // MS
         for d in self.mlog.pdus:
             if d["deleted"] and d["t"] // MS == tti:
+                if self.ev.run.n > 1 and tti in self.other_ttis:
+                    return None                           # another UE also had a MAC PDU in this TTI: not attributable
                 return f"HARQ-process MAC PDU deletion at {tti} ms"
         for t, n, l, k in self.mlog.overflow:
             if t // MS == tti and n == self.node:
@@ -373,8 +399,11 @@ class Q8:
         gf = {s for (t, s) in self.st["GM"] if t == FU}
         use = {}
         last = None
-        for f in sorted(self.ev.run.ue_view(0).sl, key=lambda f: f["end"]):
+        gone = set(self.mut["mac_pdu"]["keys"]) if "mac_pdu" in self.mut else set()
+        for f in sorted(self.ev.run.ue_view(self.k).sl, key=lambda f: f["end"]):
             if f["dir"] != 1 or f["type"] not in (SYNC, FU) or f["end"] > self.T or f["dom"] != 0:
+                continue
+            if (f["type"], f["seq"]) in gone:
                 continue
             if f["type"] == SYNC:
                 last = f["seq"]
@@ -419,7 +448,7 @@ def q8x(name, q, mlog, sca_over):
             probs.append(f"RLC TX PDUs: log {len(e['pdu'])}, vector {len(q.pdus)}")
         if e["drop"]:
             probs.append(f"RLC TX drops {len(e['drop'])}")
-    rx = f"{R.NET}.ue[0].cellularNic.nrRlc-um-1-{q.drb}.rx"
+    rx = f"{R.NET}.ue[{q.k}].cellularNic.nrRlc-um-1-{q.drb}.rx"
     er = mlog.rlc_rx.get(rx)
     if er is None:
         probs.append(f"no RLC RX log lines of {rx}")
@@ -611,6 +640,17 @@ def evaluate(runs, cfg, opt, f, mlog_path=None, mut=None, gates=True):
             if (t_d, sz - 0) in e["deliv"]:
                 e["deliv"].remove((t_d, sz))
                 break
+    if mut and "mac_pdu" in mut and mlog is not None:          # PC-q8-lost-r2: the MAC log shows that MAC PDU deleted
+        mp = mut["mac_pdu"]
+        d = next(x for x in mlog.pdus if x["t"] == mp["mac_t"] and x["pid"] == mp["mac_pid"])
+        proc = d["proc"]
+        d.update(deleted=True, proc=None, pid=None)            # a deleted PDU is never inserted into a HARQ process
+        fb = next((i for i, (t, p_, r) in enumerate(mlog.feedback) if p_ == proc and d["t"] < t <= d["t"] + 10 * MS), None)
+        if fb is not None:
+            del mlog.feedback[fb]                              # ... so its feedback never comes
+        e = mlog.rlc_rx[f"{R.NET}.ue[0].cellularNic.nrRlc-um-1-{mp['drb']}.rx"]
+        for x in mp["deliv"]:
+            e["deliv"].remove(x)
     q = Q8(ev, mlog, opt, mut=mut)
     pairs = q8_rows(name, q)
     if q.model_err is None and len(q.left) <= 100 and not mut:
@@ -910,6 +950,149 @@ def controls(runs, out):
     return res, k
 
 
+# ------------------------------------------------------------------------------- revision 2 positive control ------
+# declared before it is run: results/M2-S7.2a-e0r2-predictions.md (the original PC-q8-lost and its prediction stay as
+# they are and are reported unchanged)
+PRED_R2 = {"PC-q8-lost-r2": {"fails": set(), "fate": "lost", "mechanism": "HARQ-process MAC PDU deletion", "pair": "lost",
+                             "unexplained": 0, "others_unchanged": True}}
+
+
+def reception_map(pdus, rxpdus):
+    """gate_m2s71_p0.pdu_receptions with the same greedy rule, returning {TX PDU index: the RX PDU it matched}"""
+    from collections import deque
+    by = defaultdict(list)
+    for j, (t, s_) in enumerate(pdus):
+        by[s_].append((t, j))
+    pend, out, ptr = defaultdict(deque), {}, Counter()
+    for t, s_ in rxpdus:
+        lst, qq = by[s_], pend[s_]
+        while ptr[s_] < len(lst) and lst[ptr[s_]][0] <= t:
+            qq.append(lst[ptr[s_]])
+            ptr[s_] += 1
+        while qq and qq[0][0] < t - G.AIR:
+            qq.popleft()
+        if qq:
+            out[qq.popleft()[1]] = (t, s_)
+    return out
+
+
+def mac_pdu_target(ev, q, mlog):
+    """the MAC PDU to delete: the TTI of a delivered single-segment Sync near the middle of the run whose ONE DL MAC PDU
+    (MAC log) consists exactly of the gNB RLC PDUs of UE 0 sent in that TTI, all on the gPTP DRB, every SDU in it
+    delivered. Returns (mutation, composition record) after verifying the composition; nothing is assumed."""
+    rlc_all = []
+    for (mod, name), vals in ev.vec.items():
+        mm = re.search(r"gnb1\.cellularNic\.rlc-um-(\d+)-(\d+)\.tx$", mod)
+        if mm and name == "sentPduSize:vector":
+            rlc_all += [(t, int(mm.group(1)), int(mm.group(2)), int(float(v))) for t, v in vals]
+    by_tti = defaultdict(list)
+    for x in rlc_all:
+        by_tti[x[0] // MS].append(x)
+    sdu_index = {(a, sz): i for i, (a, sz, _) in enumerate(q.done)}
+    matched = {(a, sz): (tl, td) for a, sz, tl, td in q.matched}
+    rmap = reception_map(q.pdus_h, q.rxpdus)
+    syncs = sorted(k for k, f in q.fate.items() if f[0] == "delivered" and k[0] == SYNC and k in q.sdu_of)
+    mid = len(syncs) // 2
+    tried = []
+    for k in sorted(syncs, key=lambda x: abs(syncs.index(x) - mid)):
+        idx = sdu_index.get(q.sdu_of[k])
+        js = [j for j, o in enumerate(q.own) if o == idx]
+        if len(js) != 1:
+            tried.append((k, f"{len(js)} RLC segments"))
+            continue
+        T = q.pdus_h[js[0]][0] // MS
+        macs = [d for d in mlog.pdus if d["t"] // MS == T]
+        rlc = sorted(by_tti[T])
+        why = None
+        if len(macs) != 1 or macs[0]["deleted"] or macs[0]["node"] != q.node or macs[0]["pid"] is None:
+            why = f"MAC PDUs in TTI {T}: {[(d['bytes'], d['sdus'], d['node'], d['deleted']) for d in macs]}"
+        elif any(x[1] != q.node or x[2] != q.drb for x in rlc):
+            why = f"TTI {T} carries RLC PDUs of other entities {sorted({(x[1], x[2]) for x in rlc})}"
+        elif len(rlc) != macs[0]["sdus"]:
+            why = f"MAC PDU of {macs[0]['sdus']} SDUs vs {len(rlc)} RLC PDUs in TTI {T}"
+        elif macs[0]["bytes"] < sum(x[3] for x in rlc):
+            why = f"MAC PDU {macs[0]['bytes']} B < RLC PDUs {sum(x[3] for x in rlc)} B"
+        if why:
+            tried.append((k, why))
+            continue
+        jj = [j for j, (t, s_) in enumerate(q.pdus_h) if t // MS == T]
+        if len(jj) != len(rlc) or any(j not in rmap for j in jj):
+            tried.append((k, "an RLC PDU of that TTI without a matched reception"))
+            continue
+        sdus = sorted({q.own[j] for j in jj})
+        aff = [(q.done[i][0], q.done[i][1]) for i in sdus]
+        if any(a not in matched for a in aff):
+            tried.append((k, "an SDU of that MAC PDU not delivered"))
+            continue
+        keys = sorted(kk for kk, sdu in q.sdu_of.items() if sdu in aff)
+        mut = {"mac_pdu": {"tti": T, "mac_t": macs[0]["t"], "mac_pid": macs[0]["pid"], "drb": q.drb,
+                           "rxpdus": [rmap[j] for j in jj], "deliv": [(matched[a][1], a[1]) for a in aff], "keys": keys}}
+        comp = {"target_sync": k, "tti_ms": T, "mac_pdu_bytes": macs[0]["bytes"], "mac_pdu_sdus": macs[0]["sdus"], "harq_proc": macs[0]["proc"],
+                "rlc_pdus": [(x[0], x[3]) for x in rlc], "rlc_bytes": sum(x[3] for x in rlc), "sdus": aff,
+                "sdu_sizes": Counter(sz for _, sz in aff), "gptp_keys": keys, "rejected_candidates": tried}
+        return mut, comp
+    raise ValueError(f"no MAC PDU target satisfies the composition rules; tried {tried[:6]}")
+
+
+def controls_r2(runs):
+    cfg, opt, f = CTRL_CFG
+    mlp = os.path.join(runs, f"run-{cfg}.log.gz")
+    start = len(rows)
+    ev, q0, _, _ = evaluate(runs, cfg, opt, f, mlp, gates=False)
+    del rows[start:]
+    mlog0 = ML.MacLog(mlp)
+    mut, comp = mac_pdu_target(ev, q0, mlog0)
+    start = len(rows)
+    _, q1, _, _ = evaluate(runs, cfg, opt, f, mlp, mut=mut, gates=False)
+    mine = rows[start:]
+    del rows[start:]
+    fails = {r[0] for r in mine if r[2] == "FAIL"}
+    keys = set(comp["gptp_keys"])
+    exp = PRED_R2["PC-q8-lost-r2"]
+    fates = {k: q1.fate.get(k) for k in keys}
+    ok_fate = bool(keys) and all(x is not None and x[0] == exp["fate"] and exp["mechanism"] in x[2] for x in fates.values())
+    pairs1 = q1.pairs()
+    seqs = {s_ for (t, s_) in keys}
+    ok_pair = all(pairs1.get(s_) == exp["pair"] for s_ in seqs if (SYNC, s_) in keys and (FU, s_) in keys)
+    unexpl = sum(1 for x in q1.fate.values() if x[0] == "UNEXPLAINED") + sum(1 for x in q1.unmatched if x[3] is False)
+    diff = {k for k in set(q0.fate) | set(q1.fate) if q0.fate.get(k) != q1.fate.get(k)}
+    aff = set(comp["sdus"])
+    m0 = {(a, sz) for a, sz, _, _ in q0.matched}
+    m1 = {(a, sz) for a, sz, _, _ in q1.matched}
+    d1 = {(a, sz) for a, sz, _, st in q1.unmatched if st is True}
+    d0 = {(a, sz) for a, sz, _, st in q0.unmatched if st is True}
+    ok_others = diff == keys and m0 - m1 == aff and m1 == m0 - aff and d1 - d0 == aff and d0 <= d1
+    ok = fails == exp["fails"] and ok_fate and ok_pair and unexpl == exp["unexplained"] and ok_others
+    detail = [("PC-q8-lost-r2", "composition", "PASS", f"{comp}"),
+              ("PC-q8-lost-r2", "affected fates", "PASS" if ok_fate else "FAIL", f"{fates}"),
+              ("PC-q8-lost-r2", "pairs", "PASS" if ok_pair else "FAIL", f"{ {s_: pairs1.get(s_) for s_ in seqs} }"),
+              ("PC-q8-lost-r2", "UNEXPLAINED", "PASS" if unexpl == 0 else "FAIL", f"{unexpl}"),
+              ("PC-q8-lost-r2", "unrelated packets unchanged", "PASS" if ok_others else "FAIL",
+               f"fate changes {sorted(diff)} (expected {sorted(keys)}); SDUs delivered -> destroyed {len(d1 - d0)} (expected {len(aff)}), "
+               f"other deliveries unchanged {m1 == m0 - aff}")]
+    return [("PC-q8-lost-r2", ok, fails, exp["fails"], mine + detail)], comp
+
+
+# ----------------------------------------------------------------------------- P1 feasibility diagnostic (read-only) ---
+def p1_diag(runs, cfg, mlog_path, k, alias):
+    """Q8 on UE k of an existing P1 HARQ-5 run with its observation-twin MAC log (read-only feasibility; not a gate)"""
+    T = B.F1.t_end(R.Run72(runs, cfg, 0))
+    ev = B.RunEval(runs, cfg, 0, conf_fn=lambda kk: V.CONF(cfg, kk, T))
+    opt = B.opt_of(cfg)
+    mlog = ML.MacLog(mlog_path, alias=alias)
+    q = Q8(ev, mlog, opt, k=k)
+    name = f"{cfg}-0 UE {k} (P1 feasibility)"
+    q8_rows(name, q)
+    q8x(name, q, mlog, sca_samples(ev.run.sca_path, "macBufferOverFlowDl"))
+    for r in rows:
+        print(" | ".join(r)[:1500])
+    lost = sorted((("S" if kk[0] == 0 else "F") + str(kk[1]), x[1], x[2]) for kk, x in q.fate.items() if x[0] != "delivered")
+    print(f"undelivered frames of UE {k}: {len(lost)}")
+    for x in lost:
+        print("   ", x)
+    print("MAC log summary", {kk: v for kk, v in mlog.summary().items() if kk != "min_space"})
+
+
 # -------------------------------------------------------------------------------------------------------- main -----
 def quick(runs, cfg):
     run = R.Run72(runs, cfg, 0)
@@ -927,7 +1110,11 @@ def fmt(v):
     return str(v)
 
 
-def main(out):
+def main(out, outdir=None, r2=False):
+    """r2 (revision 2, decision 2026-11-03 13:27): the same evaluation of the same E0 raw outputs, plus the corrected
+    positive control PC-q8-lost-r2 (results/M2-S7.2a-e0r2-predictions.md). The original PC-q8-lost is still run and
+    reported against its original prediction; for the revision-2 verdict it is superseded by PC-q8-lost-r2."""
+    outdir = outdir or out
     runs = os.path.join(out, "runs")
     P = print
     P("M2-S7.2a Stage 5 E0 capacity calibration check (protocol results/M2-S7.2a-e0-protocol.md)\n")
@@ -1006,14 +1193,32 @@ def main(out):
         nc += 1
     P(f"control mutations target Sync {ck}")
     P(f"controls: {len(ctrl) - nc if ctrl else 0} PASS, {nc} FAIL")
-    with open(os.path.join(out, "e0-metrics.csv"), "w", newline="") as fh:
+    if r2:
+        c2, comp = controls_r2(runs)
+        P("\nrevision 2 (decision 2026-11-03 13:27): corrected positive control, predictions results/M2-S7.2a-e0r2-predictions.md")
+        n2 = 0
+        for name, ok, fails, exp, mine in c2:
+            n2 += not ok
+            P(f"{'PASS' if ok else 'FAIL'} | {name} | failed {sorted(fails)}, predicted {sorted(exp)}")
+            for r in mine:
+                if r[2] == "FAIL" or r[0] == "PC-q8-lost-r2":
+                    P("      " + " | ".join(r)[:3000])
+        orig = [c for c in ctrl if c[0] != "PC-q8-lost"]
+        no = sum(1 for c in orig if not c[1])
+        pc = [c for c in ctrl if c[0] == "PC-q8-lost"]
+        P(f"original PC-q8-lost against its original prediction (e0 protocol §6, unchanged): {'PASS' if pc and pc[0][1] else 'FAIL'} "
+          "(superseded by PC-q8-lost-r2 for the revision-2 verdict; the original failure stands in the E0 record)")
+        P(f"revision-2 controls: {len(orig) - no + len(c2) - n2} PASS, {no + n2} FAIL (5 original controls + PC-q8-lost-r2)")
+        nc = no + n2 + (0 if ctrl else 1)
+    with open(os.path.join(outdir, "e0-metrics.csv"), "w", newline="") as fh:
         w = csv.writer(fh)
         w.writerow(keys + ["q8_frames", "q8_undelivered_by_location", "pairs", "cohort_pairs", "backlog_window_min", "onset"])
         for m in allm:
             w.writerow([fmt(m.get(k)) for k in keys] + [m["q8_frames"], m["q8_undelivered_by_location"], m["pairs"], m["cohort_pairs"],
                                                         m["backlog_window_min"], m["onset"]])
     verdict = nf == 0 and nc == 0
-    P("E0 correctness verdict: " + ("PASS (calibration results are reported above; STOP for review)" if verdict else "FAIL (stop and report)"))
+    P(("E0 revision-2 verdict: " if r2 else "E0 correctness verdict: ")
+      + ("PASS (calibration results are reported above; STOP for review)" if verdict else "FAIL (stop and report)"))
     return 0 if verdict else 1
 
 
@@ -1025,4 +1230,10 @@ if __name__ == "__main__":
         ok, det = nonpert(sys.argv[2], sys.argv[3], sys.argv[4])
         print(("IDENTICAL " if ok else "DIFFERENT ") + det)
         sys.exit(0 if ok else 1)
+    if len(sys.argv) > 1 and sys.argv[1] == "r2":
+        sys.exit(main(sys.argv[2], sys.argv[3], r2=True))
+    if len(sys.argv) > 1 and sys.argv[1] == "p1":
+        import json
+        p1_diag(sys.argv[2], sys.argv[3], sys.argv[4], int(sys.argv[5]), json.loads(sys.argv[6]))
+        sys.exit(0)
     sys.exit(main(sys.argv[1]))

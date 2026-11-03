@@ -41,7 +41,9 @@ UL_BEGIN, UL_END = "= UPLINK =", "= END UPLINK ="
 
 
 class MacLog:
-    def __init__(self, path, gnb="M2S72Bridge.gnb1.cellularNic.mac"):
+    def __init__(self, path, gnb="M2S72Bridge.gnb1.cellularNic.mac", alias=None):
+        """alias: {logged module name: full path} for captures made with a name-only prefix (%N, the P1 / P2
+        observation twins); it must map every logged name, else the line is not classified"""
         self.path = path
         self.grants = []            # (t, dir, node, lcid, bytes)
         self.pdus = []              # dicts: t, bytes, sdus, deleted, proc, node, pid
@@ -65,6 +67,8 @@ class MacLog:
                 if len(p) < 3 or not p[0][:1].isdigit():
                     continue
                 t, mod, msg = t_ps(p[0]), p[1], p[2]
+                if alias is not None:
+                    mod = alias.get(mod, mod)
                 if mod == gnb:
                     self.lines["mac"] += 1
                     if "AmcPilotAuto" in msg or "LteAllocator" in msg or "pushFeedback" in msg:

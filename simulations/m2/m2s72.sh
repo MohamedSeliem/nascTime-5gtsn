@@ -23,6 +23,9 @@
 #                       results/M2-S7.2a-e0-protocol.md): regen, the E0 runs one at a time in increasing DL load factor
 #                       with the declared stop conditions (free space, run time, escalation stop), the MAC-log twin, hashes,
 #                       check (check_m2s72_e0.py) -> results/M2-S7.2a-e0 (must not exist before; e0check: check only)
+#   ./m2s72.sh e0r2     E0 revision 2 (decision 2026-11-03 13:27): NO simulation. Verifies the E0 raw outputs against the
+#                       committed results/M2-S7.2a-e0/raw-outputs.sha256, then reruns the E0 check with the corrected positive
+#                       control (check_m2s72_e0.py r2) -> results/M2-S7.2a-e0r2 (must not exist before)
 # Requires OMNETPP_ROOT, INET_ROOT, SIMU5G_ROOT (or the defaults below); T0 also needs the committed
 # results/M2-S7.1/raw-outputs.sha256 and results/M2-S6/raw-outputs.sha256.
 set -eo pipefail
@@ -48,6 +51,8 @@ if [ "$MODE" = r2 ] && [ -e "$OUT" ]; then echo "ERROR: $OUT exists; the campaig
 # Stage 5 E0: results/M2-S7.2a-e0 (empty at the start; e0 refuses an existing one)
 case "$MODE" in e0|e0run|e0check|e0regen|e0hashes) OUT=$HERE/results/M2-S7.2a-e0 ;; esac
 if [ "$MODE" = e0 ] && [ -e "$OUT" ]; then echo "ERROR: $OUT exists; E0 starts from an empty directory" >&2; exit 1; fi
+case "$MODE" in e0r2) OUT=$HERE/results/M2-S7.2a-e0r2; E0OUT=$HERE/results/M2-S7.2a-e0 ;; esac
+if [ "$MODE" = e0r2 ] && [ -e "$OUT" ]; then echo "ERROR: $OUT exists; revision 2 starts from an empty directory" >&2; exit 1; fi
 E0_MIN_FREE_START_GB=20     # declared stop conditions (protocol §7)
 E0_MIN_FREE_RUN_GB=10
 declare -A E0_EST_MIN=([1]=4 [2]=6 [4]=10 [8]=18)   # run-time estimate (min) per DL factor; a run is stopped at 3 x
@@ -236,6 +241,12 @@ case "$MODE" in
   e0check) python3 "$CHK/check_m2s72_e0.py" "$OUT" > "$OUT/e0-check.txt" 2>&1 || true
           tail -3 "$OUT/e0-check.txt" ;;
   e0) for s in e0regen e0run e0hashes e0check; do "$0" "$s" || exit $?; done ;;
+  e0r2) (cd "$E0OUT" && sha256sum -c --quiet raw-outputs.sha256) > "$OUT/raw-verify.txt" 2>&1 \
+          && echo "all $(wc -l < "$E0OUT/raw-outputs.sha256") committed raw-output hashes of $E0OUT verified" >> "$OUT/raw-verify.txt" \
+          || { echo "ERROR: E0 raw outputs differ from the committed hashes, see $OUT/raw-verify.txt" >&2; exit 1; }
+        tail -1 "$OUT/raw-verify.txt"
+        python3 "$CHK/check_m2s72_e0.py" r2 "$E0OUT" "$OUT" > "$OUT/e0r2-check.txt" 2>&1 || true
+        tail -4 "$OUT/e0r2-check.txt" ;;
   hashes) (cd "$OUT" && find runs ref -type f \( -name '*.pcapng' -o -name '*.csv' \) | LC_ALL=C sort | xargs sha256sum > raw-outputs.sha256)
           wc -l < "$OUT/raw-outputs.sha256" ;;
   all) for s in regen f0 t0 hashes; do "$0" "$s" || exit $?; done ;;
