@@ -1,0 +1,3 @@
+cfqd start 2026-11-03T14:09:39Z: free 13 GB
+M2S72-E0-q0-f1 | factor 1 | rc 0 | wall 156 s (limit 720 s) | raw 651592878 B + log 57071291 B | free before 13 GB, after 12 GB
+M2S72-E0-qdu-f1 | factor 1 | rc 0 | wall 152 s (limit 720 s) | raw 651420601 B + log 56819325 B | free before 12 GB, after 11 GB

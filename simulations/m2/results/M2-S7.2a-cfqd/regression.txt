@@ -1,0 +1,10 @@
+Regression evidence (decision 2026-11-03 14:01), checker at 1231311
+1. check_m2s72_e0.py r2 re-run on results/M2-S7.2a-e0 into a scratch directory: e0r2-check.txt and e0-metrics.csv byte-identical to results/M2-S7.2a-e0r2 (cmp)
+   -> the opt-in exclusion rule and UE-k generalisation leave the E0 / E0r2 evaluation unchanged
+2. CF-1 eventlog difference localised (read-only): with the index/snapshot filter of CF-1, the only differing record of 0.elog (Q-0 f1, candidate vs E0) is
+   2089151c2089151
+   < S f 104864826 # 72664 t 0.36
+   ---
+   > S f 104864804 # 72664 t 0.36
+   (an 'S' snapshot record holding a file offset; the files differ in size by 22 B because records written before it carry the run id <config>-0-<date>-<pid>, which differs between the two runs)
+   event / message / module / log-text records (E BS ES SH CMB CME DM CM CC CE GC MC MDC CL SD BU EN -): 0 differing lines
