@@ -174,6 +174,45 @@ def _vl(mut, maclog=True):
         return G.verify_load_entries("test", ents, V, "one0", 1, 2, 1, maclog)
 
 
+def _u0():
+    spec, ues, dl, ul = G.load_spec(V, "one0", 2, 1, 0)
+    ok = (ul is None and ues == [0] and spec[("talker[0]", "numApps")] == str(G.LISTENER_APPS)
+          and not any(m.startswith("talker") and ".app[" in m for m, _ in spec) and spec[("listener", "numApps")] == "6"
+          and ("listener.app[5]", "source.productionInterval") in spec)
+    return None if ok else f"unexpected u0 spec ul={ul} {sorted(spec)[:4]}"
+
+
+def _nominal():
+    a = G.interval_ns(1, 1.1, nominal=True)
+    eff = G.effective_factor(1, 1.1, nominal=True)
+    ok = a == 227273 and abs(float(eff) - 1.1) / 1.1 < 1e-5 and G.load_interval(1, 2, nominal=True) == G.load_interval(1, 2) == "125us"
+    return None if ok else f"nominal 1.1 -> {a} ns, factor {float(eff)}"
+
+
+def _e2_all_nominal():
+    for o, pl, n, f in G.e2_matrix():
+        k = len(G.loaded_ues(pl, n))
+        if abs(G.effective_factor(k, f, True) - G.Fraction(str(f))) / G.Fraction(str(f)) > G.E2_NOMINAL_TOL:
+            return f"{o} {pl} n{n} f{f} beyond tolerance"
+    names = [G.e2_name(*x) for x in G.e2_matrix()]
+    if len(names) != 98 or len(set(names)) != 98 or any(pl == "sym" and n == 1 for _, pl, n, _ in G.e2_matrix()):
+        return f"E2 matrix {len(names)} configs ({len(set(names))} unique)"
+    return None
+
+
+def _ve(mut, h5=False, n=2, pl="one0", f=1.1):
+    spec, *_ = G.load_spec(V, pl, n, f, 0, nominal=True)
+    ents = [(f"*.{m}.{r}", v) for (m, r), v in spec.items()]
+    ents += [(f"*.talker[{k}].numApps", "3") for k in range(n)]
+    ents += ([] if h5 else [("*.gnb1.cellularNic.mac.harqProcesses", "16"), ("*.ue[*].cellularNic.nrMac.harqProcesses", "16")])
+    ents += [("*.listener.eth[0].address", f'"{G.LISTENER_MAC}"'), ("*.numUe", str(n))] + [(k, "x") for k in G.MACLOG_KEYS]
+    ents = mut(ents)
+    import io
+    import contextlib
+    with contextlib.redirect_stdout(io.StringIO()):
+        return G.verify_e2_entries("test", ents, V, pl, n, f, h5)
+
+
 LOAD_CASES = [
     ("load interval not an integer ns (factor 3)", lambda: _err(lambda: G.load_interval(1, 3)), r"not an integer number of ns"),
     ("load factor 0", lambda: _err(lambda: G.load_spec(V, "one0", 1, 0)), r"must be > 0"),
@@ -192,6 +231,25 @@ LOAD_CASES = [
     ("verify: HARQ16 missing is detected", lambda: "detected" if not _vl(lambda e: [x for x in e if "harq" not in x[0]]) else None, r"detected"),
     ("verify: MAC log missing is detected", lambda: "detected" if not _vl(lambda e: [x for x in e if x[0] != "cmdenv-log-prefix"]) else None, r"detected"),
     ("verify: MAC log in a no-log twin is detected", lambda: "detected" if not _vl(lambda e: e, maclog=False) else None, r"detected"),
+    # Stage 5 E2 preparation (decision 2026-11-03 20:05): UL factor 0, nominal DL factors, DL-only verification
+    ("UL factor negative", lambda: _err(lambda: G.load_spec(V, "one0", 1, 1, -1)), r"must be >= 0 \(UL\)"),
+    ("DL factor 0 with UL factor 0", lambda: _err(lambda: G.load_spec(V, "one0", 1, 0, 0)), r"must be > 0"),
+    ("exact mode still refuses a non-integer interval (factor 1.1, E0 path)", lambda: _err(lambda: G.load_interval(1, 1.1)), r"not an integer number of ns"),
+    ("nominal mode refuses a factor beyond 1e-5 (factor 11, 1 UE)", lambda: _err(lambda: G.interval_ns(1, 11, nominal=True)), r"beyond"),
+    ("u0 name suffix", lambda: None if G.load_name("q0", "one0", 1, 1, 0) == "M2S72LD-q0-one0-n1-f1-u0" else G.load_name("q0", "one0", 1, 1, 0), None),
+    ("allowed: u0 spec has no UL load app (talker numApps 3, no talker app[3] values)", _u0, None),
+    ("allowed: nominal 1.1 rounds to 227273 ns within 1e-5; exact factors unchanged", _nominal, None),
+    ("allowed: every E2 factor within tolerance; 98 unique configs, no sym at N = 1", _e2_all_nominal, None),
+    ("verify E2: as generated passes (HARQ16)", lambda: None if _ve(lambda e: e) else "verify_e2_entries rejected the generated values", None),
+    ("verify E2: as generated passes (HARQ5)", lambda: None if _ve(lambda e: e, h5=True) else "rejected HARQ5", None),
+    ("verify E2: sym n8 as generated passes", lambda: None if _ve(lambda e: e, n=8, pl="sym", f=1.3) else "rejected sym n8", None),
+    ("verify E2: a talker UL load app (numApps 4) is detected", lambda: "detected" if not _ve(lambda e: [("*.talker[0].numApps", "4")] + e) else None, r"detected"),
+    ("verify E2: a talker[k].app[3] setting is detected", lambda: "detected" if not _ve(lambda e: [("*.talker[*].app[3].typename", '"UdpSourceApp"')] + e) else None, r"detected"),
+    ("verify E2: a wildcard talker app setting reaching app[3] is detected", lambda: "detected" if not _ve(lambda e: [("**.talker[1].app[*].source.productionInterval", "250us")] + e) else None, r"detected"),
+    ("verify E2: DL load interval shifted by 1 ns (listener.app[5], one0 n2) is detected", lambda: "detected" if not _ve(lambda e: [("*.listener.app[5].source.productionInterval", "227272ns")] + e) else None, r"detected"),
+    ("verify E2: HARQ16 in an E2H5 config is detected", lambda: "detected" if not _ve(lambda e: e + [("*.gnb1.cellularNic.mac.harqProcesses", "16")], h5=True) else None, r"detected"),
+    ("verify E2: HARQ16 missing on one UE is detected", lambda: "detected" if not _ve(lambda e: [("*.ue[1].cellularNic.nrMac.harqProcesses", "5")] + e) else None, r"detected"),
+    ("verify E2: MAC log missing is detected", lambda: "detected" if not _ve(lambda e: [x for x in e if x[0] != "cmdenv-log-prefix"]) else None, r"detected"),
 ]
 
 

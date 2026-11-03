@@ -1,0 +1,16 @@
+e4f54bbf56311ee6b6d02dd55fe8ebee6a93e57468ab3e5f4fbed64f165a06ec  ./results-accepted-Repro-UL-MAXCI.log.gz
+e6f2fcd5078104aadb3a97803101bad6636bb4a254a5cbb34de8972526ea7827  ./results-accepted-Repro-UL-QOSPF.log.gz
+0b465d48fe6dadeafd865669db7f7ace0b19a9283cb2217f79302e5d7bc4706d  ./results-candidate-Repro-UL-MAXCI.log.gz
+27ebbefb0336587d3ca8b1177c7ea8402baca76438ee0c5ab21cd45a34a4a754  ./results-candidate-Repro-UL-QOSPF.log.gz
+59d21fea34b2228d07fc20465b567d0712587735cd71d44ead26354302edae81  ./results/accepted/Repro-UL-MAXCI/0.sca
+067b939d18f280cf65fbefc6e90a53cfff1809ab1b7a1050f00cbce03e2be77a  ./results/accepted/Repro-UL-MAXCI/0.vci
+0622aafa9202c738cd87ce33c3e7f1dc8ef18cde3018f3c0f9d79dc8252fc981  ./results/accepted/Repro-UL-MAXCI/0.vec
+3483816e163c91c13ce0faa9f2ab7edd49b7a9ad07205e014b2fd5c1ba6d8943  ./results/accepted/Repro-UL-QOSPF/0.sca
+e11626f1854d3313816d1c4f8570a53e2e112f5ac26b4f5444ff815ee2f344d9  ./results/accepted/Repro-UL-QOSPF/0.vci
+ad5657a47760a5adeddc54431d8d63cc2ed5862e1c68545a7621613d875ca567  ./results/accepted/Repro-UL-QOSPF/0.vec
+b10571758fc5f7d55ea47160be9ec8ee85318f001485428b438938c50c88407f  ./results/candidate/Repro-UL-MAXCI/0.sca
+76a21be27a9fabe46b20afb52103f75b25a8c13a0bdc6f10767c0a50e3f05147  ./results/candidate/Repro-UL-MAXCI/0.vci
+3599404cc4ea3f1b0eafda1a38e4722d74470bfd216ceb87d86e2d2a9add0955  ./results/candidate/Repro-UL-MAXCI/0.vec
+50ad5264c2b1fa5bb76ac8ced7fec9669e758911678420fee03fa3ec0add7341  ./results/candidate/Repro-UL-QOSPF/0.sca
+8df7461f6768df5ec1d0f677ad30711a9ac794049fc2b22f1e3467d9bdbf232e  ./results/candidate/Repro-UL-QOSPF/0.vci
+02a9e1b6cacaf15cf052cd86fddf177ab37a1033024aaa865d1f146e75d1789c  ./results/candidate/Repro-UL-QOSPF/0.vec

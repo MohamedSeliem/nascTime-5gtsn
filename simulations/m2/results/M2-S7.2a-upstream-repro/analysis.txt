@@ -1,0 +1,4 @@
+accepted  Repro-UL-QOSPF  UDP sent 11601 received 594 (0.051) | [0.5 s, 3 s): BSR TTIs 108, candidate TTIs 108, grant TTIs 108, granted 715716 B
+accepted  Repro-UL-MAXCI  UDP sent 11601 received 8711 (0.751) | [0.5 s, 3 s): BSR TTIs 16, candidate TTIs 2112, grant TTIs 2112, granted 13942660 B
+candidate Repro-UL-QOSPF  UDP sent 11601 received 8708 (0.751) | [0.5 s, 3 s): BSR TTIs 16, candidate TTIs 2159, grant TTIs 2114, granted 13959418 B
+candidate Repro-UL-MAXCI  UDP sent 11601 received 8711 (0.751) | [0.5 s, 3 s): BSR TTIs 16, candidate TTIs 2112, grant TTIs 2112, granted 13942660 B

@@ -31,6 +31,12 @@
 #                       Simu5G and any build whose LteSchedulerEnb.cc differs from 1.8.0 by other than the committed
 #                       results/M2-S7.2a-cfqd-candidate-fix.patch; runs M2S72-E0-q0-f1 and M2S72-E0-qdu-f1 on it, hashes,
 #                       check (check_m2s72_cfqd.py, E0 outputs re-used as the original-build side) -> results/M2-S7.2a-cfqd
+#   M2S72_E2_AUTH="<decision reference>" ./m2s72.sh e2rb
+#                       Stage 5 E2 step 0, DL-only re-baseline (PREPARED 2026-11-03 20:05, NOT authorised to run): refuses
+#                       to start without M2S72_E2_AUTH, with any Simu5G other than the accepted 1.8.0 library, or with an
+#                       existing results/M2-S7.2a-e2rb; regen, the 4 runs M2S72-E2-<q0|qdu>-one0-n1-f<1|2> with the E0 stop
+#                       conditions, hashes, check (check_m2s72_e2.py rebaseline: the acceptance checkpoint of
+#                       results/M2-S7.2a-e2-protocol.md section 4) -> results/M2-S7.2a-e2rb       (e2rbcheck: check only)
 # Requires OMNETPP_ROOT, INET_ROOT, SIMU5G_ROOT (or the defaults below); T0 also needs the committed
 # results/M2-S7.1/raw-outputs.sha256 and results/M2-S6/raw-outputs.sha256.
 set -eo pipefail
@@ -39,6 +45,7 @@ NASCTIME=$(cd "$HERE/../.." && pwd)
 export OMNETPP_ROOT=${OMNETPP_ROOT:-/root/stack/omnetpp-6.4.0}
 export INET_ROOT=${INET_ROOT:-/root/stack/inet-4.7.0}
 SIMU5G_ROOT=${SIMU5G_ROOT:-/root/stack/simu5g-1.8.0}
+ACCEPTED_LIBSIMU5G_SHA256=203cf231e6605188662769b439e403d832f516d2e08c8a0c5a9e8f55f4305cf6
 JOBS=${JOBS:-2}
 MODE=${1:-all}
 # Checkpoint 1 revision 2 (design rev. 2.1): records go to results/M2-S7.2a-cp1r2; the Checkpoint 1 record
@@ -69,6 +76,15 @@ if [ "$MODE" = cfqd ]; then
   (cd "$SIMU5G_ROOT/src" && diff -rq --exclude='*.o' --exclude='*.so' --exclude='*.d' --exclude='*_m.cc' --exclude='*_m.h' \
      --exclude=Makefile --exclude=features.h --exclude=out "$ACCEPTED/src" . | grep -v "^Files .*$F and" ) \
     && { echo "ERROR: the candidate build differs from 1.8.0 in other source files" >&2; exit 1; } || true
+fi
+case "$MODE" in e2rb|e2rbcheck) OUT=$HERE/results/M2-S7.2a-e2rb; E0OUT=$HERE/results/M2-S7.2a-e0 ;; esac
+if [ "$MODE" = e2rb ]; then
+  [ -n "$M2S72_E2_AUTH" ] || { echo "ERROR: e2rb is not authorised (set M2S72_E2_AUTH to the decision reference)" >&2; exit 1; }
+  [ -e "$OUT" ] && { echo "ERROR: $OUT exists; the re-baseline starts from an empty directory" >&2; exit 1; }
+  [ "$(cd "$SIMU5G_ROOT" && pwd -P)" = "$(cd /root/stack/simu5g-1.8.0 && pwd -P)" ] \
+    || { echo "ERROR: e2rb runs only on the accepted Simu5G 1.8.0 (/root/stack/simu5g-1.8.0)" >&2; exit 1; }
+  [ "$(sha256sum "$SIMU5G_ROOT/src/libsimu5g.so" | cut -d' ' -f1)" = "$ACCEPTED_LIBSIMU5G_SHA256" ] \
+    || { echo "ERROR: libsimu5g.so differs from the accepted library" >&2; exit 1; }
 fi
 if [ "$MODE" = e0r2 ] && [ -e "$OUT" ]; then echo "ERROR: $OUT exists; revision 2 starts from an empty directory" >&2; exit 1; fi
 E0_MIN_FREE_START_GB=20     # declared stop conditions (protocol §7)
@@ -270,6 +286,16 @@ case "$MODE" in
         (cd "$OUT" && find runs -type f \( -name '*.pcapng' -o -name '*.csv' -o -name '*.log.gz' \) | LC_ALL=C sort | xargs sha256sum > raw-outputs.sha256)
         python3 "$CHK/check_m2s72_cfqd.py" "$OUT" "$E0OUT" > "$OUT/cfqd-check.txt" 2>&1 || true
         tail -3 "$OUT/cfqd-check.txt" ;;
+  e2rb) echo "authorisation: $M2S72_E2_AUTH" > "$OUT/authorisation.txt"
+        regen > /dev/null
+        fr=$(free_gb "$OUT"); echo "E2 step-0 start $(date -u +%FT%TZ): free $fr GB (required >= $E0_MIN_FREE_START_GB GB)" | tee "$OUT/e0-runs.txt"
+        [ "$fr" -lt "$E0_MIN_FREE_START_GB" ] && { echo "STOP: free space below the batch-start requirement" | tee -a "$OUT/e0-runs.txt"; exit 3; }
+        for f in 1 2; do for o in q0 qdu; do e0one "M2S72-E2-$o-one0-n1-f$f" "$f" || exit $?; done; done
+        (cd "$OUT" && find runs -type f \( -name '*.pcapng' -o -name '*.csv' -o -name '*.log.gz' \) | LC_ALL=C sort | xargs sha256sum > raw-outputs.sha256)
+        python3 "$CHK/check_m2s72_e2.py" rebaseline "$OUT" "$E0OUT" > "$OUT/e2rb-check.txt" 2>&1 || true
+        tail -2 "$OUT/e2rb-check.txt" ;;
+  e2rbcheck) python3 "$CHK/check_m2s72_e2.py" rebaseline "$OUT" "$E0OUT" > "$OUT/e2rb-check.txt" 2>&1 || true
+        tail -2 "$OUT/e2rb-check.txt" ;;
   e0r2) (cd "$E0OUT" && sha256sum -c --quiet raw-outputs.sha256) > "$OUT/raw-verify.txt" 2>&1 \
           && echo "all $(wc -l < "$E0OUT/raw-outputs.sha256") committed raw-output hashes of $E0OUT verified" >> "$OUT/raw-verify.txt" \
           || { echo "ERROR: E0 raw outputs differ from the committed hashes, see $OUT/raw-verify.txt" >&2; exit 1; }

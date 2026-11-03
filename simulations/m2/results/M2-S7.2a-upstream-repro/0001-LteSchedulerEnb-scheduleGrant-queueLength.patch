@@ -1,0 +1,32 @@
+From cb6560a1c31f0ef0c1eaed78f663c7cb5714f639 Mon Sep 17 00:00:00 2001
+From: "nascTime (draft, not submitted)" <noreply@example.invalid>
+Date: Tue, 3 Nov 2026 20:49:50 +0000
+Subject: [PATCH] LteSchedulerEnb::scheduleGrant: compute remaining queueLength
+ against queueLength, not the decremented toServe
+
+A capped grant (bytes < backlog) drives toServe to 0 in the band that
+exhausts the cap; line 403 then compared uBytes with the already
+decremented toServe, set queueLength = 0 while backlog remained, and
+reported active = false. QoS-aware schedulers erase the connection
+from their active set, so a backlogged UL connection is served once
+per BSR cycle.
+---
+ src/simu5g/stack/mac/scheduler/LteSchedulerEnb.cc | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/src/simu5g/stack/mac/scheduler/LteSchedulerEnb.cc b/src/simu5g/stack/mac/scheduler/LteSchedulerEnb.cc
+index 3af079be..5630e12a 100644
+--- a/src/simu5g/stack/mac/scheduler/LteSchedulerEnb.cc
++++ b/src/simu5g/stack/mac/scheduler/LteSchedulerEnb.cc
+@@ -400,7 +400,7 @@ unsigned int LteSchedulerEnb::scheduleGrant(MacCid cid, unsigned int bytes, bool
+ 
+             // update the counter of bytes to be served
+             toServe = (uBytes > toServe) ? 0 : toServe - uBytes;
+-            queueLength = (uBytes > toServe) ? 0 : queueLength - uBytes;
++            queueLength = (uBytes > queueLength) ? 0 : queueLength - uBytes;
+             if (toServe == 0) {
+                 // all bytes booked, go to allocation
+                 stop = true;
+-- 
+2.43.0
+

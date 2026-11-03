@@ -1,0 +1,47 @@
+PLUMBING DRY RUN, NOT E2 EVIDENCE: the E0 run M2S72-E0-q0-f1 (UL-loaded, E0 configuration) aliased by symlinks as
+runs/M2S72-E2-q0-one0-n1-f1/{M2S72-E2-q0-one0-n1-f1 -> E0 .sca/.vec/.elog dir, m2log/..-0, pcap/..-0} and run-<cfg>.log.gz;
+the other three re-baseline runs are absent on purpose (missing evidence must FAIL closed).
+Expected: RB-1 PASS, RB-3 PASS, RB-2 FAIL (UL load present, E0 extends), 3 x missing FAIL, checkpoint NOT ACCEPTED.
+
+FAIL | CFG-ident | M2S72-E2-q0-one0-n1-f1-0 | extends = 'M2S72-MACLOG, M2S72LD-q0-Ca-L-one0-n1-f1, M2S72-HARQ16, M2S72-SL, M2S72-L, M2S72-ev, M2S72D4N1-q0-Ca-L, M2S72N1-q0-Ca-L, M2S72B-q0-Ca-L'; expected 'M2S72-MACLOG, M2S72LD-q0-Ca-L-one0-n1-f1-u0, M2S72-HARQ16, M2S72-SL, M2S72-L, M2S72-ev, M2S72D4N1-q0-Ca-L, M2S72N1-q0-Ca-L, M2S72B-q0-Ca-L'
+PASS | CFG-rate-DL | M2S72-E2-q0-one0-n1-f1-0 | 1 DL load stream(s) to talker[0], every [250.0] us from 0.3005 s, 46799 frames, exact
+FAIL | NO-UL | M2S72-E2-q0-one0-n1-f1-0 | no UL load app or statistic on talker[0..0], 0 UL load frames at 1 talker egress and the listener ingress; FAIL talker[0].numApps = '4' (from '*.talker[0].numApps'), expected 3; 11 configuration entries can address a talker app[3] (first '*.talker[0].app[3].source.productionInterval = 250us'); 19 talker[k].app[3] statistics (first 'scalar M2S72Bridge.talker[0].app[3].source packets:count 47599'); talker[0]: 47599 UL load frames at egress (first 0.1005 s); listener: 47209 UL load frames at ingress
+INFO | DL-active (info) | M2S72-E2-q0-one0-n1-f1-0 2049-1 | backlogged TTIs 11701, candidate TTIs 11701, DEACTIVATED 0 (with arrival 0, without 0, after a capped grant 0), first [], grants 13455 (0 capped)
+INFO | DL-active (info) | M2S72-E2-q0-one0-n1-f1-0 2049-2 | backlogged TTIs 1115, candidate TTIs 1115, DEACTIVATED 0 (with arrival 0, without 0, after a capped grant 0), first [], grants 1115 (0 capped)
+  E0-gate | PASS | F0-1 | M2S72-E2-q0-one0-n1-f1-0 | cohort 92 Sync + 92 Follow_Up (GM end <= T_end - 0.5 s) x 1 DS-TTs; N3 192 DL gPTP copies on tunnels [1], QFI [0]; tail deliveries outside the cohort 6
+  E0-gate | FAIL | I-2 strict (info) | M2S72-E2-q0-one0-n1-f1-0 | 95 corrected Follow_Up copies over 1 DS-TTs; NW-TT corrected 96; dsTt[0] Follow_Up 16: event hold  Sync still queued; dsTt[0] Follow_Up 16: event release  2 fra
+  E0-gate | PASS | F0-3 | M2S72-E2-q0-one0-n1-f1-0 | gPTP on N3 uplink 0; out of DS-TT eth[0] {0: 0}; UPF dnEth out 0; NW-TT eth[0] in 0
+  E0-gate | PASS | F0-4 | M2S72-E2-q0-one0-n1-f1-0 | misdirected M_j [0] (destinations {}); conservation per (source, VID): UL t0/42: 48394 in, 48394 out on dnEth, 0 in flight, 0 on tunnels; DL t0/42: 47968 in, 47
+  E0-gate | PASS | F0-5 | M2S72-E2-q0-one0-n1-f1-0 | DRBs [1, 2], gPTP on DRB 1: SDUs/N3 copies ['ue[0] node 2049: 192/192']
+  E0-gate | PASS | F0-7d | M2S72-E2-q0-one0-n1-f1-0 | UPF-internal delays from this run's eventlog: UL [(0, 2)] DL [(0, 2)] (ps: count)
+  E0-gate | PASS | F0-6 | M2S72-E2-q0-one0-n1-f1-0 | 2 unicast keys, 0 problems: listener VID 42: STATIC-VALID (configured; required STATIC-VALID): S1 ok (recorded [('0A-AB-00-00-00-01', 42, 'dnEth')]); S2 ok (I_d
+  E0-gate | PASS | F0-8 | M2S72-E2-q0-one0-n1-f1-0 | agingTime 120s: agingTime - 1 s > T_end (12.000000000000 s) holds; frames with the listener's source MAC and VID 42 entering on session tunnels: 0
+  E0-gate | PASS | I-1 | M2S72-E2-q0-one0-n1-f1-0 | 95 corrected Follow_Ups over 1 DS-TTs paired with their own Sync (syncFrameId, TSe = own egress stamp)
+  E0-gate | PASS | I-3 | M2S72-E2-q0-one0-n1-f1-0 | 95 Follow_Ups at the slaves carry their own DS-TT's cfOut; Syncs whose cfOut differs between DS-TTs: 0 of 95
+  E0-gate | PASS | I-4 | M2S72-E2-q0-one0-n1-f1-0 | distinct ttIds ['2'], Pdelay clockIdentities ['"\\"0x00000000000000d1\\""'], slave identities 1, NR MAC node ids [2049]; RNG mapping recorded (num-rngs 2)
+  E0-gate | PASS | M2 | M2S72-E2-q0-one0-n1-f1-0 slave 0 | 18 M2-S6 rows ({'K': 5, 'S': 1, 'R': 4, 'E': 8}) all exact
+  E0-gate | PASS | M4 | M2S72-E2-q0-one0-n1-f1-0 GM drift | GM rate over every residence interval of every slave one value rho_G = 1.000100000000 (rho_G - (1 + 100 ppm) = 4.545e-20) (1 distinct); rate part of E_res = (r 
+  E0-gate | PASS | I-2H | M2S72-E2-q0-one0-n1-f1-0 DS-TT 0 | FU corrected 95 (held 65); hold 65, release 65, held frames 1, expired 0, discarded 0; egress FIFO replay 48163 frames, 0 deviations; end-of-run none
+  E0-gate | PASS | Q8 | M2S72-E2-q0-one0-n1-f1-0 | GM frames 192: {'delivered': 190, 'censored': 2}; undelivered by (fate, last confirmed location) {('censored', 'gNB MAC / air'): 2}; pairs {'used': 95, 'censore
+  E0-gate | PASS | Q8-eq | M2S72-E2-q0-one0-n1-f1-0 | memory-light replay = m2s71_lib.replay_um / pdu_owner on this run (47574 SDUs, queue 1 at T_end)
+  E0-gate | PASS | Q8-x | M2S72-E2-q0-one0-n1-f1-0 | MAC log {'mac': 11253790, 'other': 96554, 'rlc-tx': 274142, 'rlc-rx': 107393}; RLC TX/RX log vs vectors, UNCLASSIFIED, overflow vs scalar, deletion vs delivered
+  E0-gate | PASS | EOR | M2S72-E2-q0-one0-n1-f1-0 DS-TT 0 | GM Sync+Follow_Up 192: delivered 190, end-of-run 2 ['S95', 'F95'], LOST 0; L_max 6.150179001 ms
+  E0-gate | NOT APPLICABLE | I-5 | M2S72-E2-q0-one0-n1-f1-0 | E0 is N = 1: no reference of another N
+  E0-gate | NOT APPLICABLE | M3 | M2S72-E2-q0-one0-n1-f1-0 | cross-slave pair oracle: no pair of slaves at N = 1
+  E0-gate | NOT APPLICABLE | M3d | M2S72-E2-q0-one0-n1-f1-0 | cross-slave pair decomposition: no pair of slaves at N = 1
+  E0-gate | NOT APPLICABLE | H-cov | M2S72-E2-q0-one0-n1-f1-0 | no residence heterogeneity declared at N = 1
+  E0-gate | NOT APPLICABLE | I-4 stream | M2S72-E2-q0-one0-n1-f1-0 | needs N = 2 and N = 4
+PASS | RB-1 | M2S72-E2-q0-one0-n1-f1-0 | E0 run-level gates (E0 protocol §3 scoping): 23 rows, failed none
+FAIL | RB-2 | M2S72-E2-q0-one0-n1-f1-0 | CFG-ident, CFG-rate-DL and NO-UL
+PASS | RB-3 | M2S72-E2-q0-one0-n1-f1-0 | DL achieved 45.4445 Mb/s vs E0 45.4445 (tolerance 1%); offered 45.4400, served fraction 1.0001 (>= 0.99)
+INFO | RB-P (info) | M2S72-E2-q0-one0-n1-f1-0 | censored_cohort_fraction: E2 0.0 | E0 0
+INFO | RB-P (info) | M2S72-E2-q0-one0-n1-f1-0 | res_p50_ms: E2 4.557920755 | E0 4.55792
+INFO | RB-P (info) | M2S72-E2-q0-one0-n1-f1-0 | res_p99_ms: E2 5.946344759 | E0 5.94634
+INFO | RB-P (info) | M2S72-E2-q0-one0-n1-f1-0 | max_e_ns: E2 5.0 | E0 5
+INFO | RB-P (info) | M2S72-E2-q0-one0-n1-f1-0 | holds: E2 65 | E0 65
+INFO | RB-P (info) | M2S72-E2-q0-one0-n1-f1-0 | mac_max_busy_harq: E2 6 | E0 6
+INFO | RB-P (info) | M2S72-E2-q0-one0-n1-f1-0 | ul_achieved_Mbps: E2 44.8112 | E0 44.8112
+FAIL | RB | M2S72-E2-qdu-one0-n1-f1-0 | missing evidence: run directory absent
+FAIL | RB | M2S72-E2-q0-one0-n1-f2-0 | missing evidence: run directory absent
+FAIL | RB | M2S72-E2-qdu-one0-n1-f2-0 | missing evidence: run directory absent
+FAIL | RB checkpoint | step 0 | NOT ACCEPTED: STOP, report, no further E2 run

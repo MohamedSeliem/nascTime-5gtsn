@@ -1,0 +1,12 @@
+DL connection deactivation diagnostic: config | node-DRB | SDUs | backlogged TTIs | candidate TTIs | DEACTIVATED (backlogged, not candidate): total / with an arrival in the previous ms / without / after a capped grant | first such TTIs | grants (capped) | queued at T_end
+M2S72-E0-q0-f1 | 2049-1 | 47575 | 11701 | 11701 | 0 / 0 / 0 / 0 | [] | 13455 (0) | 1
+M2S72-E0-q0-f1 | 2049-2 | 585 | 1115 | 1115 | 0 / 0 / 0 / 0 | [] | 1115 (0) | 0
+M2S72-E0-qdu-f1 | 2049-1 | 47383 | 11699 | 11699 | 0 / 0 / 0 / 0 | [] | 11700 (2081) | 3
+M2S72-E0-qdu-f1 | 2049-2 | 585 | 586 | 586 | 0 / 0 / 0 / 0 | [] | 586 (0) | 0
+M2S72-E0-qdu-f1 | 2049-4 | 192 | 96 | 96 | 0 / 0 / 0 / 0 | [] | 96 (0) | 0
+M2S72-E0-q0-f2 | 2049-1 | 94373 | 11701 | 11701 | 0 / 0 / 0 / 0 | [] | 22817 (0) | 37283
+M2S72-E0-q0-f2 | 2049-2 | 585 | 1115 | 1115 | 0 / 0 / 0 / 0 | [] | 585 (0) | 0
+M2S72-E0-qdu-f2 | 2049-1 | 94181 | 11699 | 11699 | 0 / 0 / 0 / 0 | [] | 11700 (11020) | 37686
+M2S72-E0-qdu-f2 | 2049-2 | 585 | 586 | 586 | 0 / 0 / 0 / 0 | [] | 586 (0) | 0
+M2S72-E0-qdu-f2 | 2049-4 | 192 | 96 | 96 | 0 / 0 / 0 / 0 | [] | 96 (0) | 0
+PASS | diagnostic self-test on M2S72-E0-qdu-f2: candidate of 2049-1 removed at TTI 6001 -> DEACTIVATED 0 -> 1 (first [6001])

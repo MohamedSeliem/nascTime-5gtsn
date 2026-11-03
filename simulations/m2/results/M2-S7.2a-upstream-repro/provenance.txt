@@ -1,0 +1,61 @@
+M2-S7.2a upstream contribution preparation: minimal upstream-example reproduction of LteSchedulerEnb.cc:403
+(decision 2026-11-03 20:05, "Upstream contribution preparation" items 1-5; NOT submitted, nothing pushed)
+
+Isolation
+  Working directory /root/upstream/simu5g-repro-403, outside the nascTime repository; nascTime libraries,
+  configurations and NED are not loaded. The only configuration is repro.ini, which includes the upstream example
+  /root/stack/simu5g-1.8.0/simulations/nr/standalone_drb/omnetpp.ini, unchanged. Its four files (README.md, demo.xml,
+  omnetpp.ini, run) were compared byte for byte with `git show v1.8.0:simulations/nr/standalone_drb/<f>` and are
+  identical.
+  The upstream [Config Standalone] already sets schedulingDisciplineUl = "QOS_PF" (omnetpp.ini:67), so the affected
+  scheduler is the example's own UL default. Repro-UL-QOSPF restates that value; Repro-UL-MAXCI overrides it.
+
+Builds (both Simu5G 1.8.0 with INET 4.7.0, OMNeT++ 6.4.0)
+  accepted   /root/stack/simu5g-1.8.0         libsimu5g.so sha256 203cf231e6605188662769b439e403d832f516d2e08c8a0c5a9e8f55f4305cf6 (unchanged)
+  candidate  /root/cf/simu5g-1.8.0-qdcf       libsimu5g.so sha256 87f45b9bf695c000a90a226d4709f4c328c4d0ec3ad0f038c3c52d6d7a99f12d
+             = 1.8.0 plus results/M2-S7.2a-cfqd-candidate-fix.patch (one line)
+
+Commands (from /root/upstream/simu5g-repro-403; S = the build root; b = accepted | candidate; c = Repro-UL-QOSPF | Repro-UL-MAXCI)
+  opp_run -l $S/src/simu5g -n $S/src:$S/simulations:/root/stack/inet-4.7.0/src -u Cmdenv -f repro.ini -c $c -r 0 \
+      --result-dir=results/$b --cmdenv-express-mode=false --fingerprint=0000-0000/tplx 2>&1 | gzip > results-$b-$c.log.gz
+  python3 -I analyse.py > analysis.txt
+  Runs made 2026-11-03 20:07 UTC (3 s simulated each; 4 runs). Raw-output hashes: raw-outputs.sha256 (16 files).
+
+Result (analysis.txt; window [0.5 s, 3 s); UE offers 1400 B every 0.25 ms = 44.8 Mb/s, above this example's UL capacity)
+  accepted  QOS_PF  UDP received 594 / 11601 (0.051); 108 BSR TTIs, 108 candidate TTIs, 108 grant TTIs (one grant per BSR)
+  accepted  MAXCI   UDP received 8711 / 11601 (0.751); 16 BSR TTIs, 2112 candidate TTIs, 2112 grant TTIs
+  candidate QOS_PF  UDP received 8708 / 11601 (0.751); 16 BSR TTIs, 2159 candidate TTIs, 2114 grant TTIs
+  candidate MAXCI   UDP received 8711 / 11601 (0.751); identical counters to accepted MAXCI
+  -> on the unmodified upstream example, QOS_PF UL delivers 5.1 % of the offered UDP datagrams vs 75.1 % (capacity-
+     limited) under MAXCI; with the one-line correction QOS_PF delivers 75.1 % and MAXCI is unchanged.
+  Not claimed: candidate QOS_PF and MAXCI are different schedulers; they are not identical (8708 vs 8711 datagrams).
+
+DISCLOSED INCIDENT (output placement)
+  The runs used the relative --result-dir=results/$b shown above. OMNeT++ resolved it against the directory of the
+  included upstream ini, not the working directory, so the 12 result files (0.sca/.vec/.vci x 4 runs) were written into
+  the accepted tree's /root/stack/simu5g-1.8.0/simulations/nr/standalone_drb/results/{accepted,candidate}/. (The
+  stdout MAC logs went to the working directory as intended.) The 12 files were moved unchanged to
+  /root/upstream/simu5g-repro-403/results/; a re-run must use an ABSOLUTE --result-dir. Afterwards the
+  standalone_drb directory was verified identical to v1.8.0 (above, no extra files) and the accepted libsimu5g.so
+  hash was verified unchanged. No source, library or configuration file of the accepted Simu5G was modified.
+
+Duplicate search (2026-11-03)
+  Pull requests, open AND closed: all 31 refs/pull/*/head of github.com/Unipisa/simu5g fetched by anonymous git into
+  the reference clone /root/inv/simu5g (HEAD left at master 466f9a96); each PR diffed against its merge base with
+  master (pr-scan.txt). Six PRs touch src/.../scheduler/: #179 (log typo), #210 (DQos module / inet reference), #211
+  ("check copy impact"; 148 lines of LteSchedulerEnb.cc; its version still has the original line, at :596), #224,
+  #227 (refactors), #307 (open, 2026-10-22: no DL grant to a UE whose H-ARQ processes are all busy,
+  LteSchedulerEnbDl.cc; a different defect, related to nascTime's HARQ-deletion finding). No PR changes the
+  scheduleGrant toServe / queueLength update.
+  master: 466f9a96 still has the line (LteSchedulerEnb.cc:403); no commit after v1.8.0 touches the file.
+  Issues: open issues page 1 was read earlier (no match). Closed issues and further pages could NOT be checked
+  (GitHub API not available to this session: "No linked GitHub account"; web pages robots-disallowed); a web search
+  found nothing matching. A manual search of open and closed issues is required before submission.
+
+Upstream-format patch
+  0001-LteSchedulerEnb-scheduleGrant-queueLength.patch: git format-patch against master 466f9a96 (local detached
+  worktree, removed afterwards; nothing pushed). `git apply --check` passes on master 466f9a96 and on v1.8.0. Code
+  change identical to the evaluated candidate patch, without its "COUNTERFACTUAL" comment.
+
+Preserved, unchanged: results/M2-S7.2a-cfqd/ (original counterfactual record, 4 / 6, NOT SUPPORTED as declared),
+results/M2-S7.2a-cfqd-r2/ (6 / 6), the candidate patch and the first issue draft (results/M2-S7.2a-simu5g-issue-draft.md).

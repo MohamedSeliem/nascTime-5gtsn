@@ -86,6 +86,12 @@ LOAD_REC = {}              # variant -> [(side, rest, value)] of every app[3] en
 APPSEL_RESTS = {}          # variant -> {c: {rest}} of the base-flow entries **.app[c] (replicated to listener apps 3 + 2(k-1) + c)
 PLACEMENTS = ("one0", "sym")
 E0_FACTORS = (1, 2, 4, 8)  # E0: DL load factor on UE 0 at N = 1 (UL stays 1 x L_tot)
+# Stage 5 E2 (decision 2026-11-03 20:05, preparation only; protocol results/M2-S7.2a-e2-protocol.md): matched DL-only
+# Q-0 / Q-d, UL load factor 0 in every config; nominal DL factors (interval rounded to the nearest ns, effective factor
+# within 1e-5 of nominal, both recorded); one0 at N = 1, 2, 4, 8 and sym at N = 2, 4, 8; HARQ16 (E2) and HARQ5 (E2H5)
+E2_FACTORS = (0.8, 1, 1.1, 1.2, 1.3, 1.5, 2)
+E2_N = (1, 2, 4, 8)
+E2_NOMINAL_TOL = Fraction(1, 10 ** 5)
 E0_TWIN = "q0"             # MAC-log non-perturbation twins M2S72-E0NL-q0-f<F> (same config without M2S72-MACLOG); the runner
                            # runs the one of the highest Q-0 factor executed
 LOAD_UE = {"M2S71-q0-Ca-sus": 1, "M2S71-qdu-Ca-sus": 1}   # source -> the one UE carrying the load (N > 1)
@@ -825,6 +831,7 @@ def generate():
                 f"[Config M2S72-H16N-{c}]", f'description = "I-2H negative control: {desc}; M2S72-H16-q0-Ca-n2"',
                 f"extends = {', '.join(ext[f'M2S72-H16N-{c}'])}", ""]
     out += e0_section(ext)
+    out += e2_section(ext)
     check_inheritance(ext)
     return "\n".join(out).rstrip("\n") + "\n", summary
 
@@ -848,12 +855,27 @@ def flabel(f):
     return s.replace(".", "p")
 
 
-def load_interval(n_loaded, f):
-    """0.25 ms * n_loaded / f as an exact ini quantity (integer ns; fail closed otherwise)"""
+def interval_ns(n_loaded, f, nominal=False):
+    """0.25 ms * n_loaded / f in integer ns. Exact mode (E0): fail closed unless exact. Nominal mode (E2): rounded to the
+    nearest ns; fail closed unless the effective factor is within E2_NOMINAL_TOL (relative) of the nominal one"""
     v = Fraction(LOAD_BASE_NS * n_loaded) / Fraction(str(f))
     if v.denominator != 1:
-        raise GenError(f"load interval 0.25 ms * {n_loaded} / {f} is not an integer number of ns")
-    v = int(v)
+        if not nominal:
+            raise GenError(f"load interval 0.25 ms * {n_loaded} / {f} is not an integer number of ns")
+        r = int(v + Fraction(1, 2))
+        eff = Fraction(LOAD_BASE_NS * n_loaded, r)
+        if abs(eff - Fraction(str(f))) / Fraction(str(f)) > E2_NOMINAL_TOL:
+            raise GenError(f"nominal factor {f}: rounded interval {r} ns gives factor {float(eff)}, beyond {float(E2_NOMINAL_TOL)}")
+        return r
+    return int(v)
+
+
+def effective_factor(n_loaded, f, nominal=False):
+    return Fraction(LOAD_BASE_NS * n_loaded, interval_ns(n_loaded, f, nominal))
+
+
+def load_interval(n_loaded, f, nominal=False):
+    v = interval_ns(n_loaded, f, nominal)
     return f"{v // 1000}us" if v % 1000 == 0 else f"{v}ns"
 
 
@@ -868,7 +890,8 @@ def loaded_ues(placement, n):
 
 
 def load_name(short, placement, n, fdl, ful=1):
-    return f"M2S72LD-{short}-{placement}-n{n}-f{flabel(fdl)}" + ("" if Fraction(str(ful)) == 1 else f"-u{flabel(ful)}")
+    u = Fraction(str(ful))
+    return f"M2S72LD-{short}-{placement}-n{n}-f{flabel(fdl)}" + ("" if u == 1 else "-u0" if u == 0 else f"-u{flabel(ful)}")
 
 
 def load_effective(cfg):
@@ -888,18 +911,24 @@ def load_effective(cfg):
     return eff
 
 
-def load_spec(cfg, placement, n, fdl, ful=1):
-    """expected effective values {(module, rest): value} of the load placement (also the verify_load reference)"""
+def load_spec(cfg, placement, n, fdl, ful=1, nominal=False):
+    """expected effective values {(module, rest): value} of the load placement (also the verify_load reference).
+    ful = 0: no UL load (talker load app omitted, talker numApps stays 3)."""
     if n not in SOURCES[cfg][1]:
         raise GenError(f"{cfg}: numUe {n} not generated (N values {SOURCES[cfg][1]})")
-    for f in (fdl, ful):
-        if Fraction(str(f)) <= 0:
-            raise GenError(f"load factor {f} must be > 0")
+    if Fraction(str(fdl)) <= 0:
+        raise GenError(f"load factor {fdl} must be > 0")
+    if Fraction(str(ful)) < 0:
+        raise GenError(f"load factor {ful} must be >= 0 (UL)")
     ues = loaded_ues(placement, n)
     eff = load_effective(cfg)
-    dl, ul = load_interval(len(ues), fdl), load_interval(len(ues), ful)
+    dl = load_interval(len(ues), fdl, nominal)
+    ul = None if Fraction(str(ful)) == 0 else load_interval(len(ues), ful, nominal)
     spec = {}
     for k in ues:
+        if ul is None:
+            spec[(f"talker[{k}]", "numApps")] = str(LISTENER_APPS)
+            continue
         spec[(f"talker[{k}]", "numApps")] = "4"
         for rest, v in eff["talker"].items():
             spec[(f"talker[{k}].app[3]", rest)] = ul if rest == "source.productionInterval" else v
@@ -927,13 +956,17 @@ def load_spec(cfg, placement, n, fdl, ful=1):
     return spec, ues, dl, ul
 
 
-def load_mixin(cfg, placement, n, fdl, ful=1):
+def load_mixin(cfg, placement, n, fdl, ful=1, nominal=False):
     short = SOURCES[cfg][0]
-    spec, ues, dl, ul = load_spec(cfg, placement, n, fdl, ful)
+    spec, ues, dl, ul = load_spec(cfg, placement, n, fdl, ful, nominal)
     nm = load_name(short, placement, n, fdl, ful)
+    eff = effective_factor(len(ues), fdl, nominal)
+    dtext = (f'DL factor {flabel(fdl).replace("p", ".")} (per UE every {dl}'
+             + ("" if eff == Fraction(str(fdl)) else f", effective {float(eff):.9g}") + ")")
+    utext = "UL factor 0 (no UL load app)" if ul is None else f'UL factor {flabel(ful).replace("p", ".")} (per UE every {ul})'
     s = [f"[Config {nm}]",
          f'description = "(mixin, generated) S7.1 sustained load L_tot, placement {placement}, numUe = {n}: loaded UEs {ues}; '
-         f'DL factor {flabel(fdl).replace("p", ".")} (per UE every {dl}), UL factor {flabel(ful).replace("p", ".")} (per UE every {ul})"']
+         f'{dtext}, {utext}"']
     s += [f"*.{mod}.{rest} = {v}" for (mod, rest), v in spec.items() if rest == "numApps"]
     s += [f"*.{mod}.{rest} = {v}" for (mod, rest), v in spec.items() if rest != "numApps"]
     return nm, s
@@ -960,6 +993,37 @@ def e0_section(ext):
                 ext[tw] = ext[nm][1:]
                 out += [f"[Config {tw}]", f'description = "E0 MAC-log non-perturbation twin: {nm} without M2S72-MACLOG"',
                         f"extends = {', '.join(ext[tw])}", ""]
+    return out
+
+
+def e2_name(o, pl, n, f, h5=False):
+    return f"M2S72-E2{'H5' if h5 else ''}-{o}-{pl}-n{n}-f{flabel(f)}"
+
+
+def e2_matrix():
+    """(option, placement, N, factor) of every E2 configuration (unique; sym only at N > 1)"""
+    return [(o, pl, n, f) for o in B_OPTS for n in E2_N for pl in PLACEMENTS if not (pl == "sym" and n == 1) for f in E2_FACTORS]
+
+
+def e2_section(ext):
+    out = ["#" + "-" * 100,
+           "# Stage 5 E2 (decision 2026-11-03 20:05; PREPARATION ONLY, no run authorised): matched DL-only Q-0 / Q-d, UL load factor 0",
+           "# in every config; nominal DL factors 0.8 ... 2.0 x L_tot; one0 (N = 1, 2, 4, 8) and sym (N = 2, 4, 8); E2 = HARQ16",
+           "# (experimental control), E2H5 = Simu5G default 5 HARQ processes; C-a, D-4, M2S72-SL, learning recorders, eventlog, MAC log"]
+    done = set()
+    for o, pl, n, f in e2_matrix():
+        cfg = f"M2S71-{o}-Ca-sus@L"
+        short = SOURCES[cfg][0]
+        ld, lines = load_mixin(cfg, pl, n, f, 0, nominal=True)
+        if ld not in done:
+            out += lines + [""]
+            done.add(ld)
+        for h5 in (False, True):
+            nm = e2_name(o, pl, n, f, h5)
+            ext[nm] = ["M2S72-MACLOG", ld] + ([] if h5 else ["M2S72-HARQ16"]) + ["M2S72-SL", "M2S72-L", "M2S72-ev", f"M2S72D4N{n}-{short}",
+                                                                              f"M2S72N{n}-{short}", f"M2S72B-{short}"]
+            out += [f"[Config {nm}]", f'description = "E2 (DL-only): {src_of(cfg)}, {pl}, numUe = {n}, DL factor {f}, UL factor 0, '
+                    f'{"HARQ 5 (Simu5G default)" if h5 else "HARQ16 (experimental control)"}, MAC log"', f"extends = {', '.join(ext[nm])}", ""]
     return out
 
 
@@ -1050,7 +1114,7 @@ def verify_generated(cmd):
     listener address and no UPF forwardingTable entry; every non-T0 runnable config has exactly the M2S72-SL values
     as its effective (first) entries (the F0-6 controls: their replaced element)."""
     text = open(OUT).read()
-    names = re.findall(r"^\[Config (M2S72-(?:T0|F0|F0N|B|BN|H|H16|H16N|E0|E0NL)-[^\]]+)\]", text, flags=re.M)
+    names = re.findall(r"^\[Config (M2S72-(?:T0|F0|F0N|B|BN|H|H16|H16N|E0|E0NL|E2|E2H5)-[^\]]+)\]", text, flags=re.M)
     sl = {"*.listener.eth[0].address": f'"{LISTENER_MAC}"',
           "*.upf.ethBridge.macTable.forwardingTable": f'[{{address: "{LISTENER_MAC}", vlan: {SL_VID}, interface: "{SL_INTERFACE}"}}]'}
     ctrl = {"missing": ("*.upf.ethBridge.macTable.forwardingTable", "[]"),
@@ -1195,6 +1259,81 @@ def verify_load(cmd):
     return bad
 
 
+def verify_e2_entries(nm, ents, cfg, pl, n, f, h5):
+    """exact E2 configuration check on OMNeT++'s resolution: every DL load value (nominal interval) is the first match of
+    its parameter path, no foreign app setting reaches a load app, NO UL load (every talker[k].numApps = 3 and no
+    setting can configure a talker[k].app[3]), HARQ16 on gNB and every UE (E2) or no HARQ16 setting (E2H5), the static
+    listener MAC, numUe = n, MAC log present"""
+    spec, ues, dl, ul = load_spec(cfg, pl, n, f, 0, nominal=True)
+    probs = []
+    if ul is not None:
+        probs.append("UL load in an E2 spec")
+    for (mod, rest), v in spec.items():
+        k, got = first_match(ents, f"{mod}.{rest}")
+        if got != v:
+            probs.append(f"{mod}.{rest}: effective {got!r} (from {k!r}), expected {v!r}")
+    net = NETWORK.rsplit(".", 1)[1]
+    mods = {}
+    for (mod, rest) in spec:
+        m = re.fullmatch(r"(.+)\.app\[(\d+)\]", mod)
+        if m:
+            mods.setdefault((m.group(1), int(m.group(2))), set()).add(rest)
+    for k, v in ents:
+        j = k.find(".app[")
+        if j < 0:
+            continue
+        e = k.index("]", j)
+        prefix, idx, suffix = k[:j], k[j + 5:e], k[e + 2:]
+        for (owner, a), rests in mods.items():
+            if pat_re(prefix).match(f"{net}.{owner}") and pat_re(f"x[{idx}]").match(f"x[{a}]") and suffix not in rests:
+                probs.append(f"foreign setting {k} = {v} reaches load app {owner}.app[{a}]")
+    for kk in range(n):                                   # no UL load
+        k, got = first_match(ents, f"talker[{kk}].numApps")
+        if got != str(LISTENER_APPS):
+            probs.append(f"talker[{kk}].numApps = {got!r} (from {k!r}), expected {LISTENER_APPS} (no UL load app)")
+        for rest in ("typename", "source.productionInterval", "io.remoteAddress"):
+            k, got = first_match(ents, f"talker[{kk}].app[3].{rest}")
+            if k is not None:
+                probs.append(f"UL load setting {k} = {got} could configure talker[{kk}].app[3]")
+    exp = {"listener.eth[0].address": f'"{LISTENER_MAC}"', "numUe": str(n)}
+    for path, v in exp.items():
+        k, got = first_match(ents, path)
+        if got != v:
+            probs.append(f"{path}: effective {got!r}, expected {v!r}")
+    for path in ["gnb1.cellularNic.mac.harqProcesses"] + [f"ue[{kk}].cellularNic.nrMac.harqProcesses" for kk in range(n)]:
+        k, got = first_match(ents, path)
+        if (not h5 and got != "16") or (h5 and k is not None):
+            probs.append(f"{path}: effective {got!r} (from {k!r}), expected {'no setting (default 5)' if h5 else '16'}")
+    keys = {k for k, _ in ents}
+    if [x for x in MACLOG_KEYS if x in keys] != list(MACLOG_KEYS):
+        probs.append("M2S72-MACLOG incomplete")
+    print(f"{nm}: {'exact DL-only configuration (' + str(len(spec)) + ' load values, no UL load, ' + ('HARQ5' if h5 else 'HARQ16') + ', MAC log)' if not probs else 'DIFFERENT ' + str(probs[:6])}")
+    return not probs
+
+
+def verify_e2(cmd):
+    bad = 0
+    for o, pl, n, f in e2_matrix():
+        cfg = f"M2S71-{o}-Ca-sus@L"
+        got = {}
+        for h5 in (False, True):
+            nm = e2_name(o, pl, n, f, h5)
+            res = subprocess.run(cmd + ["-f", "m2s72.ini", "-c", nm, "-r", "0", "-q", "runconfig"], cwd=M2, capture_output=True, text=True)
+            got[h5] = runconfig_entries(res.stdout)
+            bad += not verify_e2_entries(nm, got[h5], cfg, pl, n, f, h5)
+        a, b = e2_name(o, pl, n, f), e2_name(o, pl, n, f, True)
+        meta = ("description", "extends")
+        A = [(k, v.replace(a, "<config>")) for k, v in got[False] if k not in meta]
+        Bh = [(k, v.replace(b, "<config>")) for k, v in got[True] if k not in meta]
+        extra = [x for x in A if x not in Bh]
+        ok = [x for x in A if "harqProcesses" not in x[0]] == Bh and extra and all("harqProcesses" in k for k, _ in extra)
+        if not ok:
+            print(f"E2 pair {a} / {b}: NOT identical apart from the HARQ16 entries {extra[:4]}")
+        bad += not ok
+    print(f"E2 HARQ16 / HARQ5 pairs differ exactly by the HARQ16 entries: {len(e2_matrix())} pairs checked")
+    return bad
+
+
 PLACEMENT_MATRIX = [("one0", n, f, 1) for n in (1, 2, 4, 8) for f in (0.5, 1, 2, 4, 8)] + \
                    [("sym", n, f, 1) for n in (2, 4, 8) for f in (0.5, 1, 2, 4, 8)] + [("sym", 4, 2, 2), ("one0", 4, 2, 0.5)]
 
@@ -1280,10 +1419,12 @@ def main():
         print(f"generated-config check (rev. 2.1 A-1): {'all as generated' if not b2 else str(b2) + ' DIFFERENT'}")
         b3 = verify_load(cmd)
         print(f"Stage 5 load-configuration check (exact): {'all as generated' if not b3 else str(b3) + ' DIFFERENT'}")
+        b5 = verify_e2(cmd)
+        print(f"Stage 5 E2 configuration check ({2 * len(e2_matrix())} configs, exact, DL-only): {'all as generated' if not b5 else str(b5) + ' DIFFERENT'}")
         b4 = verify_placements(cmd)
         print(f"Stage 5 placement check (one0 / sym mixins, {2 * len(PLACEMENT_MATRIX)} test configs, exact): "
               f"{'all as generated' if not b4 else str(b4) + ' DIFFERENT'}")
-        return 1 if (b1 or b2 or b3 or b4) else 0
+        return 1 if (b1 or b2 or b3 or b4 or b5) else 0
     print(__doc__)
     return 2
 
