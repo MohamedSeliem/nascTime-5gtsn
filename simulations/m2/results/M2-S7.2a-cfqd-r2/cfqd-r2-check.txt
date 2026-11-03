@@ -1,0 +1,24 @@
+M2-S7.2a Q-d uplink scheduler counterfactual check (predictions results/M2-S7.2a-cfqd-predictions.md; revision 2 of CF-1 / CF-6: results/M2-S7.2a-cfqd-r2-predictions.md)
+
+CF-1 | M2S72-E0-q0-f1 candidate build vs E0 | PASS | {'elog': 1, 'sca': 1, 'vci excluded': 1, 'vec': 1, 'raw': 36} compared, MAC-log lines identical, fingerprints 1f14-1d51/tplx / 1f14-1d51/tplx
+CF-2 | Q-d UL achieved vs offered (candidate build) | PASS | offered 44.8011 Mb/s, achieved 44.8112 Mb/s (original build 2.4808)
+CF-3 | Q-d UL grant accounting (candidate build) | PASS | cycles granted beyond reported + headers 0 []; granted 57009090 B vs UE RLC PDU bytes 56954148 B
+CF-4 | Q-d BSR, grants, UL RB use (candidate build) | PASS | BSR reports 97 (declared 50..200), RAC 97, cycle length [(103, 96), (65, 1)], grant TTIs 7866 (declared 7000..8700), grant TTIs per cycle [(81, 96), (65, 1)], UL blocks per grant {50: 7789, 49: 68, 1: 97, 48: 9}
+CF-6 | Q-d UE UL backlog conservation (candidate build) | PASS | UE RLC SDUs 48193 = completed 47825 + queued 368 (516161 B); gNB UL deliveries 47804 (completed - delivered = 21, completed in the last 10 ms 52); bytes: SDUs 67660560 = completed 67143200 + queued 517360, completed - gNB delivered = 28520 B (completed in the last 10 ms 72540 B); queue at T_end vs Q-0 reference (368, 516161) (E0 q0-f1 measured (368, 516161))
+I-2 strict (info) | M2S72-E0-q0-f1-0 | FAIL | 95 corrected Follow_Up copies over 1 DS-TTs; NW-TT corrected 96; dsTt[0] Follow_Up 16: event hold  Sync still queued; dsTt[0] Follow_Up 16: event release  2 frames; dsTt[0] Follow_Up 20: event hold  Sync still queued; dsTt[0] Follow_Up 20: event release  1 frames; dsTt[0] Follow_Up 21: event hold  Sync still queued
+CF-5 | Q-d gates, DL and gPTP (candidate build) | PASS | E0 gate rows 18 PASS / 0 FAIL []; DL offered 45.4400 achieved 45.4445 Mb/s; P(used) 1.0; Sync residence p99 4.988464 ms; max |e| 3.0 ns; Q8 {'delivered': 190, 'censored': 2}
+
+E0 gate rows on the candidate-build runs: Q-d (18, 0, []), Q-0 (18, 0, [])
+
+UL measures: build / option | offered | achieved | BSR | RAC | candidate TTIs | grant TTIs | grant bytes | UE RLC PDU bytes | cycle length | UE queue at T_end (SDUs, B)
+cf / q0 | 44.801 | 44.811 | 97 | 97 | 7866 | 7866 | 57009090 | 56954148 | [(103, 96), (65, 1)] | 368, 516161
+cf / qdu | 44.801 | 44.811 | 97 | 97 | 7866 | 7866 | 57009090 | 56954148 | [(103, 96), (65, 1)] | 368, 516161
+orig / q0 | 44.801 | 44.811 | 97 | 97 | 7866 | 7866 | 57009090 | 56954148 | [(103, 96), (65, 1)] | 368, 516161
+orig / qdu | 44.801 | 2.481 | 434 | 435 | 434 | 434 | 3146500 | 3147837 | [(23, 434)] | 45528, 63918001
+
+DL / gPTP (candidate build) vs E0 (original build):
+  qdu: dl_offered_rlc_Mbps 45.44 (E0 45.44); dl_achieved_rlc_Mbps 45.4445 (E0 45.4445); P_used_cohort 1 (E0 1); res_p50_ms 4.48846 (E0 4.48846); res_p99_ms 4.98846 (E0 4.98846); lag_p99_ms 0.000912 (E0 0.000912); max_e_ns 3 (E0 3); update_gap_max_ms 125 (E0 125); mac_harq_deletions 0 (E0 0); mac_max_busy_harq 6 (E0 6); mac_overflow 0 (E0 0); backlog_end_bytes 0 (E0 0); load_drb1_backlog_end_bytes 4260 (E0 4260)
+  q0: dl_offered_rlc_Mbps 45.44 (E0 45.44); dl_achieved_rlc_Mbps 45.4445 (E0 45.4445); P_used_cohort 1 (E0 1); res_p50_ms 4.55792 (E0 4.55792); res_p99_ms 5.94634 (E0 5.94634); lag_p99_ms 1.9317 (E0 1.9317); max_e_ns 5 (E0 5); update_gap_max_ms 126 (E0 126); mac_harq_deletions 0 (E0 0); mac_max_busy_harq 6 (E0 6); mac_overflow 0 (E0 0); backlog_end_bytes 1420 (E0 1420); load_drb1_backlog_end_bytes 1420 (E0 1420)
+
+counterfactual rows: 6 PASS, 0 FAIL
+Counterfactual verdict: hypothesis SUPPORTED (missing UL grants restored; accounting, timing and delivery gates hold)

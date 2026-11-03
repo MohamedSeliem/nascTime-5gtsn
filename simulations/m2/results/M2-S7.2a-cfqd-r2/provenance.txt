@@ -1,0 +1,5 @@
+commit d0b6d55a1f4e625b109a44f6ad084721c71d8e25
+2026-11-03T14:55:31Z
+inputs: results/M2-S7.2a-cfqd/runs (candidate build, existing) and results/M2-S7.2a-e0/runs (original build, existing)
+candidate raw outputs: all 74 committed hashes verified
+E0 raw outputs: all 333 committed hashes verified
