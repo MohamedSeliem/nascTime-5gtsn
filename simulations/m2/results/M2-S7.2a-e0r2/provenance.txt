@@ -1,0 +1,13 @@
+M2-S7.2a E0 revision 2 provenance (decision 2026-11-03 13:27)
+E0 raw outputs: results/M2-S7.2a-e0/runs from f58aa39; verified against results/M2-S7.2a-e0/raw-outputs.sha256 (raw-verify.txt)
+definition + predictions committed before the control ran: 7528ec2 (results/M2-S7.2a-e0r2-predictions.md)
+revision-2 check: ./m2s72.sh e0r2 at 7528ec2 (env-e0r2.txt) -> e0r2-check.txt, e0-metrics.csv
+Part B: python3 check/diag_m2s72_qd_ul.py results/M2-S7.2a-e0/runs 1 > qd-ul-f1.txt ; ... 8 > qd-ul-f8.txt
+        (diag script committed with this record; reads E0 outputs only)
+P1 feasibility (read-only): python3 check/check_m2s72_e0.py p1 results/M2-S7.2a-cp2r2-trial1/runs M2S72-H-q0-Ca-n2 \
+    results/M2-S7.2a-cp2r2-trial1/p1-loss/O-q0.log.gz 1 \
+    '{"mac": "M2S72Bridge.gnb1.cellularNic.mac", "tx": "M2S72Bridge.gnb1.cellularNic.rlc-um-2050-1.tx", "rx": "M2S72Bridge.ue[1].cellularNic.nrRlc-um-1-1.rx"}' > p1-feasibility.txt
+    (inputs local, not committed: trial1 runs and O-q0.log.gz, sha256 below)
+de4498b12a6097433e5e27e7cf39c0d965676585a1d216c8e04877c082063c5a  M2-S7.2a-cp2r2-trial1/p1-loss/O-q0.log.gz
+rows+metrics byte-identical to E0 check up to the controls section
+e0-metrics.csv identical to E0

@@ -1,0 +1,59 @@
+M2-S7.2a E0 revision 2, Part B: Q-0 vs Q-d uplink, N = 1, HARQ16, DL factor 1 (read-only, existing E0 outputs)
+
+== M2S72-E0-q0-f1 (window [2 s, 12 s))
+   ue_rlc_sdus: 40500
+   ue_rlc_sdu_bytes: 56860000.0
+   ue_rlc_pdus: 48456
+   ue_rlc_pdu_bytes: 56954148.0
+   gnb_rlc_ul_delivered: 40510
+   rac: 97
+   bsr_reports: 97
+   cand_ttis: 7866
+   grant_ttis: 7866
+   grant_bytes: 57009090
+   grants_at_limit: 0
+   grants_with_limit: 0
+   blocks: Counter({50: 7789, 1: 97, 49: 68, 48: 9})
+   first_ul: [103]
+   BSR cycles in window: 97; cycle length (TTIs) [(103, 96), (65, 1)]; grant TTIs per cycle [(81, 96), (65, 1)]; candidate TTIs per cycle [(81, 96), (65, 1)]
+   first 4 BSR cycles: t (ms) | reported bytes | TTIs with a grant | granted bytes | TTIs as candidate | cycle length
+      109 | 25541 | 4 | 25557 | 4 | 26
+      135 | 147823 | 21 | 147907 | 21 | 43
+      178 | 244611 | 34 | 244747 | 34 | 56
+      234 | 318924 | 45 | 319104 | 45 | 67
+== M2S72-E0-qdu-f1 (window [2 s, 12 s))
+   ue_rlc_sdus: 40500
+   ue_rlc_sdu_bytes: 56860000.0
+   ue_rlc_pdus: 3105
+   ue_rlc_pdu_bytes: 3147837.0
+   gnb_rlc_ul_delivered: 2243
+   rac: 435
+   bsr_reports: 434
+   cand_ttis: 434
+   grant_ttis: 434
+   grant_bytes: 3146500
+   grants_at_limit: 434
+   grants_with_limit: 434
+   blocks: Counter({1: 435, 50: 434})
+   first_ul: [103]
+   BSR cycles in window: 434; cycle length (TTIs) [(23, 434)]; grant TTIs per cycle [(1, 434)]; candidate TTIs per cycle [(1, 434)]
+   first 4 BSR cycles: t (ms) | reported bytes | TTIs with a grant | granted bytes | TTIs as candidate | cycle length
+      109 | 25541 | 1 | 7250 | 1 | 23
+      132 | 149164 | 1 | 7250 | 1 | 23
+      155 | 272667 | 1 | 7250 | 1 | 23
+      178 | 396170 | 1 | 7250 | 1 | 23
+
+stages in path order, Q-0 vs Q-d:
+   ue_rlc_sdus: 40500 vs 40500
+   ue_rlc_sdu_bytes: 56860000.0 vs 56860000.0
+   rac: 97 vs 435   <-- differs
+   bsr_reports: 97 vs 434   <-- differs
+   cand_ttis: 7866 vs 434   <-- differs
+   grant_ttis: 7866 vs 434   <-- differs
+   grant_bytes: 57009090 vs 3146500   <-- differs
+   ue_rlc_pdus: 48456 vs 3105   <-- differs
+   gnb_rlc_ul_delivered: 40510 vs 2243   <-- differs
+
+first divergence: grants after the same BSR report
+   Q-0: {'t': 109, 'reported': 25541, 'grant_ttis': 4, 'granted': 25557, 'cand_ttis': 4, 'len': 26}
+   Q-d: {'t': 109, 'reported': 25541, 'grant_ttis': 1, 'granted': 7250, 'cand_ttis': 1, 'len': 23}
