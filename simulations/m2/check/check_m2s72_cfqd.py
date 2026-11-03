@@ -42,6 +42,11 @@ def add(row, name, ok, detail):
     rows.append((row, name, "PASS" if ok else "FAIL", detail))
 
 
+REV = 1          # 2: the revised CF-1 / CF-6 (results/M2-S7.2a-cfqd-r2-predictions.md); set by "--r2"
+ELOG_CONTENT = ("E ", "BS ", "ES ", "SH ", "CMB ", "CME ", "DM ", "CM ", "CC ", "CE ", "GC ", "MC ", "MDC ", "CL ", "SD ", "BU ", "EN ", "- ")
+Q0_REF_QUEUE = (368, 516161)    # CF-6 revision 2: the unchanged Q-0 reference (E0 q0-f1, original build): SDUs, bytes
+
+
 def norm_digest(path, roots, kind):
     h = hashlib.sha256()
     op = gzip.open if path.endswith(".gz") else open
@@ -54,8 +59,10 @@ def norm_digest(path, roots, kind):
             s = line.decode("utf-8", "replace")
             if kind in ("vec", "sca") and HDR.match(s):
                 continue
-            if kind == "elog" and s.startswith(("I ", "SB ", "SE ", "RA ", "RR ", "RF ", "GF ", "CF ", "EF ", "GD ", "MD ", "MDF ", "MF ", "CD ", "CDC ", "CDF ")):
+            if kind == "elog" and REV == 1 and s.startswith(("I ", "SB ", "SE ", "RA ", "RR ", "RF ", "GF ", "CF ", "EF ", "GD ", "MD ", "MDF ", "MF ", "CD ", "CDC ", "CDF ")):
                 continue                                   # index / snapshot records (byte offsets move with the path length)
+            if kind == "elog" and REV == 2 and not s.startswith(ELOG_CONTENT):
+                continue                                   # revision 2: event, message, module and log-text records only
             for r in roots:
                 s = s.replace(r, "<root>")
             h.update(s.encode())
@@ -131,15 +138,23 @@ def ul_measures(runs, cfg):
          "over_grant_cycles": [c for c in cy if c["granted"] > c["reported"] + 4 * c["grant_ttis"]],
          "ue_sdus": len([x for x in sdu if x[0] <= T]), "ue_done": len(done), "ue_left": len(left),
          "ue_left_bytes": sum(q["size"] - q["sent"] for q in left), "gnb_ul_delivered": len([x for x in gdl if x[0] <= T]),
-         "ue_done_last_10ms": sum(1 for _, _, t in done if t > T - 10 * MS)}
+         "ue_done_last_10ms": sum(1 for _, _, t in done if t > T - 10 * MS),
+         "ue_sdu_bytes": sum(b for t, b in sdu if t <= T), "ue_done_bytes": sum(sz for _, sz, _ in done),
+         "ue_left_full_bytes": sum(q["size"] for q in left), "gnb_ul_delivered_bytes": sum(b for t, b in gdl if t <= T),
+         "ue_done_last_10ms_bytes": sum(sz for _, sz, t in done if t > T - 10 * MS)}
     return m
 
 
 def main():
+    global REV
+    if "--r2" in sys.argv:
+        sys.argv.remove("--r2")
+        REV = 2
     cf, e0 = sys.argv[1], sys.argv[2]
     cfr, e0r = os.path.join(cf, "runs"), os.path.join(e0, "runs")
     P = print
-    P("M2-S7.2a Q-d uplink scheduler counterfactual check (predictions results/M2-S7.2a-cfqd-predictions.md)\n")
+    P("M2-S7.2a Q-d uplink scheduler counterfactual check (predictions results/M2-S7.2a-cfqd-predictions.md"
+      + (")\n" if REV == 1 else "; revision 2 of CF-1 / CF-6: results/M2-S7.2a-cfqd-r2-predictions.md)\n"))
     r1 = regression(cfr, e0r, "M2S72-E0-q0-f1")
     mq = {("orig", o): ul_measures(e0r, f"M2S72-E0-{o}-f1") for o in ("q0", "qdu")}
     mq.update({("cf", o): ul_measures(cfr, f"M2S72-E0-{o}-f1") for o in ("q0", "qdu")})
@@ -153,11 +168,21 @@ def main():
         50 <= c["bsr_reports"] <= 200 and 7000 <= c["grant_ttis"] <= 8700,
         f"BSR reports {c['bsr_reports']} (declared 50..200), RAC {c['rac']}, cycle length {c['cycle_len']}, grant TTIs {c['grant_ttis']} (declared 7000..8700), "
         f"grant TTIs per cycle {c['grant_ttis_per_cycle']}, UL blocks per grant {dict(c['blocks'])}")
-    ok6 = (c["ue_sdus"] == c["ue_done"] + c["ue_left"] and 0 <= c["ue_done"] - c["gnb_ul_delivered"] <= c["ue_done_last_10ms"]
-           and c["ue_left_bytes"] < 500000)
+    cons = c["ue_sdus"] == c["ue_done"] + c["ue_left"] and 0 <= c["ue_done"] - c["gnb_ul_delivered"] <= c["ue_done_last_10ms"]
+    if REV == 2:                                          # revision 2: strict UL byte conservation as well
+        cons = cons and c["ue_sdu_bytes"] == c["ue_done_bytes"] + c["ue_left_full_bytes"] \
+            and 0 <= c["ue_done_bytes"] - c["gnb_ul_delivered_bytes"] <= c["ue_done_last_10ms_bytes"]
+    if REV == 1:
+        ok6 = cons and c["ue_left_bytes"] < 500000
+    else:                                                 # revision 2: exact equality with the unchanged Q-0 reference
+        ref = mq[("orig", "q0")]
+        ok6 = cons and (c["ue_left"], c["ue_left_bytes"]) == Q0_REF_QUEUE == (ref["ue_left"], ref["ue_left_bytes"])
     add("CF-6", "Q-d UE UL backlog conservation (candidate build)", ok6,
         f"UE RLC SDUs {c['ue_sdus']} = completed {c['ue_done']} + queued {c['ue_left']} ({c['ue_left_bytes']} B); gNB UL deliveries {c['gnb_ul_delivered']} "
-        f"(completed - delivered = {c['ue_done'] - c['gnb_ul_delivered']}, completed in the last 10 ms {c['ue_done_last_10ms']})")
+        f"(completed - delivered = {c['ue_done'] - c['gnb_ul_delivered']}, completed in the last 10 ms {c['ue_done_last_10ms']})"
+        + ("" if REV == 1 else f"; bytes: SDUs {c['ue_sdu_bytes']} = completed {c['ue_done_bytes']} + queued {c['ue_left_full_bytes']}, "
+           f"completed - gNB delivered = {c['ue_done_bytes'] - c['gnb_ul_delivered_bytes']} B (completed in the last 10 ms {c['ue_done_last_10ms_bytes']} B)"
+           f"; queue at T_end vs Q-0 reference {Q0_REF_QUEUE} (E0 q0-f1 measured {(mq[('orig', 'q0')]['ue_left'], mq[('orig', 'q0')]['ue_left_bytes'])})"))
     # CF-5: every E0 gate on the candidate-build Q-d and Q-0 runs (unchanged E0 checker)
     gate_rows = {}
     for o in ("qdu", "q0"):

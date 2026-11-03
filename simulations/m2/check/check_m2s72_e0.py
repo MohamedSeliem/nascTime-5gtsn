@@ -324,6 +324,10 @@ class Q8:
             j, drb = rev[int(mm.group(1))], int(mm.group(2))
             tx = [(t, int(float(v))) for t, v in vals if t <= self.T]
             rxk = (f"{R.NET}.ue[{j}].cellularNic.nrRlc-um-1-{drb}.rx", "receivedPacketFromLowerLayer:vector(packetBytes)")
+            if rxk not in self.ev.vec or rxk in mut.get("no_rx_vector", ()):
+                for t, v in vals:                                     # no reception evidence for this entity
+                    out[j].append((t // MS, None, t + G.AIR <= self.T))
+                continue
             rx = [(t, int(float(v))) for t, v in self.ev.vec.get(rxk, []) if t <= self.T]
             for x in mut.get("drop_rx", {}).get((j, drb), []):          # controls only
                 rx.remove(x)
@@ -357,6 +361,8 @@ class Q8:
         cand = {j: v for j, v in cand.items() if v}
         if len(cand) != n:
             return False, f"E2: {len(cand)} candidate UEs, {n} MAC PDUs"
+        if any(r is None for v in cand.values() for r, _ in v):
+            return False, "E3: missing reception evidence (no RX vector) for a candidate"
         if not all(c for v in cand.values() for _, c in v):
             return False, "E3: a reception window still open at T_end"
         allmiss = {j for j, v in cand.items() if not any(r for r, _ in v)}
@@ -1164,7 +1170,8 @@ def p1_diag(runs, cfg, mlog_path, k, alias):
 # expected rule code: E4 when the mutated UE keeps at least one PDU of the other kind in that TTI (partly received),
 # E5 when the mutation leaves it all-missing / all-received (structural, decided from the TTI's PDU counts before evaluation)
 PRED_ATTR = {"PC-attr": ("lost", None), "NC-attr-ambiguous": ("UNEXPLAINED", "E5"), "NC-attr-partial": ("UNEXPLAINED", "E4|E5"),
-             "NC-attr-count": ("UNEXPLAINED", "E1"), "NC-attr-received": ("UNEXPLAINED", "E4|E5")}
+             "NC-attr-count": ("UNEXPLAINED", "E1"), "NC-attr-received": ("UNEXPLAINED", "E4|E5"),
+             "NC-attr-noevidence": ("UNEXPLAINED", "E3")}    # adoption (decision 2026-11-03 14:53): missing reception evidence
 
 
 def attr_diag(runs, cfg, mlog_path, k, alias):
@@ -1223,7 +1230,9 @@ def attr_diag(runs, cfg, mlog_path, k, alias):
             "NC-attr-ambiguous": {"excl": {"drop_rx": _group([(j, d, r) for j, d, i, x, r in o_at])}},
             "NC-attr-partial": {"excl": {"drop_rx": _group([(j, d, r) for j, d, i, x, r in o_at][:1])}},
             "NC-attr-count": {"excl": {"drop_deletion": {tti}}},
-            "NC-attr-received": {"excl": {"add_rx": _group([(k, d, (x[0] + G.AIR, x[1])) for d, i, x, r in k_at][:1])}}}
+            "NC-attr-received": {"excl": {"add_rx": _group([(k, d, (x[0] + G.AIR, x[1])) for d, i, x, r in k_at][:1])}},
+            "NC-attr-noevidence": {"excl": {"no_rx_vector": {(f"{R.NET}.ue[{j}].cellularNic.nrRlc-um-1-{d}.rx", "receivedPacketFromLowerLayer:vector(packetBytes)")
+                                                             for j, d, i, x, r in o_at}}}}
     nf = 0
     for cname, mut in muts.items():
         qc = Q8(ev, ML.MacLog(mlog_path, alias=alias), opt, k=k, attr="exclusion", mut=mut)
