@@ -1,0 +1,11 @@
+U1 diagnostic (2026-11-11, after U1; not a predicted row). U1's MAXCI delivery changed from 8711 / 11601 (1.8.0,
+results/M2-S7.2a-upstream-repro) to 9696 / 11601 (1.8.1), refuting the U1 prediction "MAXCI unchanged within +-1 %".
+Attribution test: the same Repro-UL-MAXCI run (repro.ini; include path per version), seed 0, with the UE MAC log
+enabled (--*.ue[0].**.cmdenv-log-level=info), counting UE nrMac log lines:
+
+  1.8.0:  2003 "new pdu (id"   395 "no available process for this MAC PDU in TxHarqBuffer"  (MAC PDUs deleted, #310)
+  1.8.1:  2122 "new pdu (id"     0 deletions; 423 "the grant is not used" (UE with no free H-ARQ process, #310 fix)
+
+So in the unmodified upstream example the 1.8.0 MAXCI baseline (75.1 %) was itself reduced by UE-side H-ARQ deletions
+(the gNB-only MAC log of the original reproduction could not show them). The #308 comparison is unaffected in sign:
+on 1.8.1 QOS_PF = 9699 and MAXCI = 9696 received (QOS_PF >= 0.99 x MAXCI). Raw logs of this diagnostic not kept.

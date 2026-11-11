@@ -1,0 +1,2 @@
+simu5g-1.8.1 Repro-UL-QOSPF  UDP sent 11601 received 9699 (0.836) | [0.5 s, 3 s): BSR TTIs 9, candidate TTIs 2301, grant TTIs 2254, granted 14910925 B
+simu5g-1.8.1 Repro-UL-MAXCI  UDP sent 11601 received 9696 (0.836) | [0.5 s, 3 s): BSR TTIs 9, candidate TTIs 2252, grant TTIs 2252, granted 14889137 B

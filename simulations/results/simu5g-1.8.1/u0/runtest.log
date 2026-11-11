@@ -1,0 +1,23 @@
+opp_test.py: extracting files from *.test files into ./work...
+
+Creating Makefile in /tmp/tmp.LaJoLDwnRX/module/work...
+
+Creating executable: out/clang-release//moduletests
+
+opp_test: running tests using moduletests...
+*** SaturatedNrTrafficNoMacLoss.test: PASS
+*** FewHarqProcessesLteDlNoMacLoss.test: PASS
+*** FewHarqProcessesLteUlNoMacLoss.test: PASS
+*** SlowHarqFeedbackNrUlGrants.test: PASS
+*** DlCappedGrantKeepsBacklog.test: PASS
+*** DlGrantCoversEverySduHeader.test: PASS
+*** EthernetSessionFlowMeasurement.test: PASS
+========================================
+========================================
+PASS: 7   FAIL: 0   ERROR: 0   EXPECTEDFAIL: 0   SKIPPED: 0
+
+Aggregate result: PASS
+
+
+Results can be found in ./work
+runtest rc=0
