@@ -64,3 +64,27 @@ Each new row has three required outcomes:
 | I2 / I3 | CP2 revision 2 gate rows: PASS (2391 / 2391); controls 13 / 13 as declared there. The I-2H hold and release rows hold with **changed counts** (reported). Residence and timing values change (listed) |
 
 **STOP** after these, for review.
+
+## Addendum 1 (2026-11-11, before any 1.8.1 run, while implementing the rows; the text above is unchanged)
+
+**OT-strand scope.**
+
+- **Light-load configs O2-s4 and O2-s4-nodl.** The stranding-event count and the ≤ 2-slot wait are evaluated here only.
+  - In the saturated, multi-DRB drain configs (O1-harq16, O2-flush), MaxCI serves one connection per node per TTI. DRB 1 then legitimately idles while other DRBs are served, so "idle until the next arrival" is not evidence of stranding there.
+- **Drain configs O1-harq16 and O2-flush.** The row is "nothing left in the gNB DRB 1 RLC after the drain":
+  - sources stop at 3 s, with one extra frame at 3.5 s in O2-flush;
+  - the run ends at 5 s.
+- **Predictions:**
+  - 1.8.1: PASS on all four configs.
+  - 1.8.0: FAIL on O2-s4 (stranding) and on O1-harq16 / O2-flush (one SDU left).
+
+**O1-cons declared bounds.**
+
+| Bound | Value | Basis |
+|---|---|---|
+| `W_ETH` (source → RLC TX, and RLC RX → sink) | 1 ms | — |
+| `W_HARQ` | 25 ms | 4 transmissions × (5-slot feedback + 1) + 1 slot |
+
+- **Delivered SDUs** must equal the replay's completed SDUs, in order and by size (UM in-order delivery).
+- **Completed but undelivered SDUs** must have their last byte after `END − W_HARQ`.
+- **MAC loss statistics** (`macPacketLoss*`) must be 0 in these ideal-channel configs.
