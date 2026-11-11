@@ -1,0 +1,184 @@
+OMNeT++ Discrete Event Simulation  (C) 1992-2025 Andras Varga, OpenSim Ltd.
+Version: 6.4.0, build: 260506-2cf25223fe, edition: Academic Public License -- NOT FOR COMMERCIAL USE
+See the license for distribution terms and warranty disclaimer
+
+Setting up Cmdenv...
+
+Loading NED files from /root/inv/nascTime-5gtsn/simulations:  8
+Loading NED files from /root/inv/nascTime-5gtsn/src:  14
+Loading NED files from /root/stack/simu5g-1.8.1/src:  242
+Loading NED files from /root/stack/inet-4.7.0/src:  1262
+
+Preparing for running configuration S2, run #0...
+Assigned runID=S2-0-20261111-14:33:10-6898
+Setting up network "M1Bridge"...
+Initializing...
+
+Running simulation...
+** Event #0   t=0   Elapsed: 1.5e-05s (0m 00s)  0% completed  (0% total)
+     Speed:     ev/sec=0   simsec/sec=0   ev/simsec=0
+     Messages:  created: 199   present: 199   in FES: 23   Memory (RSS): 101.527MiB
+** Event #88258   t=5   Elapsed: 1.42599s (0m 01s)  100% completed  (10% total)
+     Speed:     ev/sec=61892.8   simsec/sec=3.50636   ev/simsec=17651.6
+     Messages:  created: 55315   present: 247   in FES: 16   Memory (RSS): 109MiB
+
+<!> Simulation time limit reached -- at t=5s, event #88258
+
+Calling finish() at end of Run #0...
+
+Preparing for running configuration S2, run #1...
+Assigned runID=S2-1-20261111-14:33:11-6898
+Setting up network "M1Bridge"...
+Initializing...
+
+Running simulation...
+** Event #0   t=0   Elapsed: 4e-06s (0m 00s)  0% completed  (10% total)
+     Speed:     ev/sec=0   simsec/sec=0   ev/simsec=0
+     Messages:  created: 199   present: 199   in FES: 23   Memory (RSS): 109.125MiB
+** Event #88258   t=5   Elapsed: 1.11028s (0m 01s)  100% completed  (20% total)
+     Speed:     ev/sec=79492.2   simsec/sec=4.5034   ev/simsec=17651.6
+     Messages:  created: 55315   present: 247   in FES: 16   Memory (RSS): 110.484MiB
+
+<!> Simulation time limit reached -- at t=5s, event #88258
+
+Calling finish() at end of Run #1...
+
+Preparing for running configuration S2, run #2...
+Assigned runID=S2-2-20261111-14:33:13-6898
+Setting up network "M1Bridge"...
+Initializing...
+
+Running simulation...
+** Event #0   t=0   Elapsed: 4e-06s (0m 00s)  0% completed  (20% total)
+     Speed:     ev/sec=0   simsec/sec=0   ev/simsec=0
+     Messages:  created: 199   present: 199   in FES: 23   Memory (RSS): 110.609MiB
+** Event #88258   t=5   Elapsed: 1.04029s (0m 01s)  100% completed  (30% total)
+     Speed:     ev/sec=84839.9   simsec/sec=4.80636   ev/simsec=17651.6
+     Messages:  created: 55315   present: 247   in FES: 16   Memory (RSS): 110.609MiB
+
+<!> Simulation time limit reached -- at t=5s, event #88258
+
+Calling finish() at end of Run #2...
+
+Preparing for running configuration S2, run #3...
+Assigned runID=S2-3-20261111-14:33:14-6898
+Setting up network "M1Bridge"...
+Initializing...
+
+Running simulation...
+** Event #0   t=0   Elapsed: 4e-06s (0m 00s)  0% completed  (30% total)
+     Speed:     ev/sec=0   simsec/sec=0   ev/simsec=0
+     Messages:  created: 199   present: 199   in FES: 23   Memory (RSS): 110.609MiB
+** Event #88258   t=5   Elapsed: 1.08222s (0m 01s)  100% completed  (40% total)
+     Speed:     ev/sec=81553.2   simsec/sec=4.62016   ev/simsec=17651.6
+     Messages:  created: 55315   present: 247   in FES: 16   Memory (RSS): 110.609MiB
+
+<!> Simulation time limit reached -- at t=5s, event #88258
+
+Calling finish() at end of Run #3...
+
+Preparing for running configuration S2, run #4...
+Assigned runID=S2-4-20261111-14:33:15-6898
+Setting up network "M1Bridge"...
+Initializing...
+
+Running simulation...
+** Event #0   t=0   Elapsed: 6e-06s (0m 00s)  0% completed  (40% total)
+     Speed:     ev/sec=0   simsec/sec=0   ev/simsec=0
+     Messages:  created: 199   present: 199   in FES: 23   Memory (RSS): 110.609MiB
+** Event #88438   t=5   Elapsed: 1.363s (0m 01s)  100% completed  (50% total)
+     Speed:     ev/sec=64885.2   simsec/sec=3.6684   ev/simsec=17687.6
+     Messages:  created: 55495   present: 247   in FES: 16   Memory (RSS): 110.609MiB
+
+<!> Simulation time limit reached -- at t=5s, event #88438
+
+Calling finish() at end of Run #4...
+
+Preparing for running configuration S2, run #5...
+Assigned runID=S2-5-20261111-14:33:17-6898
+Setting up network "M1Bridge"...
+Initializing...
+
+Running simulation...
+** Event #0   t=0   Elapsed: 2.5e-05s (0m 00s)  0% completed  (50% total)
+     Speed:     ev/sec=0   simsec/sec=0   ev/simsec=0
+     Messages:  created: 199   present: 199   in FES: 23   Memory (RSS): 110.609MiB
+** Event #88258   t=5   Elapsed: 1.0811s (0m 01s)  100% completed  (60% total)
+     Speed:     ev/sec=81639   simsec/sec=4.62502   ev/simsec=17651.6
+     Messages:  created: 55315   present: 247   in FES: 16   Memory (RSS): 110.609MiB
+
+<!> Simulation time limit reached -- at t=5s, event #88258
+
+Calling finish() at end of Run #5...
+
+Preparing for running configuration S2, run #6...
+Assigned runID=S2-6-20261111-14:33:18-6898
+Setting up network "M1Bridge"...
+Initializing...
+
+Running simulation...
+** Event #0   t=0   Elapsed: 4e-06s (0m 00s)  0% completed  (60% total)
+     Speed:     ev/sec=0   simsec/sec=0   ev/simsec=0
+     Messages:  created: 199   present: 199   in FES: 23   Memory (RSS): 110.609MiB
+** Event #88438   t=5   Elapsed: 1.21573s (0m 01s)  100% completed  (70% total)
+     Speed:     ev/sec=72745.3   simsec/sec=4.11279   ev/simsec=17687.6
+     Messages:  created: 55495   present: 247   in FES: 16   Memory (RSS): 110.609MiB
+
+<!> Simulation time limit reached -- at t=5s, event #88438
+
+Calling finish() at end of Run #6...
+
+Preparing for running configuration S2, run #7...
+Assigned runID=S2-7-20261111-14:33:20-6898
+Setting up network "M1Bridge"...
+Initializing...
+
+Running simulation...
+** Event #0   t=0   Elapsed: 6e-06s (0m 00s)  0% completed  (70% total)
+     Speed:     ev/sec=0   simsec/sec=0   ev/simsec=0
+     Messages:  created: 199   present: 199   in FES: 23   Memory (RSS): 113.984MiB
+** Event #88258   t=5   Elapsed: 1.42611s (0m 01s)  100% completed  (80% total)
+     Speed:     ev/sec=61887.8   simsec/sec=3.50607   ev/simsec=17651.6
+     Messages:  created: 55315   present: 247   in FES: 16   Memory (RSS): 113.984MiB
+
+<!> Simulation time limit reached -- at t=5s, event #88258
+
+Calling finish() at end of Run #7...
+
+Preparing for running configuration S2, run #8...
+Assigned runID=S2-8-20261111-14:33:22-6898
+Setting up network "M1Bridge"...
+Initializing...
+
+Running simulation...
+** Event #0   t=0   Elapsed: 6e-06s (0m 00s)  0% completed  (80% total)
+     Speed:     ev/sec=0   simsec/sec=0   ev/simsec=0
+     Messages:  created: 199   present: 199   in FES: 23   Memory (RSS): 113.984MiB
+** Event #88438   t=5   Elapsed: 1.15963s (0m 01s)  100% completed  (90% total)
+     Speed:     ev/sec=76264.4   simsec/sec=4.31174   ev/simsec=17687.6
+     Messages:  created: 55495   present: 247   in FES: 16   Memory (RSS): 113.984MiB
+
+<!> Simulation time limit reached -- at t=5s, event #88438
+
+Calling finish() at end of Run #8...
+
+Preparing for running configuration S2, run #9...
+Assigned runID=S2-9-20261111-14:33:23-6898
+Setting up network "M1Bridge"...
+Initializing...
+
+Running simulation...
+** Event #0   t=0   Elapsed: 4e-06s (0m 00s)  0% completed  (90% total)
+     Speed:     ev/sec=0   simsec/sec=0   ev/simsec=0
+     Messages:  created: 199   present: 199   in FES: 23   Memory (RSS): 113.984MiB
+** Event #88258   t=5   Elapsed: 1.09632s (0m 01s)  100% completed  (100% total)
+     Speed:     ev/sec=80504.5   simsec/sec=4.56075   ev/simsec=17651.6
+     Messages:  created: 55315   present: 247   in FES: 16   Memory (RSS): 113.984MiB
+
+<!> Simulation time limit reached -- at t=5s, event #88258
+
+Calling finish() at end of Run #9...
+
+Run statistics: total 10, successful 10
+
+End.

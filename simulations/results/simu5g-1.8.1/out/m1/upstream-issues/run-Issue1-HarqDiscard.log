@@ -1,0 +1,49 @@
+OMNeT++ Discrete Event Simulation  (C) 1992-2025 Andras Varga, OpenSim Ltd.
+Version: 6.4.0, build: 260506-2cf25223fe, edition: Academic Public License -- NOT FOR COMMERCIAL USE
+See the license for distribution terms and warranty disclaimer
+
+Setting up Cmdenv...
+
+Loading NED files from /tmp/tmp.jzRuYN7Cjt/simulations:  22
+Loading NED files from /root/stack/simu5g-1.8.1/src:  242
+Loading NED files from /root/stack/inet-4.7.0/src:  1262
+
+Preparing for running configuration Issue1-HarqDiscard, run #0...
+Assigned runID=Issue1-HarqDiscard-0-20261111-14:49:37-8538
+Setting up network "EthernetSessions"...
+Initializing...
+
+Running simulation...
+** Event #0   t=0   Elapsed: 2.1e-05s (0m 00s)  0% completed  (0% total)
+     Speed:     ev/sec=0   simsec/sec=0   ev/simsec=0
+     Messages:  created: 165   present: 165   in FES: 21   Memory (RSS): 98.1992MiB
+** Event #134656   t=0.468   Elapsed: 2.00199s (0m 02s)  9% completed  (9% total)
+     Speed:     ev/sec=67263.2   simsec/sec=0.233773   ev/simsec=287729
+     Messages:  created: 75500   present: 788   in FES: 32   Memory (RSS): 113.074MiB
+** Event #252416   t=0.775   Elapsed: 4.00343s (0m 04s)  15% completed  (15% total)
+     Speed:     ev/sec=58836.8   simsec/sec=0.153387   ev/simsec=383583
+     Messages:  created: 141454   present: 988   in FES: 31   Memory (RSS): 117.074MiB
+** Event #398336   t=1.143   Elapsed: 6.00474s (0m 06s)  22% completed  (22% total)
+     Speed:     ev/sec=72912.2   simsec/sec=0.183879   ev/simsec=396522
+     Messages:  created: 223206   present: 1065   in FES: 34   Memory (RSS): 118.074MiB
+** Event #540160   t=1.501023072   Elapsed: 8.0048s (0m 08s)  30% completed  (30% total)
+     Speed:     ev/sec=70909.8   simsec/sec=0.179006   ev/simsec=396131
+     Messages:  created: 302627   present: 1156   in FES: 19   Memory (RSS): 118.574MiB
+** Event #700416   t=1.9040024004   Elapsed: 10.0071s (0m 10s)  38% completed  (38% total)
+     Speed:     ev/sec=80036.7   simsec/sec=0.20126   ev/simsec=397678
+     Messages:  created: 392430   present: 1251   in FES: 23   Memory (RSS): 118.949MiB
+** Event #859904   t=2.3050047508   Elapsed: 12.0093s (0m 12s)  46% completed  (46% total)
+     Speed:     ev/sec=79654.7   simsec/sec=0.200277   ev/simsec=397723
+     Messages:  created: 481748   present: 1357   in FES: 26   Memory (RSS): 119.324MiB
+** Event #1030656   t=2.734   Elapsed: 14.0172s (0m 14s)  54% completed  (54% total)
+     Speed:     ev/sec=85042.3   simsec/sec=0.213659   ev/simsec=398028
+     Messages:  created: 577420   present: 1462   in FES: 26   Memory (RSS): 119.574MiB
+** Event #1186217   t=5   Elapsed: 15.7135s (0m 15s)  100% completed  (100% total)
+     Speed:     ev/sec=91702.9   simsec/sec=1.33581   ev/simsec=68649.6
+     Messages:  created: 663422   present: 175   in FES: 10   Memory (RSS): 121.863MiB
+
+<!> Simulation time limit reached -- at t=5s, event #1186217
+
+Calling finish() at end of Run #0...
+
+End.

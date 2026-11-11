@@ -1,0 +1,2 @@
+2026-11-11T16:13:17Z deleted M2-S7.2a-cp1r2/runs and ref after hashing (raw-outputs-all-runs.sha256); CP1 checks complete
+2026-11-11T16:34:08Z deleted M2-S7.2a-cp2r2/runs (partial campaign stopped when the disk filled at 9.3 GB; 21 complete configs evaluated by check_m2s72_b.py into b-check-partial.txt) after hashing (raw-outputs-all-runs.sha256)

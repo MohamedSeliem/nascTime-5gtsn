@@ -1,0 +1,29 @@
+2026-11-11T14:32:53Z s0_vanilla_reference rc=0 30s free=9G
+2026-11-11T14:33:09Z s1_owned_scenario rc=0 16s free=9G
+2026-11-11T14:33:42Z s2_passthrough_tts rc=0 33s free=8G
+2026-11-11T14:34:25Z s2_phase_offset rc=0 43s free=8G
+2026-11-11T14:40:56Z s3_qfi_drb rc=0 391s free=1G
+2026-11-11T14:47:27Z o_s3_1_investigation rc=0 391s free=3G
+2026-11-11T14:47:56Z s4_gptp_transport rc=0 29s free=3G
+2026-11-11T14:48:58Z o_tail_investigation rc=1 62s free=2G
+2026-11-11T14:49:36Z s5_metadata rc=0 38s free=2G
+2026-11-11T14:50:21Z run_issues rc=0 45s free=2G
+2026-11-11T14:50:25Z v181-s5 rc=0 4s free=2G
+2026-11-11T14:50:30Z v181-s5-mutate rc=0 5s free=2G
+2026-11-11T14:50:59Z v181-o1 rc=0 29s free=2G
+2026-11-11T14:51:27Z v181-o1-mutate rc=0 28s free=2G
+2026-11-11T14:51:30Z v181-otail rc=0 3s free=2G
+2026-11-11T14:51:32Z v181-otail-mutate rc=0 2s free=2G
+DONE g0m1
+2026-11-11T14:56:40Z m2s1 rc=1 190s free=5G
+2026-11-11T14:56:44Z m2s3 rc=1 4s free=5G
+2026-11-11T15:03:30Z m2s0 rc=0 201s free=5G
+2026-11-11T15:03:36Z deleted M2-S0/runs after hashing (raw-outputs-all-runs.sha256)
+2026-11-11T15:07:15Z m2s1 rc=0 219s free=5G
+2026-11-11T15:07:34Z m2s3 rc=0 19s free=5G
+2026-11-11T15:15:18Z m2s4 rc=1 464s free=3G
+2026-11-11T15:15:23Z deleted M2-S1/runs after hashing (raw-outputs-all-runs.sha256)
+2026-11-11T15:19:22Z m2s5 rc=123 239s free=0G
+2026-11-11T15:20:21Z m2s5 rc=1 0s free=11G
+2026-11-11T15:20:21Z m2s6 rc=1 0s free=11G
+DONE g0m2

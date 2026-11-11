@@ -1,0 +1,184 @@
+OMNeT++ Discrete Event Simulation  (C) 1992-2025 Andras Varga, OpenSim Ltd.
+Version: 6.4.0, build: 260506-2cf25223fe, edition: Academic Public License -- NOT FOR COMMERCIAL USE
+See the license for distribution terms and warranty disclaimer
+
+Setting up Cmdenv...
+
+Loading NED files from /root/stack/simu5g-1.8.1/simulations:  22
+Loading NED files from /root/stack/simu5g-1.8.1/emulation:  7
+Loading NED files from /root/stack/simu5g-1.8.1/src:  242
+Loading NED files from /root/stack/inet-4.7.0/src:  1262
+
+Preparing for running configuration Ethernet-Bridge, run #0...
+Assigned runID=Ethernet-Bridge-0-20261111-14:32:35-4761
+Setting up network "EthernetSessions"...
+Initializing...
+
+Running simulation...
+** Event #0   t=0   Elapsed: 1.5e-05s (0m 00s)  0% completed  (0% total)
+     Speed:     ev/sec=0   simsec/sec=0   ev/simsec=0
+     Messages:  created: 159   present: 159   in FES: 19   Memory (RSS): 98.2344MiB
+** Event #78555   t=5   Elapsed: 0.936799s (0m 00s)  100% completed  (10% total)
+     Speed:     ev/sec=83855.7   simsec/sec=5.33739   ev/simsec=15711
+     Messages:  created: 41565   present: 191   in FES: 16   Memory (RSS): 103.148MiB
+
+<!> Simulation time limit reached -- at t=5s, event #78555
+
+Calling finish() at end of Run #0...
+
+Preparing for running configuration Ethernet-Bridge, run #1...
+Assigned runID=Ethernet-Bridge-1-20261111-14:32:36-4761
+Setting up network "EthernetSessions"...
+Initializing...
+
+Running simulation...
+** Event #0   t=0   Elapsed: 6e-06s (0m 00s)  0% completed  (10% total)
+     Speed:     ev/sec=0   simsec/sec=0   ev/simsec=0
+     Messages:  created: 159   present: 159   in FES: 19   Memory (RSS): 103.273MiB
+** Event #78555   t=5   Elapsed: 0.884288s (0m 00s)  100% completed  (20% total)
+     Speed:     ev/sec=88835   simsec/sec=5.65432   ev/simsec=15711
+     Messages:  created: 41565   present: 191   in FES: 16   Memory (RSS): 104.262MiB
+
+<!> Simulation time limit reached -- at t=5s, event #78555
+
+Calling finish() at end of Run #1...
+
+Preparing for running configuration Ethernet-Bridge, run #2...
+Assigned runID=Ethernet-Bridge-2-20261111-14:32:37-4761
+Setting up network "EthernetSessions"...
+Initializing...
+
+Running simulation...
+** Event #0   t=0   Elapsed: 7e-06s (0m 00s)  0% completed  (20% total)
+     Speed:     ev/sec=0   simsec/sec=0   ev/simsec=0
+     Messages:  created: 159   present: 159   in FES: 19   Memory (RSS): 104.637MiB
+** Event #78555   t=5   Elapsed: 0.918172s (0m 00s)  100% completed  (30% total)
+     Speed:     ev/sec=85556.7   simsec/sec=5.44566   ev/simsec=15711
+     Messages:  created: 41565   present: 191   in FES: 16   Memory (RSS): 104.637MiB
+
+<!> Simulation time limit reached -- at t=5s, event #78555
+
+Calling finish() at end of Run #2...
+
+Preparing for running configuration Ethernet-Bridge, run #3...
+Assigned runID=Ethernet-Bridge-3-20261111-14:32:38-4761
+Setting up network "EthernetSessions"...
+Initializing...
+
+Running simulation...
+** Event #0   t=0   Elapsed: 6e-06s (0m 00s)  0% completed  (30% total)
+     Speed:     ev/sec=0   simsec/sec=0   ev/simsec=0
+     Messages:  created: 159   present: 159   in FES: 19   Memory (RSS): 104.637MiB
+** Event #78555   t=5   Elapsed: 0.848906s (0m 00s)  100% completed  (40% total)
+     Speed:     ev/sec=92537.6   simsec/sec=5.88999   ev/simsec=15711
+     Messages:  created: 41565   present: 191   in FES: 16   Memory (RSS): 104.637MiB
+
+<!> Simulation time limit reached -- at t=5s, event #78555
+
+Calling finish() at end of Run #3...
+
+Preparing for running configuration Ethernet-Bridge, run #4...
+Assigned runID=Ethernet-Bridge-4-20261111-14:32:39-4761
+Setting up network "EthernetSessions"...
+Initializing...
+
+Running simulation...
+** Event #0   t=0   Elapsed: 6e-06s (0m 00s)  0% completed  (40% total)
+     Speed:     ev/sec=0   simsec/sec=0   ev/simsec=0
+     Messages:  created: 159   present: 159   in FES: 19   Memory (RSS): 104.637MiB
+** Event #78735   t=5   Elapsed: 0.956371s (0m 00s)  100% completed  (50% total)
+     Speed:     ev/sec=82327.5   simsec/sec=5.22814   ev/simsec=15747
+     Messages:  created: 41745   present: 191   in FES: 16   Memory (RSS): 104.637MiB
+
+<!> Simulation time limit reached -- at t=5s, event #78735
+
+Calling finish() at end of Run #4...
+
+Preparing for running configuration Ethernet-Bridge, run #5...
+Assigned runID=Ethernet-Bridge-5-20261111-14:32:40-4761
+Setting up network "EthernetSessions"...
+Initializing...
+
+Running simulation...
+** Event #0   t=0   Elapsed: 5e-06s (0m 00s)  0% completed  (50% total)
+     Speed:     ev/sec=0   simsec/sec=0   ev/simsec=0
+     Messages:  created: 159   present: 159   in FES: 19   Memory (RSS): 104.637MiB
+** Event #78555   t=5   Elapsed: 1.55576s (0m 01s)  100% completed  (60% total)
+     Speed:     ev/sec=50493.2   simsec/sec=3.21388   ev/simsec=15711
+     Messages:  created: 41565   present: 191   in FES: 16   Memory (RSS): 104.637MiB
+
+<!> Simulation time limit reached -- at t=5s, event #78555
+
+Calling finish() at end of Run #5...
+
+Preparing for running configuration Ethernet-Bridge, run #6...
+Assigned runID=Ethernet-Bridge-6-20261111-14:32:42-4761
+Setting up network "EthernetSessions"...
+Initializing...
+
+Running simulation...
+** Event #0   t=0   Elapsed: 6e-06s (0m 00s)  0% completed  (60% total)
+     Speed:     ev/sec=0   simsec/sec=0   ev/simsec=0
+     Messages:  created: 159   present: 159   in FES: 19   Memory (RSS): 104.637MiB
+** Event #78735   t=5   Elapsed: 1.44655s (0m 01s)  100% completed  (70% total)
+     Speed:     ev/sec=54429.9   simsec/sec=3.45653   ev/simsec=15747
+     Messages:  created: 41745   present: 191   in FES: 16   Memory (RSS): 104.637MiB
+
+<!> Simulation time limit reached -- at t=5s, event #78735
+
+Calling finish() at end of Run #6...
+
+Preparing for running configuration Ethernet-Bridge, run #7...
+Assigned runID=Ethernet-Bridge-7-20261111-14:32:44-4761
+Setting up network "EthernetSessions"...
+Initializing...
+
+Running simulation...
+** Event #0   t=0   Elapsed: 4e-06s (0m 00s)  0% completed  (70% total)
+     Speed:     ev/sec=0   simsec/sec=0   ev/simsec=0
+     Messages:  created: 159   present: 159   in FES: 19   Memory (RSS): 104.637MiB
+** Event #78555   t=5   Elapsed: 0.993482s (0m 00s)  100% completed  (80% total)
+     Speed:     ev/sec=79070.9   simsec/sec=5.03284   ev/simsec=15711
+     Messages:  created: 41565   present: 191   in FES: 16   Memory (RSS): 104.637MiB
+
+<!> Simulation time limit reached -- at t=5s, event #78555
+
+Calling finish() at end of Run #7...
+
+Preparing for running configuration Ethernet-Bridge, run #8...
+Assigned runID=Ethernet-Bridge-8-20261111-14:32:45-4761
+Setting up network "EthernetSessions"...
+Initializing...
+
+Running simulation...
+** Event #0   t=0   Elapsed: 5e-06s (0m 00s)  0% completed  (80% total)
+     Speed:     ev/sec=0   simsec/sec=0   ev/simsec=0
+     Messages:  created: 159   present: 159   in FES: 19   Memory (RSS): 104.637MiB
+** Event #78735   t=5   Elapsed: 0.983343s (0m 00s)  100% completed  (90% total)
+     Speed:     ev/sec=80069.4   simsec/sec=5.08474   ev/simsec=15747
+     Messages:  created: 41745   present: 191   in FES: 16   Memory (RSS): 104.637MiB
+
+<!> Simulation time limit reached -- at t=5s, event #78735
+
+Calling finish() at end of Run #8...
+
+Preparing for running configuration Ethernet-Bridge, run #9...
+Assigned runID=Ethernet-Bridge-9-20261111-14:32:46-4761
+Setting up network "EthernetSessions"...
+Initializing...
+
+Running simulation...
+** Event #0   t=0   Elapsed: 6e-06s (0m 00s)  0% completed  (90% total)
+     Speed:     ev/sec=0   simsec/sec=0   ev/simsec=0
+     Messages:  created: 159   present: 159   in FES: 19   Memory (RSS): 104.637MiB
+** Event #78555   t=5   Elapsed: 1.03936s (0m 01s)  100% completed  (100% total)
+     Speed:     ev/sec=75580.7   simsec/sec=4.81069   ev/simsec=15711
+     Messages:  created: 41565   present: 191   in FES: 16   Memory (RSS): 104.637MiB
+
+<!> Simulation time limit reached -- at t=5s, event #78555
+
+Calling finish() at end of Run #9...
+
+Run statistics: total 10, successful 10
+
+End.

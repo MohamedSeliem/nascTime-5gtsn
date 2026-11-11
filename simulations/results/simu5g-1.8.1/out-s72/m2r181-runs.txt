@@ -1,0 +1,5 @@
+2026-11-11T15:49:29Z m2s72-cp1 rc=0 437s free=10G
+2026-11-11T15:50:11Z m2s72-f0check rc=0 42s free=10G
+2026-11-11T15:50:12Z m2s72-t0check rc=0 1s free=10G
+2026-11-11T16:13:10Z m2s72-cp2r2 rc=143 1378s free=0G
+DONE s72

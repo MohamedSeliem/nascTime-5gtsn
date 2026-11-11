@@ -1,0 +1,2 @@
+ERROR: M2S4U-F8 failed, see /root/inv/nascTime-5gtsn/simulations/results/simu5g-1.8.1/out/m2/M2-S4/runs/run-M2S4U-F8.log
+ERROR: M2S4U-F7 failed, see /root/inv/nascTime-5gtsn/simulations/results/simu5g-1.8.1/out/m2/M2-S4/runs/run-M2S4U-F7.log

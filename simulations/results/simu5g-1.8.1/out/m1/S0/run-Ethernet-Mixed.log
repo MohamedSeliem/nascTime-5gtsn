@@ -1,0 +1,29 @@
+OMNeT++ Discrete Event Simulation  (C) 1992-2025 Andras Varga, OpenSim Ltd.
+Version: 6.4.0, build: 260506-2cf25223fe, edition: Academic Public License -- NOT FOR COMMERCIAL USE
+See the license for distribution terms and warranty disclaimer
+
+Setting up Cmdenv...
+
+Loading NED files from /root/stack/simu5g-1.8.1/simulations:  22
+Loading NED files from /root/stack/simu5g-1.8.1/emulation:  7
+Loading NED files from /root/stack/simu5g-1.8.1/src:  242
+Loading NED files from /root/stack/inet-4.7.0/src:  1262
+
+Preparing for running configuration Ethernet-Mixed, run #0...
+Assigned runID=Ethernet-Mixed-0-20261111-14:32:34-4759
+Setting up network "EthernetSessions"...
+Initializing...
+
+Running simulation...
+** Event #0   t=0   Elapsed: 1.4e-05s (0m 00s)  0% completed  (0% total)
+     Speed:     ev/sec=0   simsec/sec=0   ev/simsec=0
+     Messages:  created: 164   present: 163   in FES: 27   Memory (RSS): 97.0977MiB
+** Event #109885   t=5   Elapsed: 0.752592s (0m 00s)  100% completed  (100% total)
+     Speed:     ev/sec=146011   simsec/sec=6.6438   ev/simsec=21977
+     Messages:  created: 44971   present: 183   in FES: 19   Memory (RSS): 101.012MiB
+
+<!> Simulation time limit reached -- at t=5s, event #109885
+
+Calling finish() at end of Run #0...
+
+End.

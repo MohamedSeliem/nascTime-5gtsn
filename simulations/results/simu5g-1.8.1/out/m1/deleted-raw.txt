@@ -1,0 +1,4 @@
+M2-R181 1.8.1 raw-output deletion (plan §6; disk 1.4 GB free at 14:52 UTC). Before deletion every file of every M1 stage directory was hashed into <stage>/raw-outputs-all.sha256. Deleted (OMNeT++ .sca/.vec/.vci and PCAP of the runs; the opp_scavetool CSV exports, logs, traces and PCAP runs read by the checkers are kept):
+  S3/load S3/seeds O-S3-1/runs (except the trace logs) O-tail/runs upstream-issues/runs
+2026-11-11T15:10:58Z gzip -1 (lossless; hashes of the uncompressed files in raw-outputs-all.sha256): O-S3-1/O1-drain.csv O1-harq16.csv O1-*-trace.csv S3/load.csv S3/seeds.csv
+2026-11-11T15:18:57Z deleted after hashing: S0/seeds S0/runs S1/seeds S2/seeds S2-phase/runs S4/seeds S5/seeds (vec/sca; CSV exports kept)

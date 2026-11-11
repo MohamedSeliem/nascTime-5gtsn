@@ -1,0 +1,1 @@
+attempt 1 of the M2 family (order m2s1 first) failed: m2s1's check needs M2-S0/raw-outputs.sha256 of the same root (in the legacy tree it is the committed record); stopped during m2s4; raw hashed then deleted; outputs kept here

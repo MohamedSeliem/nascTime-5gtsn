@@ -1,0 +1,8 @@
+Traceback (most recent call last):
+  File "/root/inv/nascTime-5gtsn/simulations/m2/check/check_m2s5.py", line 1142, in <module>
+    sys.exit(main())
+             ~~~~^^
+  File "/root/inv/nascTime-5gtsn/simulations/m2/check/check_m2s5.py", line 701, in main
+    with open(HASHES4) as fh:
+         ~~~~^^^^^^^^^
+FileNotFoundError: [Errno 2] No such file or directory: '/root/inv/nascTime-5gtsn/simulations/results/simu5g-1.8.1/out-m2full/m2/M2-S4/raw-outputs.sha256'

@@ -1,0 +1,5 @@
+Traceback (most recent call last):
+  File "/root/inv/nascTime-5gtsn/simulations/m1/check/check_o_tail.py", line 135, in <module>
+    f"cut but not late {sum(1 for w in fu if w[0] in cut_arr and w[2] <= 2 * MS)}; first cut at {first_cut:.6f} s; "
+                                                                                                ^^^^^^^^^^^^^^^
+TypeError: unsupported format string passed to NoneType.__format__

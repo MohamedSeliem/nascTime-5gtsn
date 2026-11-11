@@ -1,0 +1,18 @@
+PASS | PCAP timestamp +1 ps (dsTt[0].eth[1]) | flagged (expected flagged): pcap/M2S72Bridge.dsTt[0].pcapRecorder[1].pcapng: bytes differ
+PASS | PCAP one data bit (talker[0]) | flagged (expected flagged): pcap/M2S72Bridge.talker[0].pcapRecorder[0].pcapng: bytes differ
+PASS | log cfOut +1 (DS-TT 0 egress log) | flagged (expected flagged): m2log/M2S72Bridge.dsTt[0].eth[1].trafficConditionerLayer.syncOut.sync.csv: line 145 column 21: '5000626000' vs '5000626001'
+PASS | log TSe +1 (DS-TT 0 egress log) | flagged (expected flagged): m2log/M2S72Bridge.dsTt[0].eth[1].trafficConditionerLayer.syncOut.sync.csv: line 145 column 19: '6005000626000' vs '6005000626001'
+PASS | log row deleted | flagged (expected flagged): m2log/M2S72Bridge.dsTt[0].eth[1].trafficConditionerLayer.syncOut.sync.csv: 287 vs 286 lines
+PASS | treeId and t of the same row changed | flagged (expected flagged): m2log/M2S72Bridge.dsTt[0].eth[1].trafficConditionerLayer.syncOut.sync.csv: line 144 column 2: '6005000626000' vs '6005000626001'
+PASS | vector value, last digit | flagged (expected flagged): res/0.vec: vector ('M2S72Bridge.talker[1].clock.underlyingClock', 'timeChanged:vector') differs
+PASS | vector time +1 ps | flagged (expected flagged): res/0.vec: vector ('M2S72Bridge.talker[1].clock.underlyingClock', 'timeChanged:vector') differs
+PASS | scalar value, last digit | flagged (expected flagged): res/0.sca: scalar content differs at item 18646: ('scalar', 'M2S72Bridge.talker[0].lo[0]', 'packetDropInterfaceDown:count', '0') vs ('scalar', 'M2S72Bridge.talker[0].lo[0]', 'packetDropInterfaceDown:count', '1')
+PASS | treeId changed in every row (excluded column) | not flagged (expected not flagged)
+PASS | treeId changed, without the exclusion | flagged (expected flagged): m2log/M2S72Bridge.dsTt[0].eth[1].trafficConditionerLayer.syncOut.sync.csv: bytes differ
+PASS | vector ids renumbered | not flagged (expected not flagged)
+PASS | run metadata (attr, config, par lines) changed | not flagged (expected not flagged)
+PASS | T0 mode: PCAP timestamp +1 ps | flagged (expected flagged): pcap/M2S72Bridge.dsTt[0].pcapRecorder[1].pcapng: record 113: t/dir/linktype/length (6000001330000, 2, 1, 72) vs (6000001330001, 2, 1, 72)
+PASS | T0 mode: PCAP one data bit | flagged (expected flagged): pcap/M2S72Bridge.talker[0].pcapRecorder[0].pcapng: record 113: bytes differ
+PASS | T0 mode: log cfOut +1 | flagged (expected flagged): m2log/M2S72Bridge.dsTt[0].eth[1].trafficConditionerLayer.syncOut.sync.csv: line 145 column 21: '5000626000' vs '5000626001'
+PASS | T0 mode: unmodified copy | not flagged (expected not flagged)
+comparator canaries: 17 PASS, 0 FAIL

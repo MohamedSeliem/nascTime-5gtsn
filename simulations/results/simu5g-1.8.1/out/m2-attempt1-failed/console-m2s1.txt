@@ -1,0 +1,5 @@
+Traceback (most recent call last):
+  File "/root/inv/nascTime-5gtsn/simulations/m2/check/check_m2s1.py", line 715, in <module>
+    with open(M2S0_HASHES) as fh:
+         ~~~~^^^^^^^^^^^^^
+FileNotFoundError: [Errno 2] No such file or directory: '/root/inv/nascTime-5gtsn/simulations/results/simu5g-1.8.1/out/m2/M2-S0/raw-outputs.sha256'

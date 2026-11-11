@@ -1,0 +1,10 @@
+Traceback (most recent call last):
+  File "/root/inv/nascTime-5gtsn/simulations/m2/check/oracle_m2s3.py", line 871, in <module>
+    sys.exit(main())
+             ~~~~^^
+  File "/root/inv/nascTime-5gtsn/simulations/m2/check/oracle_m2s3.py", line 383, in main
+    hashes = load_hashes()
+  File "/root/inv/nascTime-5gtsn/simulations/m2/check/oracle_m2s3.py", line 174, in load_hashes
+    with open(HASHES) as fh:
+         ~~~~^^^^^^^^
+FileNotFoundError: [Errno 2] No such file or directory: '/root/inv/nascTime-5gtsn/simulations/results/simu5g-1.8.1/out/m2/M2-S1/raw-outputs.sha256'

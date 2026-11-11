@@ -1,0 +1,10 @@
+PASS  T-run: S4 seeds and S4-pcap                                                          S4 seeds [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]; S4-pcap seed 0; no errors
+PASS  T-delivery: every gPTP message reaches the other station (PCAP, seed 0)              Sync 39 sent, 39 received, 0 in flight at 5 s; Follow_Up 39 sent, 39 received, 0 in flight at 5 s; Pdelay_Resp 5 sent, 5 received, 0 in flight at 5 s; Pdelay_Resp_Follow_Up 5 sent, 5 received, 0 in flight at 5 s; Pdelay_Req 6 sent, 5 received, 1 in flight at 5 s
+PASS  T-transit: gPTP frames cross the 5G system and translators unchanged (PCAP, seed 0)  DL: 88 into the 5G system, 88 out, byte-identical True; station to station byte-identical True; UL: 6 into the 5G system, 5 out, byte-identical True; station to station byte-identical True; correctionField 0 everywhere
+PASS  T-qfi: gPTP frames on N3 ride the default QoS flow (PCAP, seed 0)                    G-PDUs carrying gPTP by (direction, QFI): {('UL', 0): 5, ('DL', 0): 88}
+PASS  T-state: slave gPTP state advances (seeds 0..9)                                      (seed, GM rate ratio updates, pdelay updates): [(0, 38, 5), (1, 38, 5), (2, 38, 5), (3, 38, 5), (4, 38, 5), (5, 38, 5), (6, 38, 5), (7, 38, 5), (8, 38, 5), (9, 38, 5)]
+PASS  T-drops: no gPTP frame dropped as not addressed to us (seeds 0..9)                   drop counts [0.0]
+PASS  T-traffic: S2 talker/listener flows still delivered (seeds 0..9)                     received >= sent - 3 for both directions in every seed; violations []
+PASS  T-control: S4-pcap gPTP and clock samples == S4 (seed 0)                             PCAP recorders and computed FCS/checksums change nothing
+
+OVERALL: PASS

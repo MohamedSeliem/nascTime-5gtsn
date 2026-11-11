@@ -1,0 +1,5 @@
+M2-R181 version-neutral S5 rows
+PASS  S5-W-identity-v: frames leave the 5G system with the identity and bytes they entered with, once, in order (PCAP, seed 0)  DL: 578 in, 578 out; unknown 0, altered 0, duplicated False, out of order 0, still inside 0 (all entered in the last 100 ms: True) | UL: 496 in, 495 out; unknown 0, altered 0, duplicated False, out of order 0, still inside 1 (all entered in the last 100 ms: True)
+FAIL  S5-R-egress-v: INET flow-measurement samples at the far translator, one per frame that crossed, each = its PCAP transit   seed 0: DL 578 samples / 578 frames; UL 495 samples / 495 frames; count mismatches over seeds [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]: 0; PCAP run: 1054 samples matched to their frame within the serialisation time, mismatches 19 [('DL', 0.130002674, 0.005, 0.004998959999999997), ('DL', 0.506001538, 0.005998864, 0.0059978240000000405), ('DL', 0.630002674, 0.005, 0.004998959999999997)]
+
+OVERALL: FAIL

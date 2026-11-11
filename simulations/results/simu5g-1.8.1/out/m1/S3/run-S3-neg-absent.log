@@ -1,0 +1,35 @@
+OMNeT++ Discrete Event Simulation  (C) 1992-2025 Andras Varga, OpenSim Ltd.
+Version: 6.4.0, build: 260506-2cf25223fe, edition: Academic Public License -- NOT FOR COMMERCIAL USE
+See the license for distribution terms and warranty disclaimer
+
+Setting up Cmdenv...
+
+Loading NED files from /root/inv/nascTime-5gtsn/simulations:  8
+Loading NED files from /root/inv/nascTime-5gtsn/src:  14
+Loading NED files from /root/stack/simu5g-1.8.1/src:  242
+Loading NED files from /root/stack/inet-4.7.0/src:  1262
+
+Preparing for running configuration S3-neg-absent, run #0...
+Assigned runID=S3-neg-absent-0-20261111-14:35:40-7398
+Setting up network "M1Bridge"...
+Initializing...
+
+Running simulation...
+** Event #0   t=0   Elapsed: 1.7e-05s (0m 00s)  0% completed  (0% total)
+     Speed:     ev/sec=0   simsec/sec=0   ev/simsec=0
+     Messages:  created: 243   present: 243   in FES: 37   Memory (RSS): 102.875MiB
+** Event #104960   t=1.831   Elapsed: 2.00095s (0m 02s)  36% completed  (36% total)
+     Speed:     ev/sec=52455.9   simsec/sec=0.91507   ev/simsec=57324.4
+     Messages:  created: 74483   present: 305   in FES: 29   Memory (RSS): 115.125MiB
+** Event #193536   t=3.29200405   Elapsed: 4.00405s (0m 04s)  65% completed  (65% total)
+     Speed:     ev/sec=44219.5   simsec/sec=0.729373   ev/simsec=60626.8
+     Messages:  created: 137221   present: 284   in FES: 26   Memory (RSS): 119MiB
+** Event #296633   t=5   Elapsed: 5.96572s (0m 05s)  100% completed  (100% total)
+     Speed:     ev/sec=52555.2   simsec/sec=0.870685   ev/simsec=60360.8
+     Messages:  created: 210244   present: 288   in FES: 26   Memory (RSS): 119.289MiB
+
+<!> Simulation time limit reached -- at t=5s, event #296633
+
+Calling finish() at end of Run #0...
+
+End.

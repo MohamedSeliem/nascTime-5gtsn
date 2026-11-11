@@ -1,0 +1,6 @@
+2026-11-11T15:23:36Z deleted M2-S0/runs after hashing (raw-outputs-all-runs.sha256)
+2026-11-11T15:34:54Z deleted M2-S1/runs after hashing (raw-outputs-all-runs.sha256)
+2026-11-11T15:35:55Z deleted M2-S4/runs/<42 configs not read by m2s5> during m2s5 after hashing (M2-S4/raw-outputs-partial-early.sha256)
+2026-11-11T15:40:23Z deleted M2-S4/runs after hashing (raw-outputs-all-runs.sha256)
+2026-11-11T15:41:56Z deleted M2-S5/runs after hashing (M2-S5: m2s5 runs complete, check blocked; m2s6 stopped by me after start to keep disk for S7.2a and the legacy proof)
+2026-11-11T15:41:59Z deleted M2-S6/runs after hashing (M2-S6: m2s5 runs complete, check blocked; m2s6 stopped by me after start to keep disk for S7.2a and the legacy proof)

@@ -1,0 +1,4 @@
+comparator canaries: 17 PASS, 0 FAIL
+PASS | control mutation iface-log | failed rows ['F0-6'], predicted ['F0-6'] 
+controls: 6 PASS, 0 FAIL
+F0 verdict: PASS

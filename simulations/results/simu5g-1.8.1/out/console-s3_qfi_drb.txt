@@ -1,0 +1,26 @@
+PASS  run: S3 seeds and seed-0 control/negative runs                                        S3 seeds [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]; 7 logs, no errors
+PASS  DRB D-UL-tx: every flow on its intended DRB only (10 seeds)                           DRB 1: pcp0,pcp1,pcp2,pcp3,pcp4,pcp7,untagged; DRB 2: pcp5; DRB 3: pcp6
+PASS  DRB D-UL-rx: every flow on its intended DRB only (10 seeds)                           DRB 1: pcp0,pcp1,pcp2,pcp3,pcp4,pcp7,untagged; DRB 2: pcp5; DRB 3: pcp6
+PASS  DRB D-DL-tx: every flow on its intended DRB only (10 seeds)                           DRB 1: pcp0,pcp1,pcp2,pcp3,pcp4,pcp7,untagged; DRB 2: pcp5; DRB 3: pcp6
+PASS  DRB D-DL-rx: every flow on its intended DRB only (10 seeds)                           DRB 1: pcp0,pcp1,pcp2,pcp3,pcp4,pcp7,untagged; DRB 2: pcp5; DRB 3: pcp6
+PASS  functional: accounting sent = RLC TX in, RLC RX out = received, in flight 0..3        180 (seed, direction, flow) triples; in-flight distribution {0: 101, 1: 79}; 20 frames generated at t = 5 s not counted; mismatches 0
+PASS  protocol: SDU size - frame size per DRB (SDAP header only on default DRB)             DRB 1: [2] B; DRB 2: [1] B; DRB 3: [1] B
+PASS  QFI Q-UL: N3 G-PDUs carry the intended QFI (S3-pcap, seed 0)                          2198 G-PDUs (PDU type 1); QFI 0: pcp0,pcp1,pcp2,pcp3,pcp4,pcp7,untagged; QFI 5: pcp5; QFI 6: pcp6
+PASS  QFI Q-DL: N3 G-PDUs carry the intended QFI (S3-pcap, seed 0)                          2205 G-PDUs (PDU type 0); QFI 0: pcp0,pcp1,pcp2,pcp3,pcp4,pcp7,untagged; QFI 5: pcp5; QFI 6: pcp6
+PASS  DRB D-UL-tx in S3-pcap (seed 0)                                                       DRB 1: pcp0,pcp1,pcp2,pcp3,pcp4,pcp7,untagged; DRB 2: pcp5; DRB 3: pcp6
+PASS  DRB D-UL-rx in S3-pcap (seed 0)                                                       DRB 1: pcp0,pcp1,pcp2,pcp3,pcp4,pcp7,untagged; DRB 2: pcp5; DRB 3: pcp6
+PASS  DRB D-DL-tx in S3-pcap (seed 0)                                                       DRB 1: pcp0,pcp1,pcp2,pcp3,pcp4,pcp7,untagged; DRB 2: pcp5; DRB 3: pcp6
+PASS  DRB D-DL-rx in S3-pcap (seed 0)                                                       DRB 1: pcp0,pcp1,pcp2,pcp3,pcp4,pcp7,untagged; DRB 2: pcp5; DRB 3: pcp6
+PASS  protocol: UL frames leave the 5G system byte-identical (PCP, VLAN 42, payload, FCS)   2198 frames out, 2205 in; flows failing: none; (PCP, VID) out as intended: True
+PASS  protocol: DL frames leave the 5G system byte-identical (PCP, VLAN 42, payload, FCS)   2204 frames out, 2205 in; flows failing: none; (PCP, VID) out as intended: True
+PASS  control: S3-pcap delay samples == S3 (seed 0)                                         fcsMode/checksumMode=computed and PCAP recorders change no sample
+PASS  negative: S3-neg-absent fails exactly nothing                                         failed nothing; delay samples bit-identical to S3-pcap: True | no row fails
+PASS  negative: S3-mut-ul-swap fails exactly ['D-UL-rx', 'D-UL-tx', 'Q-UL']                 failed ['D-UL-rx', 'D-UL-tx', 'Q-UL'] | D-UL-rx: WRONG DRB: [(2, 'pcp6', 245), (3, 'pcp5', 245)] / D-UL-tx: WRONG DRB: [(2, 'pcp6', 245), (3, 'pcp5', 245)] / Q-UL: WRONG QFI: [(('pcp5', 6), 245), (('pcp6', 5), 245)]
+PASS  negative: S3-mut-dl-swap fails exactly ['D-DL-rx', 'D-DL-tx', 'Q-DL']                 failed ['D-DL-rx', 'D-DL-tx', 'Q-DL'] | D-DL-rx: WRONG DRB: [(2, 'pcp6', 245), (3, 'pcp5', 245)] / D-DL-tx: WRONG DRB: [(2, 'pcp6', 245), (3, 'pcp5', 245)] / Q-DL: WRONG QFI: [(('pcp5', 6), 245), (('pcp6', 5), 245)]
+PASS  negative: S3-mut-drb-swap fails exactly ['D-DL-rx', 'D-DL-tx', 'D-UL-rx', 'D-UL-tx']  failed ['D-DL-rx', 'D-DL-tx', 'D-UL-rx', 'D-UL-tx'] | D-DL-rx: WRONG DRB: [(2, 'pcp6', 245), (3, 'pcp5', 245)] / D-DL-tx: WRONG DRB: [(2, 'pcp6', 245), (3, 'pcp5', 245)] / D-UL-rx: WRONG DRB: [(2, 'pcp6', 245), (3, 'pcp5', 245)] / D-UL-tx: WRONG DRB: [(2, 'pcp6', 245), (3, 'pcp5', 245)]
+PASS  DRB D-UL-tx under saturating load (S3-load, 5 seeds)                                  DRB 1: pcp0,pcp1,pcp2,pcp3,pcp4,pcp7,untagged,bg; DRB 2: pcp5; DRB 3: pcp6
+PASS  DRB D-UL-rx under saturating load (S3-load, 5 seeds)                                  DRB 1: pcp0,pcp1,pcp2,pcp3,pcp4,pcp7,untagged,bg; DRB 2: pcp5; DRB 3: pcp6
+PASS  DRB D-DL-tx under saturating load (S3-load, 5 seeds)                                  DRB 1: pcp0,pcp1,pcp2,pcp3,pcp4,pcp7,untagged,bg; DRB 2: pcp5; DRB 3: pcp6
+PASS  DRB D-DL-rx under saturating load (S3-load, 5 seeds)                                  DRB 1: pcp0,pcp1,pcp2,pcp3,pcp4,pcp7,untagged,bg; DRB 2: pcp5; DRB 3: pcp6
+
+OVERALL: PASS

@@ -1,0 +1,29 @@
+OMNeT++ Discrete Event Simulation  (C) 1992-2025 Andras Varga, OpenSim Ltd.
+Version: 6.4.0, build: 260506-2cf25223fe, edition: Academic Public License -- NOT FOR COMMERCIAL USE
+See the license for distribution terms and warranty disclaimer
+
+Setting up Cmdenv...
+
+Loading NED files from /root/inv/nascTime-5gtsn/simulations:  8
+Loading NED files from /root/inv/nascTime-5gtsn/src:  14
+Loading NED files from /root/stack/simu5g-1.8.1/src:  242
+Loading NED files from /root/stack/inet-4.7.0/src:  1262
+
+Preparing for running configuration S4-pcap, run #0...
+Assigned runID=S4-pcap-0-20261111-14:47:42-8266
+Setting up network "M1Bridge"...
+Initializing...
+
+Running simulation...
+** Event #0   t=0   Elapsed: 1.5e-05s (0m 00s)  0% completed  (0% total)
+     Speed:     ev/sec=0   simsec/sec=0   ev/simsec=0
+     Messages:  created: 202   present: 202   in FES: 26   Memory (RSS): 101.965MiB
+** Event #100721   t=5   Elapsed: 1.25679s (0m 01s)  100% completed  (100% total)
+     Speed:     ev/sec=80142.2   simsec/sec=3.97843   ev/simsec=20144.2
+     Messages:  created: 63863   present: 239   in FES: 15   Memory (RSS): 110.676MiB
+
+<!> Simulation time limit reached -- at t=5s, event #100721
+
+Calling finish() at end of Run #0...
+
+End.

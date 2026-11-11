@@ -1,0 +1,28 @@
+ERROR: M2S6U-Q10 failed, see /root/inv/nascTime-5gtsn/simulations/results/simu5g-1.8.1/out-m2full/m2/M2-S6/runs/run-M2S6U-Q10.log
+ERROR: M2S6U-d0-osc0 failed, see /root/inv/nascTime-5gtsn/simulations/results/simu5g-1.8.1/out-m2full/m2/M2-S6/runs/run-M2S6U-d0-osc0.log
+environment: line 1: 14000 Killed                  opp_run -l "$NASCTIME/src/nasctime/m2/nasctime_m2" -l "$SIMU5G_ROOT/src/simu5g" -n "$NASCTIME/simulations:$NASCTIME/src:$SIMU5G_ROOT/src:$INET_ROOT/src" -x nasctime.nodes -u Cmdenv -f omnetpp.ini -c "$1" --repeat=10 -r "$2" --result-dir="$OUT/runs/$1" --cmdenv-express-mode=true > "$OUT/runs/run-$1.log" 2>&1
+ERROR: M2S6U-A1 failed, see /root/inv/nascTime-5gtsn/simulations/results/simu5g-1.8.1/out-m2full/m2/M2-S6/runs/run-M2S6U-A1.log
+environment: line 1: 14004 Killed                  opp_run -l "$NASCTIME/src/nasctime/m2/nasctime_m2" -l "$SIMU5G_ROOT/src/simu5g" -n "$NASCTIME/simulations:$NASCTIME/src:$SIMU5G_ROOT/src:$INET_ROOT/src" -x nasctime.nodes -u Cmdenv -f omnetpp.ini -c "$1" --repeat=10 -r "$2" --result-dir="$OUT/runs/$1" --cmdenv-express-mode=true > "$OUT/runs/run-$1.log" 2>&1
+ERROR: M2S6U-A2 failed, see /root/inv/nascTime-5gtsn/simulations/results/simu5g-1.8.1/out-m2full/m2/M2-S6/runs/run-M2S6U-A2.log
+environment: line 1: /root/inv/nascTime-5gtsn/simulations/results/simu5g-1.8.1/out-m2full/m2/M2-S6/runs/run-M2S6U-A3.log: No such file or directory
+environment: line 1: /root/inv/nascTime-5gtsn/simulations/results/simu5g-1.8.1/out-m2full/m2/M2-S6/runs/run-M2S6U-A4.log: No such file or directory
+ERROR: M2S6U-A3 failed, see /root/inv/nascTime-5gtsn/simulations/results/simu5g-1.8.1/out-m2full/m2/M2-S6/runs/run-M2S6U-A3.log
+ERROR: M2S6U-A4 failed, see /root/inv/nascTime-5gtsn/simulations/results/simu5g-1.8.1/out-m2full/m2/M2-S6/runs/run-M2S6U-A4.log
+environment: line 1: /root/inv/nascTime-5gtsn/simulations/results/simu5g-1.8.1/out-m2full/m2/M2-S6/runs/run-M2S6U-A5.log: No such file or directory
+ERROR: M2S6U-A5 failed, see /root/inv/nascTime-5gtsn/simulations/results/simu5g-1.8.1/out-m2full/m2/M2-S6/runs/run-M2S6U-A5.log
+environment: line 1: /root/inv/nascTime-5gtsn/simulations/results/simu5g-1.8.1/out-m2full/m2/M2-S6/runs/run-M2S6U-B-m100.log: No such file or directory
+ERROR: M2S6U-B-m100 failed, see /root/inv/nascTime-5gtsn/simulations/results/simu5g-1.8.1/out-m2full/m2/M2-S6/runs/run-M2S6U-B-m100.log
+environment: line 1: /root/inv/nascTime-5gtsn/simulations/results/simu5g-1.8.1/out-m2full/m2/M2-S6/runs/run-M2S6U-B-m10.log: No such file or directory
+ERROR: M2S6U-B-m10 failed, see /root/inv/nascTime-5gtsn/simulations/results/simu5g-1.8.1/out-m2full/m2/M2-S6/runs/run-M2S6U-B-m10.log
+environment: line 1: /root/inv/nascTime-5gtsn/simulations/results/simu5g-1.8.1/out-m2full/m2/M2-S6/runs/run-M2S6U-B-m1.log: No such file or directory
+ERROR: M2S6U-B-m1 failed, see /root/inv/nascTime-5gtsn/simulations/results/simu5g-1.8.1/out-m2full/m2/M2-S6/runs/run-M2S6U-B-m1.log
+environment: line 1: /root/inv/nascTime-5gtsn/simulations/results/simu5g-1.8.1/out-m2full/m2/M2-S6/runs/run-M2S6U-B-p10.log: No such file or directory
+ERROR: M2S6U-B-p10 failed, see /root/inv/nascTime-5gtsn/simulations/results/simu5g-1.8.1/out-m2full/m2/M2-S6/runs/run-M2S6U-B-p10.log
+environment: line 1: /root/inv/nascTime-5gtsn/simulations/results/simu5g-1.8.1/out-m2full/m2/M2-S6/runs/run-M2S6U-B-p1.log: No such file or directory
+ERROR: M2S6U-B-p1 failed, see /root/inv/nascTime-5gtsn/simulations/results/simu5g-1.8.1/out-m2full/m2/M2-S6/runs/run-M2S6U-B-p1.log
+environment: line 1: /root/inv/nascTime-5gtsn/simulations/results/simu5g-1.8.1/out-m2full/m2/M2-S6/runs/run-M2S6U-B-p100.log: No such file or directory
+ERROR: M2S6U-B-p100 failed, see /root/inv/nascTime-5gtsn/simulations/results/simu5g-1.8.1/out-m2full/m2/M2-S6/runs/run-M2S6U-B-p100.log
+environment: line 1: /root/inv/nascTime-5gtsn/simulations/results/simu5g-1.8.1/out-m2full/m2/M2-S6/runs/run-M2S6-B-p100.log: No such file or directory
+ERROR: M2S6-B-p100 failed, see /root/inv/nascTime-5gtsn/simulations/results/simu5g-1.8.1/out-m2full/m2/M2-S6/runs/run-M2S6-B-p100.log
+environment: line 1: /root/inv/nascTime-5gtsn/simulations/results/simu5g-1.8.1/out-m2full/m2/M2-S6/runs/run-M2S6-B-m100.log: No such file or directory
+ERROR: M2S6-B-m100 failed, see /root/inv/nascTime-5gtsn/simulations/results/simu5g-1.8.1/out-m2full/m2/M2-S6/runs/run-M2S6-B-m100.log

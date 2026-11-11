@@ -1,0 +1,270 @@
+OMNeT++ Discrete Event Simulation  (C) 1992-2025 Andras Varga, OpenSim Ltd.
+Version: 6.4.0, build: 260506-2cf25223fe, edition: Academic Public License -- NOT FOR COMMERCIAL USE
+See the license for distribution terms and warranty disclaimer
+
+Setting up Cmdenv...
+
+Loading NED files from /root/inv/nascTime-5gtsn/simulations:  8
+Loading NED files from /root/inv/nascTime-5gtsn/src:  14
+Loading NED files from /root/stack/simu5g-1.8.1/src:  242
+Loading NED files from /root/stack/inet-4.7.0/src:  1262
+
+Preparing for running configuration O1-harq16, run #0...
+Assigned runID=O1-harq16-0-20261111-14:43:37-8048
+Setting up network "M1Bridge"...
+Initializing...
+
+Running simulation...
+** Event #0   t=0   Elapsed: 1.6e-05s (0m 00s)  0% completed  (0% total)
+     Speed:     ev/sec=0   simsec/sec=0   ev/simsec=0
+     Messages:  created: 249   present: 249   in FES: 39   Memory (RSS): 103.121MiB
+** Event #99328   t=0.3150473232   Elapsed: 2.00287s (0m 02s)  6% completed  (1% total)
+     Speed:     ev/sec=49593.8   simsec/sec=0.157299   ev/simsec=315283
+     Messages:  created: 70874   present: 726   in FES: 34   Memory (RSS): 117.496MiB
+** Event #244736   t=0.6   Elapsed: 4.08006s (0m 04s)  12% completed  (2% total)
+     Speed:     ev/sec=70002   simsec/sec=0.137181   ev/simsec=510288
+     Messages:  created: 174045   present: 790   in FES: 34   Memory (RSS): 121.121MiB
+** Event #375552   t=0.8580035256   Elapsed: 6.08042s (0m 06s)  17% completed  (3% total)
+     Speed:     ev/sec=65396.1   simsec/sec=0.128978   ev/simsec=507032
+     Messages:  created: 266902   present: 884   in FES: 41   Memory (RSS): 121.621MiB
+** Event #491008   t=1.081   Elapsed: 8.08388s (0m 08s)  21% completed  (4% total)
+     Speed:     ev/sec=57628.5   simsec/sec=0.111306   ev/simsec=517748
+     Messages:  created: 348789   present: 922   in FES: 53   Memory (RSS): 121.746MiB
+** Event #627712   t=1.3410719652   Elapsed: 10.0854s (0m 10s)  26% completed  (5% total)
+     Speed:     ev/sec=68299.5   simsec/sec=0.129936   ev/simsec=525639
+     Messages:  created: 445730   present: 817   in FES: 31   Memory (RSS): 121.746MiB
+** Event #762624   t=1.60727298   Elapsed: 12.0866s (0m 12s)  32% completed  (6% total)
+     Speed:     ev/sec=67416.2   simsec/sec=0.133022   ev/simsec=506805
+     Messages:  created: 541498   present: 891   in FES: 33   Memory (RSS): 121.871MiB
+** Event #860160   t=1.79176149   Elapsed: 14.0873s (0m 14s)  35% completed  (7% total)
+     Speed:     ev/sec=48750.2   simsec/sec=0.0922106   ev/simsec=528683
+     Messages:  created: 610588   present: 776   in FES: 32   Memory (RSS): 121.871MiB
+** Event #982272   t=2.033   Elapsed: 16.1036s (0m 16s)  40% completed  (8% total)
+     Speed:     ev/sec=60563.3   simsec/sec=0.119646   ev/simsec=506188
+     Messages:  created: 697282   present: 922   in FES: 43   Memory (RSS): 121.871MiB
+** Event #1105408   t=2.2690615632   Elapsed: 18.1858s (0m 18s)  45% completed  (9% total)
+     Speed:     ev/sec=59137.2   simsec/sec=0.113371   ev/simsec=521627
+     Messages:  created: 784623   present: 892   in FES: 34   Memory (RSS): 121.871MiB
+** Event #1203968   t=2.459   Elapsed: 20.1877s (0m 20s)  49% completed  (9% total)
+     Speed:     ev/sec=49233.2   simsec/sec=0.094879   ev/simsec=518905
+     Messages:  created: 854459   present: 843   in FES: 37   Memory (RSS): 121.871MiB
+** Event #1309952   t=2.66   Elapsed: 22.1936s (0m 22s)  53% completed  (10% total)
+     Speed:     ev/sec=52836.6   simsec/sec=0.100205   ev/simsec=527284
+     Messages:  created: 929634   present: 871   in FES: 49   Memory (RSS): 121.871MiB
+** Event #1432064   t=2.899511536   Elapsed: 24.1988s (0m 24s)  57% completed  (11% total)
+     Speed:     ev/sec=60898.6   simsec/sec=0.119447   ev/simsec=509838
+     Messages:  created: 1016258   present: 851   in FES: 32   Memory (RSS): 121.871MiB
+** Event #1512978   t=5   Elapsed: 25.7182s (0m 25s)  100% completed  (20% total)
+     Speed:     ev/sec=53251.9   simsec/sec=1.38241   ev/simsec=38521
+     Messages:  created: 1070374   present: 275   in FES: 24   Memory (RSS): 122.301MiB
+
+<!> Simulation time limit reached -- at t=5s, event #1512978
+
+Calling finish() at end of Run #0...
+
+Preparing for running configuration O1-harq16, run #1...
+Assigned runID=O1-harq16-1-20261111-14:44:03-8048
+Setting up network "M1Bridge"...
+Initializing...
+
+Running simulation...
+** Event #0   t=0   Elapsed: 8e-06s (0m 00s)  0% completed  (20% total)
+     Speed:     ev/sec=0   simsec/sec=0   ev/simsec=0
+     Messages:  created: 249   present: 249   in FES: 39   Memory (RSS): 122.301MiB
+** Event #120320   t=0.353   Elapsed: 2.00016s (0m 02s)  7% completed  (21% total)
+     Speed:     ev/sec=60156   simsec/sec=0.176487   ev/simsec=340853
+     Messages:  created: 85745   present: 700   in FES: 42   Memory (RSS): 122.301MiB
+** Event #215040   t=0.53877298   Elapsed: 4.00229s (0m 04s)  10% completed  (22% total)
+     Speed:     ev/sec=47309.7   simsec/sec=0.0927879   ev/simsec=509870
+     Messages:  created: 152928   present: 724   in FES: 32   Memory (RSS): 122.301MiB
+** Event #319232   t=0.74727298   Elapsed: 6.00361s (0m 06s)  14% completed  (22% total)
+     Speed:     ev/sec=52061.7   simsec/sec=0.104181   ev/simsec=499722
+     Messages:  created: 226938   present: 777   in FES: 32   Memory (RSS): 122.641MiB
+** Event #434176   t=0.971   Elapsed: 8.00572s (0m 08s)  19% completed  (23% total)
+     Speed:     ev/sec=57411.1   simsec/sec=0.111745   ev/simsec=513769
+     Messages:  created: 308477   present: 893   in FES: 52   Memory (RSS): 122.891MiB
+** Event #566016   t=1.22302293   Elapsed: 10.0062s (0m 10s)  24% completed  (24% total)
+     Speed:     ev/sec=65905.5   simsec/sec=0.125984   ev/simsec=523127
+     Messages:  created: 401924   present: 859   in FES: 41   Memory (RSS): 123.016MiB
+** Event #685056   t=1.4520043812   Elapsed: 12.0084s (0m 12s)  29% completed  (25% total)
+     Speed:     ev/sec=59452.7   simsec/sec=0.114361   ev/simsec=519867
+     Messages:  created: 486373   present: 828   in FES: 41   Memory (RSS): 123.141MiB
+** Event #813312   t=1.70600314   Elapsed: 14.0111s (0m 14s)  34% completed  (26% total)
+     Speed:     ev/sec=64043.7   simsec/sec=0.126832   ev/simsec=504947
+     Messages:  created: 577432   present: 915   in FES: 43   Memory (RSS): 123.266MiB
+** Event #936704   t=1.9430047508   Elapsed: 16.0123s (0m 16s)  38% completed  (27% total)
+     Speed:     ev/sec=61658.9   simsec/sec=0.11843   ev/simsec=520638
+     Messages:  created: 664906   present: 904   in FES: 40   Memory (RSS): 123.266MiB
+** Event #1051136   t=2.1640241552   Elapsed: 18.014s (0m 18s)  43% completed  (28% total)
+     Speed:     ev/sec=57165.8   simsec/sec=0.110413   ev/simsec=517746
+     Messages:  created: 746085   present: 912   in FES: 41   Memory (RSS): 123.266MiB
+** Event #1196544   t=2.44076149   Elapsed: 20.0171s (0m 20s)  48% completed  (29% total)
+     Speed:     ev/sec=72593   simsec/sec=0.138157   ev/simsec=525437
+     Messages:  created: 849184   present: 845   in FES: 33   Memory (RSS): 123.266MiB
+** Event #1326080   t=2.6965242052   Elapsed: 22.0189s (0m 22s)  53% completed  (30% total)
+     Speed:     ev/sec=64708   simsec/sec=0.127763   ev/simsec=506469
+     Messages:  created: 941138   present: 913   in FES: 30   Memory (RSS): 123.266MiB
+** Event #1455872   t=2.945   Elapsed: 24.0207s (0m 24s)  58% completed  (31% total)
+     Speed:     ev/sec=64838.4   simsec/sec=0.124128   ev/simsec=522353
+     Messages:  created: 1033166   present: 916   in FES: 52   Memory (RSS): 123.266MiB
+** Event #1512972   t=5   Elapsed: 24.9137s (0m 24s)  100% completed  (40% total)
+     Speed:     ev/sec=63945.2   simsec/sec=2.30139   ev/simsec=27785.4
+     Messages:  created: 1070368   present: 275   in FES: 24   Memory (RSS): 123.516MiB
+
+<!> Simulation time limit reached -- at t=5s, event #1512972
+
+Calling finish() at end of Run #1...
+
+Preparing for running configuration O1-harq16, run #2...
+Assigned runID=O1-harq16-2-20261111-14:44:28-8048
+Setting up network "M1Bridge"...
+Initializing...
+
+Running simulation...
+** Event #0   t=0   Elapsed: 8e-06s (0m 00s)  0% completed  (40% total)
+     Speed:     ev/sec=0   simsec/sec=0   ev/simsec=0
+     Messages:  created: 249   present: 249   in FES: 39   Memory (RSS): 131.016MiB
+** Event #122368   t=0.356511536   Elapsed: 2.112s (0m 02s)  7% completed  (41% total)
+     Speed:     ev/sec=57940.2   simsec/sec=0.168804   ev/simsec=343240
+     Messages:  created: 87190   present: 688   in FES: 35   Memory (RSS): 146.766MiB
+** Event #248576   t=0.6060714852   Elapsed: 4.11218s (0m 04s)  12% completed  (42% total)
+     Speed:     ev/sec=63098.2   simsec/sec=0.124768   ev/simsec=505722
+     Messages:  created: 176796   present: 767   in FES: 31   Memory (RSS): 147.141MiB
+** Event #379136   t=0.8640703492   Elapsed: 6.11496s (0m 06s)  17% completed  (43% total)
+     Speed:     ev/sec=65189.5   simsec/sec=0.128821   ev/simsec=506049
+     Messages:  created: 269457   present: 855   in FES: 31   Memory (RSS): 147.391MiB
+** Event #498944   t=1.0950047508   Elapsed: 8.11603s (0m 08s)  21% completed  (44% total)
+     Speed:     ev/sec=59871.8   simsec/sec=0.115405   ev/simsec=518797
+     Messages:  created: 354378   present: 860   in FES: 40   Memory (RSS): 147.391MiB
+** Event #633856   t=1.35277293   Elapsed: 10.1187s (0m 10s)  27% completed  (45% total)
+     Speed:     ev/sec=67367.6   simsec/sec=0.128715   ev/simsec=523385
+     Messages:  created: 450046   present: 769   in FES: 31   Memory (RSS): 147.516MiB
+** Event #775424   t=1.630034466   Elapsed: 12.1191s (0m 12s)  32% completed  (46% total)
+     Speed:     ev/sec=70768.4   simsec/sec=0.1386   ev/simsec=510594
+     Messages:  created: 550516   present: 874   in FES: 37   Memory (RSS): 147.641MiB
+** Event #912384   t=1.8910589052   Elapsed: 14.1199s (0m 14s)  37% completed  (47% total)
+     Speed:     ev/sec=68454.1   simsec/sec=0.130463   ev/simsec=524702
+     Messages:  created: 647652   present: 816   in FES: 35   Memory (RSS): 147.641MiB
+** Event #1054208   t=2.17   Elapsed: 16.1213s (0m 16s)  43% completed  (48% total)
+     Speed:     ev/sec=70860.6   simsec/sec=0.139369   ev/simsec=508437
+     Messages:  created: 748288   present: 882   in FES: 32   Memory (RSS): 147.641MiB
+** Event #1160960   t=2.377   Elapsed: 18.1221s (0m 18s)  47% completed  (49% total)
+     Speed:     ev/sec=53354.8   simsec/sec=0.103459   ev/simsec=515710
+     Messages:  created: 823987   present: 946   in FES: 53   Memory (RSS): 147.641MiB
+** Event #1294848   t=2.6325   Elapsed: 20.125s (0m 20s)  52% completed  (50% total)
+     Speed:     ev/sec=66848.2   simsec/sec=0.127567   ev/simsec=524023
+     Messages:  created: 918951   present: 851   in FES: 31   Memory (RSS): 147.641MiB
+** Event #1423872   t=2.88   Elapsed: 22.1268s (0m 22s)  57% completed  (51% total)
+     Speed:     ev/sec=64453.5   simsec/sec=0.123638   ev/simsec=521309
+     Messages:  created: 1010418   present: 873   in FES: 50   Memory (RSS): 147.641MiB
+** Event #1512990   t=5   Elapsed: 23.2945s (0m 23s)  100% completed  (60% total)
+     Speed:     ev/sec=76318.4   simsec/sec=1.81553   ev/simsec=42036.3
+     Messages:  created: 1070386   present: 275   in FES: 24   Memory (RSS): 147.766MiB
+
+<!> Simulation time limit reached -- at t=5s, event #1512990
+
+Calling finish() at end of Run #2...
+
+Preparing for running configuration O1-harq16, run #3...
+Assigned runID=O1-harq16-3-20261111-14:44:52-8048
+Setting up network "M1Bridge"...
+Initializing...
+
+Running simulation...
+** Event #0   t=0   Elapsed: 6e-06s (0m 00s)  0% completed  (60% total)
+     Speed:     ev/sec=0   simsec/sec=0   ev/simsec=0
+     Messages:  created: 249   present: 249   in FES: 39   Memory (RSS): 155.266MiB
+** Event #160256   t=0.432025076   Elapsed: 2.00208s (0m 02s)  8% completed  (61% total)
+     Speed:     ev/sec=80045.4   simsec/sec=0.215789   ev/simsec=370944
+     Messages:  created: 114091   present: 729   in FES: 42   Memory (RSS): 161.141MiB
+** Event #307200   t=0.7190473692   Elapsed: 4.00308s (0m 04s)  14% completed  (62% total)
+     Speed:     ev/sec=73435.5   simsec/sec=0.14344   ev/simsec=511960
+     Messages:  created: 218347   present: 771   in FES: 37   Memory (RSS): 161.141MiB
+** Event #440320   t=0.982012736   Elapsed: 6.00517s (0m 06s)  19% completed  (63% total)
+     Speed:     ev/sec=66490.5   simsec/sec=0.131345   ev/simsec=506226
+     Messages:  created: 312767   present: 883   in FES: 40   Memory (RSS): 161.141MiB
+** Event #563200   t=1.2180472772   Elapsed: 8.0075s (0m 08s)  24% completed  (64% total)
+     Speed:     ev/sec=61368.6   simsec/sec=0.11788   ev/simsec=520602
+     Messages:  created: 399941   present: 856   in FES: 38   Memory (RSS): 161.141MiB
+** Event #707584   t=1.501   Elapsed: 10.0091s (0m 10s)  30% completed  (66% total)
+     Speed:     ev/sec=72138   simsec/sec=0.141371   ev/simsec=510276
+     Messages:  created: 502413   present: 923   in FES: 44   Memory (RSS): 161.141MiB
+** Event #844288   t=1.76177298   Elapsed: 12.0118s (0m 12s)  35% completed  (67% total)
+     Speed:     ev/sec=68256.8   simsec/sec=0.130205   ev/simsec=524226
+     Messages:  created: 599351   present: 841   in FES: 33   Memory (RSS): 161.141MiB
+** Event #976640   t=2.0207742052   Elapsed: 14.0119s (0m 14s)  40% completed  (68% total)
+     Speed:     ev/sec=66172.4   simsec/sec=0.129494   ev/simsec=511009
+     Messages:  created: 693185   present: 851   in FES: 26   Memory (RSS): 161.141MiB
+** Event #1099520   t=2.25901144   Elapsed: 16.0137s (0m 16s)  45% completed  (69% total)
+     Speed:     ev/sec=61383.1   simsec/sec=0.119008   ev/simsec=515788
+     Messages:  created: 780387   present: 917   in FES: 35   Memory (RSS): 161.266MiB
+** Event #1227776   t=2.5047742052   Elapsed: 18.0139s (0m 18s)  50% completed  (70% total)
+     Speed:     ev/sec=64122.6   simsec/sec=0.122871   ev/simsec=521869
+     Messages:  created: 871363   present: 887   in FES: 30   Memory (RSS): 161.266MiB
+** Event #1352192   t=2.7435   Elapsed: 20.1048s (0m 20s)  54% completed  (70% total)
+     Speed:     ev/sec=59505.1   simsec/sec=0.114177   ev/simsec=521167
+     Messages:  created: 959602   present: 869   in FES: 32   Memory (RSS): 161.266MiB
+** Event #1486592   t=3.005012626   Elapsed: 22.1057s (0m 22s)  60% completed  (72% total)
+     Speed:     ev/sec=67166.9   simsec/sec=0.130692   ev/simsec=513933
+     Messages:  created: 1054939   present: 735   in FES: 29   Memory (RSS): 161.266MiB
+** Event #1512918   t=5   Elapsed: 22.366s (0m 22s)  100% completed  (80% total)
+     Speed:     ev/sec=101134   simsec/sec=7.66424   ev/simsec=13195.6
+     Messages:  created: 1070314   present: 275   in FES: 24   Memory (RSS): 161.266MiB
+
+<!> Simulation time limit reached -- at t=5s, event #1512918
+
+Calling finish() at end of Run #3...
+
+Preparing for running configuration O1-harq16, run #4...
+Assigned runID=O1-harq16-4-20261111-14:45:14-8048
+Setting up network "M1Bridge"...
+Initializing...
+
+Running simulation...
+** Event #0   t=0   Elapsed: 6e-06s (0m 00s)  0% completed  (80% total)
+     Speed:     ev/sec=0   simsec/sec=0   ev/simsec=0
+     Messages:  created: 249   present: 249   in FES: 39   Memory (RSS): 161.391MiB
+** Event #122368   t=0.3580012252   Elapsed: 2.03945s (0m 02s)  7% completed  (81% total)
+     Speed:     ev/sec=60001   simsec/sec=0.175538   ev/simsec=341812
+     Messages:  created: 87161   present: 737   in FES: 38   Memory (RSS): 161.391MiB
+** Event #254464   t=0.620523026   Elapsed: 4.0426s (0m 04s)  12% completed  (82% total)
+     Speed:     ev/sec=65944.4   simsec/sec=0.131055   ev/simsec=503181
+     Messages:  created: 181017   present: 830   in FES: 33   Memory (RSS): 161.391MiB
+** Event #350976   t=0.81075   Elapsed: 6.04387s (0m 06s)  16% completed  (83% total)
+     Speed:     ev/sec=48225.4   simsec/sec=0.0950533   ev/simsec=507352
+     Messages:  created: 249524   present: 868   in FES: 32   Memory (RSS): 161.391MiB
+** Event #477952   t=1.056005658   Elapsed: 8.04684s (0m 08s)  21% completed  (84% total)
+     Speed:     ev/sec=63393.9   simsec/sec=0.122446   ev/simsec=517729
+     Messages:  created: 339555   present: 889   in FES: 39   Memory (RSS): 161.391MiB
+** Event #613376   t=1.31627298   Elapsed: 10.0471s (0m 10s)  26% completed  (85% total)
+     Speed:     ev/sec=67701.5   simsec/sec=0.130114   ev/simsec=520327
+     Messages:  created: 435658   present: 857   in FES: 34   Memory (RSS): 161.391MiB
+** Event #733696   t=1.55000378   Elapsed: 12.0502s (0m 12s)  31% completed  (86% total)
+     Speed:     ev/sec=60067.2   simsec/sec=0.116685   ev/simsec=514780
+     Messages:  created: 521016   present: 898   in FES: 43   Memory (RSS): 161.391MiB
+** Event #862464   t=1.799   Elapsed: 14.051s (0m 14s)  35% completed  (87% total)
+     Speed:     ev/sec=64360.4   simsec/sec=0.124453   ev/simsec=517148
+     Messages:  created: 612332   present: 946   in FES: 52   Memory (RSS): 161.516MiB
+** Event #988160   t=2.0420011752   Elapsed: 16.0523s (0m 16s)  40% completed  (88% total)
+     Speed:     ev/sec=62804.9   simsec/sec=0.121417   ev/simsec=517265
+     Messages:  created: 701526   present: 912   in FES: 38   Memory (RSS): 161.516MiB
+** Event #1133824   t=2.325761536   Elapsed: 18.0541s (0m 18s)  46% completed  (89% total)
+     Speed:     ev/sec=72766.7   simsec/sec=0.141753   ev/simsec=513335
+     Messages:  created: 804882   present: 880   in FES: 31   Memory (RSS): 161.516MiB
+** Event #1259008   t=2.56501149   Elapsed: 20.0546s (0m 20s)  51% completed  (90% total)
+     Speed:     ev/sec=62577.9   simsec/sec=0.119598   ev/simsec=523235
+     Messages:  created: 893641   present: 846   in FES: 32   Memory (RSS): 161.516MiB
+** Event #1395712   t=2.834   Elapsed: 22.0554s (0m 22s)  56% completed  (91% total)
+     Speed:     ev/sec=68322.7   simsec/sec=0.134437   ev/simsec=508215
+     Messages:  created: 990721   present: 1000   in FES: 49   Memory (RSS): 161.516MiB
+** Event #1514125   t=5   Elapsed: 23.8779s (0m 23s)  100% completed  (100% total)
+     Speed:     ev/sec=64975.2   simsec/sec=1.18853   ev/simsec=54668.5
+     Messages:  created: 1071330   present: 275   in FES: 24   Memory (RSS): 161.516MiB
+
+<!> Simulation time limit reached -- at t=5s, event #1514125
+
+Calling finish() at end of Run #4...
+
+Run statistics: total 5, successful 5
+
+End.

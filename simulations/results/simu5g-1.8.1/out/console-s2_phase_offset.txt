@@ -1,0 +1,12 @@
+PASS  UL: S1 crossing phase p1 (bisection, 1 ns)  p1 = 998911 ns: frames arriving 1000001 ns or later after the slot start miss it (S1 arrival = generation + 1040 ns + 50 ns); 20 probes
+PASS  UL: p = 997820 ns (p1-1091)                 neither crosses: shift == 1090 ns for every packet; 488 packets, shift 1090.000..1090.000 ns
+PASS  UL: p = 997822 ns (p1-1089)                 only S2 crosses: shift != 1090 ns for every packet; 488 packets, shift 1001090.000..1001090.000 ns
+PASS  UL: p = 998910 ns (p1-1)                    only S2 crosses: shift != 1090 ns for every packet; 488 packets, shift 1001090.000..1001090.000 ns
+PASS  UL: p = 998912 ns (p1+1)                    both cross: shift == 1090 ns for every packet; 488 packets, shift 1090.000..1090.000 ns
+PASS  DL: S1 crossing phase p1 (bisection, 1 ns)  p1 = 998725 ns: frames arriving 999815 ns or later after the slot start miss it (S1 arrival = generation + 1040 ns + 50 ns); 20 probes
+PASS  DL: p = 997634 ns (p1-1091)                 neither crosses: shift == 1090 ns for every packet; 490 packets, shift 1090.000..1090.000 ns
+PASS  DL: p = 997636 ns (p1-1089)                 only S2 crosses: shift != 1090 ns for every packet; 490 packets, shift 1001090.000..1001090.000 ns
+PASS  DL: p = 998724 ns (p1-1)                    only S2 crosses: shift != 1090 ns for every packet; 490 packets, shift 1001090.000..1001090.000 ns
+PASS  DL: p = 998726 ns (p1+1)                    both cross: shift == 1090 ns for every packet; 490 packets, shift 1090.000..1090.000 ns
+
+OVERALL: PASS

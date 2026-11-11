@@ -1,0 +1,1 @@
+ERROR: results/M2-S4/runs missing; run ./m2s1.sh and ./m2s4.sh first
