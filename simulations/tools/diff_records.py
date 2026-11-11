@@ -53,8 +53,11 @@ def diff_file(old, new, rel):
                 body.append(f"- removed line {i + 1}: `{re.sub(r'[ ]+', ' ', a[i])[:160]}`")
             for j in range(j1, j2):
                 body.append(f"- added line {j + 1}: `{re.sub(r'[ ]+', ' ', b[j])[:160]}`")
-            vchg += sum(1 for j in range(j1, j2) if VERD.search(b[j]))
-    out.append(f"## {rel}: {vchg} verdict-bearing changes, {nchg} lines with changed numbers")
+            vchg += sum(1 for j in range(j1, j2) if VERD.search(b[j])) + sum(1 for i in range(i1, i2) if VERD.search(a[i]))
+    ta = {v: sum(len([x for x in VERD.findall(l) if x == v]) for l in a) for v in ("PASS", "FAIL")}
+    tb = {v: sum(len([x for x in VERD.findall(l) if x == v]) for l in b) for v in ("PASS", "FAIL")}
+    out.append(f"## {rel}: verdict words old PASS {ta['PASS']} / FAIL {ta['FAIL']} -> new PASS {tb['PASS']} / FAIL {tb['FAIL']}; "
+               f"{vchg} changed or re-aligned verdict-bearing lines, {nchg} matched lines with changed numbers")
     return out + body, vchg, nchg
 
 
