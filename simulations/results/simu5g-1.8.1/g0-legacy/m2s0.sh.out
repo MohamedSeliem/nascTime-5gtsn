@@ -1,0 +1,44 @@
+PASS  S1 structure: every frame at every slot (translators' eth[1], stations' eth[0], RX and TX; base, N3 fragmentation, load) has the supported structure; no frame carries a tag in the probe runs
+      94530 frames, 8 distinct chunk structures (census.txt), RX data part starts after the 8 B PHY header (front offset 8 B), FCS chunk present in RX and TX, no EthernetPadding seen; probe frame counts = PCAP counts at the same port: True
+PASS  S2 self-test: structure check and tag round trip on synthetic frames (3 supported: tag covers payload, frame bytes unchanged, strip leaves no tag at any level; 7 unsupported: named error, processing stops with an error)
+      40/40 case runs PASS (10 cases x 2 processors x 2 runs)
+PASS  A1 recovery DL (M2S0, seeds 0-9): every frame received at the TT_in TSN port is tagged once; every frame delivered to the opposite translator (= observed at its 5G-side port) is recovered with exactly the values set at ingress; frames lost before delivery counted separately
+      5780 received, 5780 tagged, 5770 delivered, 5770 recovered exactly; not delivered by the end of the run 10: {'still in the TX RLC at the end': 10}; delivered but still queued at TT_out eth[1] at the end: 0; problems: none
+PASS  A2 timestamp DL: carried ingressTime = PCAP reception time at the TT_in TSN port, exactly (1 ps PCAP), for every tagged and every recovered frame
+      deviations: none
+PASS  A3 identity DL: frame id = arrival ordinal at the TT_in TSN port (from PCAP), consecutive and unique, with the TT_in id; every recovered id belongs to the same frame
+      problems: none
+PASS  A4 residence DL: recovery event = reception at TT_out's 5G-side port (PCAP) exactly; recovered residence (recovery - ingressTime) = PCAP(TT_out eth[0] in) - PCAP(TT_in eth[1] in) exactly
+      5770 frames, residence 4.998475 - 25.000000 ms; problems: none
+PASS  A1 recovery UL (M2S0, seeds 0-9): every frame received at the TT_in TSN port is tagged once; every frame delivered to the opposite translator (= observed at its 5G-side port) is recovered with exactly the values set at ingress; frames lost before delivery counted separately
+      4960 received, 4960 tagged, 4944 delivered, 4944 recovered exactly; not delivered by the end of the run 16: {'still in the TX RLC at the end': 15, 'left the TX RLC in the last 10 ms (in flight)': 1}; delivered but still queued at TT_out eth[1] at the end: 0; problems: none
+PASS  A2 timestamp UL: carried ingressTime = PCAP reception time at the TT_in TSN port, exactly (1 ps PCAP), for every tagged and every recovered frame
+      deviations: none
+PASS  A3 identity UL: frame id = arrival ordinal at the TT_in TSN port (from PCAP), consecutive and unique, with the TT_in id; every recovered id belongs to the same frame
+      problems: none
+PASS  A4 residence UL: recovery event = reception at TT_out's 5G-side port (PCAP) exactly; recovered residence (recovery - ingressTime) = PCAP(TT_out eth[0] in) - PCAP(TT_in eth[1] in) exactly
+      4944 frames, residence 5.000185 - 48.000185 ms; problems: none
+PASS  A2b event boundary: PCAP reception at the TT_in TSN port - PCAP transmission at the sending station = 50 ns (propagation only) for every frame, both directions, seeds 0-9
+      differences: {'50.000 ns': 10740}
+PASS  A5 encapsulation/segmentation: A1-A4 hold per frame for every frame class (both DRBs: PCP 5 -> DRB 2, PCP 0 and gPTP -> DRB 1; every gPTP message type) and for every SDU the RLC replay identifies as cut and reassembled (seeds 0-9)
+      DL: gptp-FollowUp 390/390, gptp-PdelayResp 50/50, gptp-PdelayRespFollowUp 50/50, gptp-Sync 390/390, pcp0 2440/2440, pcp5 2450/2450 | UL: gptp-PdelayReq 50/50, pcp0 2444/2444, pcp5 2450/2450 (frames passing A1-A4 / delivered) | RLC SDUs cut and reassembled: {'DL DRB 1': 2770, 'DL DRB 2': 0, 'UL DRB 1': 1684, 'UL DRB 2': 1}, of which delivered 4441, all passing A1-A4: True; replay problems: none
+PASS  A6 byte fragmentation (M2S0-frag, N3 PPP MTU 128 B, seed 0): A1-A4 hold in both directions; N3 shows that every GTP-U datagram longer than the MTU was fragmented
+      DL: 578 received at TT_in, 578 tagged, 577 delivered to TT_out (577 recovered exactly), lost before delivery 1 (1 entered in the last 100 ms; 0 earlier), not delivered: {'still in the TX RLC at the end': 1}; A1-A4 {'A1': True, 'A2': True, 'A3': True, 'A4': True} | UL: 496 received at TT_in, 496 tagged, 495 delivered to TT_out (495 recovered exactly), lost before delivery 1 (1 entered in the last 100 ms; 0 earlier), not delivered: {'still in the TX RLC at the end': 1}; A1-A4 {'A1': True, 'A2': True, 'A3': True, 'A4': True} | N3: 1019 datagrams fragmented into 2038 fragments ({2: 1019} fragments per datagram: count); 54 unfragmented, IPv4 total length 104-112 B (<= 128 B: these are the gPTP frames)
+PASS  A7 load (saturating PCP 0 background both directions, sources stop at 3 s, run to 5 s): every delivered frame passes A1-A4; frames not delivered are accounted for (RLC replay) and absent downstream, never delivered untagged or mis-tagged. 5 HARQ processes: frames lost after the TX RLC expected (L1); 16 HARQ processes: none
+      M2S0-load DL: 11979 received at TT_in, 11979 tagged, 9450 delivered to TT_out (9450 recovered exactly), lost before delivery 2529 (0 entered in the last 100 ms; 2529 earlier); not delivered: {'left the TX RLC, never delivered (MAC/radio)': 2528, 'still in the TX RLC at the end': 1}; by class {'pcp0': 2502, 'pcp5': 16, 'gptp-Sync': 5, 'gptp-FollowUp': 6}; A1-A4 {'A1': True, 'A2': True, 'A3': True, 'A4': True} | M2S0-load UL: 11897 received at TT_in, 11897 tagged, 9642 delivered to TT_out (9642 recovered exactly), lost before delivery 2255 (1 entered in the last 100 ms; 2254 earlier); not delivered: {'left the TX RLC, never delivered (MAC/radio)': 2254, 'left the TX RLC in the last 10 ms (in flight)': 1}; by class {'pcp0': 2237, 'pcp5': 17, 'gptp-PdelayReq': 1}; A1-A4 {'A1': True, 'A2': True, 'A3': True, 'A4': True} | M2S0-load-harq16 DL: 11981 received at TT_in, 11981 tagged, 11978 delivered to TT_out (11978 recovered exactly), lost before delivery 3 (2 entered in the last 100 ms; 1 earlier); not delivered: {'left the TX RLC in the last 10 ms (in flight)': 2, 'still in the TX RLC at the end': 1}; by class {'gptp-FollowUp': 1, 'gptp-PdelayResp': 1, 'gptp-PdelayRespFollowUp': 1}; A1-A4 {'A1': True, 'A2': True, 'A3': True, 'A4': True} | M2S0-load-harq16 UL: 11897 received at TT_in, 11897 tagged, 11897 delivered to TT_out (11897 recovered exactly), lost before delivery 0 (0 entered in the last 100 ms; 0 earlier); not delivered: {}; by class {}; A1-A4 {'A1': True, 'A2': True, 'A3': True, 'A4': True}
+PASS  A8 wire unchanged: PCAP files (frame bytes and ps timestamps; VLAN/PCP, EtherType, payload, N3 GTP-U incl. QFI) byte-identical with and without the tag layers
+      M2S0 vs M2S0-off: 7/7 PCAP files byte-identical (stations, both translator ports, N3); 6438 Ethernet frames, FCS valid in 6438 | M2S0-load vs M2S0-load-off: 7/7 PCAP files byte-identical (stations, both translator ports, N3); 128904 Ethernet frames, FCS valid in 128904
+PASS  A9 no side effects: every recorded vector (application delays, gPTP, slave clock, per-DRB RLC/PDCP/MAC, ...) and scalar identical with and without the tag layers (seed 0)
+      M2S0 vs M2S0-off: vectors 1724/1724 identical (1724 in control), scalars 1661/1661 identical (1661 in control; the tag layers' own scalars excluded) | M2S0-load vs M2S0-load-off: vectors 1748/1748 identical (1748 in control), scalars 1689/1689 identical (1689 in control; the tag layers' own scalars excluded)
+PASS  A10 containment: no frame at either station (RX or TX) carries a TtTimestampTag at any chunk level; audit frame counts match the station PCAPs
+      M2S0: 21494 frames audited at the stations, 0 with a tag | M2S0-frag: 2150 frames audited at the stations, 0 with a tag | M2S0-load: 42970 frames audited at the stations, 0 with a tag | M2S0-load-harq16: 47755 frames audited at the stations, 0 with a tag
+PASS  N1 M2S0-nc-noingress: fails exactly ['A1-UL', 'A2-UL', 'A3-UL', 'A4-UL']
+      failed: ['A1-UL', 'A2-UL', 'A3-UL', 'A4-UL'] -- A1-UL: 1x 496 frames not tagged at ingress; 495x egress event untagged; A2-UL: 1x no recovered frame; A3-UL: 1x no recovered frame; A4-UL: 1x no recovered frame
+PASS  N2 M2S0-nc-offset: fails exactly ['A2-DL', 'A4-DL']
+      failed: ['A2-DL', 'A4-DL'] -- A2-DL: deviations 1.000 ns x1155; A4-DL: deviations -1.000 ns x577
+PASS  N3 M2S0-nc-id: fails exactly ['A3-DL']
+      failed: ['A3-DL'] -- A3-DL: 577x recovered frame id / translator id does not match the PCAP arrival ordinal / TT_in; 1x 578 of 578 ingress ids differ from the arrival ordinal (first: ordinal 1 id 2 tt 1)
+PASS  N4 M2S0-nc-nostrip: fails exactly ['A10']
+      failed: ['A10'] -- A10: 1072 of 2150 station frames tagged
+
+OVERALL: PASS (21/21)

@@ -1,0 +1,18 @@
+PASS  run: S2 seeds + S2-pcap                             S2 seeds [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]; S2-pcap seeds [0]
+PASS  functional: per-flow counts == S1                   10 seeds x 6 counters; mismatches: 0
+PASS  experimental: UL delay(S2) - delay(S1)              4880 packets; min 1090.000 ns, max 1090.000 ns; predicted 1090 ns
+PASS  experimental: DL delay(S2) - delay(S1)              4900 packets; min 1090.000 ns, max 1090.000 ns; predicted 1090 ns
+PASS  control: S2-pcap delays == S2 (seed 0)              fcsMode=computed and PCAP recorders change no delay sample
+PASS  protocol: stations seen at the TTs                  talker MAC 0a:aa:00:00:00:07, 2 source MACs on dsTt TSN port
+PASS  protocol: dsTt UL frames unchanged                  in 490, out 490; byte-identical in order: True; all VLAN 42: True; PCPs [0, 5]
+PASS  protocol: dsTt UL residence == serialization        490 frames; residence 1040.0..1040.0 ns; expected 1040 ns (zero processing delay)
+PASS  protocol: dsTt DL frames unchanged                  in 490, out 490; byte-identical in order: True; all VLAN 42: True; PCPs [0, 5]
+PASS  protocol: dsTt DL residence == serialization        490 frames; residence 1040.0..1040.0 ns; expected 1040 ns (zero processing delay)
+PASS  protocol: nwTt UL frames unchanged                  in 488, out 488; byte-identical in order: True; all VLAN 42: True; PCPs [0, 5]
+PASS  protocol: nwTt UL residence == serialization        488 frames; residence 1040.0..1040.0 ns; expected 1040 ns (zero processing delay)
+PASS  protocol: nwTt DL frames unchanged                  in 490, out 490; byte-identical in order: True; all VLAN 42: True; PCPs [0, 5]
+PASS  protocol: nwTt DL residence == serialization        490 frames; residence 1040.0..1040.0 ns; expected 1040 ns (zero processing delay)
+PASS  slot: UL 5G system entry/exit offsets in 1 ms slot  entry [2130] ns, exit [1275, 2411, 3547] ns (490/488 frames); exit = slot offset + k x 1136 ns (back-to-back); entry + 1090 ns stays in slot
+PASS  slot: DL 5G system entry/exit offsets in 1 ms slot  entry [2130] ns, exit [1090] ns (490/490 frames); exit = slot offset + k x 1136 ns (back-to-back); entry + 1090 ns stays in slot
+
+OVERALL: PASS

@@ -1,0 +1,235 @@
+worktree /root/inv/nt-g0-legacy at cfc2d39
+IDENTICAL  9ab6aa7fbe8bbef5  simulations/m1/results/O-S3-1.md
+IDENTICAL  b493bd3134ce52a2  simulations/m1/results/O-S3-1/check.txt
+METADATA   simulations/m1/results/O-S3-1/env.txt
+IDENTICAL  26cef0ab3f1651c6  simulations/m1/results/O-S3-1/raw-outputs.sha256
+IDENTICAL  ac24ea4c79225609  simulations/m1/results/O-tail.md
+IDENTICAL  a30442b7a51dd4cd  simulations/m1/results/O-tail/check.txt
+METADATA   simulations/m1/results/O-tail/env.txt
+MISSING    simulations/m1/results/O-tail/raw-outputs.sha256
+IDENTICAL  22a341d324a9f04d  simulations/m1/results/S0.md
+IDENTICAL  1a5a1518ecebe283  simulations/m1/results/S0/check.txt
+METADATA   simulations/m1/results/S0/env.txt
+DIFFERS    simulations/m1/results/S0/fingerprints.log: -Ran 4 tests in 3.007s +Ran 4 tests in 2.806s 
+IDENTICAL  71a92a23b84ec009  simulations/m1/results/S0/raw-outputs.sha256
+IDENTICAL  684d8f17e5b83994  simulations/m1/results/S1.md
+IDENTICAL  b55a713aae5ae9a4  simulations/m1/results/S1/check.txt
+METADATA   simulations/m1/results/S1/env.txt
+IDENTICAL  1b5e20ca11b92193  simulations/m1/results/S1/raw-outputs.sha256
+IDENTICAL  d833b6a0be014453  simulations/m1/results/S2-phase/check.txt
+METADATA   simulations/m1/results/S2-phase/env.txt
+IDENTICAL  95ed8ce797256e8a  simulations/m1/results/S2-phase/raw-outputs.sha256
+IDENTICAL  08724d88fd9ad4da  simulations/m1/results/S2.md
+IDENTICAL  d40ad5f240687a40  simulations/m1/results/S2/check.txt
+METADATA   simulations/m1/results/S2/env.txt
+IDENTICAL  f15fb4461953d993  simulations/m1/results/S2/raw-outputs.sha256
+IDENTICAL  b55a713aae5ae9a4  simulations/m1/results/S2/s1-regression-check.txt
+IDENTICAL  b6615543f21d6e90  simulations/m1/results/S2/s1-regression-env.txt
+IDENTICAL  f77ed5c02470f726  simulations/m1/results/S3.md
+IDENTICAL  09794fa72828e243  simulations/m1/results/S3/check.txt
+METADATA   simulations/m1/results/S3/env.txt
+IDENTICAL  4d8104dbd5450209  simulations/m1/results/S3/experimental.txt
+IDENTICAL  3b3dcce48f7fcdaf  simulations/m1/results/S3/raw-outputs.sha256
+IDENTICAL  b55a713aae5ae9a4  simulations/m1/results/S3/regression-S1-check.txt
+IDENTICAL  d40ad5f240687a40  simulations/m1/results/S3/regression-S2-check.txt
+IDENTICAL  482829462b45b2b8  simulations/m1/results/S4.md
+IDENTICAL  e6e425659e368407  simulations/m1/results/S4/clock-baseline.txt
+IDENTICAL  7c28150e4b229f19  simulations/m1/results/S4/clock-check.txt
+METADATA   simulations/m1/results/S4/env.txt
+IDENTICAL  c6bb1d80661e5519  simulations/m1/results/S4/raw-outputs.sha256
+IDENTICAL  b55a713aae5ae9a4  simulations/m1/results/S4/regression-S1-check.txt
+IDENTICAL  d40ad5f240687a40  simulations/m1/results/S4/regression-S2-check.txt
+IDENTICAL  c2e821f787ba92de  simulations/m1/results/S4/regression-S3-seed0.txt
+IDENTICAL  fe191a656dfffdc5  simulations/m1/results/S4/transport-check.txt
+IDENTICAL  5b4191c2abafa579  simulations/m1/results/S5.md
+IDENTICAL  8031717daaf40d11  simulations/m1/results/S5/check.txt
+METADATA   simulations/m1/results/S5/env.txt
+IDENTICAL  fb9c110a241d5df4  simulations/m1/results/S5/raw-outputs.sha256
+IDENTICAL  b55a713aae5ae9a4  simulations/m1/results/S5/regression-S1-check.txt
+IDENTICAL  d40ad5f240687a40  simulations/m1/results/S5/regression-S2-check.txt
+IDENTICAL  282cd93ab7ca0c34  simulations/m1/results/S5/regression-S3-seed0.txt
+IDENTICAL  7c28150e4b229f19  simulations/m1/results/S5/regression-S4-clock-check.txt
+IDENTICAL  fe191a656dfffdc5  simulations/m1/results/S5/regression-S4-transport-check.txt
+IDENTICAL  440ff47c88f75c12  simulations/m1/results/upstream-issues/check.txt
+METADATA   simulations/m1/results/upstream-issues/env.txt
+IDENTICAL  3c8c9a33d3dafba2  simulations/m1/results/upstream-issues/raw-outputs.sha256
+IDENTICAL  070072e37f59a832  simulations/m2/results/M2-S0/census.txt
+IDENTICAL  514b4ebd4c24aa13  simulations/m2/results/M2-S0/check.txt
+METADATA   simulations/m2/results/M2-S0/env.txt
+RUNHEADER  simulations/m2/results/M2-S0/raw-outputs.sha256: differing lines only for run-id/date files [13 csv, 22 sca, 22 vec, ]
+IDENTICAL  b493bd3134ce52a2  simulations/m2/results/M2-S0/regression/O-S3-1-check.txt
+IDENTICAL  aa588e88b3b3b2c1  simulations/m2/results/M2-S0/regression/O-S3-1-env.txt
+IDENTICAL  a30442b7a51dd4cd  simulations/m2/results/M2-S0/regression/O-tail-check.txt
+IDENTICAL  cb5737473db43e46  simulations/m2/results/M2-S0/regression/O-tail-env.txt
+IDENTICAL  b55a713aae5ae9a4  simulations/m2/results/M2-S0/regression/S1-check.txt
+IDENTICAL  4a6991a005fdffa3  simulations/m2/results/M2-S0/regression/S1-env.txt
+IDENTICAL  d40ad5f240687a40  simulations/m2/results/M2-S0/regression/S2-check.txt
+IDENTICAL  90abf80701d626d1  simulations/m2/results/M2-S0/regression/S2-env.txt
+IDENTICAL  d833b6a0be014453  simulations/m2/results/M2-S0/regression/S2-phase-check.txt
+IDENTICAL  6a9149d6d9689abe  simulations/m2/results/M2-S0/regression/S2-phase-env.txt
+IDENTICAL  09794fa72828e243  simulations/m2/results/M2-S0/regression/S3-check.txt
+IDENTICAL  90765e4c8379dcca  simulations/m2/results/M2-S0/regression/S3-env.txt
+IDENTICAL  7c28150e4b229f19  simulations/m2/results/M2-S0/regression/S4-clock-check.txt
+IDENTICAL  032cff646c09da92  simulations/m2/results/M2-S0/regression/S4-env.txt
+IDENTICAL  fe191a656dfffdc5  simulations/m2/results/M2-S0/regression/S4-transport-check.txt
+IDENTICAL  8031717daaf40d11  simulations/m2/results/M2-S0/regression/S5-check.txt
+IDENTICAL  ec5945d479ce6112  simulations/m2/results/M2-S0/regression/S5-env.txt
+IDENTICAL  fffda46b387ae489  simulations/m2/results/M2-S0/regression/summary.txt
+IDENTICAL  440ff47c88f75c12  simulations/m2/results/M2-S0/regression/upstream-issues-check.txt
+IDENTICAL  9be5cf7ce0cf314c  simulations/m2/results/M2-S0/regression/upstream-issues-env.txt
+IDENTICAL  ac8d881d27ab4fdd  simulations/m2/results/M2-S1/census.txt
+IDENTICAL  2c2705f82c21ac8f  simulations/m2/results/M2-S1/check.txt
+METADATA   simulations/m2/results/M2-S1/env.txt
+RUNHEADER  simulations/m2/results/M2-S1/raw-outputs.sha256: differing lines only for run-id/date files [15 csv, 24 sca, 24 vec, ]
+IDENTICAL  b493bd3134ce52a2  simulations/m2/results/M2-S1/regression/M1-O-S3-1-check.txt
+IDENTICAL  9264178b6ef3f26e  simulations/m2/results/M2-S1/regression/M1-O-S3-1-env.txt
+IDENTICAL  a30442b7a51dd4cd  simulations/m2/results/M2-S1/regression/M1-O-tail-check.txt
+IDENTICAL  829d2006d92e7783  simulations/m2/results/M2-S1/regression/M1-O-tail-env.txt
+IDENTICAL  b55a713aae5ae9a4  simulations/m2/results/M2-S1/regression/M1-S1-check.txt
+IDENTICAL  3b23e1e743c477c2  simulations/m2/results/M2-S1/regression/M1-S1-env.txt
+IDENTICAL  d40ad5f240687a40  simulations/m2/results/M2-S1/regression/M1-S2-check.txt
+IDENTICAL  99a0e0f8cac9a712  simulations/m2/results/M2-S1/regression/M1-S2-env.txt
+IDENTICAL  d833b6a0be014453  simulations/m2/results/M2-S1/regression/M1-S2-phase-check.txt
+IDENTICAL  48448a12078750b5  simulations/m2/results/M2-S1/regression/M1-S2-phase-env.txt
+IDENTICAL  09794fa72828e243  simulations/m2/results/M2-S1/regression/M1-S3-check.txt
+IDENTICAL  e1b1a076d1c7644f  simulations/m2/results/M2-S1/regression/M1-S3-env.txt
+IDENTICAL  7c28150e4b229f19  simulations/m2/results/M2-S1/regression/M1-S4-clock-check.txt
+IDENTICAL  1ab306b90c7d05ad  simulations/m2/results/M2-S1/regression/M1-S4-env.txt
+IDENTICAL  fe191a656dfffdc5  simulations/m2/results/M2-S1/regression/M1-S4-transport-check.txt
+IDENTICAL  8031717daaf40d11  simulations/m2/results/M2-S1/regression/M1-S5-check.txt
+IDENTICAL  650e6c185e60ecb7  simulations/m2/results/M2-S1/regression/M1-S5-env.txt
+IDENTICAL  440ff47c88f75c12  simulations/m2/results/M2-S1/regression/M1-upstream-issues-check.txt
+IDENTICAL  bdb47fc0e80f4a7b  simulations/m2/results/M2-S1/regression/M1-upstream-issues-env.txt
+IDENTICAL  070072e37f59a832  simulations/m2/results/M2-S1/regression/M2-S0-census.txt
+IDENTICAL  514b4ebd4c24aa13  simulations/m2/results/M2-S1/regression/M2-S0-check.txt
+IDENTICAL  dbfe6eee69d0ac73  simulations/m2/results/M2-S1/regression/M2-S0-env.txt
+IDENTICAL  7475cb3de77329c4  simulations/m2/results/M2-S1/regression/summary.txt
+IDENTICAL  22d4cd6305ed59de  simulations/m2/results/M2-S3/census.txt
+IDENTICAL  0ba5c36c0c95dd88  simulations/m2/results/M2-S3/check.txt
+METADATA   simulations/m2/results/M2-S3/env.txt
+IDENTICAL  b493bd3134ce52a2  simulations/m2/results/M2-S3/regression/M1-O-S3-1-check.txt
+IDENTICAL  e951d92d4593e90e  simulations/m2/results/M2-S3/regression/M1-O-S3-1-env.txt
+IDENTICAL  a30442b7a51dd4cd  simulations/m2/results/M2-S3/regression/M1-O-tail-check.txt
+IDENTICAL  4a71e1a4e763b200  simulations/m2/results/M2-S3/regression/M1-O-tail-env.txt
+IDENTICAL  b55a713aae5ae9a4  simulations/m2/results/M2-S3/regression/M1-S1-check.txt
+IDENTICAL  96cd4dd946ac5143  simulations/m2/results/M2-S3/regression/M1-S1-env.txt
+IDENTICAL  d40ad5f240687a40  simulations/m2/results/M2-S3/regression/M1-S2-check.txt
+IDENTICAL  eca700f377014526  simulations/m2/results/M2-S3/regression/M1-S2-env.txt
+IDENTICAL  d833b6a0be014453  simulations/m2/results/M2-S3/regression/M1-S2-phase-check.txt
+IDENTICAL  5196486ae5b01e23  simulations/m2/results/M2-S3/regression/M1-S2-phase-env.txt
+IDENTICAL  09794fa72828e243  simulations/m2/results/M2-S3/regression/M1-S3-check.txt
+IDENTICAL  298895200ce20491  simulations/m2/results/M2-S3/regression/M1-S3-env.txt
+IDENTICAL  7c28150e4b229f19  simulations/m2/results/M2-S3/regression/M1-S4-clock-check.txt
+IDENTICAL  9faea1cccf7daca8  simulations/m2/results/M2-S3/regression/M1-S4-env.txt
+IDENTICAL  fe191a656dfffdc5  simulations/m2/results/M2-S3/regression/M1-S4-transport-check.txt
+IDENTICAL  8031717daaf40d11  simulations/m2/results/M2-S3/regression/M1-S5-check.txt
+IDENTICAL  e3335bf126b0a0b6  simulations/m2/results/M2-S3/regression/M1-S5-env.txt
+IDENTICAL  440ff47c88f75c12  simulations/m2/results/M2-S3/regression/M1-upstream-issues-check.txt
+IDENTICAL  b5d8019f70b0185b  simulations/m2/results/M2-S3/regression/M1-upstream-issues-env.txt
+IDENTICAL  070072e37f59a832  simulations/m2/results/M2-S3/regression/M2-S0-census.txt
+IDENTICAL  514b4ebd4c24aa13  simulations/m2/results/M2-S3/regression/M2-S0-check.txt
+IDENTICAL  333945049a535e0b  simulations/m2/results/M2-S3/regression/M2-S0-env.txt
+IDENTICAL  ac8d881d27ab4fdd  simulations/m2/results/M2-S3/regression/M2-S1-census.txt
+IDENTICAL  2c2705f82c21ac8f  simulations/m2/results/M2-S3/regression/M2-S1-check.txt
+IDENTICAL  7b48d7264d548479  simulations/m2/results/M2-S3/regression/M2-S1-env.txt
+IDENTICAL  1b6254c0f369977f  simulations/m2/results/M2-S3/regression/summary.txt
+IDENTICAL  bc12c00e7c20b802  simulations/m2/results/M2-S3/serializer-probe.txt
+IDENTICAL  97b40d49364fc038  simulations/m2/results/M2-S3/slave-model.txt
+IDENTICAL  c7fc366d33ec79f1  simulations/m2/results/M2-S3/syncs.csv
+RUNHEADER  simulations/m2/results/M2-S3/vec.sha256: per-run .vec hashes (run id / date in the vector header)
+IDENTICAL  4b5973f9af97c43c  simulations/m2/results/M2-S4/check.txt
+METADATA   simulations/m2/results/M2-S4/env.txt
+IDENTICAL  510c7f7eb3232671  simulations/m2/results/M2-S4/gate-G0-skeleton.txt
+RUNHEADER  simulations/m2/results/M2-S4/raw-outputs.sha256: differing lines only for run-id/date files [73 sca, 73 vec, ]
+IDENTICAL  b493bd3134ce52a2  simulations/m2/results/M2-S4/regression/M1-O-S3-1-check.txt
+IDENTICAL  2c156f14ca949082  simulations/m2/results/M2-S4/regression/M1-O-S3-1-env.txt
+IDENTICAL  a30442b7a51dd4cd  simulations/m2/results/M2-S4/regression/M1-O-tail-check.txt
+IDENTICAL  ef6e8ae096959f5d  simulations/m2/results/M2-S4/regression/M1-O-tail-env.txt
+IDENTICAL  b55a713aae5ae9a4  simulations/m2/results/M2-S4/regression/M1-S1-check.txt
+IDENTICAL  fc001d93db34828f  simulations/m2/results/M2-S4/regression/M1-S1-env.txt
+IDENTICAL  d40ad5f240687a40  simulations/m2/results/M2-S4/regression/M1-S2-check.txt
+IDENTICAL  77e722bea0efec55  simulations/m2/results/M2-S4/regression/M1-S2-env.txt
+IDENTICAL  d833b6a0be014453  simulations/m2/results/M2-S4/regression/M1-S2-phase-check.txt
+IDENTICAL  34ee64cff1895552  simulations/m2/results/M2-S4/regression/M1-S2-phase-env.txt
+IDENTICAL  09794fa72828e243  simulations/m2/results/M2-S4/regression/M1-S3-check.txt
+IDENTICAL  8310610a4419337a  simulations/m2/results/M2-S4/regression/M1-S3-env.txt
+IDENTICAL  7c28150e4b229f19  simulations/m2/results/M2-S4/regression/M1-S4-clock-check.txt
+IDENTICAL  04b605920a3ef0a3  simulations/m2/results/M2-S4/regression/M1-S4-env.txt
+IDENTICAL  fe191a656dfffdc5  simulations/m2/results/M2-S4/regression/M1-S4-transport-check.txt
+IDENTICAL  8031717daaf40d11  simulations/m2/results/M2-S4/regression/M1-S5-check.txt
+IDENTICAL  c4506c3bd1da1efc  simulations/m2/results/M2-S4/regression/M1-S5-env.txt
+IDENTICAL  440ff47c88f75c12  simulations/m2/results/M2-S4/regression/M1-upstream-issues-check.txt
+IDENTICAL  e6ad48b61aeed9da  simulations/m2/results/M2-S4/regression/M1-upstream-issues-env.txt
+IDENTICAL  070072e37f59a832  simulations/m2/results/M2-S4/regression/M2-S0-census.txt
+IDENTICAL  514b4ebd4c24aa13  simulations/m2/results/M2-S4/regression/M2-S0-check.txt
+IDENTICAL  9d2825461d00f97b  simulations/m2/results/M2-S4/regression/M2-S0-env.txt
+IDENTICAL  ac8d881d27ab4fdd  simulations/m2/results/M2-S4/regression/M2-S1-census.txt
+IDENTICAL  2c2705f82c21ac8f  simulations/m2/results/M2-S4/regression/M2-S1-check.txt
+IDENTICAL  9dcafe21699a3f38  simulations/m2/results/M2-S4/regression/M2-S1-env.txt
+IDENTICAL  0ba5c36c0c95dd88  simulations/m2/results/M2-S4/regression/M2-S3-check.txt
+IDENTICAL  3a3ba4657cd4d34f  simulations/m2/results/M2-S4/regression/M2-S3-env.txt
+IDENTICAL  b6b17bd6169e9a97  simulations/m2/results/M2-S4/regression/summary.txt
+IDENTICAL  495268f51265fc82  simulations/m2/results/M2-S5/check.txt
+IDENTICAL  0f5aa4119680f962  simulations/m2/results/M2-S5/env-G0.txt
+DIFFERS    simulations/m2/results/M2-S5/env.txt: -check_txt: check_m2s5.py at 8bcfc14 (output-order fix only) rerun on these raw outputs; identical under PYTHONHASHSEED 1 and 2
+IDENTICAL  5dbd0ae1efdf944a  simulations/m2/results/M2-S5/environment-R0-R1.txt
+IDENTICAL  8c6cf5ca43dbd0d4  simulations/m2/results/M2-S5/gate-G0-skeleton.txt
+IDENTICAL  36cf53ec1654f39e  simulations/m2/results/M2-S5/gate-V0.txt
+RUNHEADER  simulations/m2/results/M2-S5/raw-outputs.sha256: differing lines only for run-id/date files [77 sca, 77 vec, ]
+IDENTICAL  b493bd3134ce52a2  simulations/m2/results/M2-S5/regression/M1-O-S3-1-check.txt
+IDENTICAL  a30442b7a51dd4cd  simulations/m2/results/M2-S5/regression/M1-O-tail-check.txt
+IDENTICAL  1a5a1518ecebe283  simulations/m2/results/M2-S5/regression/M1-S0-check.txt
+IDENTICAL  b55a713aae5ae9a4  simulations/m2/results/M2-S5/regression/M1-S1-check.txt
+IDENTICAL  d40ad5f240687a40  simulations/m2/results/M2-S5/regression/M1-S2-check.txt
+IDENTICAL  d833b6a0be014453  simulations/m2/results/M2-S5/regression/M1-S2-phase-check.txt
+IDENTICAL  09794fa72828e243  simulations/m2/results/M2-S5/regression/M1-S3-check.txt
+IDENTICAL  7c28150e4b229f19  simulations/m2/results/M2-S5/regression/M1-S4-clock-check.txt
+IDENTICAL  fe191a656dfffdc5  simulations/m2/results/M2-S5/regression/M1-S4-transport-check.txt
+IDENTICAL  8031717daaf40d11  simulations/m2/results/M2-S5/regression/M1-S5-check.txt
+IDENTICAL  440ff47c88f75c12  simulations/m2/results/M2-S5/regression/M1-upstream-issues-check.txt
+IDENTICAL  070072e37f59a832  simulations/m2/results/M2-S5/regression/M2-S0-census.txt
+IDENTICAL  514b4ebd4c24aa13  simulations/m2/results/M2-S5/regression/M2-S0-check.txt
+IDENTICAL  ac8d881d27ab4fdd  simulations/m2/results/M2-S5/regression/M2-S1-census.txt
+IDENTICAL  2c2705f82c21ac8f  simulations/m2/results/M2-S5/regression/M2-S1-check.txt
+IDENTICAL  22d4cd6305ed59de  simulations/m2/results/M2-S5/regression/M2-S3-census.txt
+IDENTICAL  0ba5c36c0c95dd88  simulations/m2/results/M2-S5/regression/M2-S3-check.txt
+IDENTICAL  bc12c00e7c20b802  simulations/m2/results/M2-S5/regression/M2-S3-serializer-probe.txt
+IDENTICAL  97b40d49364fc038  simulations/m2/results/M2-S5/regression/M2-S3-slave-model.txt
+IDENTICAL  4b5973f9af97c43c  simulations/m2/results/M2-S5/regression/M2-S4-check.txt
+IDENTICAL  d224ea47f6844781  simulations/m2/results/M2-S5/regression/summary.txt
+IDENTICAL  990541e6e2612402  simulations/m2/results/M2-S5/rehearsal.txt
+IDENTICAL  d2981d871870f6c9  simulations/m2/results/M2-S6/check.txt
+IDENTICAL  dc761ba78a42f193  simulations/m2/results/M2-S6/diagnostics/README.txt
+IDENTICAL  6e1ace96adba55b6  simulations/m2/results/M2-S6/diagnostics/h8-M2S6U-Q10-0.txt
+IDENTICAL  474872916c1800ea  simulations/m2/results/M2-S6/diagnostics/lag-M2S6-B-m100-0.txt
+IDENTICAL  35185a232ef1926d  simulations/m2/results/M2-S6/diagnostics/lag-M2S6-E-all-load-0.txt
+IDENTICAL  53378c8d6dd77d6d  simulations/m2/results/M2-S6/env-A.txt
+IDENTICAL  0d6277456f137ee7  simulations/m2/results/M2-S6/env-B.txt
+IDENTICAL  8678434546a33195  simulations/m2/results/M2-S6/env-C.txt
+IDENTICAL  cbcf57f8c62a8877  simulations/m2/results/M2-S6/env-D.txt
+IDENTICAL  f3c864c8bbb57d09  simulations/m2/results/M2-S6/env-E.txt
+IDENTICAL  30217f849d0bf8ec  simulations/m2/results/M2-S6/env-E0b.txt
+IDENTICAL  f176f86b6500f55c  simulations/m2/results/M2-S6/env-F.txt
+METADATA   simulations/m2/results/M2-S6/env-all.txt
+IDENTICAL  c764327180e114c8  simulations/m2/results/M2-S6/env-gate.txt
+IDENTICAL  414abb90c8beb22d  simulations/m2/results/M2-S6/gate-D0.txt
+IDENTICAL  bab28baa5678ec56  simulations/m2/results/M2-S6/gate-D0a.txt
+IDENTICAL  00377bc3df3f59ae  simulations/m2/results/M2-S6/gate-E0a.txt
+IDENTICAL  b491e57635db9258  simulations/m2/results/M2-S6/gate-E0b.txt
+IDENTICAL  e5b14a29c4a1363d  simulations/m2/results/M2-S6/gate-R0.txt
+RUNHEADER  simulations/m2/results/M2-S6/raw-outputs.sha256: differing lines only for run-id/date files [121 sca, 121 vec, ]
+IDENTICAL  bdf693905f1601ae  simulations/m2/results/M2-S6/regression/summary.txt
+IDENTICAL  34268e7bc560cfbc  simulations/m2/results/M2-S6/rehearsal.txt
+IDENTICAL  ff37e90ef67c8567  simulations/m2/results/M2-S6/report-B.txt
+IDENTICAL  94da3d0d60330570  simulations/m2/results/M2-S6/report-C.txt
+IDENTICAL  3fef168328d21bf0  simulations/m2/results/M2-S6/report-D.txt
+IDENTICAL  b9e6220a71a5fbb0  simulations/m2/results/M2-S6/report-E.txt
+IDENTICAL  6ded30e61d7d824a  simulations/m2/results/M2-S6/report-F.txt
+IDENTICAL  a26b964c0586268c  simulations/m2/results/M2-S6/report.txt
+IDENTICAL  6c6e047f44b4018d  simulations/m2/results/M2-S6/stage-A.txt
+IDENTICAL  afbc80cdb82ad30a  simulations/m2/results/M2-S6/stage-B.txt
+IDENTICAL  cbbe6ca64cf17018  simulations/m2/results/M2-S6/stage-C.txt
+IDENTICAL  14301dff7cffba79  simulations/m2/results/M2-S6/stage-D.txt
+IDENTICAL  0fe93090fa87f637  simulations/m2/results/M2-S6/stage-E.txt
+IDENTICAL  e7262dc7e591f6c8  simulations/m2/results/M2-S6/stage-F.txt
+R-4 verdict: FAIL (3 files)

@@ -1,0 +1,9 @@
+PASS  run: S1 seeds                      10 seeds finished; S0 has 10
+PASS  functional: per-flow counts == S0  10 seeds x 6 counters; mismatches: 0
+PASS  experimental: delay samples == S0  9780 samples compared (value and time); mismatching vectors: 0
+
+OVERALL: PASS
+
+seed 0 (S1): sent/received per direction
+  UL talker->listener: sent 491, received 488
+  DL listener->talker: sent 491, received 490

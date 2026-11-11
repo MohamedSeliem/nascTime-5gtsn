@@ -1,0 +1,7 @@
+M2-R181 version-neutral O-tail rows
+FAIL  OT-strand O2-s4: no SDU remainder waits for a later SDU; every SDU leaves within 2 slots       stranding events 276 [(0.126, 2), (0.146, 4), (0.166, 4)]; max gNB wait 20.998 ms over 332 SDUs
+PASS  OT-strand O2-s4-nodl: no SDU remainder waits for a later SDU; every SDU leaves within 2 slots  stranding events 0; max gNB wait 1.999 ms over 88 SDUs
+FAIL  OT-strand O1-harq16: nothing left in the gNB DRB 1 RLC after the drain                         sources stop at 3 s (O2-flush: one frame at 3.5 s), run to 5 s; left in RLC at the end [(3.016006, 316, 4)]
+FAIL  OT-strand O2-flush: nothing left in the gNB DRB 1 RLC after the drain                          sources stop at 3 s (O2-flush: one frame at 3.5 s), run to 5 s; left in RLC at the end [(3.500002, 70, 4)]
+
+OVERALL: FAIL

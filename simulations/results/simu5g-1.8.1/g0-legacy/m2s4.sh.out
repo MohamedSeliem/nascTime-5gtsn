@@ -1,0 +1,112 @@
+PASS  G0 hard gate: TtPdelayPort installed but passive (M2S4-passive, M2S1 seeds 0-9, frag, load, load-harq16) reproduces the M2S1 runs exactly: every .pcapng and per-frame log byte-identical, every vector line (event number, time, value) and scalar/statistic line identical, recorded parameters identical except the relocation of one ideal-channel object per translator, final event number identical; the comparison detects a different seed and the active configuration
+      13 run pairs identical; totals {'pcapng': 117, 'logs': 260, 'vectors': 22460, 'vector lines': 14759425, 'scalar lines': 433660, 'runs': 13}; sensitivity: M2S1#0 vs passive#1 1050 differences, vs M2S4#0 1101 differences
+PASS  A0 provenance: every M2-S1 PCAP and per-frame log used (G0, R2, L4) is hash-identical to M2-S1 raw-outputs.sha256 (56c8fb3)
+      377 files; mismatches: none
+PASS  T1 no Pdelay frame crosses the 5GS: 0 Pdelay_Req/Resp/Resp_Follow_Up at NW-TT eth[0], DS-TT eth[0], UE eth[0], UPF dnEth and N3 (GTP-U inner frames after IPv4 reassembly), both directions [M2S4 seeds 0-9, frag, load, load-harq16]
+      all 13 runs; e.g. M2S4#0: Pdelay frames in the 5GS: 0; Sync/Follow_Up frames seen: {'NW-TT eth[0]': 78, 'DS-TT eth[0]': 78, 'UE eth[0]': 78, 'UPF dnEth': 78}
+PASS  T2 every Pdelay frame received at a TT eth[1] is terminated there: one engine row per PCAP frame with its PCAP first/last-bit times; nothing passed [M2S4 seeds 0-9, frag, load, load-harq16]
+      all 13 runs; e.g. M2S4#0: problems: none
+PASS  T3 engine frame format (PCAP): L 72 B, valid FCS, untagged, one source MAC per port, versionPTP 2, messageLength 54, domain 0, sourcePortIdentity = configured; NW-TT Req sequenceIds consecutive; DS-TT answers each slave Req with Resp and Resp_FU echoing its sequenceId and requestingPortIdentity [M2S4 seeds 0-9, frag, load, load-harq16]
+      all 13 runs; e.g. M2S4#0: 15 engine frames; problems: none
+PASS  T4 first-bit timestamps: every engine-sent frame's logged (start, end) = PCAP (end - (L+8)*8 ns, end) [M2S4 seeds 0-9, frag, load, load-harq16]
+      all 13 runs; e.g. M2S4#0: problems: none
+PASS  L1 NW-TT measures its upstream link: logged t1, t4 = NW-TT eth[1] PCAP first bits, t2, t3 = GM PCAP first bits; wire t2/t3 = floor_ns; D = (nRR(t4-t1) - (t3-t2))/2 from PCAP = logged = 50 000 ps; nRR = 1/1; each sequenceId published once; published set = completed exchanges [M2S4 seeds 0-9, frag, load, load-harq16]
+      all 13 runs; e.g. M2S4#0: 5 exchanges, D [50000] ps; problems: none
+PASS  L2 the slave measures only its link to DS-TT: engine t2/t3 = DS-TT PCAP first bits, wire = floor_ns; slave raw D from PCAP = 50 000 ps; slave pdelay = 50 000 ps every sample, nRR 1; the M2-S3 slave model reproduces the slave exactly [M2S4 seeds 0-9, frag, load, load-harq16]
+      all 13 runs; e.g. M2S4#0: 5 slave exchanges (raw D [50000] ps); slave pdelay samples 5; replay {'pdelay': 5, 'nRR': 4, 'gm': 38, 'comp': 39, 'steps': 39, 'clock samples': 5081, 'step samples': 78}; problems: none
+PASS  S1 Sync/Follow_Up untouched: in-order byte-identical subsequence GM -> slave; correctionField 0 (no residence correction) [M2S4 seeds 0-9, frag, load, load-harq16]
+      all 13 runs; e.g. M2S4#0: 78 of 78 Sync/Follow_Up delivered byte-identical, correctionField 0; problems: none
+PASS  S2 slave clock = INET slave fed the terminated pdelay: replay exact; error after step 1 = -(Lup + Res1) exactly (link delay correct, clock NOT synchronized) [M2S4 seeds 0-9, frag, load, load-harq16]
+      all 13 runs; e.g. M2S4#0: error after step 1 -5000626.000 ns (= -(Lup + Res1) -5000626.000 ns); recorded max|error| after step 1 7113337.111 ns (NOT synchronized: no residence correction); problems: none
+PASS  S3 offline composition readiness (no correction applied): cf' = D_NWTT (measured) + Res with the slave's OWN pdelay gives 0 ps after every step, at every Sync arrival and every 1 ms sample [M2S4 seeds 0-9, frag, load, load-harq16]
+      all 13 runs; e.g. M2S4#0: 39 steps, 38 Sync arrivals, 4888 1 ms samples at 0 ps; problems: none
+PASS  F engine counters: all fault counters 0 on both ports; self-tests passed [M2S4 seeds 0-9, frag, load, load-harq16]
+      all 13 runs; e.g. M2S4#0: NW-TT counters 0 (expected 0); DS-TT 0; self-tests 1.0/1.0
+PASS  L3 robust to radio load and N3 fragmentation: L1 and L2 hold on M2S4-frag, M2S4-load, M2S4-load-harq16
+      M2S4-frag#0: 5 exchanges, D [50000] ps; problems: none; M2S4-load#0: 5 exchanges, D [50000] ps; problems: none; M2S4-load-harq16#0: 5 exchanges, D [50000] ps; problems: none; M2S4-frag#0: 5 slave exchanges (raw D [50000] ps); slave pdelay samples 5; replay {'pdelay': 5, 'nRR': 4, 'gm': 38, 'comp':; M2S4-load#0: 5 slave exchanges (raw D [50000] ps); slave pdelay samples 5; replay {'pdelay': 5, 'nRR': 4, 'gm': 32, 'comp':; M2S4-load-harq16#0: 5 slave exchanges (raw D [50000] ps); slave pdelay samples 5; replay {'pdelay': 5, 'nRR': 4, 'gm': 37, 'comp':
+PASS  F-5GS-dropResp F1 (5GS) GM's Resp seq 2 dropped before transmission -> lost 1, seq 2 not published; all other rows pass
+      L1: 4 exchanges, D [50000] ps; problems: none; F: NW-TT counters {'lost': 1} (expected {'lost': 1}); DS-TT 0; self-tests 1.0/1.0
+PASS  F-5GS-dupResp F3 (5GS) Resp seq 2 duplicated before its Follow_Up -> multipleResp 1, seq 2 discarded; the INET GM sends a Resp_Follow_Up after each transmitted Resp, hence lateAfterFault 2; all other rows pass
+      L1: 4 exchanges, D [50000] ps; problems: none; F: NW-TT counters {'multipleResp': 1, 'lateAfterFault': 2} (expected {'multipleResp': 1, 'lateAfterFault': 2}); DS-TT 0; self-tests 1.0/1.0
+PASS  F-5GS-dupRespLate F3L (5GS) late duplicate Resp seq 2 -> lateDuplicateResp 1 (+ lateDuplicateFU 1: the GM's Follow_Up for the copy); published once, unchanged; all other rows pass
+      L1: 5 exchanges, D [50000] ps; problems: none; F: NW-TT counters {'lateDuplicateResp': 1, 'lateDuplicateFU': 1} (expected {'lateDuplicateResp': 1, 'lateDuplicateFU': 1}); DS-TT 0; self-tests 1.0/1.0
+PASS  F-5GS-dupFU F4 (5GS) duplicate Resp_FU seq 3 after completion -> lateDuplicateFU 1; value unchanged; all other rows pass
+      L1: 5 exchanges, D [50000] ps; problems: none; F: NW-TT counters {'lateDuplicateFU': 1} (expected {'lateDuplicateFU': 1}); DS-TT 0; self-tests 1.0/1.0
+PASS  F-5GS-malformed F9 (5GS) Resp seq 2 with versionPTP 1 -> malformed 1, orphanFollowUp 1, lost 1; frame not forwarded; all other rows pass
+      L1: 4 exchanges, D [50000] ps; problems: none; F: NW-TT counters {'lost': 1, 'orphanFollowUp': 1, 'malformed': 1} (expected {'lost': 1, 'orphanFollowUp': 1, 'malformed': 1}); DS-TT 0; self-tests 1.0/1.0
+PASS  U1 unit topology, engine to engine, 50 ns: D = 50 000 ps at both requesters, = PCAP, nRR 1; termination accounting and counters as expected
+      U: {'ttA': (30, [50000]), 'ttB': (30, [50000])} (exchanges, D ps); problems: none; TU: problems: none; F: problems: none; one-way (t2-t1, t4-t3) {'ttA': [(50000, 50000)], 'ttB': [(50000, 50000)]}
+PASS  U2 non-integer-ns link 73.217 ns: D = 73 217 ps at both ends, = PCAP; termination accounting and counters as expected
+      U: {'ttA': (30, [73217]), 'ttB': (30, [73217])} (exchanges, D ps); problems: none; TU: problems: none; F: problems: none; one-way (t2-t1, t4-t3) {'ttA': [(73217, 73217)], 'ttB': [(73217, 73217)]}
+PASS  U3 asymmetric link A->B 50 ns / B->A 70 ns: D = 60 000 ps at both ends, = PCAP; termination accounting and counters as expected
+      U: {'ttA': (30, [60000]), 'ttB': (30, [60000])} (exchanges, D ps); problems: none; TU: problems: none; F: problems: none; one-way delays from PCAP A->B 50 000 ps, B->A 70 000 ps; the peer-delay estimate 60 000 ps is wrong by exactly +10 000 ps (A->B) and -10 000 ps (B->A): a LIMITATION of symmetric peer-delay estimation, not a validation of one-way delay
+PASS  U4 sequenceId wrap: exchanges 65534, 65535, 0, 1 all valid; termination accounting and counters as expected
+      U: {'ttA': (30, [50000]), 'ttB': (30, [50000])} (exchanges, D ps); problems: none; TU: problems: none; F: problems: none; ttA published seqs start [65534, 65535, 0, 1]; one-way (t2-t1, t4-t3) {'ttA': [(50000, 50000)], 'ttB': [(50000, 50000)]}
+PASS  F-unit-F1 F1 Resp 3 dropped (no Follow_Up follows an untransmitted Resp) -> lost 1; every other exchange exact
+      U: {'ttA': (29, [50000]), 'ttB': (30, [50000])} (exchanges, D ps); problems: none; TU: problems: none; F: problems: none
+PASS  F-unit-F2 F2 Resp_FU 4 dropped -> lost 1; every other exchange exact
+      U: {'ttA': (29, [50000]), 'ttB': (30, [50000])} (exchanges, D ps); problems: none; TU: problems: none; F: problems: none
+PASS  F-unit-F3 F3 Resp 5 duplicated before its Follow_Up -> multipleResp 1, discarded, lateAfterFault 1; every other exchange exact
+      U: {'ttA': (29, [50000]), 'ttB': (30, [50000])} (exchanges, D ps); problems: none; TU: problems: none; F: problems: none
+PASS  F-unit-F3L F3L late duplicate Resp 6 (after its Follow_Up) -> lateDuplicateResp 1; published once, unchanged; every other exchange exact
+      U: {'ttA': (30, [50000]), 'ttB': (30, [50000])} (exchanges, D ps); problems: none; TU: problems: none; F: problems: none
+PASS  F-unit-F4 F4 duplicate Resp_FU 7 after completion -> lateDuplicateFU 1; published once, unchanged; every other exchange exact
+      U: {'ttA': (30, [50000]), 'ttB': (30, [50000])} (exchanges, D ps); problems: none; TU: problems: none; F: problems: none
+PASS  F-unit-F5 F5 a Resp_FU 8 ahead of Resp 8 (reordering medium) -> orphanFollowUp 1; the exchange then completes; every other exchange exact
+      U: {'ttA': (30, [50000]), 'ttB': (30, [50000])} (exchanges, D ps); problems: none; TU: problems: none; F: problems: none
+PASS  F-unit-F6 F6 Resp and Resp_FU 9 delayed beyond the next request -> staleSeq 2, lost 1; every other exchange exact
+      U: {'ttA': (29, [50000]), 'ttB': (30, [50000])} (exchanges, D ps); problems: none; TU: problems: none; F: problems: none
+PASS  F-unit-F7 F7 Resp 10 with sequenceId 999 -> staleSeq 1, lost 1; every other exchange exact
+      U: {'ttA': (29, [50000]), 'ttB': (30, [50000])} (exchanges, D ps); problems: none; TU: problems: none; F: problems: none
+PASS  F-unit-F8 F8 Resp 11 for another requester port -> notForUs 1, lost 1; every other exchange exact
+      U: {'ttA': (29, [50000]), 'ttB': (30, [50000])} (exchanges, D ps); problems: none; TU: problems: none; F: problems: none
+PASS  F-unit-F9a F9a Resp 12 versionPTP 1 -> malformed 1, lost 1; every other exchange exact
+      U: {'ttA': (29, [50000]), 'ttB': (30, [50000])} (exchanges, D ps); problems: none; TU: problems: none; F: problems: none
+PASS  F-unit-F9b F9b Resp 13 messageLength 50 -> malformed 1, lost 1; every other exchange exact
+      U: {'ttA': (29, [50000]), 'ttB': (30, [50000])} (exchanges, D ps); problems: none; TU: problems: none; F: problems: none
+PASS  F-unit-F9c F9c Resp 14 domainNumber 1 -> malformed 1, lost 1; every other exchange exact
+      U: {'ttA': (29, [50000]), 'ttB': (30, [50000])} (exchanges, D ps); problems: none; TU: problems: none; F: problems: none
+PASS  F-unit-F9d F9d Resp 15 truncated to 40 B -> malformed 1, lost 1; every other exchange exact
+      U: {'ttA': (29, [50000]), 'ttB': (30, [50000])} (exchanges, D ps); problems: none; TU: problems: none; F: problems: none
+PASS  F-unit-F10 F10 Resp 16 with an inverted FCS -> dropped by INET's FCS checker (never reaches the engine), orphanFollowUp 1, lost 1; every other exchange exact
+      U: {'ttA': (29, [50000]), 'ttB': (30, [50000])} (exchanges, D ps); problems: none; TU: problems: none; F: problems: none; inbound Pdelay frames with bad FCS at ttA (PCAP, independent CRC-32): 1
+PASS  F-unit-F11 F11 Resp 17-21 dropped -> lost 5; measuring flag 1 -> 0 -> 1; every other exchange exact
+      U: {'ttA': (25, [50000]), 'ttB': (30, [50000])} (exchanges, D ps); problems: none; TU: problems: none; F: problems: none; measuring flag sequence at ttA [1, 0, 1] (false after the 4th consecutive loss > allowedLostResponses 3)
+PASS  F-unit-F12 F12 ttB's Req 22 duplicated: ttA answers both; ttA's first Resp_FU leaves before the second Resp, so ttB counts late duplicates (published once); every other exchange exact
+      U: {'ttA': (30, [50000]), 'ttB': (30, [50000])} (exchanges, D ps); problems: none; TU: problems: none; F: problems: none; ttA answered 31 requests for ttB's 30
+PASS  R1 M2-S1 per-frame rows on the M2S4 runs (subset of C1-C5): every frame received on a TT eth[1] has its ingress row (= PCAP time and hash), every frame sent has its egress row (= PCAP times and hashes); every tagged frame's ingress time = PCAP at TT_in and R = PCAP out - PCAP in; untagged egress rows are exactly the engine's Pdelay frames
+      54728 egress frames, 195 engine frames; problems: none
+PASS  R2 application traffic and QoS mappings unchanged vs M2S1 (same seed/variant): the application frames (payload hashes) delivered in both runs arrive in the same order per flow at both stations, and (except under saturating load, where the 5GS drops frames) any frame delivered in only one run was still in flight at the end of the other; same PCP -> QFI mapping on N3 per direction (gPTP keeps its QFI). End-to-end latencies are reported, not required equal (removing Pdelay from the 5GS can change RLC/MAC timing)
+      52 flow sequences compared; frames delivered in only one run (in flight at the end of the other): {'talker in (DL)': 0, 'listener in (UL)': 22, 'talker in (DL) load': 8, 'listener in (UL) load': 22}; latency change per application frame (M2S4 - M2S1): DL 23727 frames, 196 changed (-1000000.000 ns .. 25000000.000 ns); UL 23945 frames, 2588 changed (-117930880.000 ns .. 40997728.000 ns); problems: none
+PASS  R2b attribution of the R2 latency changes: application frames in M2S4 have exactly the latencies of a control with no Pdelay anywhere and no TtPdelayPort (M2S4-ctl-nopdelay, seeds 0-9 and load): the changes come from removing Pdelay traffic from the 5GS, not from the engine
+      28772 application frames compared, 0 differ; problems: none
+PASS  L4 comparison with the forwarded end-to-end Pdelay (report): slave raw link delay per exchange
+      M2S1 seeds 0-9 end-to-end 7000050.000 ns .. 17760533.345 ns -> M2S4 link-local [50000] ps; M2S1-load#0 6553764.239 ns .. 55963093.891 ns -> [50000] ps; M2S1-load-harq16#0 6856518.458 ns .. 56730051.135 ns -> [50000] ps
+PASS  W1 wire-mode report (report only): D the requester would compute from the serialized (ns-truncated) t2/t3
+      M2S4#0 NW-TT: sub-ns residues on t2/t3 0, wire-mode D - D [0] ps; M2S4-load#0 NW-TT: sub-ns residues on t2/t3 0, wire-mode D - D [0] ps
+PASS  N1 Pdelay forwarded across the 5GS (M2S4-passive = the old architecture): fails exactly ['F', 'L1', 'L2', 'S2', 'S3', 'T1', 'T2', 'T3', 'T4'] with the exact signature
+      failed ['F', 'L1', 'L2', 'S2', 'S3', 'T1', 'T2', 'T3', 'T4']; signature OK: Pdelay frames in the 5GS {'NW-TT eth[0] Pdelay_Req': 5, 'NW-TT eth[0] Pdelay_Resp': 5, 'NW-TT eth[0] Pdelay_Resp_Follow_Up': 5, 'DS-TT eth[0] Pdelay_Req': 6, 'DS-TT eth[0] Pdelay_Resp': 5, 'DS-TT eth[0] Pdelay_Resp_Follow_Up': 5, 'UE eth[0] Pdelay_Req': 6, 'UE eth[0] Pdelay_Resp': 5, 'UE eth[0] Pdelay_Resp_Follow_Up': 5, 'UPF dnEth Pdelay_Req': 5, 'UPF dnEth Pdelay_Resp': 5, 'UPF dnEth Pdelay_Resp_Follow_Up': 5} (slave sent/received 16); no NW-TT exchange; slave pdelay first sample 0.00700005 s = raw end-to-end exchange 0 from PCAP 7000050.000 ns
+PASS  N2a wrong requester pairing: t1 of the previous request: fails exactly ['L1', 'S3'] with the exact signature
+      failed ['L1', 'S3']; signature OK: D_k = ((t4_k - t1_k-1) - (t3_k - t2_k))/2 from PCAP for k >= 1: [500000050000] ps; no D_0
+PASS  N3a wrong PHY event at the requester: t4 at receptionEnded: fails exactly ['L1', 'S3'] with the exact signature
+      failed ['L1', 'S3']; signature OK: D = 50 ns + 640/2 ns = [370000] ps
+PASS  N3b wrong PHY event at the responder: t3 at transmissionEnded: fails exactly ['L2', 'S2'] with the exact signature
+      failed ['L2', 'S2']; signature OK: slave pdelay every sample [-2.7e-07] s = (100 - 640)/2 ns (INET release build accepts it); DS-TT Resp_FU t3 = floor_ns(Resp last bit)
+PASS  N3c t1 and t4 both at the last bit (discriminability control: Req and Resp both 72 B): fails exactly ['L1'] with the exact signature
+      failed ['L1']; signature OK: D unchanged = 50 000 ps (the value cannot reveal it: X cancels); detected only because the logged t1/t4 equal the PCAP LAST bits
+PASS  N5 wrong timestamp units: wire ns numbers of t2/t3 used as ps: fails exactly ['L1', 'S3'] with the exact signature
+      failed ['L1', 'S3']; signature OK: D = ((t4 - t1) - (floor(t3/ns) - floor(t2/ns)))/2 from PCAP: [369680, 1383665] ps
+PASS  N6a wrong formula: no division by 2: fails exactly ['L1', 'S3'] with the exact signature
+      failed ['L1', 'S3']; signature OK: D = [100000] ps
+PASS  N6b wrong formula: turnaround not subtracted: fails exactly ['L1', 'S3'] with the exact signature
+      failed ['L1', 'S3']; signature OK: D = (t4 - t1)/2 from PCAP: [370000, 1385000] ps
+PASS  N4a missing response not detected (Resp 2 dropped, loss not counted): fails exactly ['F'] with the exact signature
+      failed ['F']; signature OK: lost = 0 (expected 1); D values exact
+PASS  N4b duplicate response accepted (last one wins): fails exactly ['F', 'L1', 'S3'] with the exact signature
+      failed ['F', 'L1', 'S3']; signature OK: seq 2 uses the duplicate's first bit (+736.000 ns); D from PCAP incl. the rate ratio it induces in the next exchange: [(0, 50000), (1, 50000), (2, 417998), (3, 50001), (4, 50000)]
+PASS  N4c late duplicate modifies a published measurement: fails exactly ['F', 'L1'] with the exact signature
+      failed ['F', 'L1']; signature OK: seq 2 published twice; second value 786000 ps = ((t4'' - t1) - (t3 - t2))/2 from PCAP (t4'' = the late copy's first bit)
+PASS  N2b wrong responder pairing (unit): ttA answers each request with the previous request's sequenceId: fails exactly ['F', 'U'] with the exact signature
+      failed ['F', 'U']; signature OK: ttB: 30 requests, published 0, staleSeq 58, lost 29; ttA's own measurements unaffected
+
+OVERALL: PASS (55/55)
