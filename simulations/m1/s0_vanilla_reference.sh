@@ -10,8 +10,11 @@ HERE=$(cd "$(dirname "$0")" && pwd)
 OMNETPP_ROOT=${OMNETPP_ROOT:-/root/stack/omnetpp-6.4.0}
 INET_ROOT=${INET_ROOT:-/root/stack/inet-4.7.0}
 SIMU5G_ROOT=${SIMU5G_ROOT:-/root/stack/simu5g-1.8.0}
+NASCTIME=$(cd "$HERE/../.." && pwd)   # M2-R181 (used by nt_results.sh only)
+source "$NASCTIME/simulations/nt_results.sh"; nt_results_init m1   # M2-R181 R-1 (legacy: $HERE/results, unchanged)
 SEEDS=${SEEDS:-0..9}
-OUT=$HERE/results/S0
+OUT=$RESULTS/S0
+nt_fresh_out "$OUT"   # M2-R181 R-2 (isolated mode only)
 mkdir -p "$OUT"
 
 source "$OMNETPP_ROOT/setenv" -f >/dev/null
@@ -27,6 +30,7 @@ export PATH="$SIMU5G_ROOT/bin:$INET_ROOT/bin:$PATH"
   echo "compiler: $(${CXX:-clang++} --version | head -1)"
   echo "os: $(uname -srm)"
 } > "$OUT/env.txt"
+nt_stack_record "$OUT"   # M2-R181 R-3 (isolated mode only: stack.txt)
 
 # 1. Upstream's own fingerprint rows for the Ethernet example (proves this build
 #    reproduces upstream's reference build). -m takes one regex.

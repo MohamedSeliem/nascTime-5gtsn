@@ -14,9 +14,11 @@ NASCTIME=$(cd "$HERE/../.." && pwd)
 export OMNETPP_ROOT=${OMNETPP_ROOT:-/root/stack/omnetpp-6.4.0}
 export INET_ROOT=${INET_ROOT:-/root/stack/inet-4.7.0}
 SIMU5G_ROOT=${SIMU5G_ROOT:-/root/stack/simu5g-1.8.0}
+source "$NASCTIME/simulations/nt_results.sh"; nt_results_init m2   # M2-R181 R-1 (legacy: $HERE/results, unchanged)
 JOBS=${JOBS:-2}
-OUT=$HERE/results/M2-S4
-[ -d "$HERE/results/M2-S1/runs" ] || { echo "ERROR: results/M2-S1/runs missing; run ./m2s1.sh first" >&2; exit 1; }
+OUT=$RESULTS/M2-S4
+nt_fresh_out "$OUT"   # M2-R181 R-2 (isolated mode only)
+[ -d "$RESULTS/M2-S1/runs" ] || { echo "ERROR: results/M2-S1/runs missing; run ./m2s1.sh first" >&2; exit 1; }
 rm -rf "$OUT/runs"
 mkdir -p "$OUT/runs"
 "$NASCTIME/src/nasctime/m2/build.sh" > "$OUT/runs/build.log" 2>&1 \
@@ -32,6 +34,7 @@ source "$OMNETPP_ROOT/setenv" -f >/dev/null
   echo "python: $(python3 --version 2>&1)"
   echo "os: $(uname -srm)"
 } > "$OUT/env.txt"
+nt_stack_record "$OUT"   # M2-R181 R-3 (isolated mode only: stack.txt)
 
 run() {  # $1 config, $2 runs
   (cd "$HERE" && opp_run -l "$NASCTIME/src/nasctime/m2/nasctime_m2" -l "$SIMU5G_ROOT/src/simu5g" \
@@ -52,6 +55,6 @@ export HERE NASCTIME SIMU5G_ROOT OUT
     echo "M2S4U$c 0"; done
 } | xargs -P "$JOBS" -L 1 bash -c 'run "$0" "$1"'
 
-python3 "$HERE/check/check_m2s4.py" "$OUT" "$HERE/results/M2-S1/runs" "$HERE/results/M2-S1/raw-outputs.sha256" | tee "$OUT/check.txt"
+python3 "$HERE/check/check_m2s4.py" "$OUT" "$RESULTS/M2-S1/runs" "$RESULTS/M2-S1/raw-outputs.sha256" | tee "$OUT/check.txt"
 (cd "$OUT/runs" && find . -type f \( -name '*.sca' -o -name '*.vec' -o -name '*.pcapng' -o -name '*.csv' \) \
    ! -name '*.vci' | LC_ALL=C sort | xargs sha256sum) > "$OUT/raw-outputs.sha256"

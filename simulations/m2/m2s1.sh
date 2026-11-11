@@ -11,8 +11,10 @@ NASCTIME=$(cd "$HERE/../.." && pwd)
 export OMNETPP_ROOT=${OMNETPP_ROOT:-/root/stack/omnetpp-6.4.0}
 export INET_ROOT=${INET_ROOT:-/root/stack/inet-4.7.0}
 SIMU5G_ROOT=${SIMU5G_ROOT:-/root/stack/simu5g-1.8.0}
+source "$NASCTIME/simulations/nt_results.sh"; nt_results_init m2   # M2-R181 R-1 (legacy: $HERE/results, unchanged)
 JOBS=${JOBS:-2}
-OUT=$HERE/results/M2-S1
+OUT=$RESULTS/M2-S1
+nt_fresh_out "$OUT"   # M2-R181 R-2 (isolated mode only)
 rm -rf "$OUT/runs"
 mkdir -p "$OUT/runs"
 "$NASCTIME/src/nasctime/m2/build.sh" > "$OUT/runs/build.log" 2>&1 \
@@ -27,6 +29,7 @@ source "$OMNETPP_ROOT/setenv" -f >/dev/null
   echo "libnasctime_m2_sha256: $(sha256sum "$NASCTIME/src/nasctime/m2/libnasctime_m2.so" | cut -d' ' -f1)"
   echo "os: $(uname -srm)"
 } > "$OUT/env.txt"
+nt_stack_record "$OUT"   # M2-R181 R-3 (isolated mode only: stack.txt)
 
 run() {  # $1 config, $2 runs
   (cd "$HERE" && opp_run -l "$NASCTIME/src/nasctime/m2/nasctime_m2" -l "$SIMU5G_ROOT/src/simu5g" \
@@ -46,6 +49,6 @@ printf '%s\n' \
   "M2S1-nc-egress-enqueue 0" "M2S1-nc-egress-txstart 0" "M2S1-nc-nostrip 0" \
   | xargs -P "$JOBS" -L 1 bash -c 'run "$0" "$1"'
 
-python3 "$HERE/check/check_m2s1.py" "$OUT" "$HERE/results/M2-S0/raw-outputs.sha256" | tee "$OUT/check.txt"
+python3 "$HERE/check/check_m2s1.py" "$OUT" "$RESULTS/M2-S0/raw-outputs.sha256" | tee "$OUT/check.txt"
 (cd "$OUT/runs" && find . -type f \( -name '*.sca' -o -name '*.vec' -o -name '*.pcapng' -o -name '*.csv' \) \
    ! -name '*.vci' | LC_ALL=C sort | xargs sha256sum) > "$OUT/raw-outputs.sha256"

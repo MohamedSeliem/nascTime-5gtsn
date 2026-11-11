@@ -50,24 +50,27 @@ SIMU5G_ROOT=${SIMU5G_ROOT:-/root/stack/simu5g-1.8.0}
 ACCEPTED_LIBSIMU5G_SHA256=203cf231e6605188662769b439e403d832f516d2e08c8a0c5a9e8f55f4305cf6
 JOBS=${JOBS:-2}
 MODE=${1:-all}
+source "$NASCTIME/simulations/nt_results.sh"   # M2-R181 R-1 (legacy: $HERE/results, unchanged)
+case "$MODE" in cfqd) nt_results_init m2 nobaseline ;; *) nt_results_init m2 ;; esac   # cfqd: the 1.8.0 counterfactual, own guards
+case "$MODE" in e0*|cfqd|e2rb*) nt_refuse_isolated "$MODE" ;; esac
 # Checkpoint 1 revision 2 (design rev. 2.1): records go to results/M2-S7.2a-cp1r2; the Checkpoint 1 record
 # (results/M2-S7.2a, produced at dfedb52) is kept unchanged.
-OUT=$HERE/results/M2-S7.2a-cp1r2
+OUT=$RESULTS/M2-S7.2a-cp1r2
 # Checkpoint 2 (stage 4, Block B): records go to results/M2-S7.2a-cp2
-case "$MODE" in b|bcheck|cp2|cp2regen|cp2hashes) OUT=$HERE/results/M2-S7.2a-cp2 ;; esac
+case "$MODE" in b|bcheck|cp2|cp2regen|cp2hashes) OUT=$RESULTS/M2-S7.2a-cp2 ;; esac
 # Checkpoint 2 revision 2 (corrective round): results/M2-S7.2a-cp2r2; the Checkpoint 2 record is kept unchanged
-case "$MODE" in b2|b2check|cp2r2|cp2r2regen|cp2r2hashes) OUT=$HERE/results/M2-S7.2a-cp2r2 ;; esac
+case "$MODE" in b2|b2check|cp2r2|cp2r2regen|cp2r2hashes) OUT=$RESULTS/M2-S7.2a-cp2r2 ;; esac
 # I-2H focused validation (review 2026-11-02 16:12): results/M2-S7.2a-i2h
-case "$MODE" in i2h|i2hrun|i2hcheck|i2hregen|i2hhashes) OUT=$HERE/results/M2-S7.2a-i2h ;; esac
+case "$MODE" in i2h|i2hrun|i2hcheck|i2hregen|i2hhashes) OUT=$RESULTS/M2-S7.2a-i2h ;; esac
 # Checkpoint 2 revision 2 complete campaign: results/M2-S7.2a-cp2r2 (empty at the start; r2 refuses an existing one)
-case "$MODE" in r2|r2run|r2check|r2regen|r2hashes) OUT=$HERE/results/M2-S7.2a-cp2r2 ;; esac
+case "$MODE" in r2|r2run|r2check|r2regen|r2hashes) OUT=$RESULTS/M2-S7.2a-cp2r2 ;; esac
 if [ "$MODE" = r2 ] && [ -e "$OUT" ]; then echo "ERROR: $OUT exists; the campaign starts from an empty directory" >&2; exit 1; fi
 # Stage 5 E0: results/M2-S7.2a-e0 (empty at the start; e0 refuses an existing one)
-case "$MODE" in e0|e0run|e0check|e0regen|e0hashes) OUT=$HERE/results/M2-S7.2a-e0 ;; esac
+case "$MODE" in e0|e0run|e0check|e0regen|e0hashes) OUT=$RESULTS/M2-S7.2a-e0 ;; esac
 if [ "$MODE" = e0 ] && [ -e "$OUT" ]; then echo "ERROR: $OUT exists; E0 starts from an empty directory" >&2; exit 1; fi
-case "$MODE" in e0r2) OUT=$HERE/results/M2-S7.2a-e0r2; E0OUT=$HERE/results/M2-S7.2a-e0 ;; esac
+case "$MODE" in e0r2) OUT=$RESULTS/M2-S7.2a-e0r2; E0OUT=$RESULTS/M2-S7.2a-e0 ;; esac
 if [ "$MODE" = cfqd ]; then
-  OUT=$HERE/results/M2-S7.2a-cfqd; E0OUT=$HERE/results/M2-S7.2a-e0
+  OUT=$RESULTS/M2-S7.2a-cfqd; E0OUT=$RESULTS/M2-S7.2a-e0
   [ -e "$OUT" ] && { echo "ERROR: $OUT exists" >&2; exit 1; }
   ACCEPTED=/root/stack/simu5g-1.8.0
   [ "$(cd "$SIMU5G_ROOT" && pwd -P)" = "$(cd "$ACCEPTED" && pwd -P)" ] && { echo "ERROR: cfqd must not use the accepted Simu5G $ACCEPTED" >&2; exit 1; }
@@ -79,7 +82,8 @@ if [ "$MODE" = cfqd ]; then
      --exclude=Makefile --exclude=features.h --exclude=out "$ACCEPTED/src" . | grep -v "^Files .*$F and" ) \
     && { echo "ERROR: the candidate build differs from 1.8.0 in other source files" >&2; exit 1; } || true
 fi
-case "$MODE" in e2rb|e2rbcheck) OUT=$HERE/results/M2-S7.2a-e2rb; E0OUT=$HERE/results/M2-S7.2a-e0 ;; esac
+case "$MODE" in e2rb|e2rbcheck) OUT=$RESULTS/M2-S7.2a-e2rb; E0OUT=$RESULTS/M2-S7.2a-e0 ;; esac
+case "$MODE" in *check|*hashes|*regen|regen) ;; *) nt_fresh_out "$OUT" ;; esac   # M2-R181 R-2 (isolated mode only)
 if [ "$MODE" = e2rb ]; then
   [ -n "$M2S72_E2_AUTH" ] || { echo "ERROR: e2rb is not authorised (set M2S72_E2_AUTH to the decision reference)" >&2; exit 1; }
   [ -e "$OUT" ] && { echo "ERROR: $OUT exists; the re-baseline starts from an empty directory" >&2; exit 1; }
@@ -111,6 +115,7 @@ source "$OMNETPP_ROOT/setenv" -f >/dev/null
   echo "python: $(python3 --version 2>&1)"
   echo "os: $(uname -srm)"
 } > "$OUT/env-$MODE.txt"
+nt_stack_record "$OUT"   # M2-R181 R-3 (isolated mode only: stack.txt)
 
 OPP=(opp_run -l "$NASCTIME/src/nasctime/m2/nasctime_m2" -l "$SIMU5G_ROOT/src/simu5g"
      -n "$NASCTIME/simulations:$NASCTIME/src:$SIMU5G_ROOT/src:$INET_ROOT/src" -x nasctime.nodes -u Cmdenv)

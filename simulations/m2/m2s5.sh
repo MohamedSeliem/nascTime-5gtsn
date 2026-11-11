@@ -14,10 +14,12 @@ NASCTIME=$(cd "$HERE/../.." && pwd)
 export OMNETPP_ROOT=${OMNETPP_ROOT:-/root/stack/omnetpp-6.4.0}
 export INET_ROOT=${INET_ROOT:-/root/stack/inet-4.7.0}
 SIMU5G_ROOT=${SIMU5G_ROOT:-/root/stack/simu5g-1.8.0}
+source "$NASCTIME/simulations/nt_results.sh"; nt_results_init m2   # M2-R181 R-1 (legacy: $HERE/results, unchanged)
 JOBS=${JOBS:-2}
 MODE=${1:-all}
-OUT=$HERE/results/M2-S5
-[ -d "$HERE/results/M2-S4/runs/M2S4" ] || { echo "ERROR: results/M2-S4/runs missing; run ./m2s1.sh and ./m2s4.sh first" >&2; exit 1; }
+OUT=$RESULTS/M2-S5
+nt_fresh_out "$OUT"   # M2-R181 R-2 (isolated mode only)
+[ -d "$RESULTS/M2-S4/runs/M2S4" ] || { echo "ERROR: results/M2-S4/runs missing; run ./m2s1.sh and ./m2s4.sh first" >&2; exit 1; }
 rm -rf "$OUT/runs"
 mkdir -p "$OUT/runs"
 "$NASCTIME/src/nasctime/m2/build.sh" > "$OUT/runs/build.log" 2>&1 \
@@ -34,6 +36,7 @@ source "$OMNETPP_ROOT/setenv" -f >/dev/null
   echo "python: $(python3 --version 2>&1)"
   echo "os: $(uname -srm)"
 } > "$OUT/env.txt"
+nt_stack_record "$OUT"   # M2-R181 R-3 (isolated mode only: stack.txt)
 
 run() {  # $1 config, $2 runs
   (cd "$HERE" && opp_run -l "$NASCTIME/src/nasctime/m2/nasctime_m2" -l "$SIMU5G_ROOT/src/simu5g" \
@@ -52,7 +55,7 @@ gate_configs() {
 
 if [ "$MODE" = gate ]; then
   gate_configs | xargs -P "$JOBS" -L 1 bash -c 'run "$0" "$1"'
-  python3 "$HERE/check/gate_m2s5.py" "$OUT/runs" "$HERE/results/M2-S4/runs" | tee "$OUT/gate-G0.txt"
+  python3 "$HERE/check/gate_m2s5.py" "$OUT/runs" "$RESULTS/M2-S4/runs" | tee "$OUT/gate-G0.txt"
   exit "${PIPESTATUS[0]}"
 fi
 if [ "$MODE" = v0 ]; then
@@ -71,6 +74,6 @@ fi
   for c in -hold -subns -expiry -syncloss -nc-noHold -nc-bothEnd; do echo "M2S5U$c 0"; done
 } | xargs -P "$JOBS" -L 1 bash -c 'run "$0" "$1"'
 
-python3 "$HERE/check/check_m2s5.py" "$OUT" "$HERE/results/M2-S4/runs" "$HERE/results/M2-S4/raw-outputs.sha256" | tee "$OUT/check.txt"
+python3 "$HERE/check/check_m2s5.py" "$OUT" "$RESULTS/M2-S4/runs" "$RESULTS/M2-S4/raw-outputs.sha256" | tee "$OUT/check.txt"
 (cd "$OUT/runs" && find . -type f \( -name '*.sca' -o -name '*.vec' -o -name '*.pcapng' -o -name '*.csv' \) \
    ! -name '*.vci' | LC_ALL=C sort | xargs sha256sum) > "$OUT/raw-outputs.sha256"

@@ -11,8 +11,10 @@ NASCTIME=$(cd "$HERE/../.." && pwd)
 export OMNETPP_ROOT=${OMNETPP_ROOT:-/root/stack/omnetpp-6.4.0}
 export INET_ROOT=${INET_ROOT:-/root/stack/inet-4.7.0}
 SIMU5G_ROOT=${SIMU5G_ROOT:-/root/stack/simu5g-1.8.0}
+source "$NASCTIME/simulations/nt_results.sh"; nt_results_init m2   # M2-R181 R-1 (legacy: $HERE/results, unchanged)
 JOBS=${JOBS:-2}
-OUT=$HERE/results/M2-S0
+OUT=$RESULTS/M2-S0
+nt_fresh_out "$OUT"   # M2-R181 R-2 (isolated mode only)
 rm -rf "$OUT/runs"
 mkdir -p "$OUT/runs"
 "$NASCTIME/src/nasctime/m2/build.sh" > "$OUT/runs/build.log" 2>&1 \
@@ -27,6 +29,7 @@ source "$OMNETPP_ROOT/setenv" -f >/dev/null
   echo "libnasctime_m2_sha256: $(sha256sum "$NASCTIME/src/nasctime/m2/libnasctime_m2.so" | cut -d' ' -f1)"
   echo "os: $(uname -srm)"
 } > "$OUT/env.txt"
+nt_stack_record "$OUT"   # M2-R181 R-3 (isolated mode only: stack.txt)
 
 run() {  # $1 config, $2 runs
   (cd "$HERE" && opp_run -l "$NASCTIME/src/nasctime/m2/nasctime_m2" -l "$SIMU5G_ROOT/src/simu5g" \

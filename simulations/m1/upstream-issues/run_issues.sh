@@ -7,7 +7,15 @@ HERE=$(cd "$(dirname "$0")" && pwd)
 OMNETPP_ROOT=${OMNETPP_ROOT:-/root/stack/omnetpp-6.4.0}
 INET_ROOT=${INET_ROOT:-/root/stack/inet-4.7.0}
 SIMU5G_ROOT=${SIMU5G_ROOT:-/root/stack/simu5g-1.8.0}
+NASCTIME=$(cd "$HERE/../../.." && pwd)
+source "$NASCTIME/simulations/nt_results.sh"   # M2-R181 R-1: the M1 results tree is ../results (legacy, unchanged)
+NT_HERE=$HERE; HERE=$(cd "$NT_HERE/.." && pwd); nt_results_init m1; HERE=$NT_HERE
+if [ -n "$NT_ISOLATED" ]; then
+  [ -z "${OUT:-}" ] || nt_die "OUT may not be set in isolated mode (NASCTIME_RESULTS_ROOT decides)"
+  OUT=$RESULTS/upstream-issues
+fi
 OUT=${OUT:-$HERE/../results/upstream-issues}
+nt_fresh_out "$OUT"   # M2-R181 R-2 (isolated mode only)
 WORK=$(mktemp -d)
 trap 'rm -rf "$WORK"' EXIT
 source "$OMNETPP_ROOT/setenv" -f >/dev/null
@@ -24,6 +32,7 @@ cp "$HERE/issues.ini" "$WORK/simulations/nr/ethernet/"
   echo "issues_ini_sha256: $(sha256sum "$HERE/issues.ini" | awk '{print $1}')"
   echo "nascTime_commit: $(git -C "$HERE" rev-parse HEAD 2>/dev/null || echo n/a)"
 } > "$OUT/env.txt"
+nt_stack_record "$OUT"   # M2-R181 R-3 (isolated mode only: stack.txt)
 run() {
   (cd "$WORK/simulations/nr/ethernet" && opp_run -l "$SIMU5G_ROOT/src/simu5g" -n "$WORK/simulations:$SIMU5G_ROOT/src:$INET_ROOT/src" \
      -u Cmdenv -f issues.ini -c "$1" -r 0 --result-dir="$OUT/runs" "${@:2}")

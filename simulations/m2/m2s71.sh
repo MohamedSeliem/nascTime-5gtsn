@@ -25,9 +25,11 @@ NASCTIME=$(cd "$HERE/../.." && pwd)
 export OMNETPP_ROOT=${OMNETPP_ROOT:-/root/stack/omnetpp-6.4.0}
 export INET_ROOT=${INET_ROOT:-/root/stack/inet-4.7.0}
 SIMU5G_ROOT=${SIMU5G_ROOT:-/root/stack/simu5g-1.8.0}
+source "$NASCTIME/simulations/nt_results.sh"; nt_results_init m2   # M2-R181 R-1 (legacy: $HERE/results, unchanged)
 JOBS=${JOBS:-2}
 MODE=${1:-all}
-OUT=$HERE/results/M2-S7.1
+OUT=$RESULTS/M2-S7.1
+case "$MODE" in gates|check*) ;; *) nt_fresh_out "$OUT" ;; esac   # M2-R181 R-2 (isolated mode only)
 CHK=$HERE/check
 mkdir -p "$OUT"
 "$NASCTIME/src/nasctime/m2/build.sh" > "$OUT/build.log" 2>&1 || { echo "ERROR: build failed, see $OUT/build.log" >&2; exit 1; }
@@ -43,6 +45,7 @@ source "$OMNETPP_ROOT/setenv" -f >/dev/null
   echo "python: $(python3 --version 2>&1)"
   echo "os: $(uname -srm)"
 } > "$OUT/env-$MODE.txt"
+nt_stack_record "$OUT"   # M2-R181 R-3 (isolated mode only: stack.txt)
 
 # run <config> <repetitions> <root dir under OUT> [extra opp_run arguments...]
 run() {
@@ -104,7 +107,7 @@ m0() {
   # event fingerprints (seed 0): monitor present vs absent, and N-monitor
   printf '%s\n' "M2S5 0" "M2S71-M0-m2s5 0" "M2S5U-hold 0" "M2S71-M0-hold 0" "M2S6-C-a 0" "M2S71-M0-Ca 0" \
                 "M2S71-qdu-idle 0" "M2S71-M0-qdu-off 0" "M2S71-N-monitor 0" | runlist runs-m0fp --fingerprint=0000-0000/tplx
-  python3 "$CHK/gate_m2s71.py" m0 "$OUT" "$HERE/results" | tee "$OUT/gate-M0.txt"
+  python3 "$CHK/gate_m2s71.py" m0 "$OUT" "$RESULTS" | tee "$OUT/gate-M0.txt"
 }
 extra() {
   printf '%s\n' "M2S71-qa-idle-B5 0" "M2S71-qa-idle-B6 0" "M2S71-q0-idle-B10 0" "M2S71-N-noRule 0..9" "M2S71-N-swap 0" \
@@ -140,7 +143,7 @@ case "$MODE" in
   twins) REUSE=1; twins ;;
   h0) REUSE=1; h0 ;;
   configs) runlist runs ;;   # lines "config reps" from stdin (e.g. to rerun configs)
-  gates) python3 "$CHK/gate_m2s71.py" gates "$OUT" "$HERE/results" | tee "$OUT/gate-P0.txt" ;;
+  gates) python3 "$CHK/gate_m2s71.py" gates "$OUT" "$RESULTS" | tee "$OUT/gate-P0.txt" ;;
   check1) python3 "$CHK/check_m2s71.py" phase1 "$OUT" | tee "$OUT/phase1-check.txt" ;;
   phase2) shift; [ $# -eq 2 ] || { echo "usage: m2s71.sh phase2 <non-experimental option> <experimental option>" >&2; exit 2; }
           echo "$1 $2" > "$OUT/phase2-options.txt"; phase2_configs "$1" "$2" | runlist runs ;;
@@ -158,7 +161,7 @@ case "$MODE" in
     extra
     REUSE=1 twins
     REUSE=1 h0                              # phase-1 H0 runs: H0 is an eligibility row of the phase-1 selection
-    python3 "$CHK/gate_m2s71.py" gates "$OUT" "$HERE/results" > "$OUT/gate-P0.txt" || true
+    python3 "$CHK/gate_m2s71.py" gates "$OUT" "$RESULTS" > "$OUT/gate-P0.txt" || true
     python3 "$CHK/check_m2s71.py" phase1 "$OUT" > "$OUT/phase1-check.txt" || true ;;
   all3)
     read -r A B < "$OUT/phase2-options.txt"
@@ -168,7 +171,7 @@ case "$MODE" in
     REUSE=1 h0 ;;
   all4)
     seeds                                   # seed-invariance diagnostic (needs the primary runs for its section 3)
-    python3 "$CHK/gate_m2s71.py" gates "$OUT" "$HERE/results" > "$OUT/gate-P0.txt" || true   # gates over the phase-2 runs too
+    python3 "$CHK/gate_m2s71.py" gates "$OUT" "$RESULTS" > "$OUT/gate-P0.txt" || true   # gates over the phase-2 runs too
     python3 "$CHK/check_m2s71.py" final "$OUT" > "$OUT/check.txt" || true
     REUSE=1 h0                              # second pass: runs listed in h0-extra.txt by the check
     python3 "$CHK/check_m2s71.py" final "$OUT" > "$OUT/check.txt" || true

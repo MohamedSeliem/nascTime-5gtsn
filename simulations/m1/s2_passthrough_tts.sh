@@ -13,10 +13,12 @@ NASCTIME=$(cd "$HERE/../.." && pwd)
 OMNETPP_ROOT=${OMNETPP_ROOT:-/root/stack/omnetpp-6.4.0}
 INET_ROOT=${INET_ROOT:-/root/stack/inet-4.7.0}
 SIMU5G_ROOT=${SIMU5G_ROOT:-/root/stack/simu5g-1.8.0}
+source "$NASCTIME/simulations/nt_results.sh"; nt_results_init m1   # M2-R181 R-1 (legacy: $HERE/results, unchanged)
 SEEDS=${SEEDS:-0..9}
 REPEAT=${REPEAT:-10}
-OUT=$HERE/results/S2
-[ -f "$HERE/results/S1/seeds.csv" ] || { echo "ERROR: results/S1/seeds.csv missing; run s1_owned_scenario.sh first" >&2; exit 1; }
+OUT=$RESULTS/S2
+nt_fresh_out "$OUT"   # M2-R181 R-2 (isolated mode only)
+[ -f "$RESULTS/S1/seeds.csv" ] || { echo "ERROR: results/S1/seeds.csv missing; run s1_owned_scenario.sh first" >&2; exit 1; }
 mkdir -p "$OUT"
 source "$OMNETPP_ROOT/setenv" -f >/dev/null
 
@@ -28,6 +30,7 @@ source "$OMNETPP_ROOT/setenv" -f >/dev/null
   echo "nascTime_commit: $(git -C "$NASCTIME" rev-parse HEAD 2>/dev/null || echo n/a)$( [ -z "$(git -C "$NASCTIME" status --porcelain -- simulations/m1 src/nasctime/tt ':!simulations/m1/results' 2>/dev/null)" ] || echo ' (+ uncommitted/untracked changes in simulations/m1 or src/nasctime/tt)')"
   echo "os: $(uname -srm)"
 } > "$OUT/env.txt"
+nt_stack_record "$OUT"   # M2-R181 R-3 (isolated mode only: stack.txt)
 
 run() {  # $1 config, $2 run list, $3 result subdir, $4 log name
   (cd "$HERE" && opp_run -l "$SIMU5G_ROOT/src/simu5g" \
@@ -41,4 +44,4 @@ run S2-pcap 0 pcaprun run-S2-pcap.log
 
 opp_scavetool export -o "$OUT/seeds.csv" -F CSV-R "$OUT"/seeds/*/*.sca "$OUT"/seeds/*/*.vec >/dev/null
 opp_scavetool export -o "$OUT/pcaprun.csv" -F CSV-R "$OUT"/pcaprun/*/*.sca "$OUT"/pcaprun/*/*.vec >/dev/null
-python3 "$HERE/check/check_s2.py" "$HERE/results" | tee "$OUT/check.txt"
+python3 "$HERE/check/check_s2.py" "$RESULTS" | tee "$OUT/check.txt"

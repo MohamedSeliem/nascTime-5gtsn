@@ -1,0 +1,24 @@
+== isolated root inside legacy
+ERROR: NASCTIME_RESULTS_ROOT (/root/inv/nascTime-5gtsn/simulations/m1/results/x) lies inside the legacy results tree /root/inv/nascTime-5gtsn/simulations/m1/results
+rc=1
+== isolated root containing legacy
+ERROR: NASCTIME_RESULTS_ROOT (/root/inv/nascTime-5gtsn/simulations) contains the legacy results tree /root/inv/nascTime-5gtsn/simulations/m1/results
+rc=1
+== relative root
+ERROR: NASCTIME_RESULTS_ROOT must be an absolute path
+rc=1
+== existing stage dir
+ERROR: <scratch>/gt/m1/S0 exists: isolated results are never overwritten (choose a new NASCTIME_RESULTS_ROOT)
+rc=1
+== legacy mode with a non-accepted library (the isolated candidate build)
+ERROR: legacy results (/root/inv/nascTime-5gtsn/simulations/m1/results) hold the Simu5G 1.8.0 baseline only; /root/cf/simu5g-1.8.0-qdcf/src/libsimu5g.so is not the accepted library. Set NASCTIME_RESULTS_ROOT to an isolated root
+rc=1
+== m2s72 e0 in isolated
+ERROR: mode e0 belongs to the Simu5G 1.8.0 record and does not run in isolated mode
+rc=1
+== m2s6 existing stage dir
+ERROR: <scratch>/gt/m2/M2-S6 exists: isolated results are never overwritten (choose a new NASCTIME_RESULTS_ROOT)
+rc=1
+== upstream OUT override isolated
+ERROR: OUT may not be set in isolated mode (NASCTIME_RESULTS_ROOT decides)
+rc=1

@@ -16,9 +16,11 @@ NASCTIME=$(cd "$HERE/../.." && pwd)
 export OMNETPP_ROOT=${OMNETPP_ROOT:-/root/stack/omnetpp-6.4.0}
 export INET_ROOT=${INET_ROOT:-/root/stack/inet-4.7.0}
 SIMU5G_ROOT=${SIMU5G_ROOT:-/root/stack/simu5g-1.8.0}
+source "$NASCTIME/simulations/nt_results.sh"; nt_results_init m2   # M2-R181 R-1 (legacy: $HERE/results, unchanged)
 JOBS=${JOBS:-2}
 MODE=${1:-all}
-OUT=$HERE/results/M2-S6
+OUT=$RESULTS/M2-S6
+[ "$MODE" = check ] || nt_fresh_out "$OUT"   # M2-R181 R-2 (isolated mode only)
 [ "$MODE" = all ] && rm -rf "$OUT/runs"
 mkdir -p "$OUT/runs"
 "$NASCTIME/src/nasctime/m2/build.sh" > "$OUT/runs/build.log" 2>&1 \
@@ -35,6 +37,7 @@ source "$OMNETPP_ROOT/setenv" -f >/dev/null
   echo "python: $(python3 --version 2>&1)"
   echo "os: $(uname -srm)"
 } > "$OUT/env-$MODE.txt"
+nt_stack_record "$OUT"   # M2-R181 R-3 (isolated mode only: stack.txt)
 
 run() {  # $1 config, $2 runs
   rm -rf "$OUT/runs/$1"
@@ -69,12 +72,12 @@ stage_configs() {
 
 if [ "$MODE" = gate ]; then
   stage_configs gate | xargs -P "$JOBS" -L 1 bash -c 'run "$0" "$1"'
-  python3 "$HERE/check/gate_m2s6.py" "$OUT/runs" "$HERE/results/M2-S5/raw-outputs.sha256" "$HERE/results/M2-S5/runs" | tee "$OUT/gate-D0.txt"
+  python3 "$HERE/check/gate_m2s6.py" "$OUT/runs" "$RESULTS/M2-S5/raw-outputs.sha256" "$RESULTS/M2-S5/runs" | tee "$OUT/gate-D0.txt"
   exit "${PIPESTATUS[0]}"
 fi
 if [ "$MODE" = E0b ]; then
   printf '%s\n' "M2S6-E0b 0..9" "M2S6U-E0b 0" | xargs -P "$JOBS" -L 1 bash -c 'run "$0" "$1"'
-  python3 "$HERE/check/gate_m2s6.py" --e0b "$OUT/runs" "$HERE/results/M2-S5/raw-outputs.sha256" | tee "$OUT/gate-E0b.txt"
+  python3 "$HERE/check/gate_m2s6.py" --e0b "$OUT/runs" "$RESULTS/M2-S5/raw-outputs.sha256" | tee "$OUT/gate-E0b.txt"
   exit "${PIPESTATUS[0]}"
 fi
 if [ "$MODE" = check ]; then
@@ -82,12 +85,12 @@ if [ "$MODE" = check ]; then
   exit "${PIPESTATUS[0]}"
 fi
 if [ "$MODE" = all ]; then
-  [ -d "$HERE/results/M2-S5/runs/M2S5" ] || { echo "ERROR: results/M2-S5/runs missing (gate D0c); run ./m2s5.sh first" >&2; exit 1; }
+  [ -d "$RESULTS/M2-S5/runs/M2S5" ] || { echo "ERROR: results/M2-S5/runs missing (gate D0c); run ./m2s5.sh first" >&2; exit 1; }
   { for st in gate A B C D E F R; do stage_configs "$st"; done; printf '%s\n' "M2S6-E0b 0..9" "M2S6U-E0b 0"; } \
     | xargs -P "$JOBS" -L 1 bash -c 'run "$0" "$1"'
   rc=0
-  python3 "$HERE/check/gate_m2s6.py" "$OUT/runs" "$HERE/results/M2-S5/raw-outputs.sha256" "$HERE/results/M2-S5/runs" > "$OUT/gate-D0.txt" || rc=1
-  python3 "$HERE/check/gate_m2s6.py" --e0b "$OUT/runs" "$HERE/results/M2-S5/raw-outputs.sha256" > "$OUT/gate-E0b.txt" || rc=1
+  python3 "$HERE/check/gate_m2s6.py" "$OUT/runs" "$RESULTS/M2-S5/raw-outputs.sha256" "$RESULTS/M2-S5/runs" > "$OUT/gate-D0.txt" || rc=1
+  python3 "$HERE/check/gate_m2s6.py" --e0b "$OUT/runs" "$RESULTS/M2-S5/raw-outputs.sha256" > "$OUT/gate-E0b.txt" || rc=1
   python3 "$HERE/check/check_m2s6.py" "$OUT/runs" --report="$OUT/report.txt" > "$OUT/check.txt" || rc=1
   tail -n 1 "$OUT/gate-D0.txt" "$OUT/gate-E0b.txt" "$OUT/check.txt"
   (cd "$OUT/runs" && find . -type f \( -name '*.sca' -o -name '*.vec' -o -name '*.pcapng' -o -name '*.csv' \) \

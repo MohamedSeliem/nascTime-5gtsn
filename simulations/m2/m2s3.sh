@@ -12,8 +12,11 @@ HERE=$(cd "$(dirname "$0")" && pwd)
 NASCTIME=$(cd "$HERE/../.." && pwd)
 export OMNETPP_ROOT=${OMNETPP_ROOT:-/root/stack/omnetpp-6.4.0}
 export INET_ROOT=${INET_ROOT:-/root/stack/inet-4.7.0}
-RUNS=$HERE/results/M2-S1/runs
-OUT=$HERE/results/M2-S3
+SIMU5G_ROOT=${SIMU5G_ROOT:-/root/stack/simu5g-1.8.0}   # M2-R181: identifies the stack whose M2-S1 runs are read
+source "$NASCTIME/simulations/nt_results.sh"; nt_results_init m2   # M2-R181 R-1 (legacy: $HERE/results, unchanged)
+RUNS=$RESULTS/M2-S1/runs
+OUT=$RESULTS/M2-S3
+nt_fresh_out "$OUT"   # M2-R181 R-2 (isolated mode only)
 [ -d "$RUNS" ] || { echo "ERROR: $RUNS missing; run ./m2s1.sh first" >&2; exit 1; }
 mkdir -p "$OUT"
 "$HERE/check/inet_probe/build.sh" > "$OUT/probe-build.log" 2>&1 \
@@ -29,5 +32,6 @@ rm -f "$OUT/probe-build.log"
   echo "m2s1_runs: $(grep -m1 '^attr datetime ' "$RUNS/M2S1/M2S1/0.vec" | cut -d' ' -f3) (M2S1 seed 0 run start, host local time)"
   echo "os: $(uname -srm)"
 } > "$OUT/env.txt"
-python3 "$HERE/check/oracle_m2s3.py" "$RUNS" "$HERE/results/M2-S1/raw-outputs.sha256" \
+nt_stack_record "$OUT"   # M2-R181 R-3 (isolated mode only: stack.txt)
+python3 "$HERE/check/oracle_m2s3.py" "$RUNS" "$RESULTS/M2-S1/raw-outputs.sha256" \
   "$OUT/serializer-probe.txt" "$OUT" | tee "$OUT/check.txt"
