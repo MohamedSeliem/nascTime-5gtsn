@@ -149,3 +149,17 @@ The historical N-tseSlot and N-noFcsNw rows are kept and keep their 1.8.1 verdic
 | 1.8.0 evidence | C8-v PASS on 1.8.0 (classes as on 1.8.1; not a defect detector). N-tseSlot-v and N-noFcsNw-v detect on 1.8.0 as well |
 
 **STOP after these, at the M2-R181c review gate.**
+
+## Addendum 1 (2026-11-12 13:15Z, after the gate closed; nothing above is changed)
+
+**Unexpected result.** The first C8-v check (`check-v181c-v1-crash.txt`, OVERALL FAIL 68/71) reported N-fwdPdelay as a "checker exception FileNotFoundError" on `dsTt.eth[1].trafficConditionerLayer.engine.pdelay.csv`. Gate G2 therefore closed: its failures were [N-fwdPdelay, N-noFcsNw, N-tseSlot], and the driver stopped before M2-S6, as designed.
+
+**Cause (understood).** N-fwdPdelay sets `terminate = requester = responder = false` (`omnetpp.ini`, `[Config M2S5-nc-fwdPdelay]`). The translators' Pdelay engines are then inactive and write no log. The first C8-v code treated the absent log as an error instead of as "no engine-generated or engine-terminated frames".
+
+**Fix.** In `check_v181c_m2s5.py`, `rd_engine()`: an absent engine log = zero rows. An untagged frame that is not matched to an engine transmission still fails (b). Nothing else changed.
+
+**Re-evaluation.** The same raw runs are re-evaluated (`check-v181c.txt`); the closed gate record is kept as `DEPENDENCY-GATE-closed-1.txt`. The gate and steps 8–9 then continue (`run_r181c_cont.sh`). The predictions in §4 are unchanged.
+
+**1.8.0 evidence** (`out-r181c-ctl180`; it ran before the fix and is not affected by it, because neither `c8demo` nor `controls` reads a run without an engine):
+- `c8demo`: PASS;
+- `controls`: N-tseSlot-v PASS, N-noFcsNw-v PASS.

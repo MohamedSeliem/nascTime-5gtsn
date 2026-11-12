@@ -63,6 +63,13 @@ def rd(path):
         return list(csv.DictReader(fh))
 
 
+def rd_engine(path):
+    """A translator's Pdelay-engine log. It exists only when the engine terminates Pdelay (logFile is written by an
+    active engine); with terminate = false (N-fwdPdelay) there is none: the engine then generates and terminates
+    nothing, i.e. zero rows. (M2-R181c addendum 1: the first version raised on the absent file.)"""
+    return rd(path) if os.path.exists(path) else []
+
+
 def end_ps(R):
     with open(R.sca_path) as fh:
         for line in fh:
@@ -81,8 +88,8 @@ def c8v_data(R, mutate=None):
     L = R.ldir
     eg = rd(os.path.join(L, f"M1Bridge.{R.dsn}.eth[1].measurementLayer.egress.csv"))
     ing = [r for r in rd(os.path.join(L, f"M1Bridge.{R.nwn}.eth[1].measurementLayer.ingress.csv")) if r["event"] == "tag"]
-    eng = rd(os.path.join(L, f"M1Bridge.{R.dsn}.eth[1].trafficConditionerLayer.engine.pdelay.csv"))
-    nweng = rd(os.path.join(L, f"M1Bridge.{R.nwn}.eth[1].trafficConditionerLayer.engine.pdelay.csv"))
+    eng = rd_engine(os.path.join(L, f"M1Bridge.{R.dsn}.eth[1].trafficConditionerLayer.engine.pdelay.csv"))
+    nweng = rd_engine(os.path.join(L, f"M1Bridge.{R.nwn}.eth[1].trafficConditionerLayer.engine.pdelay.csv"))
     if mutate == "forwarded-untagged":          # one forwarded frame reaches the DS-TT egress without its tag
         i = next(i for i, r in enumerate(eg) if r["event"] == "recover" and "GptpSync" not in r["signature"])
         eg[i] = dict(eg[i], event="untagged", frameId="")
