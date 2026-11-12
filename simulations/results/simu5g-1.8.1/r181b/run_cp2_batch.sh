@@ -43,7 +43,8 @@ M2S72-BN-rng 0
 M2S72-BN-theta1 0" ;;
   D) CFGS="$(for c in ideal Eall; do for n in 1 2 4; do echo "M2S72-B-qdu-$c-n$n 0..4"; done; done)
 M2S72-B-qdu-Ca-n2 0..4
-M2S72-B-qdu-Ca-n4 0..4"
+M2S72-B-qdu-Ca-n4 0..4
+M2S72-H16-qdu-Ca-n2 0..4"   # addendum 2: the Q run was truncated by the full disk
      [ -d "$ROOT/m2/M2-S7.2a-cp2r2-Q/runs/M2S72-B-qdu-Ca-n1" ] || { note "B-qdu-Ca-n1 (from batch Q) missing"; exit 1; }
      mv "$ROOT/m2/M2-S7.2a-cp2r2-Q/runs/M2S72-B-qdu-Ca-n1" "$ROOT/m2/M2-S7.2a-cp2r2-Q/runs/run-M2S72-B-qdu-Ca-n1.log" "$OUT/runs/"
      note "moved M2S72-B-qdu-Ca-n1 (batch Q run, manifest in batch Q) into batch D as the N = 1 reference" ;;

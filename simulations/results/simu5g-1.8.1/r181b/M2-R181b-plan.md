@@ -201,3 +201,12 @@ T0-R stays FAIL as a cross-version comparison. It is a functional difference onl
 ### Predictions
 
 Unchanged (§5.3).
+
+## Addendum 2 (2026-11-12, before Q1 is re-evaluated; nothing above is changed)
+
+**Finding.** Q1's first evaluation stopped with an exception: `M2S72-H16-qdu-Ca-n2: no nrMac macNodeId for ue[0]`. That run was writing when the disk filled. Its log has no "End.", `3.sca` is 32 KB, and seed 4 is missing.
+
+**Actions:**
+- The run is **invalid**. It was deleted (after the Q manifest, which lists the truncated files) and **is rerun in batch D**, where its N = 1 reference B-qdu-Ca-n1 is present.
+- Every other Q run log ends with "End.".
+- Q1 is re-evaluated without it.
