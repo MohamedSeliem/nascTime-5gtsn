@@ -1,0 +1,4 @@
+M2-R181b row S5-R-egress-v2
+PASS  S5-R-egress-v2: recorder samples = frames that crossed, per seed and direction; each sample = its frame's PCAP transit + own serialisation time + near-translator egress wait (PCAP), to 1 ns  seed 0: DL 578 samples / 578 frames; UL 495 samples / 495 frames; count mismatches over seeds: 0; PCAP run: 1073 samples exact, mismatches 0; non-zero egress waits (dir, kind, type/pcp, L, wait ns): count {('DL', 'gptp', 8, 94, 224): 19}
+
+OVERALL: PASS

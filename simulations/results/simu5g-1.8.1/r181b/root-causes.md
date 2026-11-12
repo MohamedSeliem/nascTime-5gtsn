@@ -115,3 +115,48 @@ sample (INET transit5gs meanBitElapsedTimePerPacket) = PCAP transit + own serial
 ### 2.4 Minimal regression test
 
 `check_v181b.py s5e <M1 results root>` with its mutation control (one DL sample + 2 ns → FAIL). On 1.8.0 it must fail with 0 samples.
+
+---
+
+## 3. M2-S5 on 1.8.1: C8 FAIL and four control FAILs
+
+**Evidence.** Found in the M2-R181b run, not predicted; there was no row-level prediction (plan §5.2).
+- Record: `out-r181b-m2/m2/M2-S5/check.txt`, OVERALL FAIL (66/71).
+- Diagnostic: `diag_m2s5.py` → `diag-m2s5.txt`. It runs the unchanged `check_m2s5.rows_5gs()` on seed 0, plus seed-0 reruns of M2S4 and M2S5 on both versions (scratch, hashed).
+
+### 3.1 C8: the base run M2S5
+
+- **What C8 requires:**
+  - no TtSyncIngressTag at the slave;
+  - the DS-TT eth[1] M2-S0 egress counters equal M2S4's.
+- **The first clause holds:** 0 frames with a tag at the slave, in all 13 runs.
+- **Exactly one counter differs:** `framesUntaggedAtEgress` is M2S4 12 vs M2S5 10. framesRecovered 568 = 568, framesStripped 568 = 568, framesInvalidTag 0.
+- **What the untagged frames are.** They are the frames the DS-TT itself sends to the slave: Pdelay_Resp and Pdelay_Resp_Follow_Up.
+  - In M2S4, the DS-TT answers **6** Pdelay_Reqs: 12 = 2 × 6.
+  - In M2S5, it answers **5**: 10 = 2 × 5.
+- **Why the counts differ.** The slave's Pdelay timer runs on its own clock (`Gptp.cc:118`, as in §1).
+
+  | Run | Slave clock correction | Pdelay_Req period | A sixth Pdelay_Req before t = 5 s? |
+  |---|---|---|---|
+  | M2S4 on 1.8.1 | not corrected for the 5G-system residence | 0.999976 s (fast) | yes, arrives at 4.999905 s |
+  | M2S5 | corrected online | 1.000000 s | no |
+  | M2S4 on 1.8.0 | not corrected | 1.000143 s (slow) | no (counts 10 / 10 equal by coincidence) |
+
+- **Verdict: criterion, not implementation.** C8's "as in M2S4" covers a counter that depends on the slave clock rate, which M2S5 changes by design. **Historical C8 keeps its FAIL.**
+- **Proposed version-appropriate form (NOT applied in this milestone):** C8 with framesUntaggedAtEgress compared after removing the DS-TT's own Pdelay_Resp / Resp_Follow_Up, counted from PCAP.
+
+### 3.2 The four control FAILs
+
+The controls are evaluated as "fails exactly X beyond the base run". The base run now fails C8.
+
+| Control | Failure beyond base | Explanation |
+|---|---|---|
+| N-noStrip | [] instead of [C8] | C8 is masked by the base failure (the tag does reach the slave: 39 frames) |
+| N-fwdPdelay | the predicted set without C8 | C8 is masked by the base failure |
+| N-noFcsNw | [C1, C2, C6, C7, S2] (predicted also C8, S3) | **C8:** masked by the base failure.<br>**S3:** passes. The slave receives no Follow_Up and is never stepped; its recorded trace equals the offline prediction from the M2-S4 records at 5003 of 5003 samples, and no cf is logged. The same S3 blindness is already documented in the checker for N-noFcsDs. *Hypothesis, not verified: on 1.8.1 the predicted trace has no non-zero step, so a never-stepped clock is indistinguishable.* |
+| N-tseSlot | [] instead of [C2, C3, S2, S3] | The mutation (cf uses the Sync's slot time instead of its egress time TSe) has **no effect on 1.8.1**: TSe − slot time = 0 for 78 of 78 log entries.<br>On 1.8.0 it was 464 ns for 76 of 78, because the Sync waited at the DS-TT egress.<br>The control loses its sensitivity, but nascTime is not defective. |
+
+### 3.3 Consequence
+
+- **M2-S5 stays FAIL.** `m2s5.sh` did not write `raw-outputs.sha256` (fail-stop), so **M2-S6 was not run**.
+- **No second dependency gate was opened.** A gate on C8 would rest on a criterion change that has not been reviewed, and the controls N-tseSlot and N-noFcsNw would need re-declaring for 1.8.1.

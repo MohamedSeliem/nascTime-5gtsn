@@ -1,0 +1,7 @@
+results_root: /root/inv/nascTime-5gtsn/simulations/results/simu5g-1.8.1/out-r181b-m2
+simu5g_root: /root/stack/simu5g-1.8.1
+simu5g_version_file: 1.8.1
+libsimu5g_sha256: 0dbda40960e1b5b298cd7953c1406f37643445681548e4d2ab5ed72ddb270131
+inet_version_file: inet-4.7.0-dfe270b21f
+omnetpp_root: /root/stack/omnetpp-6.4.0
+nascTime_commit: 9b8634565d7bbbb96e780949f3b463f44f993dc7

@@ -1,0 +1,4 @@
+M2-R181b row S5-R-ingress-v [MUTATION CONTROL]
+FAIL  S5-R-ingress-v: tagged frames at the last INET module before the 5G system = frames tagged at the near translator + frames of the other direction that crossed the 5G system tagged (seeds 0..9)  seed 0: started {'DL': 579, 'UL': 496}, recorded at the far translator {'DL': 578, 'UL': 495}, tagged at UPF bridge (DL) / UE Ethernet (UL) {'DL': 1073, 'UL': 1074}, expected {'DL': 1074, 'UL': 1074}; seeds not matching: 1 [(0, {'DL': 1073, 'UL': 1074}, {'DL': 1074, 'UL': 1074})]
+
+OVERALL: FAIL

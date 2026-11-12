@@ -1,0 +1,62 @@
+2026-11-12T10:34:13Z m2s0 rc=0 180s free=8674M
+manifest: 13 configurations, 407 files
+2026-11-12T10:34:51Z row a7-v: OVERALL: PASS; mutation: OVERALL: FAIL free=8674M
+2026-11-12T10:34:53Z deleted m2/M2-S0/runs free=11045M
+2026-11-12T10:37:53Z m2s1 rc=0 180s free=8315M
+manifest: 15 configurations, 735 files
+2026-11-12T10:38:27Z row c10-v: OVERALL: PASS; mutation: OVERALL: FAIL free=8315M
+2026-11-12T10:45:48Z m2s4 rc=1 441s free=4780M
+manifest: 46 configurations, 1914 files
+2026-11-12T10:46:23Z row r2b-v: OVERALL: PASS; mutation: OVERALL: FAIL free=4780M
+2026-11-12T10:46:25Z deleted m2/M2-S1/runs free=7509M
+M2-R181b dependency gate M2-S4 -> M2-S5: OPEN (2026-11-12T10:46:29Z)
+G1: M2-S4/check.txt 54 PASS, 1 FAIL (R2b only); historical verdict unchanged: FAIL
+G2: PASS  R2b-v attribution (M2S4 vs M2S4-ctl-nopdelay, seeds 0-9 and load): same application frames delivered; every arriva; mutation control: OVERALL: FAIL
+G3: raw-outputs.sha256 computed by the m2s4.sh hash command over these runs: 1794 files, sha256 5c94ef74ca5ec9ac
+M2-S5 and M2-S6 results read through this gate are conditional on the acceptance of R2b-v (review).
+2026-11-12T10:46:29Z deleted m2/M2-S4/runs/M2S4-ctl-nopdelay-load/ free=8000M
+2026-11-12T10:46:29Z deleted m2/M2-S4/runs/M2S4-ctl-nopdelay/ free=8123M
+2026-11-12T10:46:30Z deleted m2/M2-S4/runs/M2S4-fault-dropResp/ free=8135M
+2026-11-12T10:46:30Z deleted m2/M2-S4/runs/M2S4-fault-dupFU/ free=8148M
+2026-11-12T10:46:30Z deleted m2/M2-S4/runs/M2S4-fault-dupResp/ free=8160M
+2026-11-12T10:46:30Z deleted m2/M2-S4/runs/M2S4-fault-dupRespLate/ free=8173M
+2026-11-12T10:46:30Z deleted m2/M2-S4/runs/M2S4-fault-malformed/ free=8186M
+2026-11-12T10:46:30Z deleted m2/M2-S4/runs/M2S4-nc-acceptLast/ free=8198M
+2026-11-12T10:46:30Z deleted m2/M2-S4/runs/M2S4-nc-noTimeout/ free=8211M
+2026-11-12T10:46:30Z deleted m2/M2-S4/runs/M2S4-nc-nohalf/ free=8223M
+2026-11-12T10:46:30Z deleted m2/M2-S4/runs/M2S4-nc-noturn/ free=8236M
+2026-11-12T10:46:30Z deleted m2/M2-S4/runs/M2S4-nc-pairing/ free=8249M
+2026-11-12T10:46:30Z deleted m2/M2-S4/runs/M2S4-nc-republishLate/ free=8261M
+2026-11-12T10:46:30Z deleted m2/M2-S4/runs/M2S4-nc-t1t4end/ free=8274M
+2026-11-12T10:46:30Z deleted m2/M2-S4/runs/M2S4-nc-t3end/ free=8286M
+2026-11-12T10:46:30Z deleted m2/M2-S4/runs/M2S4-nc-t4end/ free=8299M
+2026-11-12T10:46:30Z deleted m2/M2-S4/runs/M2S4-nc-units/ free=8312M
+2026-11-12T10:46:30Z deleted m2/M2-S4/runs/M2S4-passive-frag/ free=8325M
+2026-11-12T10:46:30Z deleted m2/M2-S4/runs/M2S4-passive-load-harq16/ free=8816M
+2026-11-12T10:46:31Z deleted m2/M2-S4/runs/M2S4-passive-load/ free=9307M
+2026-11-12T10:46:31Z deleted m2/M2-S4/runs/M2S4-passive/ free=9432M
+2026-11-12T10:46:31Z deleted m2/M2-S4/runs/M2S4U-73/ free=9456M
+2026-11-12T10:46:31Z deleted m2/M2-S4/runs/M2S4U-F1/ free=9480M
+2026-11-12T10:46:31Z deleted m2/M2-S4/runs/M2S4U-F10/ free=9503M
+2026-11-12T10:46:31Z deleted m2/M2-S4/runs/M2S4U-F11/ free=9527M
+2026-11-12T10:46:31Z deleted m2/M2-S4/runs/M2S4U-F12/ free=9550M
+2026-11-12T10:46:31Z deleted m2/M2-S4/runs/M2S4U-F2/ free=9574M
+2026-11-12T10:46:31Z deleted m2/M2-S4/runs/M2S4U-F3/ free=9597M
+2026-11-12T10:46:31Z deleted m2/M2-S4/runs/M2S4U-F3L/ free=9620M
+2026-11-12T10:46:31Z deleted m2/M2-S4/runs/M2S4U-F4/ free=9644M
+2026-11-12T10:46:31Z deleted m2/M2-S4/runs/M2S4U-F5/ free=9667M
+2026-11-12T10:46:31Z deleted m2/M2-S4/runs/M2S4U-F6/ free=9691M
+2026-11-12T10:46:31Z deleted m2/M2-S4/runs/M2S4U-F7/ free=9714M
+2026-11-12T10:46:31Z deleted m2/M2-S4/runs/M2S4U-F8/ free=9737M
+2026-11-12T10:46:31Z deleted m2/M2-S4/runs/M2S4U-F9a/ free=9761M
+2026-11-12T10:46:31Z deleted m2/M2-S4/runs/M2S4U-F9b/ free=9784M
+2026-11-12T10:46:31Z deleted m2/M2-S4/runs/M2S4U-F9c/ free=9808M
+2026-11-12T10:46:31Z deleted m2/M2-S4/runs/M2S4U-F9d/ free=9831M
+2026-11-12T10:46:31Z deleted m2/M2-S4/runs/M2S4U-asym/ free=9854M
+2026-11-12T10:46:31Z deleted m2/M2-S4/runs/M2S4U-nc-previousSeq/ free=9878M
+2026-11-12T10:46:31Z deleted m2/M2-S4/runs/M2S4U-wrap/ free=9901M
+2026-11-12T10:46:32Z deleted m2/M2-S4/runs/M2S4U/ free=9925M
+2026-11-12T10:53:12Z m2s5 rc=1 400s free=2849M
+manifest: 59 configurations, 2616 files
+2026-11-12T10:53:23Z deleted m2/M2-S4/runs free=3968M
+2026-11-12T10:53:23Z STOP: M2-S5 raw-outputs.sha256 not written (rc 1): M2-S6 not run free=3968M

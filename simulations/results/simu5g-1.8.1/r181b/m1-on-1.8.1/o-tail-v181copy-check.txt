@@ -1,0 +1,11 @@
+PASS  replay O2-s4 (S4): each DRB 1 SDU delivered 4 ms after its last byte left the gNB RLC                      333 SDUs in, 333 completed, 333 delivered at the UE, all matching: True; left in the RLC at the end: []
+FAIL  shortfall (S4): every cut happens when the grant covers the scheduler's demand but not the SDUs' headers   0 slots with a cut, all with >= 2 queued items: True; demand <= grant < need in all: True; cuts of a single fresh SDU: 0
+PASS  stranding (S4): after a cut, DRB 1 sends nothing until the next SDU arrives                                0 cuts; next DRB 1 transmission always within 2 slots after the next arrival and never before: True
+FAIL  O-S4-1 explained: late Follow_Ups are exactly the cut ones; afterwards every DRB 1 SDU waits for the next  Follow_Ups 39, waiting > 2 ms at the gNB 0, of which cut 0, cut but not late 0; first cut at none (no SDU was cut); DRB 1 SDUs from then on cut 0 of 0, waits n/a (no cut)
+PASS  replay O2-s4-nodl: each DRB 1 SDU delivered 4 ms after its last byte left the gNB RLC                      88 SDUs in, 88 completed, 88 delivered at the UE, all matching: True; left in the RLC at the end: []
+PASS  counterfactual O2-s4-nodl: gPTP alone on DRB 1 -- no cut, no lag                                           88 SDUs, cuts 0, longest wait at the gNB 1.999 ms, left 0
+PASS  replay O1-harq16 (seed 0): each DRB 1 SDU delivered 4 ms after its last byte left the gNB RLC              12621 SDUs in, 12621 completed, 12621 delivered at the UE, all matching: True; left in the RLC at the end: []
+PASS  replay O2-flush (seed 0): each DRB 1 SDU delivered 4 ms after its last byte left the gNB RLC               12622 SDUs in, 12622 completed, 12622 delivered at the UE, all matching: True; left in the RLC at the end: []
+FAIL  O-S3-2 explained: the last segmented SDU is stranded; one more frame releases it and is stranded itself    O1-harq16: left (arrival, size, bytes unsent) [], the last SDU to arrive: False; O2-flush: it completes at None s; now left []
+
+OVERALL: FAIL

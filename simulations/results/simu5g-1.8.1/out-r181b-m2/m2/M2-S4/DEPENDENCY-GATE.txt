@@ -1,0 +1,5 @@
+M2-R181b dependency gate M2-S4 -> M2-S5: OPEN (2026-11-12T10:46:29Z)
+G1: M2-S4/check.txt 54 PASS, 1 FAIL (R2b only); historical verdict unchanged: FAIL
+G2: PASS  R2b-v attribution (M2S4 vs M2S4-ctl-nopdelay, seeds 0-9 and load): same application frames delivered; every arriva; mutation control: OVERALL: FAIL
+G3: raw-outputs.sha256 computed by the m2s4.sh hash command over these runs: 1794 files, sha256 5c94ef74ca5ec9ac
+M2-S5 and M2-S6 results read through this gate are conditional on the acceptance of R2b-v (review).

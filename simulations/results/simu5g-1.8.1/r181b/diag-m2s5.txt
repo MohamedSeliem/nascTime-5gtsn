@@ -1,0 +1,18 @@
+(1) check_m2s5.rows_5gs, seed 0, R4 = M2S4 seed 0 (1.8.1)
+  M2S5: failing ['C8']
+      C8: frames with a TtSyncIngressTag at the slave: 0; DS-TT M2-S0 egress recovered/invalid/untagged 568/0/10 = M2S4: False
+      S3: 39 Syncs with identical (TSi, TSe, POT) in M2S4 and M2S5 (0 differ: []); logged cf2 = M2-S4 prediction D_NWTT + Res for all (0 mismatches []); recorded clock trace = offline prediction at 5081 of 5081 samples
+  M2S5-nc-noFcsNw: failing ['C1', 'C2', 'C6', 'C7', 'C8', 'S2']
+      C8: frames with a TtSyncIngressTag at the slave: 0; DS-TT M2-S0 egress recovered/invalid/untagged 529/0/10 = M2S4: False
+      S3: 39 Syncs with identical (TSi, TSe, POT) in M2S4 and M2S5 (0 differ: []); logged cf2 = M2-S4 prediction D_NWTT + Res for all (0 mismatches []); recorded clock trace = offline prediction at 5003 of 5003 samples
+  M2S5-nc-tseSlot: failing ['C8']
+      C8: frames with a TtSyncIngressTag at the slave: 0; DS-TT M2-S0 egress recovered/invalid/untagged 568/0/10 = M2S4: False
+      S3: 39 Syncs with identical (TSi, TSe, POT) in M2S4 and M2S5 (0 differ: []); logged cf2 = M2-S4 prediction D_NWTT + Res for all (0 mismatches []); recorded clock trace = offline prediction at 5081 of 5081 samples
+(2) DS-TT eth[1]: M2-S0 egress counters; gPTP sent towards the slave by type; Pdelay_Req received
+  1.8.1 M2S4: {'framesRecovered': 568, 'framesUntaggedAtEgress': 12, 'framesInvalidTag': 0, 'framesStripped': 568}; out by type {0: 39, 3: 6, 8: 39, 10: 6} (3 = Pdelay_Resp, 10 = Resp_Follow_Up); Pdelay_Req at [1e-06, 0.999977, 1.999953, 2.999929, 3.999905, 4.999905]
+  1.8.1 M2S5: {'framesRecovered': 568, 'framesUntaggedAtEgress': 10, 'framesInvalidTag': 0, 'framesStripped': 568}; out by type {0: 39, 3: 5, 8: 39, 10: 5} (3 = Pdelay_Resp, 10 = Resp_Follow_Up); Pdelay_Req at [1e-06, 1.000001, 2.000001, 3.000001, 4.000001]
+  1.8.0 M2S4: {'framesRecovered': 567, 'framesUntaggedAtEgress': 10, 'framesInvalidTag': 0, 'framesStripped': 567}; out by type {0: 39, 3: 5, 8: 39, 10: 5} (3 = Pdelay_Resp, 10 = Resp_Follow_Up); Pdelay_Req at [1e-06, 1.000146, 2.000289, 3.000432, 4.000576]
+  1.8.0 M2S5: {'framesRecovered': 567, 'framesUntaggedAtEgress': 10, 'framesInvalidTag': 0, 'framesStripped': 567}; out by type {0: 39, 3: 5, 8: 39, 10: 5} (3 = Pdelay_Resp, 10 = Resp_Follow_Up); Pdelay_Req at [1e-06, 1.000001, 2.000001, 3.000001, 4.000001]
+(3) M2S5 DS-TT Sync egress TSe - Sync slot time (ps): value: count
+  1.8.1: {0: 78}
+  1.8.0: {0: 2, 464000: 76}
