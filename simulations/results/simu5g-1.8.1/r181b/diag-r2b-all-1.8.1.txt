@@ -1,0 +1,22 @@
+M2S4#0: UL 488 compared, 0 differ []; DL 490 compared, 0 differ; talker app frames queued behind its Pdelay_Req: 0, of which differing 0; differing not behind a Pdelay_Req: 0; first Pdelay_Req starts ['0.000000000', '0.999976084', '1.999952168']
+M2S4#1: UL 488 compared, 1 differ [-736000]; DL 490 compared, 0 differ; talker app frames queued behind its Pdelay_Req: 1, of which differing 1; differing not behind a Pdelay_Req: 0; first Pdelay_Req starts ['0.000000000', '1.000000000', '1.999976084']
+    behind Pdelay_Req: app frame end 1.000001776 (ctl 1.000001040), latency change -736 ns
+M2S4#2: UL 488 compared, 0 differ []; DL 490 compared, 0 differ; talker app frames queued behind its Pdelay_Req: 0, of which differing 0; differing not behind a Pdelay_Req: 0; first Pdelay_Req starts ['0.000000000', '0.999976084', '1.999928253']
+M2S4#3: UL 488 compared, 2 differ [-736000]; DL 490 compared, 0 differ; talker app frames queued behind its Pdelay_Req: 2, of which differing 2; differing not behind a Pdelay_Req: 0; first Pdelay_Req starts ['0.000000000', '1.000000000', '2.000000000']
+    behind Pdelay_Req: app frame end 1.000001776 (ctl 1.000001040), latency change -736 ns
+    behind Pdelay_Req: app frame end 2.000001776 (ctl 2.000001040), latency change -736 ns
+M2S4#4: UL 488 compared, 1 differ [-736000]; DL 490 compared, 0 differ; talker app frames queued behind its Pdelay_Req: 1, of which differing 1; differing not behind a Pdelay_Req: 0; first Pdelay_Req starts ['0.000000000', '1.000000000', '1.999976084']
+    behind Pdelay_Req: app frame end 1.000001776 (ctl 1.000001040), latency change -736 ns
+M2S4#5: UL 488 compared, 1 differ [-736000]; DL 490 compared, 0 differ; talker app frames queued behind its Pdelay_Req: 1, of which differing 1; differing not behind a Pdelay_Req: 0; first Pdelay_Req starts ['0.000000000', '1.000000000', '1.999976084']
+    behind Pdelay_Req: app frame end 1.000001776 (ctl 1.000001040), latency change -736 ns
+M2S4#6: UL 488 compared, 2 differ [-736000]; DL 490 compared, 0 differ; talker app frames queued behind its Pdelay_Req: 2, of which differing 2; differing not behind a Pdelay_Req: 0; first Pdelay_Req starts ['0.000000000', '1.000000000', '2.000000000']
+    behind Pdelay_Req: app frame end 1.000001776 (ctl 1.000001040), latency change -736 ns
+    behind Pdelay_Req: app frame end 2.000001776 (ctl 2.000001040), latency change -736 ns
+M2S4#7: UL 488 compared, 1 differ [-736000]; DL 490 compared, 0 differ; talker app frames queued behind its Pdelay_Req: 1, of which differing 1; differing not behind a Pdelay_Req: 0; first Pdelay_Req starts ['0.000000000', '1.000000000', '1.999976084']
+    behind Pdelay_Req: app frame end 1.000001776 (ctl 1.000001040), latency change -736 ns
+M2S4#8: UL 488 compared, 0 differ []; DL 490 compared, 0 differ; talker app frames queued behind its Pdelay_Req: 0, of which differing 0; differing not behind a Pdelay_Req: 0; first Pdelay_Req starts ['0.000000000', '0.999976084', '1.999928253']
+M2S4#9: UL 488 compared, 2 differ [-736000]; DL 490 compared, 0 differ; talker app frames queued behind its Pdelay_Req: 2, of which differing 2; differing not behind a Pdelay_Req: 0; first Pdelay_Req starts ['0.000000000', '1.000000000', '2.000000000']
+    behind Pdelay_Req: app frame end 1.000001776 (ctl 1.000001040), latency change -736 ns
+    behind Pdelay_Req: app frame end 2.000001776 (ctl 2.000001040), latency change -736 ns
+M2S4-load#0: UL 11891 compared, 0 differ []; DL 11891 compared, 0 differ; talker app frames queued behind its Pdelay_Req: 0, of which differing 0; differing not behind a Pdelay_Req: 0; first Pdelay_Req starts ['0.000000000', '1.000999093', '2.003998583']
+TOTAL: 33562 application frames compared, 10 differ; 10 talker app frames queued behind a Pdelay_Req, of which 10 differ

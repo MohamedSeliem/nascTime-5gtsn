@@ -1,0 +1,71 @@
+M2S71-q0-idle: 34 files, identical 17, differing 17
+  CSV  dsTt.eth[0].measurementLayer.egress.port.csv: rows 1190 -> 1190; differing columns {'treeId': 1188}
+  CSV  dsTt.eth[0].measurementLayer.ingress.port.csv: rows 1379 -> 1380; differing columns {'treeId': 1379, 't': 1374, 'frameId': 1186, 'ingressTime': 1186, 'etherType': 170, 'pcp': 1186, 'vid': 170, 'payloadLen': 170, 'hash': 1186, 'tRxEnd': 1374, 'tSlot': 1374}
+  CSV  dsTt.eth[1].measurementLayer.egress.csv: rows 1403 -> 1404; differing columns {'t': 1396, 'frameId': 1203, 'ingressTime': 1203, 'etherType': 192, 'pcp': 1203, 'vid': 192, 'payloadLen': 192, 'payloadHash': 1224, 'signature': 1214, 'event': 22, 'ingressTtId': 22, 'regions': 22}
+  CSV  dsTt.eth[1].measurementLayer.egress.port.csv: rows 1403 -> 1404; differing columns {'treeId': 1401, 't': 1396, 'frameId': 1203, 'ingressTime': 1203, 'etherType': 192, 'pcp': 1203, 'vid': 192, 'payloadLen': 192, 'hash': 1224, 'txHash': 1224, 'tSlot': 1396, 'tDequeue': 1396, 'tTxStart': 1396, 'tTxEnd': 1396, 'egressTime': 1396, 'residence': 863, 'tagged': 22, 'ingressTtId': 22, 'note': 22}
+  CSV  dsTt.eth[1].measurementLayer.ingress.port.csv: rows 1202 -> 1202; differing columns {'treeId': 1199}
+  CSV  dsTt.eth[1].trafficConditionerLayer.monitor.monitor.csv: rows 285 -> 285; differing columns {'t': 283, 'lag': 95, 'TSe': 188, 'Res': 94}
+  CSV  dsTt.eth[1].trafficConditionerLayer.syncOut.sync.csv: rows 285 -> 285; differing columns {'treeId': 285, 't': 283, 'TSe': 188, 'Res': 94, 'cfOut': 94}
+  CSV  nwTt.eth[0].measurementLayer.egress.port.csv: rows 1380 -> 1380; differing columns {'treeId': 1378}
+  CSV  nwTt.eth[0].measurementLayer.ingress.port.csv: rows 1189 -> 1189; differing columns {'treeId': 1189}
+  CSV  nwTt.eth[1].measurementLayer.egress.port.csv: rows 1212 -> 1212; differing columns {'treeId': 1201}
+  CSV  nwTt.eth[1].measurementLayer.ingress.port.csv: rows 1414 -> 1414; differing columns {'treeId': 1400}
+  CSV  nwTt.eth[1].trafficConditionerLayer.syncIn.sync.csv: rows 190 -> 190; differing columns {'treeId': 190}
+  CSV  talker.eth[0].measurementLayer.ingress.csv: rows 1403 -> 1404; differing columns {'t': 1396, 'etherType': 192, 'pcp': 1203, 'vid': 192, 'payloadLen': 192, 'payloadHash': 1224, 'signature': 1214}
+  PCAP dsTt.pcapRecorder[0].pcapng: per direction (in=1, out=2): frames 1.8.0 / 1.8.1, frames with time or bytes differing, bytes differing: {1: (190, 190, 189, 0), 2: (0, 0, 0, 0)}
+  PCAP dsTt.pcapRecorder[1].pcapng: per direction (in=1, out=2): frames 1.8.0 / 1.8.1, frames with time or bytes differing, bytes differing: {1: (12, 12, 0, 0), 2: (214, 214, 189, 94)}
+  PCAP talker.pcapRecorder[0].pcapng: per direction (in=1, out=2): frames 1.8.0 / 1.8.1, frames with time or bytes differing, bytes differing: {1: (214, 214, 189, 94), 2: (12, 12, 0, 0)}
+  PCAP ue[0].pcapRecorder[0].pcapng: per direction (in=1, out=2): frames 1.8.0 / 1.8.1, frames with time or bytes differing, bytes differing: {1: (0, 0, 0, 0), 2: (190, 190, 189, 0)}
+M2S71-qdu-idle: 34 files, identical 24, differing 10
+  CSV  dsTt.eth[0].measurementLayer.egress.port.csv: rows 1190 -> 1190; differing columns {'treeId': 1189}
+  CSV  dsTt.eth[0].measurementLayer.ingress.port.csv: rows 1380 -> 1380; differing columns {'treeId': 1380}
+  CSV  dsTt.eth[1].measurementLayer.egress.port.csv: rows 1404 -> 1404; differing columns {'treeId': 1402}
+  CSV  dsTt.eth[1].measurementLayer.ingress.port.csv: rows 1202 -> 1202; differing columns {'treeId': 1200}
+  CSV  dsTt.eth[1].trafficConditionerLayer.syncOut.sync.csv: rows 285 -> 285; differing columns {'treeId': 285}
+  CSV  nwTt.eth[0].measurementLayer.egress.port.csv: rows 1380 -> 1380; differing columns {'treeId': 1379}
+  CSV  nwTt.eth[0].measurementLayer.ingress.port.csv: rows 1189 -> 1189; differing columns {'treeId': 1189}
+  CSV  nwTt.eth[1].measurementLayer.egress.port.csv: rows 1212 -> 1212; differing columns {'treeId': 1201}
+  CSV  nwTt.eth[1].measurementLayer.ingress.port.csv: rows 1414 -> 1414; differing columns {'treeId': 1401}
+  CSV  nwTt.eth[1].trafficConditionerLayer.syncIn.sync.csv: rows 190 -> 190; differing columns {'treeId': 190}
+M2S71-q0-load: 34 files, identical 15, differing 19
+  CSV  dsTt.eth[0].measurementLayer.egress.port.csv: rows 11891 -> 11891; differing columns {'treeId': 11885}
+  CSV  dsTt.eth[0].measurementLayer.ingress.port.csv: rows 9550 -> 12081; differing columns {'treeId': 9550, 't': 9538, 'frameId': 9535, 'ingressTime': 9535, 'pcp': 461, 'payloadLen': 666, 'hash': 9535, 'tRxEnd': 9538, 'tSlot': 9538, 'etherType': 217, 'vid': 217}
+  CSV  dsTt.eth[1].measurementLayer.egress.csv: rows 9574 -> 12105; differing columns {'t': 9560, 'frameId': 9557, 'ingressTime': 9557, 'pcp': 487, 'payloadLen': 687, 'payloadHash': 9557, 'signature': 691, 'regions': 135, 'etherType': 243, 'vid': 243, 'event': 26, 'ingressTtId': 26}
+  CSV  dsTt.eth[1].measurementLayer.egress.port.csv: rows 9574 -> 12105; differing columns {'treeId': 9572, 't': 9560, 'frameId': 9557, 'ingressTime': 9557, 'pcp': 487, 'payloadLen': 687, 'hash': 9557, 'txHash': 9557, 'tSlot': 9560, 'tDequeue': 9559, 'tTxStart': 9559, 'tTxEnd': 9560, 'egressTime': 9560, 'residence': 9562, 'etherType': 243, 'vid': 243, 'tagged': 26, 'ingressTtId': 26, 'note': 26}
+  CSV  dsTt.eth[1].measurementLayer.ingress.port.csv: rows 11903 -> 11903; differing columns {'treeId': 11896}
+  CSV  dsTt.eth[1].trafficConditionerLayer.monitor.monitor.csv: rows 269 -> 285; differing columns {'t': 269, 'TSe': 179, 'Res': 89, 'exceeded': 22, 'lag': 82, 'seq': 263, 'TSi': 87}
+  CSV  dsTt.eth[1].trafficConditionerLayer.syncOut.sync.csv: rows 269 -> 285; differing columns {'t': 269, 'treeId': 269, 'TSe': 179, 'Res': 89, 'cfOut': 89, 'seq': 263, 'syncFrameId': 263, 'fuFrameId': 87, 'tagSeq': 87, 'TSi': 87}
+  CSV  listener.eth[0].measurementLayer.ingress.csv: rows 9643 -> 11903; differing columns {'payloadHash': 9595, 't': 9591, 'payloadLen': 478, 'signature': 487, 'pcp': 263, 'etherType': 13, 'vid': 13}
+  CSV  nwTt.eth[0].measurementLayer.egress.port.csv: rows 12081 -> 12081; differing columns {'treeId': 12075}
+  CSV  nwTt.eth[0].measurementLayer.ingress.port.csv: rows 9631 -> 11891; differing columns {'treeId': 9631, 'frameId': 9584, 'ingressTime': 9584, 'hash': 9584, 't': 9580, 'tRxEnd': 9580, 'tSlot': 9580, 'payloadLen': 473, 'pcp': 250}
+  CSV  nwTt.eth[1].measurementLayer.egress.csv: rows 9654 -> 11914; differing columns {'frameId': 9596, 'ingressTime': 9596, 'payloadHash': 9596, 't': 9592, 'payloadLen': 479, 'signature': 488, 'pcp': 264, 'event': 14, 'ingressTtId': 14, 'regions': 14, 'etherType': 14, 'vid': 14}
+  CSV  nwTt.eth[1].measurementLayer.egress.port.csv: rows 9654 -> 11914; differing columns {'treeId': 9643, 'frameId': 9596, 'ingressTime': 9596, 'hash': 9596, 'txHash': 9596, 'residence': 9596, 't': 9592, 'tSlot': 9592, 'tDequeue': 9592, 'tTxStart': 9592, 'tTxEnd': 9592, 'egressTime': 9592, 'payloadLen': 479, 'pcp': 264, 'tagged': 14, 'ingressTtId': 14, 'etherType': 14, 'vid': 14, 'note': 14, 'event': 1}
+  CSV  nwTt.eth[1].measurementLayer.ingress.port.csv: rows 12115 -> 12115; differing columns {'treeId': 12097}
+  CSV  nwTt.eth[1].trafficConditionerLayer.syncIn.sync.csv: rows 190 -> 190; differing columns {'treeId': 190}
+  CSV  talker.eth[0].measurementLayer.ingress.csv: rows 9574 -> 12105; differing columns {'t': 9560, 'pcp': 487, 'payloadLen': 687, 'payloadHash': 9557, 'signature': 691, 'etherType': 243, 'vid': 243}
+  PCAP dsTt.pcapRecorder[0].pcapng: per direction (in=1, out=2): frames 1.8.0 / 1.8.1, frames with time or bytes differing, bytes differing: {1: (179, 190, 179, 175), 2: (0, 0, 0, 0)}
+  PCAP dsTt.pcapRecorder[1].pcapng: per direction (in=1, out=2): frames 1.8.0 / 1.8.1, frames with time or bytes differing, bytes differing: {1: (12, 12, 0, 0), 2: (203, 214, 201, 199)}
+  PCAP talker.pcapRecorder[0].pcapng: per direction (in=1, out=2): frames 1.8.0 / 1.8.1, frames with time or bytes differing, bytes differing: {1: (203, 214, 201, 199), 2: (12, 12, 0, 0)}
+  PCAP ue[0].pcapRecorder[0].pcapng: per direction (in=1, out=2): frames 1.8.0 / 1.8.1, frames with time or bytes differing, bytes differing: {1: (0, 0, 0, 0), 2: (179, 190, 179, 175)}
+M2S6-C-a: 33 files, identical 23, differing 10
+  CSV  dsTt.eth[0].measurementLayer.egress.port.csv: rows 490 -> 490; differing columns {'treeId': 489}
+  CSV  dsTt.eth[0].measurementLayer.ingress.port.csv: rows 568 -> 568; differing columns {'treeId': 568}
+  CSV  dsTt.eth[1].measurementLayer.egress.port.csv: rows 580 -> 580; differing columns {'treeId': 578}
+  CSV  dsTt.eth[1].measurementLayer.ingress.port.csv: rows 496 -> 496; differing columns {'treeId': 494}
+  CSV  dsTt.eth[1].trafficConditionerLayer.syncOut.sync.csv: rows 117 -> 117; differing columns {'treeId': 117}
+  CSV  nwTt.eth[0].measurementLayer.egress.port.csv: rows 570 -> 570; differing columns {'treeId': 569}
+  CSV  nwTt.eth[0].measurementLayer.ingress.port.csv: rows 488 -> 488; differing columns {'treeId': 488}
+  CSV  nwTt.eth[1].measurementLayer.egress.port.csv: rows 504 -> 504; differing columns {'treeId': 493}
+  CSV  nwTt.eth[1].measurementLayer.ingress.port.csv: rows 590 -> 590; differing columns {'treeId': 577}
+  CSV  nwTt.eth[1].trafficConditionerLayer.syncIn.sync.csv: rows 80 -> 80; differing columns {'treeId': 80}
+M2S6-E-all: 35 files, identical 25, differing 10
+  CSV  dsTt.eth[0].measurementLayer.egress.port.csv: rows 490 -> 490; differing columns {'treeId': 489}
+  CSV  dsTt.eth[0].measurementLayer.ingress.port.csv: rows 568 -> 568; differing columns {'treeId': 568}
+  CSV  dsTt.eth[1].measurementLayer.egress.port.csv: rows 580 -> 580; differing columns {'treeId': 578}
+  CSV  dsTt.eth[1].measurementLayer.ingress.port.csv: rows 496 -> 496; differing columns {'treeId': 494}
+  CSV  dsTt.eth[1].trafficConditionerLayer.syncOut.sync.csv: rows 117 -> 117; differing columns {'treeId': 117}
+  CSV  nwTt.eth[0].measurementLayer.egress.port.csv: rows 570 -> 570; differing columns {'treeId': 569}
+  CSV  nwTt.eth[0].measurementLayer.ingress.port.csv: rows 488 -> 488; differing columns {'treeId': 488}
+  CSV  nwTt.eth[1].measurementLayer.egress.port.csv: rows 504 -> 504; differing columns {'treeId': 493}
+  CSV  nwTt.eth[1].measurementLayer.ingress.port.csv: rows 590 -> 590; differing columns {'treeId': 577}
+  CSV  nwTt.eth[1].trafficConditionerLayer.syncIn.sync.csv: rows 80 -> 80; differing columns {'treeId': 80}
