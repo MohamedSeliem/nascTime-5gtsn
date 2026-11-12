@@ -165,3 +165,39 @@ Batch Q holds every I-2H configuration, so `check_m2s72_i2h.py focused` runs on 
 T0-R stays FAIL as a cross-version comparison. It is a functional difference only in the sense that 1.8.1 removes 1.8.0 defects.
 
 **STOP after these, for review.**
+
+## Addendum 1 (2026-11-12 11:35Z, after the batch-Q disk-full incident, before any further CP2 run; the text above is unchanged)
+
+### Incident
+
+- **Batch Q filled the disk at 11:23Z.**
+  - The three H16 configurations write about 2–3 GB of raw output each, against ~0.3 GB for the largest Block B configuration.
+  - Two of them ran concurrently. The 2 GB start guard does not bound a running pair.
+- **No configuration failed.** Every completed run has rc=0.
+- **The driver stopped before H16N-hto, BN-rng and BN-theta1.**
+- **Operator deletion without manifest.** To regain space, I deleted the completed runs M2S72-B-q0-ideal-n4 and M2S72-B-q0-Eall-n4 before their manifest. They were not evaluated, are logged in `deleted-raw.txt`, and are rerun below.
+- **No row of those two runs exists.** The other 12 Q configurations were manifested afterwards (`M2-S7.2a-cp2r2-Q/r181b-*`).
+
+### Changes
+
+1. **Q1.** `cp2r2_batch_eval.py eval` evaluates the 12 present Q configurations (`cp2r2-batch-eval-Q1.txt`).
+   - Stage 4 controls, I-2H controls and I-4 q0 are skipped by the presence rule; their configurations are incomplete.
+2. **After Q1.** The evaluated Q runs not needed later are deleted (after the manifest): H16-q0-Ca-n4, H16-qdu-Ca-n2, B-q0-ideal-n2, B-q0-Ca-n1/n2/n4.
+3. **Batch Q2** (`run_cp2_batch.sh Q2`, JOBS 2).
+   - **Runs:** B-q0-ideal-n4, B-q0-Eall-n4 (seeds 0–4), H16N-hto, BN-rng, BN-theta1 (seed 0).
+   - **References moved from Q** (evaluated in Q1, reference-only here): B-q0-ideal-n1, B-q0-Eall-n1, B-q0-Eall-n2, H16-q0-Ca-n2. H16N-nohold is also moved; it has no rows of its own and is used only by the I-2H controls.
+   - **Q2 evaluates:**
+     - the rows of the two n4 configurations;
+     - I-4 stream q0;
+     - the 8 Stage 4 and 5 I-2H controls.
+   - **`cp2r2_batch_eval.py` change:** a reference-only configuration is now also excluded from the H16 rows (not only from Block B), so no row is evaluated twice.
+4. **Batch D** is unchanged.
+5. **Assembly over Q1, Q2 and D.** `assemble` now takes any number of evaluation files; the rules are unchanged. Every per-run key must appear exactly once, and all 13 controls exactly once.
+6. **`check_m2s72_i2h.py focused` is not run.**
+   - It needs all seven I-2H configurations at once (about 9.5 GB).
+   - Its content is the same function calls as the CP2 r2 H16 section and I-2H controls (`I.evaluate_h` with the B-<opt>-Ca-n1 references, H-nv, `I.controls`), all of which the assembled record contains.
+   - **The I-2H verdict is therefore taken from the assembled record:** the H16 rows plus the 5 I-2H controls. There is no separate focused record.
+
+### Predictions
+
+Unchanged (§5.3).

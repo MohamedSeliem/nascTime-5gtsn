@@ -47,7 +47,19 @@ M2S72-B-qdu-Ca-n4 0..4"
      [ -d "$ROOT/m2/M2-S7.2a-cp2r2-Q/runs/M2S72-B-qdu-Ca-n1" ] || { note "B-qdu-Ca-n1 (from batch Q) missing"; exit 1; }
      mv "$ROOT/m2/M2-S7.2a-cp2r2-Q/runs/M2S72-B-qdu-Ca-n1" "$ROOT/m2/M2-S7.2a-cp2r2-Q/runs/run-M2S72-B-qdu-Ca-n1.log" "$OUT/runs/"
      note "moved M2S72-B-qdu-Ca-n1 (batch Q run, manifest in batch Q) into batch D as the N = 1 reference" ;;
-  *) echo "batch Q or D" >&2; exit 1 ;;
+  Q2) # M2-R181b addendum 1 (disk-full incident in Q): the Q configurations not run or lost in Q; the references they
+      # need are moved from Q (evaluated there, here reference-only)
+      CFGS="M2S72-B-q0-ideal-n4 0..4
+M2S72-B-q0-Eall-n4 0..4
+M2S72-H16N-hto 0
+M2S72-BN-rng 0
+M2S72-BN-theta1 0"
+      for c in M2S72-B-q0-ideal-n1 M2S72-B-q0-Eall-n1 M2S72-B-q0-Eall-n2 M2S72-H16-q0-Ca-n2 M2S72-H16N-nohold; do
+        [ -d "$ROOT/m2/M2-S7.2a-cp2r2-Q/runs/$c" ] || { note "$c (from batch Q) missing"; exit 1; }
+        mv "$ROOT/m2/M2-S7.2a-cp2r2-Q/runs/$c" "$ROOT/m2/M2-S7.2a-cp2r2-Q/runs/run-$c.log" "$OUT/runs/"
+      done
+      note "moved the Q runs B-q0-ideal-n1, B-q0-Eall-n1, B-q0-Eall-n2, H16-q0-Ca-n2, H16N-nohold into Q2 (references and control bases; manifest and rows in Q)" ;;
+  *) echo "batch Q, Q2 or D" >&2; exit 1 ;;
 esac
 echo "$CFGS" > "$OUT/configs.txt"
 runone() {  # identical to m2s72.sh run() for these configs (express=false for B/BN/H/H16; fingerprint option)
@@ -74,8 +86,14 @@ note "runs done: $(grep -c 'rc=0' "$LOG") rc=0, $(grep -c ' rc=[1-9]' "$LOG") fa
 # the unchanged check_m2s72_cp2r2.py main() stops with an exception on a partial matrix (missing control and I-4
 # configurations); the batch evaluation calls its row functions unchanged on the configurations present (plan §4.4)
 REFONLY=; [ "$B" = D ] && REFONLY=M2S72-B-qdu-Ca-n1
+[ "$B" = Q2 ] && REFONLY="M2S72-B-q0-ideal-n1 M2S72-B-q0-Eall-n1 M2S72-B-q0-Eall-n2 M2S72-H16-q0-Ca-n2"
 python3 "$HERE/cp2r2_batch_eval.py" eval "$OUT" $REFONLY > "$OUT/cp2r2-batch-eval.txt" 2>&1; note "cp2r2 batch eval rc=$? rows $(grep -c ' | PASS | \| | FAIL | ' "$OUT/cp2r2-batch-eval.txt")"
-if [ "$B" = Q ]; then
+if [ "$B" = Q2 ]; then
+  # check_m2s72_i2h.py focused needs all seven I-2H configurations at once (~9.5 GB): not run; the I-2H rows of
+  # Block H16 (Q) and the five I-2H controls (here) come from the same functions (I.evaluate_h, I.controls)
+  rm -rf "$OUT/runs"/*/; echo "$(date -u +%FT%TZ) deleted after manifest and checks: ${OUT#$ROOT/}/runs/*" >> "$ROOT/deleted-raw.txt"
+  note "batch Q2 raw deleted"
+elif [ "$B" = Q ]; then
   python3 "$M2/check/check_m2s72_i2h.py" focused "$OUT" > "$OUT/i2h-check.txt" 2>&1; note "i2h check rc=$? $(tail -1 "$OUT/i2h-check.txt")"
   for d in "$OUT/runs"/*/; do c=$(basename "$d"); [ "$c" = M2S72-B-qdu-Ca-n1 ] && continue
     rm -rf "$d"; echo "$(date -u +%FT%TZ) deleted after manifest and checks: ${d#$ROOT/}" >> "$ROOT/deleted-raw.txt"; done

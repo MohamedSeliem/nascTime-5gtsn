@@ -5,7 +5,7 @@ check_m2s72_cp2r2.py / check_m2s72_b.py / check_m2s72_i2h.py.
     cp2r2_batch_eval.py eval <batch dir> [<ref-only config> ...]  -> stdout: the rows of the configurations present in
                                                        <batch dir>/runs; a ref-only configuration is evaluated as the N = 1
                                                        reference only, its rows are not printed (evaluated in the other batch)
-    cp2r2_batch_eval.py assemble <eval Q> <eval D>      -> stdout: the combined record and the verdict
+    cp2r2_batch_eval.py assemble <eval> <eval> ...      -> stdout: the combined record and the verdict
 
 eval: the loops of check_m2s72_cp2r2.main(), unchanged in order and arguments, restricted to the configurations present
 (the original main() stops with an exception on a missing control configuration):
@@ -15,7 +15,7 @@ eval: the loops of check_m2s72_cp2r2.main(), unchanged in order and arguments, r
   H16N configurations are present. Every row is printed as "family | key | verdict | detail" (the original format),
   and each control as "CONTROL | name | PASS/FAIL | failed ..., predicted ...".
 assemble: every expected per-run key of the complete matrix (r2_configs of m2s72.sh, seeds 0-4) must appear in exactly
-one of the two evaluations; all 13 controls must appear exactly once; then the verdict rule of check_m2s72_cp2r2.py:
+one of the evaluations; all 13 controls must appear exactly once; then the verdict rule of check_m2s72_cp2r2.py:
 PASS iff no gate row FAILs (information rows excluded) and every control PASSes.
 """
 import os
@@ -62,7 +62,7 @@ def evaluate(out, ref_only=()):
     for o, ns in (("q0", (2, 4)), ("qdu", (2,))):
         for n in ns:
             cfg = f"M2S72-H16-{o}-Ca-n{n}"
-            if not have(cfg):
+            if not have(cfg) or cfg in ref_only:   # ref-only: present for the controls, rows evaluated in another batch
                 continue
             for rep in B.REPS:
                 ev, stats, cov, st, fails, info = I.evaluate_h(runs, cfg, rep, refs[(o, "Ca", rep)], f"M2S72-H-{o}-Ca-n{n}")
@@ -88,7 +88,7 @@ def evaluate(out, ref_only=()):
     print("INFO families: " + ", ".join(I.INFO))
 
 
-def assemble(qf, df):
+def assemble(*files):
     def parse(f):
         rows, ctl, info = [], [], []
         for line in open(f):
@@ -100,8 +100,8 @@ def assemble(qf, df):
             elif len(p) >= 4 and p[2] in ("PASS", "FAIL"):
                 rows.append((p[0], p[1], p[2], " | ".join(p[3:])))
         return rows, ctl, info
-    rq, cq, info = parse(qf)
-    rd, cd, _ = parse(df)
+    parsed = [parse(f) for f in files]
+    info = parsed[0][2]
     run_of = lambda key: re.match(r"(M2S72-[\w-]+?-\d)(?:\s|$)", key)
     exp = set()
     for o in ("q0", "qdu"):
@@ -110,21 +110,21 @@ def assemble(qf, df):
                 exp |= {f"M2S72-B-{o}-{c}-n{n}-{r}" for r in range(5)}
     exp |= {f"M2S72-H16-q0-Ca-n{n}-{r}" for n in (2, 4) for r in range(5)} | {f"M2S72-H16-qdu-Ca-n2-{r}" for r in range(5)}
     src = {}
-    for tag, rows in (("Q", rq), ("D", rd)):
+    for tag, (rows, _, _) in zip(files, parsed):
         for fam, key, v, det in rows:
             m = run_of(key)
             if m and m.group(1) in exp:
                 src.setdefault(m.group(1), set()).add(tag)
     missing = sorted(exp - set(src))
     twice = sorted(k for k, s in src.items() if len(s) > 1)
-    rows = rq + rd
-    ctl = cq + cd
+    rows = [r for p in parsed for r in p[0]]
+    ctl = [c for p in parsed for c in p[1]]
     nctl = Counter(n for n, _ in ctl)
     gate = [r for r in rows if r[0] not in info]
     nf = sum(1 for r in gate if r[2] == "FAIL")
     cf = sum(1 for _, v in ctl if v != "PASS")
-    print("M2-R181b Checkpoint 2 revision 2 on Simu5G 1.8.1, assembled from batches Q and D")
-    print(f"per-run keys expected {len(exp)}, present {len(src)}, missing {len(missing)} {missing[:6]}, in both batches {len(twice)} {twice[:6]}")
+    print("M2-R181b Checkpoint 2 revision 2 on Simu5G 1.8.1, assembled from {len(files)} batch evaluations")
+    print(f"per-run keys expected {len(exp)}, present {len(src)}, missing {len(missing)} {missing[:6]}, in more than one batch {len(twice)} {twice[:6]}")
     by = Counter((r[0], r[2]) for r in rows)
     print("rows per family: " + ", ".join(f"{g} {by[(g, 'PASS')]} PASS / {by[(g, 'FAIL')]} FAIL" for g in sorted({r[0] for r in rows})))
     print(f"gate rows: {len(gate) - nf} PASS, {nf} FAIL (information rows {', '.join(info)} reported, not gated)")
@@ -143,4 +143,4 @@ if __name__ == "__main__":
     if sys.argv[1] == "eval":
         evaluate(sys.argv[2], tuple(sys.argv[3:]))
     elif sys.argv[1] == "assemble":
-        assemble(sys.argv[2], sys.argv[3])
+        assemble(*sys.argv[2:])
