@@ -1,0 +1,11 @@
+# manifest of /root/inv/nascTime-5gtsn/simulations/results/simu5g-1.8.1/out-r181b-cp2/m2/M2-S7.2a-cp2r2-D/runs (2026-11-12T12:00:33Z); per configuration: files | bytes | sha256 of its hash lines | run log last line
+M2S72-B-qdu-Ca-n1 | 200 | 83106889 | ccba2505b00e9ff7 | End.
+M2S72-B-qdu-Ca-n2 | 285 | 150726286 | 5f1690dd4b199a39 | End.
+M2S72-B-qdu-Ca-n4 | 455 | 287730094 | 48915306318a71be | End.
+M2S72-B-qdu-Eall-n1 | 210 | 83360581 | 6378327cc9489222 | End.
+M2S72-B-qdu-Eall-n2 | 300 | 151127053 | 04538007d93949e0 | End.
+M2S72-B-qdu-Eall-n4 | 480 | 288028198 | 9d8e649c70f15ca1 | End.
+M2S72-B-qdu-ideal-n1 | 200 | 81893991 | f9dfe8f1994e4dc3 | End.
+M2S72-B-qdu-ideal-n2 | 285 | 148910248 | 3a66c816e74f7641 | End.
+M2S72-B-qdu-ideal-n4 | 455 | 284314016 | 7695f16a5bbf9881 | End.
+M2S72-H16-qdu-Ca-n2 | 285 | 3214914567 | 3dc9cc5a790877d4 | End.

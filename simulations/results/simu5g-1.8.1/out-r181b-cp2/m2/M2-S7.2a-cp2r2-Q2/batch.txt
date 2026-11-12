@@ -1,0 +1,11 @@
+2026-11-12T11:36:44Z moved the Q runs B-q0-ideal-n1, B-q0-Eall-n1, B-q0-Eall-n2, H16-q0-Ca-n2, H16N-nohold into Q2 (references and control bases; manifest and rows in Q) free=6388M
+2026-11-12T11:38:08Z M2S72-B-q0-Eall-n4 rc=0 84s
+2026-11-12T11:38:09Z M2S72-B-q0-ideal-n4 rc=0 85s
+2026-11-12T11:38:26Z M2S72-BN-rng rc=0 16s
+2026-11-12T11:38:47Z M2S72-BN-theta1 rc=0 17s
+2026-11-12T11:40:20Z M2S72-H16N-hto rc=0 130s
+2026-11-12T11:40:25Z runs done: 5 rc=0, 0 failed free=5111M
+manifest: 10 configurations, 2246 files
+2026-11-12T11:45:43Z cp2r2 batch eval rc=0 rows 348 free=5109M
+2026-11-12T11:45:46Z batch Q2 raw deleted free=10343M
+2026-11-12T11:45:46Z DONE batch Q2 free=10343M

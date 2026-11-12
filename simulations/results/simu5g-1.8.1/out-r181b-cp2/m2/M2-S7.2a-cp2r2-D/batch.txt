@@ -1,0 +1,15 @@
+2026-11-12T11:45:47Z moved M2S72-B-qdu-Ca-n1 (batch Q run, manifest in batch Q) into batch D as the N = 1 reference free=10343M
+2026-11-12T11:46:08Z M2S72-B-qdu-ideal-n1 rc=0 21s
+2026-11-12T11:46:25Z M2S72-B-qdu-ideal-n2 rc=0 38s
+2026-11-12T11:46:47Z M2S72-B-qdu-Eall-n1 rc=0 20s
+2026-11-12T11:47:28Z M2S72-B-qdu-ideal-n4 rc=0 76s
+2026-11-12T11:47:33Z M2S72-B-qdu-Eall-n2 rc=0 41s
+2026-11-12T11:48:20Z M2S72-B-qdu-Ca-n2 rc=0 43s
+2026-11-12T11:49:01Z M2S72-B-qdu-Eall-n4 rc=0 89s
+2026-11-12T11:49:46Z M2S72-B-qdu-Ca-n4 rc=0 84s
+2026-11-12T12:00:27Z M2S72-H16-qdu-Ca-n2 rc=0 685s
+2026-11-12T12:00:29Z runs done: 9 rc=0, 0 failed free=5790M
+manifest: 10 configurations, 3165 files
+2026-11-12T12:05:57Z cp2r2 batch eval rc=0 rows 1035 free=5789M
+2026-11-12T12:06:01Z batch D raw deleted free=10348M
+2026-11-12T12:06:02Z DONE batch D free=10348M

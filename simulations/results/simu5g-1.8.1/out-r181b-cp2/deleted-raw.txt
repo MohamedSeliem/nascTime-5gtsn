@@ -1,0 +1,9 @@
+2026-11-12T11:24:37Z deleted WITHOUT manifest (disk full, operator): m2/M2-S7.2a-cp2r2-Q/runs/M2S72-B-q0-ideal-n4, M2S72-B-q0-Eall-n4 (rerun in Q2)
+2026-11-12T11:31:35Z deleted after manifest (INVALID, truncated by the full disk): m2/M2-S7.2a-cp2r2-Q/runs/M2S72-H16-qdu-Ca-n2
+2026-11-12T11:36:43Z deleted after manifest and Q1 evaluation: m2/M2-S7.2a-cp2r2-Q/runs/M2S72-H16-q0-Ca-n4
+2026-11-12T11:36:44Z deleted after manifest and Q1 evaluation: m2/M2-S7.2a-cp2r2-Q/runs/M2S72-B-q0-ideal-n2
+2026-11-12T11:36:44Z deleted after manifest and Q1 evaluation: m2/M2-S7.2a-cp2r2-Q/runs/M2S72-B-q0-Ca-n1
+2026-11-12T11:36:44Z deleted after manifest and Q1 evaluation: m2/M2-S7.2a-cp2r2-Q/runs/M2S72-B-q0-Ca-n2
+2026-11-12T11:36:44Z deleted after manifest and Q1 evaluation: m2/M2-S7.2a-cp2r2-Q/runs/M2S72-B-q0-Ca-n4
+2026-11-12T11:45:46Z deleted after manifest and checks: m2/M2-S7.2a-cp2r2-Q2/runs/*
+2026-11-12T12:06:01Z deleted after manifest and checks: m2/M2-S7.2a-cp2r2-D/runs/*

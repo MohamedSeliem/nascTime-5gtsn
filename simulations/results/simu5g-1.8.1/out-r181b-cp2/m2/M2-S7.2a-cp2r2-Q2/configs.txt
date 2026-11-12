@@ -1,0 +1,5 @@
+M2S72-B-q0-ideal-n4 0..4
+M2S72-B-q0-Eall-n4 0..4
+M2S72-H16N-hto 0
+M2S72-BN-rng 0
+M2S72-BN-theta1 0

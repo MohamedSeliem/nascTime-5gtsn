@@ -1,0 +1,17 @@
+2026-11-12T11:01:57Z M2S72-B-q0-ideal-n1 rc=0 22s
+2026-11-12T11:02:16Z M2S72-B-q0-ideal-n2 rc=0 41s
+2026-11-12T11:02:41Z M2S72-B-q0-Ca-n1 rc=0 21s
+2026-11-12T11:03:27Z M2S72-B-q0-ideal-n4 rc=0 87s
+2026-11-12T11:03:29Z M2S72-B-q0-Ca-n2 rc=0 44s
+2026-11-12T11:03:53Z M2S72-B-q0-Eall-n1 rc=0 23s
+2026-11-12T11:04:39Z M2S72-B-q0-Eall-n2 rc=0 44s
+2026-11-12T11:04:53Z M2S72-B-q0-Ca-n4 rc=0 83s
+2026-11-12T11:05:20Z M2S72-B-qdu-Ca-n1 rc=0 25s
+2026-11-12T11:06:11Z M2S72-B-q0-Eall-n4 rc=0 91s
+2026-11-12T11:16:37Z M2S72-H16-q0-Ca-n2 rc=0 676s
+2026-11-12T11:18:35Z M2S72-H16-q0-Ca-n4 rc=0 739s
+2026-11-12T11:20:52Z M2S72-H16N-nohold rc=0 133s
+2026-11-12T11:23:35Z M2S72-H16-qdu-Ca-n2 rc=0 417s
+2026-11-12T11:23:35Z STOP before M2S72-H16N-hto: free < 2 GB free=0M
+2026-11-12T11:24:37Z DISK FULL during the batch (two H16 runs of ~3 GB each concurrently; the 2 GB start guard does not bound a running pair); batch stopped. Operator deleted runs/M2S72-B-q0-ideal-n4 and runs/M2S72-B-q0-Eall-n4 (completed rc=0, NOT manifested, NOT evaluated) to regain space; they are rerun in batch Q2
+2026-11-12T11:31:35Z M2S72-H16-qdu-Ca-n2: INVALID (outputs truncated by the full disk: 3.sca 32 KB, seed 4 missing, run log without 'End.'), deleted after manifest; rerun in batch D

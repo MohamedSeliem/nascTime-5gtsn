@@ -1,0 +1,78 @@
+rows: 1.8.0 2461, 1.8.1 2411; only in 1.8.0 50 [('      NC-cancel (Rr.TT_ds claimed cancelling): M3d', 'M2S72-B-q0-Eall-n4-0 pair (0,1)'), ('      NC-cancel (Rr.TT_ds claimed cancelling): M3d', 'M2S72-B-q0-Eall-n4-0 pair (0,2)'), ('      NC-cancel (Rr.TT_ds claimed cancelling): M3d', 'M2S72-B-q0-Eall-n4-0 pair (0,3)'), ('      NC-cancel (Rr.TT_ds claimed cancelling): M3d', 'M2S72-B-q0-Eall-n4-0 pair (1,2)')]; only in 1.8.1 0 []
+verdict changes: 0 []
+rows with changed detail numbers, per family (total rows in the family):
+        NC-cancel (Rr.TT_ds claimed cancelling): M3d: 0 of 6
+        NC-cancel (Rr.mul claimed cancelling): M3d: 0 of 6
+        NC-cfout (DS-TT 1 logged cfOut + 1 ns on one Follow_Up): I-3: 0 of 1
+        NC-cfout (DS-TT 1 logged cfOut + 1 ns on one Follow_Up): M2: 0 of 1
+        NC-cfout (DS-TT 1 logged cfOut + 1 ns on one Follow_Up): M3: 0 of 3
+        NC-cfout (DS-TT 1 logged cfOut + 1 ns on one Follow_Up): M3d: 0 of 3
+        NC-holdTimeout: I-2 strict (info): 0 of 1
+        NC-holdTimeout: I-2H: 0 of 1
+        NC-noHold: I-2 strict (info): 0 of 1
+        NC-noHold: I-2H: 0 of 1
+        NC-release: I-2 strict (info): 0 of 1
+        NC-release: I-2H: 0 of 1
+        NC-rngshare (M2S72-BN-rng: DS-TT 2's TT clock on DS-TT 1's RNG 3; I-4 rows only): I-4: 0 of 1
+        NC-rngshare (M2S72-BN-rng: DS-TT 2's TT clock on DS-TT 1's RNG 3; I-4 rows only): I-4 stream: 0 of 1
+        NC-swap (slave 1 with DS-TT 2's evidence): M2: 0 of 1
+        NC-swap (slave 1 with DS-TT 2's evidence): M3: 0 of 3
+        NC-swap (slave 1 with DS-TT 2's evidence): M3d: 0 of 3
+        NC-swap (slave 1 with DS-TT 2's evidence): M4: 0 of 1
+        NC-syncFrameId: I-1: 0 of 1
+        NC-syncFrameId: I-2 strict (info): 0 of 1
+        NC-syncFrameId: I-2H: 0 of 1
+        NC-theta1 (M2S72-BN-theta1: DS-TT 1 theta0 + 1 us; checker D-13): M2: 0 of 1
+        NC-theta1 (M2S72-BN-theta1: DS-TT 1 theta0 + 1 us; checker D-13): M4: 0 of 1
+        NC-tse (DS-TT 1 logged TSe + 1 ps on one Follow_Up): I-1: 0 of 1
+        NC-tse (DS-TT 1 logged TSe + 1 ps on one Follow_Up): M2: 0 of 1
+        NC-tse (DS-TT 1 logged TSe + 1 ps on one Follow_Up): M3d: 0 of 3
+        NC-tse (DS-TT 1 logged TSe + 1 ps on one Follow_Up): M4: 0 of 1
+        NC-txStart: I-2 strict (info): 0 of 1
+        NC-txStart: I-2H: 0 of 1
+        NC-wirecf (slave 1 received correctionField + 1 ns on one Follow_Up, FCS recomputed): I-3: 0 of 1
+  EOR: 63 of 250
+      e.g. M2S72-B-q0-ideal-n1-0 DS-TT 0: 24.999058 -> 6.000626
+      e.g. M2S72-B-q0-ideal-n1-1 DS-TT 0: 24.999058 -> 6.000626
+      e.g. M2S72-B-q0-ideal-n1-2 DS-TT 0: 24.999058 -> 6.000626
+  F0-1: 0 of 105
+  F0-3: 0 of 105
+  F0-4: 10 of 105
+      e.g. M2S72-B-qdu-ideal-n4-1: 1190 -> 1188; 1190 -> 1188; 1188 -> 1189; 1188 -> 1189; 1188 -> 1189; 1188 -> 1189
+      e.g. M2S72-B-qdu-Ca-n4-1: 1190 -> 1189; 1190 -> 1189
+      e.g. M2S72-B-qdu-Eall-n4-1: 1190 -> 1189; 1190 -> 1189
+  F0-5: 0 of 105
+  F0-6: 0 of 105
+  F0-7d: 0 of 105
+  F0-8: 0 of 105
+  H-cov: 20 of 20
+      e.g. M2S72-H16-q0-Ca-n2-0 pair (0,1): -20800.0 -> -22400.0; 2.300243329145246e-13 -> 2.4771851236948805e-13; 11271 -> 11861; 599 -> 9
+      e.g. M2S72-H16-q0-Ca-n2-1 pair (0,1): 967664.0 -> 966064.0; -1.0701262792567334e-11 -> -1.0683568613112371e-11; 11407 -> 11861; 463 -> 9
+      e.g. M2S72-H16-q0-Ca-n2-2 pair (0,1): -1043872.0 -> -1045472.0; 933056.0 -> 931456.0; -1.0318537690956475e-11 -> -1.0300843511501512e-11; 11297 -> 11859; 573 -> 11
+  H-cov (diagnostic): 0 of 5
+  H-nv: 1 of 1
+      e.g. M2S72-H16-q0-Ca-n2-0: 63 -> 92; 63 -> 92
+  I-1: 0 of 105
+  I-2: 0 of 90
+  I-2 strict (info): 10 of 15
+      e.g. M2S72-H16-q0-Ca-n2-0: 21 -> 2; 21 -> 2; 22 -> 3; 22 -> 3; 23 -> 4
+      e.g. M2S72-H16-q0-Ca-n2-1: 4 -> 2; 4 -> 2; 2 -> 1; 20 -> 3; 20 -> 3; 21 -> 4
+      e.g. M2S72-H16-q0-Ca-n2-2: 8 -> 2; 8 -> 2; 2 -> 1; 20 -> 3; 20 -> 3; 21 -> 4
+  I-2H: 33 of 40
+      e.g. M2S72-H16-q0-Ca-n2-0 DS-TT 0: 1385 -> 1386
+      e.g. M2S72-H16-q0-Ca-n2-0 DS-TT 1: 63 -> 92; 63 -> 92; 63 -> 92; 48163 -> 48164
+      e.g. M2S72-H16-q0-Ca-n2-1 DS-TT 0: 1385 -> 1386
+  I-3: 0 of 105
+  I-4: 0 of 105
+  I-4 stream: 0 of 10
+  I-5: 9 of 75
+      e.g. M2S72-H16-q0-Ca-n2-0 vs M2S72-B-q0-Ca-n1-0: 40 -> 16; 55 -> 79; 74 -> 14; 21 -> 81; 66 -> 6; 29 -> 89
+      e.g. M2S72-H16-q0-Ca-n2-1 vs M2S72-B-q0-Ca-n1-1: 32 -> 16; 63 -> 79; 59 -> 17; 36 -> 78; 51 -> 9; 44 -> 86
+      e.g. M2S72-H16-q0-Ca-n2-2 vs M2S72-B-q0-Ca-n1-2: 32 -> 16; 63 -> 79; 72 -> 17; 23 -> 78; 64 -> 9; 31 -> 86
+  M2: 0 of 250
+  M3: 0 of 250
+  M3d: 69 of 250
+      e.g. M2S72-B-q0-ideal-n2-0 pair (0,1): 11869 -> 11860; 100.0 -> 99.9; 0 -> 9; 0.0 -> 0.1
+      e.g. M2S72-B-q0-ideal-n2-1 pair (0,1): 11868 -> 11859; 100.0 -> 99.9; 1 -> 10; 0.0 -> 0.1
+      e.g. M2S72-B-q0-ideal-n2-2 pair (0,1): 11868 -> 11857; 100.0 -> 99.9; 1 -> 12; 0.0 -> 0.1
+  M4: 0 of 105

@@ -1,0 +1,19 @@
+M2-R181b Checkpoint 2 revision 2 on Simu5G 1.8.1, assembled from 3 batch evaluations
+per-run keys expected 105, present 105, missing 0 [], in more than one batch 0 []
+rows per family: EOR 250 PASS / 0 FAIL, F0-1 105 PASS / 0 FAIL, F0-3 105 PASS / 0 FAIL, F0-4 105 PASS / 0 FAIL, F0-5 105 PASS / 0 FAIL, F0-6 105 PASS / 0 FAIL, F0-7d 105 PASS / 0 FAIL, F0-8 105 PASS / 0 FAIL, H-cov 20 PASS / 0 FAIL, H-cov (diagnostic) 0 PASS / 5 FAIL, H-nv 1 PASS / 0 FAIL, I-1 105 PASS / 0 FAIL, I-2 90 PASS / 0 FAIL, I-2 strict (info) 5 PASS / 10 FAIL, I-2H 40 PASS / 0 FAIL, I-3 105 PASS / 0 FAIL, I-4 105 PASS / 0 FAIL, I-4 stream 10 PASS / 0 FAIL, I-5 75 PASS / 0 FAIL, M2 250 PASS / 0 FAIL, M3 250 PASS / 0 FAIL, M3d 250 PASS / 0 FAIL, M4 105 PASS / 0 FAIL
+gate rows: 2391 PASS, 0 FAIL (information rows I-2 strict (info), H-cov (diagnostic) reported, not gated)
+controls: 13 evaluated (13 distinct, duplicates []), 13 PASS, 0 FAIL
+  PASS | Stage 4: NC-swap (slave 1 with DS-TT 2's evidence)
+  PASS | Stage 4: NC-theta1 (M2S72-BN-theta1: DS-TT 1 theta0 + 1 us; checker D-13)
+  PASS | Stage 4: NC-cancel (Rr.mul claimed cancelling)
+  PASS | Stage 4: NC-cancel (Rr.TT_ds claimed cancelling)
+  PASS | Stage 4: NC-cfout (DS-TT 1 logged cfOut + 1 ns on one Follow_Up)
+  PASS | Stage 4: NC-wirecf (slave 1 received correctionField + 1 ns on one Follow_Up, FCS recomputed)
+  PASS | Stage 4: NC-tse (DS-TT 1 logged TSe + 1 ps on one Follow_Up)
+  PASS | Stage 4: NC-rngshare (M2S72-BN-rng: DS-TT 2's TT clock on DS-TT 1's RNG 3; I-4 rows only)
+  PASS | I-2H: NC-noHold
+  PASS | I-2H: NC-holdTimeout
+  PASS | I-2H: NC-release
+  PASS | I-2H: NC-syncFrameId
+  PASS | I-2H: NC-txStart
+Checkpoint 2 revision 2 verdict (assembled): PASS

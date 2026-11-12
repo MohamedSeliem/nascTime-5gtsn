@@ -112,6 +112,8 @@ def assemble(*files):
     src = {}
     for tag, (rows, _, _) in zip(files, parsed):
         for fam, key, v, det in rows:
+            if fam == "I-4 stream":   # a pair row (N = 2 vs N = 4 of one seed), evaluated once where both are present;
+                continue              # its key names the N = 2 run, so it is not a per-run evaluation key (fix 2026-11-12)
             m = run_of(key)
             if m and m.group(1) in exp:
                 src.setdefault(m.group(1), set()).add(tag)
@@ -123,7 +125,7 @@ def assemble(*files):
     gate = [r for r in rows if r[0] not in info]
     nf = sum(1 for r in gate if r[2] == "FAIL")
     cf = sum(1 for _, v in ctl if v != "PASS")
-    print("M2-R181b Checkpoint 2 revision 2 on Simu5G 1.8.1, assembled from {len(files)} batch evaluations")
+    print(f"M2-R181b Checkpoint 2 revision 2 on Simu5G 1.8.1, assembled from {len(files)} batch evaluations")
     print(f"per-run keys expected {len(exp)}, present {len(src)}, missing {len(missing)} {missing[:6]}, in more than one batch {len(twice)} {twice[:6]}")
     by = Counter((r[0], r[2]) for r in rows)
     print("rows per family: " + ", ".join(f"{g} {by[(g, 'PASS')]} PASS / {by[(g, 'FAIL')]} FAIL" for g in sorted({r[0] for r in rows})))

@@ -1,0 +1,9 @@
+M2S72-B-qdu-ideal-n1 0..4
+M2S72-B-qdu-ideal-n2 0..4
+M2S72-B-qdu-ideal-n4 0..4
+M2S72-B-qdu-Eall-n1 0..4
+M2S72-B-qdu-Eall-n2 0..4
+M2S72-B-qdu-Eall-n4 0..4
+M2S72-B-qdu-Ca-n2 0..4
+M2S72-B-qdu-Ca-n4 0..4
+M2S72-H16-qdu-Ca-n2 0..4

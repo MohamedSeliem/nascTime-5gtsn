@@ -1,0 +1,17 @@
+M2S72-B-q0-ideal-n1 0..4
+M2S72-B-q0-ideal-n2 0..4
+M2S72-B-q0-ideal-n4 0..4
+M2S72-B-q0-Ca-n1 0..4
+M2S72-B-q0-Ca-n2 0..4
+M2S72-B-q0-Ca-n4 0..4
+M2S72-B-q0-Eall-n1 0..4
+M2S72-B-q0-Eall-n2 0..4
+M2S72-B-q0-Eall-n4 0..4
+M2S72-B-qdu-Ca-n1 0..4
+M2S72-H16-q0-Ca-n2 0..4
+M2S72-H16-q0-Ca-n4 0..4
+M2S72-H16-qdu-Ca-n2 0..4
+M2S72-H16N-nohold 0
+M2S72-H16N-hto 0
+M2S72-BN-rng 0
+M2S72-BN-theta1 0
