@@ -1,6 +1,6 @@
 # M2-R181b closure report: Simu5G 1.8.1 corrective milestone
 
-**Branch.** `m2/simu5g-1.8.1`, 13 commits on top of `83f2704`; the M2-R181 records are untouched. Plan and predictions in `M2-R181b-plan.md`, with addenda 1 and 2.
+**Branch.** `m2/simu5g-1.8.1`, 10 commits on top of `83f2704` (final: this report); the M2-R181 records are untouched. Plan and predictions in `M2-R181b-plan.md`, with addenda 1 and 2.
 
 **Stack.**
 - OMNeT++ 6.4.0, INET 4.7.0.
