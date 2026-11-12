@@ -1,0 +1,12 @@
+M2S4 rc=0
+M2S5 rc=0
+M2S4-load rc=0
+M2S5-load rc=0
+M2S5-offset rc=0
+M2S4R-offset rc=0
+M2S5R-nc-tseSlot-load rc=0
+M2S5R-nc-noFcsNw-offset rc=0
+c8demo on 1.8.0: OVERALL: PASS
+controls on 1.8.0: OVERALL: PASS
+manifest: 8 configurations, 290 files
+runs deleted after manifest

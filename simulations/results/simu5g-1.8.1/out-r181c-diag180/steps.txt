@@ -1,0 +1,5 @@
+M2S4-load rc=0
+M2S5-load rc=0
+diag rc=0
+manifest: 2 configurations, 72 files
+runs deleted after manifest

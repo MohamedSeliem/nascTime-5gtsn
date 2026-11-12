@@ -1,0 +1,5 @@
+M2-R181b version-appropriate row R2b-v (MUTATION CONTROL)
+FAIL  R2b-v attribution (M2S4 vs M2S4-ctl-nopdelay, seeds 0-9 and load): same application frames delivered; every arrival time identical; send times identical except frames queued at their station's egress behind its own Pdelay_Req
+      33562 application frames compared; send-time shifts, all behind the station's own Pdelay_Req: 10 {736: 10} ns (config, seed, dir, send end s, shift ns: [('M2S4', 1, 'UL', 1.000001776, 736), ('M2S4', 3, 'UL', 1.000001776, 736), ('M2S4', 3, 'UL', 2.000001776, 736), ('M2S4', 4, 'UL', 1.000001776, 736), ('M2S4', 5, 'UL', 1.000001776, 736), ('M2S4', 6, 'UL', 1.000001776, 736), ('M2S4', 6, 'UL', 2.000001776, 736), ('M2S4', 7, 'UL', 1.000001776, 736), ('M2S4', 9, 'UL', 1.000001776, 736), ('M2S4', 9, 'UL', 2.000001776, 736)]); problems: ['M2S4#0 UL: 1 arrival times differ', 'M2S4-load#0 UL: 1 arrival times differ']
+
+OVERALL: FAIL

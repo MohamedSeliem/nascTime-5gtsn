@@ -1,0 +1,8 @@
+PASS  C8-v on M2S5 seed 0, unmodified: PASS (required PASS)
+      slave tags 0; egress recovered 567 / untagged 10 (DS-TT Pdelay Resp 5 + Resp_FU 5, Pdelay_Req 5) / invalid 0; NW-TT tagged 578 = recovered 567 + NW-TT-terminated 10 + still inside 1; = M2S4
+PASS  C8-v on M2S5 seed 0, mutation forwarded-untagged: FAIL (required FAIL)
+      slave tags 0; egress recovered 566 / untagged 11 (DS-TT Pdelay Resp 5 + Resp_FU 5, Pdelay_Req 5) / invalid 0; NW-TT tagged 578 = recovered 566 + NW-TT-terminated 10 + still inside 1; problems: ["(b) untagged egress frames that are not DS-TT Pdelay responses: 1 [('0.10500109', 'EthernetMacHeader(14B 0x8100) Ieee8021qTagEpdHeader(4B pcp=5')]", "(d) forwarded frames neither recovered, terminated nor still inside: 1 [('3', '0.10000109', 'EthernetMacHeader(14B 0x8100) Ieee8021qTagEpdHeade')]", '(e) vs M2S4: recovered 566 vs 567 (only here 0, only M2S4 1); NW-TT-terminated 10 vs 10']
+PASS  C8-v on M2S5 seed 0, mutation local-missing: FAIL (required FAIL)
+      slave tags 0; egress recovered 567 / untagged 9 (DS-TT Pdelay Resp 4 + Resp_FU 5, Pdelay_Req 5) / invalid 0; NW-TT tagged 578 = recovered 567 + NW-TT-terminated 10 + still inside 1; = M2S4; problems: ["(b) untagged egress frames that are not DS-TT Pdelay responses: 4 [('untagged Pdelay frame without an engine transmission', 3), ('untagged Pdelay frame without an engine transmission', 3)]", '(b) engine transmissions without an untagged egress frame: 5', '(c) Pdelay_Req 5, engine Resp/Resp_FU 5/5, at the egress 4/5, Resp then Resp_FU: False']
+
+OVERALL: PASS

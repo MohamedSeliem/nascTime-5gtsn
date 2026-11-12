@@ -1,0 +1,8 @@
+==> /root/inv/nascTime-5gtsn/simulations/results/simu5g-1.8.1/out-r181c-m2/m2/M2-S6/gate-D0.txt <==
+OVERALL: PASS (8/8)
+
+==> /root/inv/nascTime-5gtsn/simulations/results/simu5g-1.8.1/out-r181c-m2/m2/M2-S6/gate-E0b.txt <==
+OVERALL: PASS (3/3)
+
+==> /root/inv/nascTime-5gtsn/simulations/results/simu5g-1.8.1/out-r181c-m2/m2/M2-S6/check.txt <==
+OVERALL: PASS (1863/1863)

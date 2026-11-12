@@ -1,0 +1,3 @@
+M2-R181c dependency gate M2-S5 -> M2-S6: CLOSED
+reason: G2: C8-v check failures [N-fwdPdelay N-noFcsNw N-tseSlot]
+2026-11-12T13:10:32Z

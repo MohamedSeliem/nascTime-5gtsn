@@ -1,0 +1,4 @@
+# manifest of /root/inv/nascTime-5gtsn/simulations/results/simu5g-1.8.1/out-r181c-m2/m2/M2-S5-r181c/runs (2026-11-12T13:08:14Z); per configuration: files | bytes | sha256 of its hash lines | run log last line
+M2S4R-offset | 34 | 13108455 | b2d1fe7a8d3b4a89 | End.
+M2S5R-nc-noFcsNw-offset | 36 | 12884964 | ab733c54025b29ca | End.
+M2S5R-nc-tseSlot-load | 36 | 515223448 | a434e0538bc7bbce | End.

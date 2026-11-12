@@ -1,0 +1,6 @@
+M2-R181c dependency gate M2-S5 -> M2-S6: OPEN (2026-11-12T13:15:40Z)
+G1: historical M2-S5 check fails only [C8 N-fwdPdelay N-noFcsNw N-noStrip N-tseSlot] (verdict unchanged: OVERALL: FAIL (66/71))
+G2: check_m2s5 with C8-v fails only [N-noFcsNw N-tseSlot] (historical controls superseded by N-tseSlot-v / N-noFcsNw-v); OVERALL: FAIL (69/71)
+G3: OVERALL: PASS (replacement controls)
+G4: OVERALL: PASS (C8-v unmodified PASS, mutations FAIL)
+raw-outputs.sha256 by the m2s5.sh hash command over these runs: 2479 files, sha256 ee09b70f2c152a70

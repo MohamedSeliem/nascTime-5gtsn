@@ -1,0 +1,6 @@
+FAIL  C8-v M2S5-load vs M2S4-load
+      slave tags 0; egress recovered 9438 / untagged 10 (DS-TT Pdelay Resp 5 + Resp_FU 5, Pdelay_Req 5) / invalid 0; NW-TT tagged 11979 = recovered 9438 + NW-TT-terminated 10 + still inside 0; = M2S4; problems: ["(d) forwarded frames neither recovered, terminated nor still inside: 2531 [('20', '0.10451149', 'EthernetMacHeader(14B 0x8100) Ieee8021qTagEpdHeade'), ('21', '0.10476149', 'EthernetMacHeader(14B 0x8100) Ieee8021qTagEpdHeade')]"]
+FAIL  C8-v M2S5-load alone (no (e))
+      slave tags 0; egress recovered 9438 / untagged 10 (DS-TT Pdelay Resp 5 + Resp_FU 5, Pdelay_Req 5) / invalid 0; NW-TT tagged 11979 = recovered 9438 + NW-TT-terminated 10 + still inside 0; problems: ["(d) forwarded frames neither recovered, terminated nor still inside: 2531 [('20', '0.10451149', 'EthernetMacHeader(14B 0x8100) Ieee8021qTagEpdHeade'), ('21', '0.10476149', 'EthernetMacHeader(14B 0x8100) Ieee8021qTagEpdHeade')]"]
+not recovered, non-Pdelay, by kind: [('EthernetMacHeader(14B 0x8100) Ieee8021qT', 2520), ('EthernetMacHeader(14B 0x88f7) GptpFollow', 6), ('EthernetMacHeader(14B 0x88f7) GptpSync(4', 5)]
+Sync / Follow_Up delivered to slave: 34 33

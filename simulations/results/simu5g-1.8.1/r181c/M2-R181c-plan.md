@@ -163,3 +163,14 @@ The historical N-tseSlot and N-noFcsNw rows are kept and keep their 1.8.1 verdic
 **1.8.0 evidence** (`out-r181c-ctl180`; it ran before the fix and is not affected by it, because neither `c8demo` nor `controls` reads a run without an engine):
 - `c8demo`: PASS;
 - `controls`: N-tseSlot-v PASS, N-noFcsNw-v PASS.
+
+## Addendum 2 (2026-11-12, after M2-S6; nothing above is changed)
+
+**Observation not covered by a §4 prediction.** In the 1.8.0 evidence (`out-r181c-ctl180/controls-on-1.8.0.txt`), N-tseSlot-v PASSES, but its base run M2S5-load fails C8-v ("base fails ['C8']"). The 1.8.1 base fails nothing. The §4 prediction "C8-v PASS on 1.8.0" concerned `c8demo` (M2S5 seed 0) and held.
+
+**Diagnostic** (`run_diag_c8v_load_180.sh` → `out-r181c-diag180`, accepted 1.8.0 build, M2S4-load and M2S5-load seed 0, runs manifested then deleted; `diag_c8v_load.py`):
+- C8-v fails only sub-row (d): 2531 frames tagged at NW-TT eth[1] are neither recovered at the DS-TT egress, nor NW-TT-terminated, nor still inside (2520 PCP-tagged application frames, 5 Syncs, 6 Follow_Ups). Only 33 Follow_Ups reach the slave.
+- (a), (b), (c) hold; (e) holds: the recovered and terminated sets equal M2S4-load's, i.e. the same frames are missing without the M2-S5 translators.
+- Reading: frames lost inside the 5GS under saturating load with 5 HARQ processes, consistent with the documented 1.8.0 MAC discards (M1 L1; O-S3-1 12222 / 12694 losses on 1.8.0, 0 on 1.8.1). Not separately replayed here.
+
+**Consequence.** C8-v (d) assumes a 5GS that delivers every forwarded frame within the run. It fails on a run where the 5GS itself discards frames, although no bridge-carriage defect exists. On 1.8.1 every M2-S5 run delivers every forwarded frame, so (d) is applicable there. Reported as a limitation of C8-v; the row is not changed after its verdicts.
