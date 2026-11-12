@@ -1,0 +1,6 @@
+PASS  K-timestamps: Follow_Up originTimestamp = Sync start at the GM                    39 Syncs; max difference 0.000 ns
+PASS  K-pdelay: slave pdelay = estimator applied to the measured exchange               5 samples, max error 0.063 ns; raw per exchange 7.000 ms (UL 9.001 / DL 4.999), 16.928 ms (UL 28.856 / DL 5.001), 10.333 ms (UL 15.666 / DL 5.001), 14.374 ms (UL 23.747 / DL 5.001), 17.600 ms (UL 30.199 / DL 5.001); smoothed final 9.717 ms
+PASS  K-rateratio: GM rate ratio = from measured Sync arrivals                          38 updates, max error 3.22e-14; ratio range 0.992063..1.015127 (-7937..+15127 ppm with ideal clocks); Sync one-way delay 5.000676..6.002276 ms
+PASS  K-steps: slave clock offset after each Follow_Up = uncompensated-path prediction  39 of 39 Follow_Ups checked, max error 0.001 ns
+
+OVERALL: PASS

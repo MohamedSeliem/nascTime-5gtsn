@@ -1,0 +1,13 @@
+Slave clock (talker) vs grandmaster (listener), both ideal; offset = slave clock - simulation time,
+sampled every 1 ms and at every adjustment. Config S4, uncompensated 5G bridge. Recorded, no claim.
+seed  |offset| max [ms]  mean |offset| t>=1s [ms]  offset at 5 s [ms]  pdelay final [ms]  rate ratio range [ppm]
+0     6.372              3.435                      4.715               9.717              -7937..+15127
+1     6.431              3.502                      4.762               9.764              -7937..+15229
+2     5.860              3.203                      4.352               9.354              -7937..+16071
+3     5.610              3.580                      4.756               9.759              -7937..+16129
+4     5.891              3.298                      4.377               9.380              -7937..+13940
+5     5.565              3.514                      4.717               9.719              -7937..+16071
+6     5.255              3.410                      4.446               9.448              -7937..+8065
+7     6.426              3.539                      4.757               9.759              -7937..+16129
+8     5.556              3.480                      4.715               9.718              -7937..+16129
+9     6.347              3.426                      4.696               9.698              -7937..+16071

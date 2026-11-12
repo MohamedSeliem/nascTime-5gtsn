@@ -1,0 +1,25 @@
+2026-11-12T10:56:45Z m1/s4_gptp_transport rc=0 free=10853M
+2026-11-12T10:57:19Z m1/s5_metadata rc=0 free=10618M
+2026-11-12T10:58:29Z m1/o_tail_investigation rc=0 free=10024M
+2026-11-12T10:58:33Z s5e on 1.8.0: OVERALL: FAIL free=10024M
+2026-11-12T10:58:38Z s5i on 1.8.0: OVERALL: PASS free=10024M
+2026-11-12T10:58:47Z check_o_tail_v181.py on 1.8.0 vs committed O-tail/check.txt: IDENTICAL (historical checker on the same outputs: IDENTICAL) free=10024M
+M2S0-load rc=0
+M2S0-load-harq16 rc=0
+M2S1-load rc=0
+M2S4 rc=0
+M2S4-ctl-nopdelay rc=0
+M2S1-load-harq16 rc=0
+M2S4-ctl-nopdelay-load rc=0
+M2S4-load rc=0
+2026-11-12T11:00:57Z a7 on 1.8.0: OVERALL: FAIL free=7175M
+2026-11-12T11:01:13Z c10 on 1.8.0: OVERALL: FAIL free=7175M
+2026-11-12T11:01:28Z r2b on 1.8.0: OVERALL: PASS free=7175M
+manifest: 8 configurations, 834 files
+2026-11-12T11:01:33Z deleted m2runs after manifest free=10024M
+2026-11-12T11:01:33Z deleted m1/S4/seeds after hashing free=10116M
+2026-11-12T11:01:34Z deleted m1/S5/seeds after hashing free=10224M
+2026-11-12T11:01:34Z deleted m1/S5/nomeas after hashing free=10233M
+2026-11-12T11:01:34Z deleted m1/S5/pcaprun after hashing free=10245M
+2026-11-12T11:01:34Z deleted m1/O-tail/runs after hashing free=10615M
+2026-11-12T11:01:34Z DONE free=10615M

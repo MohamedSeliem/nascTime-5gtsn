@@ -1,0 +1,5 @@
+M2-R181b version-appropriate row R2b-v
+PASS  R2b-v attribution (M2S4 vs M2S4-ctl-nopdelay, seeds 0-9 and load): same application frames delivered; every arrival time identical; send times identical except frames queued at their station's egress behind its own Pdelay_Req
+      28772 application frames compared; send-time shifts, all behind the station's own Pdelay_Req: 0  ns (config, seed, dir, send end s, shift ns: []); problems: none
+
+OVERALL: PASS

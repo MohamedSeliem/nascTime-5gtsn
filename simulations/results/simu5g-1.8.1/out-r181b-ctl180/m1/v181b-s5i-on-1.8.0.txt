@@ -1,0 +1,4 @@
+M2-R181b row S5-R-ingress-v
+PASS  S5-R-ingress-v: tagged frames at the last INET module before the 5G system = frames tagged at the near translator + frames of the other direction that crossed the 5G system tagged (seeds 0..9)  seed 0: started {'DL': 578, 'UL': 496}, recorded at the far translator {'DL': 0, 'UL': 0}, tagged at UPF bridge (DL) / UE Ethernet (UL) {'DL': 578, 'UL': 496}, expected {'DL': 578, 'UL': 496}; seeds not matching: 0
+
+OVERALL: PASS

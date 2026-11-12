@@ -1,0 +1,5 @@
+M2-R181b version-appropriate row C10-v
+FAIL  C10-v load (M2S1-load, 5 and 16 HARQ processes, seed 0): every frame that leaves the 5G system is one that entered it, byte-identical, once, in order per flow; every other frame entered in the last 100 ms (still inside)
+      M2S1-load DL: entered 11979, left 9450, still inside at the end 2529 {'pcp0': 2502, 'pcp5': 16, 'gptp': 11} (entered before end - 100 ms: 2529); unknown 0, altered 0, duplicated 0, out of order 0 | M2S1-load UL: entered 11897, left 9642, still inside at the end 2255 {'pcp0': 2237, 'pcp5': 17, 'gptp': 1} (entered before end - 100 ms: 2254); unknown 0, altered 0, duplicated 0, out of order 0 | M2S1-load-harq16 DL: entered 11981, left 11978, still inside at the end 3 {'gptp': 3} (entered before end - 100 ms: 1); unknown 0, altered 0, duplicated 0, out of order 0 | M2S1-load-harq16 UL: entered 11897, left 11897, still inside at the end 0 {} (entered before end - 100 ms: 0); unknown 0, altered 0, duplicated 0, out of order 0
+
+OVERALL: FAIL
