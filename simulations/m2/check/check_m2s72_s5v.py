@@ -28,7 +28,8 @@ candidate / ineligible / granted TTIs of the UE's DL connections, granted bytes,
 (UE MAC log), queue growth (E0 backlog metrics), achieved service (E0 metrics).
 
 Option analysis mapping: Q-0p has Q-0's DRB mapping (m2s71_lib.OPTIONS) and the same C-a clocks, so its runs are
-evaluated with the Q-0 mapping; the scheduler is not an input of any row (rows observe). Checked in test_m2s72s5.py.
+evaluated with the Q-0 mapping; Q-de has Q-d's mapping (it differs from Q-d only in the gPTP DRB's profile, D-1), so
+its runs are evaluated with the Q-d mapping. Neither the scheduler nor a DRB profile is an input of any row (rows observe). Checked in test_m2s72s5.py.
 Scope of S5-1: N = 1 configurations only (E0v core, twins, E0v-p, E0v-H5). E0v-N (N > 1) is refused (exit 2): the
 per-UE N > 1 evaluation is the next increment (G-2).
 """
@@ -53,13 +54,13 @@ import m2s72s5_lib as LIB  # noqa: E402
 rows = E.rows
 S, MS = E.S, E.MS
 NA, NE = E.NA, E.NE
-ANALYSIS_OPT = {"q0": "q0", "q0p": "q0", "qdu": "qdu"}
+ANALYSIS_OPT = {"q0": "q0", "q0p": "q0", "qdu": "qdu", "qde": "qdu"}   # Q-de: Q-d's DRB mapping (D-1)
 # declared loss-free before any run (protocol §4): HARQ16 at DL factor 1, every option
-LOSS_FREE_V = {"M2S72-E0v-q0-f1", "M2S72-E0v-qdu-f1", "M2S72-E0v-q0p-f1"}
+LOSS_FREE_V = {"M2S72-E0v-q0-f1", "M2S72-E0v-qdu-f1", "M2S72-E0v-q0p-f1", "M2S72-E0v-qde-f1"}
 REMOVED_181 = ("no available process for this MAC PDU",)        # emitted by 1.8.0 only (LteMacEnb.cc:585, LteMacUe.cc)
 UE_GRANT_UNUSED = re.compile(r"no free H-ARQ process for the grant on carrier \[[^\]]*\], the grant is not used")
-NAME = re.compile(r"M2S72-(E0v|E0vNL|E0vH5|E0vH5NL|E0)-(q0p|q0|qdu)-f(\d+)$")
-NAME_N = re.compile(r"M2S72-E0vN(H5)?-(q0p|q0|qdu)-(one0|sym)-n(\d+)-f(\w+)$")
+NAME = re.compile(r"M2S72-(E0v|E0vNL|E0vH5|E0vH5NL|E0)-(q0p|q0|qdu|qde)-f(\d+)$")
+NAME_N = re.compile(r"M2S72-E0vN(H5)?-(q0p|q0|qdu|qde)-(one0|sym)-n(\d+)-f(\w+)$")
 
 
 def parse_name(cfg):
@@ -68,8 +69,8 @@ def parse_name(cfg):
     m = NAME.fullmatch(cfg)
     if m:
         kind, o, f = m.group(1), m.group(2), int(m.group(3))
-        if kind == "E0" and o == "q0p":
-            raise ValueError(f"{cfg}: no Q-0p E0 config")
+        if kind == "E0" and o in ("q0p", "qde"):
+            raise ValueError(f"{cfg}: no {o} E0 config")
         return kind, o, not kind.startswith("E0vH5"), f, 1
     m = NAME_N.fullmatch(cfg)
     if m:

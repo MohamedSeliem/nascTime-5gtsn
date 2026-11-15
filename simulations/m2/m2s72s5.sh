@@ -5,9 +5,13 @@
 # simulations/m2/results and never runs in legacy mode.
 #
 #   m2s72s5.sh regen              no simulation: accepted generator check, m2s72s5.ini check / verify / RD-4 diff,
-#                                 S5-1 tests -> $RESULTS/M2-S7.2a-s5regen/regen.txt
+#                                 effective-entry check of the accepted sources (G0-R1), S5-1 tests
+#                                 -> $RESULTS/M2-S7.2a-s5regen/regen.txt
+#   m2s72s5.sh smoke              the single E0v-q0-f1 smoke run (protocol §9): run, per-run check, E0 quick proxy,
+#                                 controls-q8, manifest; raw outputs held uncompressed and read-only (never deleted,
+#                                 never released); not an E0v result
 #   m2s72s5.sh e0v                E0v core [A -> 1.8.1]: E0's ascending factors and escalation stop, the MAC-log twin
-#   m2s72s5.sh e0vp               E0v-p: Q-0p at DL factor 1, 2
+#   m2s72s5.sh e0vp               E0v-p: Q-0p and Q-de (D-1) at DL factor 1, 2
 #   m2s72s5.sh e0vh5              E0v-H5: 5 H-ARQ processes at DL factor 1, 2 and the H5 twin
 #   m2s72s5.sh release <stage>    commit the records of pending runs of <stage> and delete their raw outputs
 #
@@ -30,7 +34,7 @@ HERE=$(cd "$(dirname "$0")" && pwd)
 NASCTIME=$(cd "$HERE/../.." && pwd)
 MODE=${1:-}
 die() { echo "ERROR: $*" >&2; exit 1; }
-[ -n "$MODE" ] || die "usage: m2s72s5.sh regen | e0v | e0vp | e0vh5 | release <stage>"
+[ -n "$MODE" ] || die "usage: m2s72s5.sh regen | smoke | e0v | e0vp | e0vh5 | release <stage>"
 for v in OMNETPP_ROOT INET_ROOT SIMU5G_ROOT NASCTIME_RESULTS_ROOT; do
   [ -n "${!v:-}" ] || die "$v must be set explicitly (Stage 5 never assumes machine paths)"
 done
@@ -49,6 +53,7 @@ declare -A EST_B=([1]=$((9 * GB / 10)) [2]=$((6 * GB / 5)) [4]=$((17 * GB / 10))
 
 case "$MODE" in
   regen) STAGE=M2-S7.2a-s5regen ;;
+  smoke) STAGE=M2-S7.2a-s5smoke ;;
   e0v) STAGE=M2-S7.2a-e0v ;;
   e0vp) STAGE=M2-S7.2a-e0vp ;;
   e0vh5) STAGE=M2-S7.2a-e0vh5 ;;
@@ -94,12 +99,12 @@ note() { echo "$(date -u +%FT%TZ) $*" | tee -a "$REC/steps.txt"; }
 ledger() { printf "%s\t%s\n" "$(date -u +%FT%TZ)" "$*" >> "$REC/ledger.tsv"; "${LIB[@]}" durable "$REC/ledger.tsv"; }
 
 # ------------------------------------------------------------------------------------------------ lifecycle -----
-# s5_run <cfg> <factor> <twin bytes> : one simulation, classified; returns 0 OK, 3 space STOP, 5 non-OK outcome
+# s5_run <cfg> <factor> <twin bytes> [<limit s>] : one simulation, classified; returns 0 OK, 3 space STOP, 5 non-OK
 s5_run() {
   local cfg=$1 f=$2 twinb=$3 t0 rc lim out det raw
   "${LIB[@]}" space "$OUT" "${EST_B[$f]}" "$twinb" | tee -a "$REC/steps.txt"
   [ "${PIPESTATUS[0]}" = 0 ] || { note "STOP before $cfg: free-space rule"; return 3; }
-  lim=$(( ${EST_MIN[$f]} * 3 * 60 ))
+  lim=${4:-$(( ${EST_MIN[$f]} * 3 * 60 ))}
   t0=$(date +%s)
   (cd "$HERE" && timeout "$lim" "${OPP[@]}" -f m2s72s5.ini -c "$cfg" --repeat=1 -r 0 --result-dir="$OUT/runs/$cfg" \
      --cmdenv-express-mode=false --fingerprint=0000-0000/tplx 2>&1 | gzip -n -1 > "$OUT/runs/run-$cfg.log.gz"; exit "${PIPESTATUS[0]}")
@@ -202,6 +207,9 @@ case "$MODE" in
       echo "verify rc $?"
       echo; echo "== python3 tools/m2s72s5_gen.py diff (RD-4)"; (cd "$HERE" && python3 tools/m2s72s5_gen.py diff "${OPP[@]}")
       echo "diff rc $?"
+      echo; echo "== python3 tools/m2s72_verify_eff.py check / control (G0-R1: effective entries of the accepted m2s72.ini sources)"
+      (cd "$HERE" && python3 tools/m2s72_verify_eff.py check "${OPP[@]}" -f omnetpp.ini); echo "verify-eff rc $?"
+      (cd "$HERE" && python3 tools/m2s72_verify_eff.py control "${OPP[@]}" -f omnetpp.ini); echo "verify-eff controls rc $?"
       echo; echo "== S5-1 tests"; python3 "$CHK/test_m2s72s5.py"; echo "tests rc $?"
     } > "$REC/regen.txt" 2>&1
     tail -20 "$REC/regen.txt" ;;
@@ -248,7 +256,7 @@ case "$MODE" in
     s5_release || exit 7
     note "E0v batch end" ;;
   e0vp)
-    for f in 1 2; do s5_full "M2S72-E0v-q0p-f$f" "$f" 0 "" || exit $?; s5_release || exit 7; done
+    for f in 1 2; do for o in q0p qde; do s5_full "M2S72-E0v-$o-f$f" "$f" 0 "" || exit $?; s5_release || exit 7; done; done
     note "E0v-p batch end" ;;
   e0vh5)
     s5_full M2S72-E0vH5-q0-f1 1 "${EST_B[1]}" "H5 twin" || exit $?
@@ -262,7 +270,31 @@ case "$MODE" in
       s5_full "$cfg" "${cfg##*-f}" 0 "" || exit $?; s5_release || exit 7
     done
     note "E0v-H5 batch end" ;;
+  smoke)
+    # protocol §9: one run, everything kept. Its purpose is the review of the 1.8.1 MAC-log grammar (MG-1 census),
+    # the run's size and wall time in this environment, and the lifecycle steps; it is not an E0v result and is not
+    # repeated inside e0v. The wall-time limit is a fixed 60 min (the E0v limits are re-derived from this run).
+    cfg=M2S72-E0v-q0-f1
+    note "smoke start (S5_ENV_DECISION ${S5_ENV_DECISION}); raw outputs are held, never released or deleted"
+    s5_run "$cfg" 1 0 3600 || exit $?
+    s5_check "$cfg"; crc=$?
+    s5_manifest "$cfg" || exit 5
+    for x in "$REC/$cfg.check.txt" "$REC/$cfg.digest.json"; do [ -f "$x" ] && "${LIB[@]}" durable "$x"; done
+    python3 "$CHECKER" quick "$OUT/runs" "$cfg" >> "$REC/steps.txt" 2>&1; qrc=$?
+    note "$cfg: E0 quick proxy rc $qrc: $(tail -1 "$REC/steps.txt")"
+    python3 "$CHECKER" controls-q8 "$OUT/runs" "$cfg" "$REC" >> "$REC/steps.txt" 2>&1; ctrc=$?
+    note "$cfg: controls-q8 rc $ctrc (in memory; the raw outputs are read only)"
+    chmod -R a-w "$OUT/runs/$cfg" "$OUT/runs/run-$cfg.log.gz"
+    "${LIB[@]}" verify-manifest "$REC/$cfg.manifest.sha256" | tee -a "$REC/steps.txt"; vrc=${PIPESTATUS[0]}
+    ledger "$cfg	held (smoke review; uncompressed, read-only, never released by this runner)"
+    printf "%s\t%s\t%s\theld\tsmoke review; quick rc %s, controls-q8 rc %s, manifest re-verified rc %s\n" \
+      "$S5_LAST" "$( [ "$crc" = 0 ] && echo PASS || echo "rc $crc")" "$S5_MAN" "$qrc" "$ctrc" "$vrc" >> "$REC/runs.tsv"
+    du -sb "$OUT/runs/$cfg" "$OUT/runs/run-$cfg.log.gz" | tee -a "$REC/steps.txt"
+    for x in "$REC"/*; do "${LIB[@]}" durable "$x"; done
+    if [ "$crc$qrc$ctrc$vrc" != 0000 ]; then note "smoke end: NOT CLEAN (check $crc, quick $qrc, controls $ctrc, manifest $vrc)"; exit 6; fi
+    note "smoke end: clean (check PASS, quick, controls-q8 as declared, manifest re-verified)" ;;
   release)
+    [ "$STAGE" = M2-S7.2a-s5smoke ] && die "the smoke stage is never released by this runner (protocol §9)"
     [ -d "$REC" ] || die "$REC does not exist"
     s5_release ;;
 esac

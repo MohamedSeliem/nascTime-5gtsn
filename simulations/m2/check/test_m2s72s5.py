@@ -224,7 +224,8 @@ def _():
     assert V.parse_name("M2S72-E0vH5NL-q0-f1")[0] == "E0vH5NL"
     assert V.parse_name("M2S72-E0-q0-f8") == ("E0", "q0", True, 8, 1)
     assert V.parse_name("M2S72-E0vNH5-q0p-sym-n8-f1p25")[:2] == ("E0vN", "q0p")
-    for bad in ("M2S72-E0-q0p-f1", "M2S72-E2-q0-one0-n1-f1", "X"):
+    assert V.parse_name("M2S72-E0v-qde-f1") == ("E0v", "qde", True, 1, 1) and V.ANALYSIS_OPT["qde"] == "qdu"
+    for bad in ("M2S72-E0-q0p-f1", "M2S72-E0-qde-f1", "M2S72-E2-q0-one0-n1-f1", "X"):
         try:
             V.parse_name(bad)
             raise AssertionError(f"{bad} accepted")
@@ -254,6 +255,46 @@ def _fresh_gen():
     g = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(g)
     return g
+
+
+@test("Q-de (D-1): each per-N mixin is Q-d's accepted section with only the gPTP DRB profile changed; base / D-4 extend Q-d's")
+def _():
+    import re
+    ini = open(G5.OUT5).read()
+    acc = open(G5.G.OUT).read()
+    sec = lambda txt, nm: re.search(rf"^\[Config {re.escape(nm)}\]\n(.*?)(?=^\[Config |\Z)", txt, re.M | re.S).group(1)  # noqa: E731
+    for n in G5.QDE_NS:
+        a = sec(acc, f"M2S72N{n}-qdu-Ca-L").split("\n")[1:]
+        b = sec(ini, f"M2S72N{n}-qde-Ca-L").split("\n")[1:]
+        assert len(a) == len(b)
+        d = [(x, y) for x, y in zip(a, b) if x != y]
+        assert len(d) == n and all(x.replace('"nasc-gptp"', '"nasc-be"') == y and "drbId: 4" in x for x, y in d), d
+        assert f"extends = M2S72D4N{n}-qdu-Ca-L" in sec(ini, f"M2S72D4N{n}-qde-Ca-L")
+    assert "extends = M2S72B-qdu-Ca-L" in sec(ini, "M2S72B-qde-Ca-L")
+    m = G5.matrix()
+    assert {k for k, v in m.items() if v[0] == "qde" and v[-1] == "p"} == {"M2S72-E0v-qde-f1", "M2S72-E0v-qde-f2"}
+    assert all(v[5] for v in m.values() if v[0] == "qde"), "Q-de must be HARQ16 only (D-1)"
+
+
+@test("Q-de refusal: a gPTP-profile substitution outside DRB 4 or with the wrong count is refused")
+def _():
+    g = _fresh_gen()
+    real = g.G.OUT
+    d = tempfile.mkdtemp()
+    try:
+        p = os.path.join(d, "m2s72.ini")
+        txt = open(real).read()
+        i = txt.index("[Config M2S72N1-qdu-Ca-L]")
+        j = txt.index('drbId: 2, mappedQfis: [5], lcg: 1, rlcMode: "UM", profile: "nasc-be"}', i)
+        base = txt[:j] + txt[j:].replace('profile: "nasc-be"}', 'profile: "nasc-gptp"}', 1)
+        open(p, "w").write(base)
+        try:
+            g.qde_sections(base, set())
+            raise AssertionError("accepted")
+        except g.GenError as ex:
+            assert "outside the gPTP DRB" in str(ex), ex
+    finally:
+        shutil.rmtree(d)
 
 
 @test("generator refusal: a factor whose interval is not an exact ns (0.75 at one loaded UE)")
@@ -480,7 +521,7 @@ def _():
         assert not os.path.exists(os.path.join(out, "runs", "M2S72-E0v-q0p-f1")), "raw not deleted"
         rec = os.path.join(out, "records")
         led = open(os.path.join(rec, "ledger.tsv")).read()
-        assert led.count("raw deleted after its manifest and records were committed") == 2, led
+        assert led.count("raw deleted after its manifest and records were committed") == 4, led
         log = subprocess.run(["git", "-C", repo, "log", "--format=%s"], capture_output=True, text=True).stdout
         assert "S5 records:" in log, log
         rel = subprocess.run(["git", "-C", repo, "ls-files"], capture_output=True, text=True).stdout
@@ -501,7 +542,8 @@ def _():
         assert r.returncode == 0, r.stderr[-500:]
         out = os.path.join(d, "root", "m2", "M2-S7.2a-e0vp")
         assert os.path.isdir(os.path.join(out, "runs", "M2S72-E0v-q0p-f1"))
-        assert open(os.path.join(out, "records", "pending-release.txt")).read().split() == ["M2S72-E0v-q0p-f1", "M2S72-E0v-q0p-f2"]
+        assert open(os.path.join(out, "records", "pending-release.txt")).read().split() == [
+            "M2S72-E0v-q0p-f1", "M2S72-E0v-qde-f1", "M2S72-E0v-q0p-f2", "M2S72-E0v-qde-f2"]
         repo = _repo(d)
         env["S5_RECORDS_REPO"] = repo
         r = _runner(env, "release", "M2-S7.2a-e0vp")
@@ -540,6 +582,61 @@ def _():
         assert "tier B" in open(os.path.join(out, "records", "ledger.tsv")).read()
     finally:
         shutil.rmtree(d)
+
+
+def _rmtree_ro(d):
+    """cleanup of a tree that holds read-only smoke evidence (rmtree needs writable directories as non-root)"""
+    for root, dirs, _ in os.walk(d):
+        for x in dirs:
+            os.chmod(os.path.join(root, x), 0o755)
+    shutil.rmtree(d)
+
+
+@test("runner smoke: one run E0v-q0-f1, check, quick, controls-q8, manifest; raw held uncompressed and read-only; "
+      "nothing committed or deleted even with S5_RECORDS_REPO; release of the smoke stage refused")
+def _():
+    d = tempfile.mkdtemp()
+    try:
+        repo = _repo(d)
+        env = _env(d, S5_RECORDS_REPO=repo)
+        r = _runner(env, "smoke")
+        assert r.returncode == 0, r.stdout[-800:] + r.stderr[-800:]
+        out = os.path.join(d, "root", "m2", "M2-S7.2a-s5smoke")
+        run = os.path.join(out, "runs", "M2S72-E0v-q0-f1")
+        assert sorted(os.listdir(os.path.join(out, "runs"))) == ["M2S72-E0v-q0-f1", "run-M2S72-E0v-q0-f1.log.gz"]
+        x = os.path.join(run, "M2S72-E0v-q0-f1", "x.csv")
+        assert os.path.exists(x) and not os.path.exists(x + ".gz"), "smoke raw must stay uncompressed"
+        assert not (os.stat(x).st_mode & 0o222) and not (os.stat(run).st_mode & 0o222), "smoke raw not read-only"
+        rec = os.path.join(out, "records")
+        assert "held (smoke review" in open(os.path.join(rec, "ledger.tsv")).read()
+        assert not os.path.exists(os.path.join(rec, "pending-release.txt"))
+        tsv = open(os.path.join(rec, "runs.tsv")).read().splitlines()
+        assert len(tsv) == 2 and "\tOK\t" in tsv[1] and "\theld\t" in tsv[1], tsv
+        assert open(env["STUB_CALLS"]).read().startswith("controls-q8 "), "controls-q8 not called"
+        assert "manifest verified" in open(os.path.join(rec, "steps.txt")).read()
+        log = subprocess.run(["git", "-C", repo, "log", "--format=%s"], capture_output=True, text=True).stdout
+        assert "S5 records" not in log, log
+        r = _runner(env, "release", "M2-S7.2a-s5smoke")
+        assert r.returncode != 0 and "never released" in r.stderr, r.stderr
+        assert os.path.exists(x)
+        r = _runner(env, "smoke")
+        assert r.returncode != 0 and "never overwritten" in r.stderr, r.stderr
+    finally:
+        _rmtree_ro(d)
+
+
+@test("runner smoke: a failed per-run check -> exit 6, every later step still recorded, raw held uncompressed")
+def _():
+    d = tempfile.mkdtemp()
+    try:
+        r = _runner(_env(d, STUB_CHECK_RC="1"), "smoke")
+        assert r.returncode == 6, (r.returncode, r.stdout[-500:])
+        out = os.path.join(d, "root", "m2", "M2-S7.2a-s5smoke")
+        assert os.path.exists(os.path.join(out, "runs", "M2S72-E0v-q0-f1", "M2S72-E0v-q0-f1", "x.csv"))
+        steps = open(os.path.join(out, "records", "steps.txt")).read()
+        assert "NOT CLEAN (check 1, quick 0, controls 0, manifest 0)" in steps, steps[-600:]
+    finally:
+        _rmtree_ro(d)
 
 
 @test("runner: an existing stage directory is never overwritten")

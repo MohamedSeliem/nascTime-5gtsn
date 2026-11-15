@@ -34,7 +34,6 @@ import os
 import re
 import subprocess
 import sys
-import tempfile
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 _spec = importlib.util.spec_from_file_location("m2s72_gen", os.path.join(HERE, "m2s72_gen.py"))
@@ -45,8 +44,13 @@ M2 = G.M2
 OUT5 = os.path.join(M2, "m2s72s5.ini")
 
 Q0P = "M2S71-q0p-Ca-sus@L"
-OPTS5 = {"q0": "M2S71-q0-Ca-sus@L", "q0p": Q0P, "qdu": "M2S71-qdu-Ca-sus@L"}
-SCHED = {"q0": None, "q0p": "QOS_PF", "qdu": "QOS_PF"}       # expected effective scheduler (None: Simu5G default MAXCI)
+QDU = "M2S71-qdu-Ca-sus@L"
+# Q-de (decision D-1, approved 2026-11-15): Q-d's DRB mapping (gPTP DL rule -> QFI 10 -> DRB 4, UM, LCG 2) with the
+# nasc-be profile on the gPTP DRB, i.e. Q-d minus exactly its gPTP priority. Its load source is Q-d's (identical traffic
+# by construction: the same load mixins); its sections are derived from Q-d's generated sections (generate()).
+OPTS5 = {"q0": "M2S71-q0-Ca-sus@L", "q0p": Q0P, "qdu": QDU, "qde": QDU}
+SCHED = {"q0": None, "q0p": "QOS_PF", "qdu": "QOS_PF", "qde": "QOS_PF"}   # expected effective scheduler (None: default MAXCI)
+E0VN_H5_OPTS = ("q0", "q0p", "qdu")           # Q-de is in E1 loaded HARQ16 only (D-1), so in the HARQ16 bracket only
 E0V_FACTORS = (1, 2, 4, 8)
 E0V_TWIN = "q0"
 E0V_P_FACTORS = (1, 2)
@@ -65,7 +69,7 @@ COMMON = ["M2S72-SL", "M2S72-L", "M2S72-ev"]
 
 
 def short_of(o):
-    return {"q0": "q0-Ca-L", "q0p": "q0p-Ca-L", "qdu": "qdu-Ca-L"}[o]
+    return {"q0": "q0-Ca-L", "q0p": "q0p-Ca-L", "qdu": "qdu-Ca-L", "qde": "qde-Ca-L"}[o]
 
 
 def chain(o, n, ld, h16=True, logs=True):
@@ -86,8 +90,9 @@ def matrix():
             m[f"M2S72-E0v-{o}-f{G.flabel(f)}"] = (o, "one0", 1, f, 1, True, True, "core")
             if o == E0V_TWIN:
                 m[f"M2S72-E0vNL-{o}-f{G.flabel(f)}"] = (o, "one0", 1, f, 1, True, False, "twin")
-    for f in E0V_P_FACTORS:
-        m[f"M2S72-E0v-q0p-f{G.flabel(f)}"] = ("q0p", "one0", 1, f, 1, True, True, "p")
+    for o in ("q0p", "qde"):
+        for f in E0V_P_FACTORS:
+            m[f"M2S72-E0v-{o}-f{G.flabel(f)}"] = (o, "one0", 1, f, 1, True, True, "p")
     for o in ("q0", "qdu"):
         for f in E0V_H5_FACTORS:
             m[f"M2S72-E0vH5-{o}-f{G.flabel(f)}"] = (o, "one0", 1, f, 1, False, True, "h5")
@@ -96,7 +101,7 @@ def matrix():
     for o in OPTS5:
         for pl, n in E0VN_PL:
             for f in E0VN_FACTORS:
-                for h5 in (False, True):
+                for h5 in ((False, True) if o in E0VN_H5_OPTS else (False,)):
                     m[e0vn_name(o, pl, n, f, h5)] = (o, pl, n, f, f, not h5, True, "N")
     return m
 
@@ -152,12 +157,13 @@ def generate():
     for n in G.SOURCES[Q0P][1]:
         out += G.mixin_n(Q0P, short_of("q0p"), n, eff) + [""]
         out += G.mixin_d4(short_of("q0p"), n, Q0P) + [""]
+    out += qde_sections(base, have)
     out += ["#" + "-" * 100, UELOG_TEXT]
     ext, done = {}, set()
     mx = matrix()
     heads = {"core": "# E0v core [A -> 1.8.1]: the approved E0 matrix (N = 1, load on UE 0, DL factor 1, 2, 4, 8, UL 1 x L_tot, "
                      "HARQ16 experimental control, MAC log) + the UE MAC log; twins M2S72-E0vNL-q0-f<F> without both logs",
-             "p": "# E0v-p (P-4): Q-0p at DL factor 1, 2 (N = 1, UL 1 x L_tot, HARQ16)",
+             "p": "# E0v-p (P-4, D-1): Q-0p and Q-de at DL factor 1, 2 (N = 1, UL 1 x L_tot, HARQ16)",
              "h5": "# E0v-H5 (RD-1): Simu5G default 5 H-ARQ processes (no HARQ16 mixin), DL factor 1, 2; twin M2S72-E0vH5NL-q0-f1",
              "N": "# E0v-N (RD-2): saturation bracket of every E1 combination with load; UL factor = DL factor; exact intervals only. "
                   "Generated for review; NOT runnable by the S5-1 runner (N > 1 per-UE checker: next increment)"}
@@ -175,16 +181,61 @@ def generate():
         if nm in have:
             raise GenError(f"{nm} already defined in m2s72.ini")
         ext[nm] = chain(o, n, ld, h16, logs)
-        what = {"core": "E0v core", "twin": "E0v non-perturbation twin (no MAC logs)", "p": "E0v-p (Q-0p)",
+        what = {"core": "E0v core", "twin": "E0v non-perturbation twin (no MAC logs)", "p": f"E0v-p ({'Q-0p' if o == 'q0p' else 'Q-de'})",
                 "h5": "E0v-H5 (5 H-ARQ processes)", "h5twin": "E0v-H5 non-perturbation twin (no MAC logs)", "N": "E0v-N bracket"}[kind]
-        desc = (f"{what}: {G.src_of(cfg)}, {pl}, numUe = {n}, DL factor {f}, UL factor {ful}, "
+        desc = (f"{what}: {G.src_of(cfg)}{' with the nasc-be profile on the gPTP DRB (Q-de)' if o == 'qde' else ''}, {pl}, numUe = {n}, DL factor {f}, UL factor {ful}, "
                 f"{'HARQ16 (experimental control)' if h16 else 'HARQ 5 (Simu5G default)'}{', MAC logs' if logs else ''}")
         out += [f"[Config {nm}]", f'description = "{desc}"', f"extends = {', '.join(ext[nm])}", ""]
-    for name in (UELOG, f"M2S72B-{short_of('q0p')}"):
+    for name in (UELOG, f"M2S72B-{short_of('q0p')}", f"M2S72B-{short_of('qde')}"):
         if name in have:
             raise GenError(f"{name} already defined in m2s72.ini")
     G.check_inheritance(ext)
     return "\n".join(out).rstrip("\n") + "\n", used
+
+
+QDE_NS = (1, 2, 4, 8)
+
+
+def qde_sections(base, have):
+    """Q-de sections derived from the accepted Q-d sections of m2s72.ini: the base and the D-4 mixins extend Q-d's;
+    each per-N mixin is Q-d's text with ONLY the gPTP DRB's profile "nasc-gptp" replaced by "nasc-be" (exactly N
+    substitutions, every other byte of the section unchanged; refused otherwise)"""
+    s = short_of("qdu")
+    q = short_of("qde")
+    out = ["#" + "-" * 100,
+           "# Q-de (decision D-1): Q-d's DRB mapping with the nasc-be profile on the gPTP DRB (Q-d minus exactly its gPTP",
+           "# priority). Base and D-4 mixins extend Q-d's; each per-N mixin is Q-d's generated section with only the gPTP",
+           "# DRB's profile changed (nasc-gptp -> nasc-be). Load: Q-d's load mixins (identical traffic).",
+           f"[Config M2S72B-{q}]",
+           f'description = "(abstract, generated) Q-de: {QDU} on M2S72Bridge, gPTP DRB with the nasc-be profile (per-N mixins)"',
+           f"extends = M2S72B-{s}", ""]
+    for n in QDE_NS:
+        src = f"M2S72N{n}-{s}"
+        m = re.search(rf"^\[Config {re.escape(src)}\]\n(.*?)(?=^\[Config |\Z)", base, re.M | re.S)
+        if not m:
+            raise GenError(f"{src} not found in m2s72.ini")
+        body = m.group(1).rstrip("\n").split("\n")
+        if not body[0].startswith("description = "):
+            raise GenError(f"{src}: unexpected layout")
+        new, k = [], 0
+        for line in body[1:]:
+            if 'profile: "nasc-gptp"' in line:
+                if "drbId: 4" not in line or "mappedQfis: [10]" not in line:
+                    raise GenError(f"{src}: nasc-gptp outside the gPTP DRB: {line.strip()}")
+                line = line.replace('profile: "nasc-gptp"', 'profile: "nasc-be"')
+                k += 1
+            new.append(line)
+        if k != n:
+            raise GenError(f"{src}: {k} gPTP DRB profiles replaced, expected {n}")
+        for name in (f"M2S72N{n}-{q}", f"M2S72D4N{n}-{q}"):
+            if name in have:
+                raise GenError(f"{name} already defined in m2s72.ini")
+        out += [f"[Config M2S72N{n}-{q}]",
+                f'description = "(mixin, generated) {q} at numUe = {n}: {src} with the gPTP DRB profile nasc-be ({n} replacement(s))"']
+        out += new + [""]
+        out += [f"[Config M2S72D4N{n}-{q}]", f'description = "(mixin, generated) D-4 of {q} at numUe = {n}: as M2S72D4N{n}-{s}"',
+                f"extends = M2S72D4N{n}-{s}", ""]
+    return out
 
 
 # ------------------------------------------------------------------------------------------------ verification -----
@@ -362,47 +413,28 @@ def classify_diff(claim, A, B):
     return diffs, bad
 
 
-QDE_NOTE = ("Q-de (proposal D-1, not a configuration of m2s72s5.ini): a temporary config = the Q-d config with "
-            "*.bearerConfigurator.staticDrbs replaced by Q-d's own resolved value in which the gPTP DRB's profile "
-            "nasc-gptp is replaced by nasc-be")
-
-
 def diff(cmd):
-    """RD-4: the generated (resolved) configurations of each option comparison, every difference printed"""
-    sets = [("N = 1, DL factor 1, HARQ16", {o: f"M2S72-E0v-{o}-f1" for o in ("q0", "q0p")} | {"qdu": "M2S72-E0v-qdu-f1"}),
-            ("sym, N = 4, factor 1, HARQ16", {o: e0vn_name(o, "sym", 4, 1, False) for o in OPTS5})]
+    """RD-4 / D-1: the generated (resolved) configurations of each option comparison, every difference printed and
+    classified against the comparison's claim. Expected: q0 -> q0p scheduler only; q0p -> qde mapping only; qde -> qdu
+    priority only; q0p -> qdu NOT mapping-only (mapping + priority: reported as such, never used as a mapping test)"""
+    sets = [("N = 1, DL factor 1, HARQ16 (E0v core / E0v-p)", {o: f"M2S72-E0v-{o}-f1" for o in OPTS5}),
+            ("sym, N = 4, factor 1, HARQ16 (E0v-N)", {o: e0vn_name(o, "sym", 4, 1, False) for o in OPTS5}),
+            ("one0, N = 8, factor 1.25, HARQ16 (E0v-N)", {o: e0vn_name(o, "one0", 8, 1.25, False) for o in OPTS5})]
+    plan = (("q0", "q0p", "scheduler", True), ("q0p", "qde", "mapping", True), ("qde", "qdu", "priority", True),
+            ("q0p", "qdu", "mapping", False))
     bad = 0
-    tmp = tempfile.mkdtemp(prefix="m2s72s5diff-")
-    try:
-        for label, names in sets:
-            res = {o: first(norm(runconfig(cmd, "m2s72s5.ini", nm), nm)) for o, nm in names.items()}
-            # Q-de: the Q-d config with the gPTP DRB profile set to the default DRB's profile
-            qd = res["qdu"]
-            drbs = qd["*.bearerConfigurator.staticDrbs"]
-            if drbs.count('"nasc-gptp"') == 0:
-                raise GenError("Q-d staticDrbs without nasc-gptp: the Q-de construction does not apply")
-            qde_v = drbs.replace('"nasc-gptp"', '"nasc-be"')
-            nm = "M2S5X-qde"
-            ini = os.path.join(tmp, "qde.ini")
-            open(ini, "w").write(f"include {OUT5}\n\n[Config {nm}]\ndescription = \"{QDE_NOTE}\"\n"
-                                 f"extends = {names['qdu']}\n*.bearerConfigurator.staticDrbs = {qde_v}\n")
-            res["qde"] = first(norm(runconfig(cmd, ini, nm), nm))
-            print(f"== {label}")
-            for a, b, claim, expect in (("q0", "q0p", "scheduler", True), ("q0p", "qdu", "mapping", None),
-                                        ("q0p", "qde", "mapping", True), ("qde", "qdu", "priority", True)):
-                diffs, nb = classify_diff(claim, res[a], res[b])
-                verdict = "ISOLATED" if not nb else "NOT ISOLATED"
-                print(f"   {a} -> {b}, claim '{claim}' ({CLAIMS[claim]}): {verdict}; {len(diffs)} differing entries"
-                      + ("" if not nb else f"; not allowed by the claim: {nb}"))
-                for k, va, vb in diffs:
-                    print(f"      {k}\n         {a}: {va}\n         {b}: {vb}")
-                if expect is True and nb:
-                    bad += 1
-        print("\nnote: q0p -> qdu is expected NOT to isolate mapping (plan rev. 1 RD-4 finding): it adds the gPTP DRB AND gives it "
-              "the nasc-gptp priority profile; " + QDE_NOTE)
-    finally:
-        import shutil
-        shutil.rmtree(tmp)
+    for label, names in sets:
+        res = {o: first(norm(runconfig(cmd, "m2s72s5.ini", nm), nm)) for o, nm in names.items()}
+        print(f"== {label}")
+        for a, b, claim, expect in plan:
+            diffs, nb = classify_diff(claim, res[a], res[b])
+            verdict = "ISOLATED" if not nb else "NOT ISOLATED"
+            print(f"   {a} -> {b}, claim '{claim}' ({CLAIMS[claim]}): {verdict} (expected {'ISOLATED' if expect else 'NOT ISOLATED'}); "
+                  f"{len(diffs)} differing entries" + ("" if not nb else f"; not allowed by the claim: {nb}"))
+            for k, va, vb in diffs:
+                print(f"      {k}\n         {a}: {va}\n         {b}: {vb}")
+            if (not nb) != expect:
+                bad += 1
     return bad
 
 
@@ -430,7 +462,7 @@ def main():
         return 1 if b else 0
     if mode == "diff":
         b = diff(sys.argv[2:])
-        print(f"option comparisons (RD-4): {'every expected isolation holds' if not b else str(b) + ' expected isolations do NOT hold'}")
+        print(f"option comparisons (RD-4, D-1): {'every comparison as expected' if not b else str(b) + ' comparison(s) NOT as expected'}")
         return 1 if b else 0
     print(__doc__)
     return 2
