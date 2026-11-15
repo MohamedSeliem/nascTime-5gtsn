@@ -1,0 +1,852 @@
+M2-S7.2a Stage 5: configuration checks on OMNeT++ 6.5.0 (no simulation), 2026-11-15
+Purpose: Q-de isolation (D-1) and the RD-4 comparisons on OMNeT++ 6.5.0's own resolution; the effective-entry check (G0-R1);
+the S5-1 tests; the G0 tool selftest. INET and Simu5G are not needed by opp_run -q runconfig and are not built here.
+
+date_utc: 2026-11-15T13:19:39Z
+omnetpp: Version: 6.5.0, build: 261029-ccd51e11a4, edition: Academic Public License -- NOT FOR COMMERCIAL USE
+omnetpp source: omnetpp-6.5.0-core.tgz sha256 2e7dcea63abe235716e3a63ffce17a294775e99a8bd313172c367b932f18972f; configured WITH_QTENV=no WITH_OSG=no; make MODE=release base
+nascTime: branch m2/s72a-stage5; generated on f9260bf plus the working tree committed as the next two commits (Q-de / smoke increment, G0 records); every code file byte-identical to them except one line added afterwards to tools/g0_env_equivalence.py (sys.dont_write_bytecode = True: no __pycache__ left in the worktree; no behaviour change; selftest 9/9 again after it)
+m2s72.ini sha256 dfc8a7f7bb7cd1632c335c169cdbd3535e4e90a14b0d04882bb07b406aaf5505; m2s72s5.ini sha256 e563c489852db4cac7ad8562c97373e2379c8bd4029c7f1ebb9d2ace2ff96903
+python: Python 3.13.18
+
+== python3 tools/m2s72_gen.py check
+M2S71-q0-idle: 202 entries; rules {'anyTt': 18, 'appSel': 11, 'bearerGlobal': 1, 'dsTt': 6, 'dsTtClockId': 1, 'dsTtTtId': 3, 'general': 8, 'hasPassThroughTts': 1, 'listener': 20, 'listenerNumApps': 1, 'listenerRemote': 1, 'meta': 34, 'modulesShared': 26, 'network': 2, 'oscRng': 1, 'perUeList': 2, 'sinkAddress': 1, 'starstar': 38, 'talker': 23, 'ue0': 4}
+M2S71-qdu-idle: 207 entries; rules {'anyTt': 18, 'appSel': 11, 'bearerGlobal': 3, 'dsTt': 6, 'dsTtClockId': 1, 'dsTtTtId': 3, 'general': 8, 'hasPassThroughTts': 1, 'listener': 20, 'listenerNumApps': 1, 'listenerRemote': 1, 'meta': 34, 'modulesShared': 28, 'network': 2, 'oscRng': 1, 'perUeList': 3, 'sinkAddress': 1, 'starstar': 38, 'talker': 23, 'ue0': 4}
+M2S71-q0-load: 219 entries; rules {'anyTt': 18, 'app3': 12, 'appSel': 12, 'bearerGlobal': 1, 'dsTt': 6, 'dsTtClockId': 1, 'dsTtTtId': 3, 'general': 8, 'hasPassThroughTts': 1, 'listener': 20, 'listenerNumApps': 2, 'listenerRemote': 1, 'meta': 36, 'modulesShared': 26, 'network': 2, 'oscRng': 1, 'perUeList': 2, 'sinkAddress': 1, 'starstar': 38, 'talker': 24, 'ue0': 4}
+M2S6-C-a: 210 entries; rules {'anyTt': 18, 'appSel': 11, 'bearerGlobal': 1, 'dsTt': 3, 'dsTtClockId': 1, 'dsTtTtId': 3, 'general': 7, 'hasPassThroughTts': 1, 'listener': 23, 'listenerNumApps': 1, 'listenerRemote': 1, 'meta': 37, 'modulesShared': 32, 'network': 2, 'oscRng': 1, 'perUeList': 2, 'sinkAddress': 1, 'starstar': 35, 'talker': 26, 'ue0': 4}
+M2S6-E-all: 224 entries; rules {'anyTt': 21, 'appSel': 11, 'bearerGlobal': 1, 'dsTt': 3, 'dsTtClockId': 1, 'dsTtTtId': 3, 'dsTtTtParam': 3, 'general': 7, 'hasPassThroughTts': 1, 'listener': 23, 'listenerNumApps': 1, 'listenerRemote': 1, 'meta': 40, 'modulesShared': 35, 'network': 2, 'oscRng': 1, 'perUeList': 2, 'sinkAddress': 1, 'starstar': 36, 'talker': 26, 'ttRng': 1, 'ue0': 4}
+M2S71-q0-Ca: 220 entries; rules {'anyTt': 18, 'appSel': 11, 'bearerGlobal': 1, 'dsTt': 6, 'dsTtClockId': 1, 'dsTtTtId': 3, 'general': 8, 'hasPassThroughTts': 1, 'listener': 23, 'listenerNumApps': 1, 'listenerRemote': 1, 'meta': 40, 'modulesShared': 32, 'network': 2, 'oscRng': 1, 'perUeList': 2, 'sinkAddress': 1, 'starstar': 38, 'talker': 26, 'ue0': 4}
+M2S71-qdu-Ca: 225 entries; rules {'anyTt': 18, 'appSel': 11, 'bearerGlobal': 3, 'dsTt': 6, 'dsTtClockId': 1, 'dsTtTtId': 3, 'general': 8, 'hasPassThroughTts': 1, 'listener': 23, 'listenerNumApps': 1, 'listenerRemote': 1, 'meta': 40, 'modulesShared': 34, 'network': 2, 'oscRng': 1, 'perUeList': 3, 'sinkAddress': 1, 'starstar': 38, 'talker': 26, 'ue0': 4}
+M2S71-q0-Ca-sus: 241 entries; rules {'anyTt': 18, 'app3': 13, 'appSel': 13, 'bearerGlobal': 1, 'dsTt': 6, 'dsTtClockId': 1, 'dsTtTtId': 3, 'general': 8, 'hasPassThroughTts': 1, 'listener': 23, 'listenerNumApps': 2, 'listenerRemote': 1, 'meta': 44, 'modulesShared': 32, 'network': 2, 'oscRng': 1, 'perUeList': 2, 'sinkAddress': 1, 'starstar': 38, 'talker': 27, 'ue0': 4}
+M2S71-qdu-Ca-sus: 246 entries; rules {'anyTt': 18, 'app3': 13, 'appSel': 13, 'bearerGlobal': 3, 'dsTt': 6, 'dsTtClockId': 1, 'dsTtTtId': 3, 'general': 8, 'hasPassThroughTts': 1, 'listener': 23, 'listenerNumApps': 2, 'listenerRemote': 1, 'meta': 44, 'modulesShared': 34, 'network': 2, 'oscRng': 1, 'perUeList': 3, 'sinkAddress': 1, 'starstar': 38, 'talker': 27, 'ue0': 4}
+M2S71-q0-Ca-sus@L: 241 entries; rules {'anyTt': 18, 'app3': 13, 'appSel': 13, 'bearerGlobal': 1, 'dsTt': 6, 'dsTtClockId': 1, 'dsTtTtId': 3, 'general': 8, 'hasPassThroughTts': 1, 'listener': 23, 'listenerNumApps': 2, 'listenerRemote': 1, 'meta': 44, 'modulesShared': 32, 'network': 2, 'oscRng': 1, 'perUeList': 2, 'sinkAddress': 1, 'starstar': 38, 'talker': 27, 'ue0': 4}
+M2S71-qdu-Ca-sus@L: 246 entries; rules {'anyTt': 18, 'app3': 13, 'appSel': 13, 'bearerGlobal': 3, 'dsTt': 6, 'dsTtClockId': 1, 'dsTtTtId': 3, 'general': 8, 'hasPassThroughTts': 1, 'listener': 23, 'listenerNumApps': 2, 'listenerRemote': 1, 'meta': 44, 'modulesShared': 34, 'network': 2, 'oscRng': 1, 'perUeList': 3, 'sinkAddress': 1, 'starstar': 38, 'talker': 27, 'ue0': 4}
+regenerated sha256 dfc8a7f7bb7cd1632c335c169cdbd3535e4e90a14b0d04882bb07b406aaf5505; committed dfc8a7f7bb7cd1632c335c169cdbd3535e4e90a14b0d04882bb07b406aaf5505: IDENTICAL
+rc 0
+
+== python3 tools/m2s72s5_gen.py check
+M2S71-q0p-Ca-sus@L: rules {'anyTt': 18, 'app3': 13, 'appSel': 13, 'bearerGlobal': 2, 'dsTt': 6, 'dsTtClockId': 1, 'dsTtTtId': 3, 'general': 8, 'hasPassThroughTts': 1, 'listener': 23, 'listenerNumApps': 2, 'listenerRemote': 1, 'meta': 44, 'modulesShared': 34, 'network': 2, 'oscRng': 1, 'perUeList': 3, 'sinkAddress': 1, 'starstar': 38, 'talker': 27, 'ue0': 4}
+regenerated sha256 e563c489852db4cac7ad8562c97373e2379c8bd4029c7f1ebb9d2ace2ff96903; committed e563c489852db4cac7ad8562c97373e2379c8bd4029c7f1ebb9d2ace2ff96903: IDENTICAL
+rc 0
+
+== python3 tools/m2s72s5_gen.py verify opp_run -u Cmdenv
+M2S71-q0p-Ca-sus@L: rules {'anyTt': 18, 'app3': 13, 'appSel': 13, 'bearerGlobal': 2, 'dsTt': 6, 'dsTtClockId': 1, 'dsTtTtId': 3, 'general': 8, 'hasPassThroughTts': 1, 'listener': 23, 'listenerNumApps': 2, 'listenerRemote': 1, 'meta': 44, 'modulesShared': 34, 'network': 2, 'oscRng': 1, 'perUeList': 3, 'sinkAddress': 1, 'starstar': 38, 'talker': 27, 'ue0': 4}
+M2S72-E0v-q0-f1: exact (q0, one0, numUe 1, DL 1, UL 1, HARQ16, MAC logs, scheduler MAXCI (default))
+M2S72-E0vNL-q0-f1: exact (q0, one0, numUe 1, DL 1, UL 1, HARQ16, no MAC logs, scheduler MAXCI (default))
+M2S72-E0v-q0-f2: exact (q0, one0, numUe 1, DL 2, UL 1, HARQ16, MAC logs, scheduler MAXCI (default))
+M2S72-E0vNL-q0-f2: exact (q0, one0, numUe 1, DL 2, UL 1, HARQ16, no MAC logs, scheduler MAXCI (default))
+M2S72-E0v-q0-f4: exact (q0, one0, numUe 1, DL 4, UL 1, HARQ16, MAC logs, scheduler MAXCI (default))
+M2S72-E0vNL-q0-f4: exact (q0, one0, numUe 1, DL 4, UL 1, HARQ16, no MAC logs, scheduler MAXCI (default))
+M2S72-E0v-q0-f8: exact (q0, one0, numUe 1, DL 8, UL 1, HARQ16, MAC logs, scheduler MAXCI (default))
+M2S72-E0vNL-q0-f8: exact (q0, one0, numUe 1, DL 8, UL 1, HARQ16, no MAC logs, scheduler MAXCI (default))
+M2S72-E0v-qdu-f1: exact (qdu, one0, numUe 1, DL 1, UL 1, HARQ16, MAC logs, scheduler QOS_PF)
+M2S72-E0v-qdu-f2: exact (qdu, one0, numUe 1, DL 2, UL 1, HARQ16, MAC logs, scheduler QOS_PF)
+M2S72-E0v-qdu-f4: exact (qdu, one0, numUe 1, DL 4, UL 1, HARQ16, MAC logs, scheduler QOS_PF)
+M2S72-E0v-qdu-f8: exact (qdu, one0, numUe 1, DL 8, UL 1, HARQ16, MAC logs, scheduler QOS_PF)
+M2S72-E0v-q0p-f1: exact (q0p, one0, numUe 1, DL 1, UL 1, HARQ16, MAC logs, scheduler QOS_PF)
+M2S72-E0v-q0p-f2: exact (q0p, one0, numUe 1, DL 2, UL 1, HARQ16, MAC logs, scheduler QOS_PF)
+M2S72-E0v-qde-f1: exact (qde, one0, numUe 1, DL 1, UL 1, HARQ16, MAC logs, scheduler QOS_PF)
+M2S72-E0v-qde-f2: exact (qde, one0, numUe 1, DL 2, UL 1, HARQ16, MAC logs, scheduler QOS_PF)
+M2S72-E0vH5-q0-f1: exact (q0, one0, numUe 1, DL 1, UL 1, HARQ5, MAC logs, scheduler MAXCI (default))
+M2S72-E0vH5-q0-f2: exact (q0, one0, numUe 1, DL 2, UL 1, HARQ5, MAC logs, scheduler MAXCI (default))
+M2S72-E0vH5-qdu-f1: exact (qdu, one0, numUe 1, DL 1, UL 1, HARQ5, MAC logs, scheduler QOS_PF)
+M2S72-E0vH5-qdu-f2: exact (qdu, one0, numUe 1, DL 2, UL 1, HARQ5, MAC logs, scheduler QOS_PF)
+M2S72-E0vH5NL-q0-f1: exact (q0, one0, numUe 1, DL 1, UL 1, HARQ5, no MAC logs, scheduler MAXCI (default))
+E0v-N bracket: 294 configs checked exactly (only differences are printed)
+M2S72-E0v-q0-f1 = M2S72-E0-q0-f1 (accepted E0 config) + exactly *.ue[*].cellularNic.nrMac.cmdenv-log-level = info: yes
+M2S72-E0v-q0-f2 = M2S72-E0-q0-f2 (accepted E0 config) + exactly *.ue[*].cellularNic.nrMac.cmdenv-log-level = info: yes
+M2S72-E0v-q0-f4 = M2S72-E0-q0-f4 (accepted E0 config) + exactly *.ue[*].cellularNic.nrMac.cmdenv-log-level = info: yes
+M2S72-E0v-q0-f8 = M2S72-E0-q0-f8 (accepted E0 config) + exactly *.ue[*].cellularNic.nrMac.cmdenv-log-level = info: yes
+M2S72-E0v-qdu-f1 = M2S72-E0-qdu-f1 (accepted E0 config) + exactly *.ue[*].cellularNic.nrMac.cmdenv-log-level = info: yes
+M2S72-E0v-qdu-f2 = M2S72-E0-qdu-f2 (accepted E0 config) + exactly *.ue[*].cellularNic.nrMac.cmdenv-log-level = info: yes
+M2S72-E0v-qdu-f4 = M2S72-E0-qdu-f4 (accepted E0 config) + exactly *.ue[*].cellularNic.nrMac.cmdenv-log-level = info: yes
+M2S72-E0v-qdu-f8 = M2S72-E0-qdu-f8 (accepted E0 config) + exactly *.ue[*].cellularNic.nrMac.cmdenv-log-level = info: yes
+twin M2S72-E0vNL-q0-f1 = M2S72-E0v-q0-f1 without exactly the MAC-log entries: yes
+twin M2S72-E0vNL-q0-f2 = M2S72-E0v-q0-f2 without exactly the MAC-log entries: yes
+twin M2S72-E0vNL-q0-f4 = M2S72-E0v-q0-f4 without exactly the MAC-log entries: yes
+twin M2S72-E0vNL-q0-f8 = M2S72-E0v-q0-f8 without exactly the MAC-log entries: yes
+twin M2S72-E0vH5NL-q0-f1 = M2S72-E0vH5-q0-f1 without exactly the MAC-log entries: yes
+pair M2S72-E0v-q0-f1 / M2S72-E0vH5-q0-f1 identical apart from the HARQ16 entries: yes
+pair M2S72-E0v-q0-f2 / M2S72-E0vH5-q0-f2 identical apart from the HARQ16 entries: yes
+pair M2S72-E0v-qdu-f1 / M2S72-E0vH5-qdu-f1 identical apart from the HARQ16 entries: yes
+pair M2S72-E0v-qdu-f2 / M2S72-E0vH5-qdu-f2 identical apart from the HARQ16 entries: yes
+m2s72s5.ini configuration check: all as generated
+rc 0
+
+== python3 tools/m2s72s5_gen.py diff opp_run -u Cmdenv
+M2S71-q0p-Ca-sus@L: rules {'anyTt': 18, 'app3': 13, 'appSel': 13, 'bearerGlobal': 2, 'dsTt': 6, 'dsTtClockId': 1, 'dsTtTtId': 3, 'general': 8, 'hasPassThroughTts': 1, 'listener': 23, 'listenerNumApps': 2, 'listenerRemote': 1, 'meta': 44, 'modulesShared': 34, 'network': 2, 'oscRng': 1, 'perUeList': 3, 'sinkAddress': 1, 'starstar': 38, 'talker': 27, 'ue0': 4}
+== N = 1, DL factor 1, HARQ16 (E0v core / E0v-p)
+   q0 -> q0p, claim 'scheduler' (only the MAC scheduling discipline differs (DRB profile annotations, read only by QoSAwareScheduler, may differ; every DRB's mapping, RLC mode, LCG and every traffic / load setting equal)): ISOLATED (expected ISOLATED); 4 differing entries
+      *.bearerConfigurator.drbProfiles
+         q0: None
+         q0p: { "nasc-be": {qosPriorityLevel: 90, packetDelayBudget: 300}, "nasc-gptp": {qosPriorityLevel: 10, packetDelayBudget: 5} }
+      *.bearerConfigurator.staticDrbs
+         q0: [ {coreNetwork: "5gc", ue: "ue[0]", drbId: 1, isDefault: true, lcg: 3, rlcMode: "UM"}, {coreNetwork: "5gc", ue: "ue[0]", drbId: 2, mappedQfis: [5], lcg: 1, rlcMode: "UM"} ]
+         q0p: [ {coreNetwork: "5gc", ue: "ue[0]", drbId: 1, isDefault: true, lcg: 3, rlcMode: "UM", profile: "nasc-be"}, {coreNetwork: "5gc", ue: "ue[0]", drbId: 2, mappedQfis: [5], lcg: 1, rlcMode: "UM", profile: "nasc-be"} ]
+      *.gnb1.cellularNic.mac.schedulingDisciplineDl
+         q0: None
+         q0p: "QOS_PF"
+      *.gnb1.cellularNic.mac.schedulingDisciplineUl
+         q0: None
+         q0p: "QOS_PF"
+   q0p -> qde, claim 'mapping' (only the gPTP DRB mapping differs (an added DL QFI rule and the DRB(s) it maps to); every added DRB has the profile of the default DRB (no priority difference); scheduler, traffic and load equal): ISOLATED (expected ISOLATED); 2 differing entries
+      *.bearerConfigurator.dlQfiRules
+         q0p: [{filter: "expr(has(ieee8021qctag) && ieee8021qctag.pcp == 5)", qfi: 5}]
+         qde: [ {filter: "expr(has(GptpSync) || has(GptpFollowUp))", qfi: 10}, {filter: "expr(has(ieee8021qctag) && ieee8021qctag.pcp == 5)", qfi: 5} ]
+      *.bearerConfigurator.staticDrbs
+         q0p: [ {coreNetwork: "5gc", ue: "ue[0]", drbId: 1, isDefault: true, lcg: 3, rlcMode: "UM", profile: "nasc-be"}, {coreNetwork: "5gc", ue: "ue[0]", drbId: 2, mappedQfis: [5], lcg: 1, rlcMode: "UM", profile: "nasc-be"} ]
+         qde: [ {coreNetwork: "5gc", ue: "ue[0]", drbId: 1, isDefault: true, lcg: 3, rlcMode: "UM", profile: "nasc-be"}, {coreNetwork: "5gc", ue: "ue[0]", drbId: 2, mappedQfis: [5], lcg: 1, rlcMode: "UM", profile: "nasc-be"}, {coreNetwork: "5gc", ue: "ue[0]", drbId: 4, mappedQfis: [10], lcg: 2, rlcMode: "UM", profile: "nasc-be"} ]
+   qde -> qdu, claim 'priority' (only the profile of the gPTP DRB differs (its priority); mapping, scheduler, traffic and load equal): ISOLATED (expected ISOLATED); 1 differing entries
+      *.bearerConfigurator.staticDrbs
+         qde: [ {coreNetwork: "5gc", ue: "ue[0]", drbId: 1, isDefault: true, lcg: 3, rlcMode: "UM", profile: "nasc-be"}, {coreNetwork: "5gc", ue: "ue[0]", drbId: 2, mappedQfis: [5], lcg: 1, rlcMode: "UM", profile: "nasc-be"}, {coreNetwork: "5gc", ue: "ue[0]", drbId: 4, mappedQfis: [10], lcg: 2, rlcMode: "UM", profile: "nasc-be"} ]
+         qdu: [ {coreNetwork: "5gc", ue: "ue[0]", drbId: 1, isDefault: true, lcg: 3, rlcMode: "UM", profile: "nasc-be"}, {coreNetwork: "5gc", ue: "ue[0]", drbId: 2, mappedQfis: [5], lcg: 1, rlcMode: "UM", profile: "nasc-be"}, {coreNetwork: "5gc", ue: "ue[0]", drbId: 4, mappedQfis: [10], lcg: 2, rlcMode: "UM", profile: "nasc-gptp"} ]
+   q0p -> qdu, claim 'mapping' (only the gPTP DRB mapping differs (an added DL QFI rule and the DRB(s) it maps to); every added DRB has the profile of the default DRB (no priority difference); scheduler, traffic and load equal): NOT ISOLATED (expected NOT ISOLATED); 2 differing entries; not allowed by the claim: ['*.bearerConfigurator.staticDrbs']
+      *.bearerConfigurator.dlQfiRules
+         q0p: [{filter: "expr(has(ieee8021qctag) && ieee8021qctag.pcp == 5)", qfi: 5}]
+         qdu: [ {filter: "expr(has(GptpSync) || has(GptpFollowUp))", qfi: 10}, {filter: "expr(has(ieee8021qctag) && ieee8021qctag.pcp == 5)", qfi: 5} ]
+      *.bearerConfigurator.staticDrbs
+         q0p: [ {coreNetwork: "5gc", ue: "ue[0]", drbId: 1, isDefault: true, lcg: 3, rlcMode: "UM", profile: "nasc-be"}, {coreNetwork: "5gc", ue: "ue[0]", drbId: 2, mappedQfis: [5], lcg: 1, rlcMode: "UM", profile: "nasc-be"} ]
+         qdu: [ {coreNetwork: "5gc", ue: "ue[0]", drbId: 1, isDefault: true, lcg: 3, rlcMode: "UM", profile: "nasc-be"}, {coreNetwork: "5gc", ue: "ue[0]", drbId: 2, mappedQfis: [5], lcg: 1, rlcMode: "UM", profile: "nasc-be"}, {coreNetwork: "5gc", ue: "ue[0]", drbId: 4, mappedQfis: [10], lcg: 2, rlcMode: "UM", profile: "nasc-gptp"} ]
+== sym, N = 4, factor 1, HARQ16 (E0v-N)
+   q0 -> q0p, claim 'scheduler' (only the MAC scheduling discipline differs (DRB profile annotations, read only by QoSAwareScheduler, may differ; every DRB's mapping, RLC mode, LCG and every traffic / load setting equal)): ISOLATED (expected ISOLATED); 4 differing entries
+      *.bearerConfigurator.drbProfiles
+         q0: None
+         q0p: { "nasc-be": {qosPriorityLevel: 90, packetDelayBudget: 300}, "nasc-gptp": {qosPriorityLevel: 10, packetDelayBudget: 5} }
+      *.bearerConfigurator.staticDrbs
+         q0: [ {coreNetwork: "5gc", ue: "ue[0]", drbId: 1, isDefault: true, lcg: 3, rlcMode: "UM"}, {coreNetwork: "5gc", ue: "ue[0]", drbId: 2, mappedQfis: [5], lcg: 1, rlcMode: "UM"}, {coreNetwork: "5gc", ue: "ue[1]", drbId: 1, isDefault: true, lcg: 3, rlcMode: "UM"}, {coreNetwork: "5gc", ue: "ue[1]", drbId: 2, mappedQfis: [5], lcg: 1, rlcMode: "UM"}, {coreNetwork: "5gc", ue: "ue[2]", drbId: 1, isDefault: true, lcg: 3, rlcMode: "UM"}, {coreNetwork: "5gc", ue: "ue[2]", drbId: 2, mappedQfis: [5], lcg: 1, rlcMode: "UM"}, {coreNetwork: "5gc", ue: "ue[3]", drbId: 1, isDefault: true, lcg: 3, rlcMode: "UM"}, {coreNetwork: "5gc", ue: "ue[3]", drbId: 2, mappedQfis: [5], lcg: 1, rlcMode: "UM"} ]
+         q0p: [ {coreNetwork: "5gc", ue: "ue[0]", drbId: 1, isDefault: true, lcg: 3, rlcMode: "UM", profile: "nasc-be"}, {coreNetwork: "5gc", ue: "ue[0]", drbId: 2, mappedQfis: [5], lcg: 1, rlcMode: "UM", profile: "nasc-be"}, {coreNetwork: "5gc", ue: "ue[1]", drbId: 1, isDefault: true, lcg: 3, rlcMode: "UM", profile: "nasc-be"}, {coreNetwork: "5gc", ue: "ue[1]", drbId: 2, mappedQfis: [5], lcg: 1, rlcMode: "UM", profile: "nasc-be"}, {coreNetwork: "5gc", ue: "ue[2]", drbId: 1, isDefault: true, lcg: 3, rlcMode: "UM", profile: "nasc-be"}, {coreNetwork: "5gc", ue: "ue[2]", drbId: 2, mappedQfis: [5], lcg: 1, rlcMode: "UM", profile: "nasc-be"}, {coreNetwork: "5gc", ue: "ue[3]", drbId: 1, isDefault: true, lcg: 3, rlcMode: "UM", profile: "nasc-be"}, {coreNetwork: "5gc", ue: "ue[3]", drbId: 2, mappedQfis: [5], lcg: 1, rlcMode: "UM", profile: "nasc-be"} ]
+      *.gnb1.cellularNic.mac.schedulingDisciplineDl
+         q0: None
+         q0p: "QOS_PF"
+      *.gnb1.cellularNic.mac.schedulingDisciplineUl
+         q0: None
+         q0p: "QOS_PF"
+   q0p -> qde, claim 'mapping' (only the gPTP DRB mapping differs (an added DL QFI rule and the DRB(s) it maps to); every added DRB has the profile of the default DRB (no priority difference); scheduler, traffic and load equal): ISOLATED (expected ISOLATED); 2 differing entries
+      *.bearerConfigurator.dlQfiRules
+         q0p: [{filter: "expr(has(ieee8021qctag) && ieee8021qctag.pcp == 5)", qfi: 5}]
+         qde: [ {filter: "expr(has(GptpSync) || has(GptpFollowUp))", qfi: 10}, {filter: "expr(has(ieee8021qctag) && ieee8021qctag.pcp == 5)", qfi: 5} ]
+      *.bearerConfigurator.staticDrbs
+         q0p: [ {coreNetwork: "5gc", ue: "ue[0]", drbId: 1, isDefault: true, lcg: 3, rlcMode: "UM", profile: "nasc-be"}, {coreNetwork: "5gc", ue: "ue[0]", drbId: 2, mappedQfis: [5], lcg: 1, rlcMode: "UM", profile: "nasc-be"}, {coreNetwork: "5gc", ue: "ue[1]", drbId: 1, isDefault: true, lcg: 3, rlcMode: "UM", profile: "nasc-be"}, {coreNetwork: "5gc", ue: "ue[1]", drbId: 2, mappedQfis: [5], lcg: 1, rlcMode: "UM", profile: "nasc-be"}, {coreNetwork: "5gc", ue: "ue[2]", drbId: 1, isDefault: true, lcg: 3, rlcMode: "UM", profile: "nasc-be"}, {coreNetwork: "5gc", ue: "ue[2]", drbId: 2, mappedQfis: [5], lcg: 1, rlcMode: "UM", profile: "nasc-be"}, {coreNetwork: "5gc", ue: "ue[3]", drbId: 1, isDefault: true, lcg: 3, rlcMode: "UM", profile: "nasc-be"}, {coreNetwork: "5gc", ue: "ue[3]", drbId: 2, mappedQfis: [5], lcg: 1, rlcMode: "UM", profile: "nasc-be"} ]
+         qde: [ {coreNetwork: "5gc", ue: "ue[0]", drbId: 1, isDefault: true, lcg: 3, rlcMode: "UM", profile: "nasc-be"}, {coreNetwork: "5gc", ue: "ue[0]", drbId: 2, mappedQfis: [5], lcg: 1, rlcMode: "UM", profile: "nasc-be"}, {coreNetwork: "5gc", ue: "ue[0]", drbId: 4, mappedQfis: [10], lcg: 2, rlcMode: "UM", profile: "nasc-be"}, {coreNetwork: "5gc", ue: "ue[1]", drbId: 1, isDefault: true, lcg: 3, rlcMode: "UM", profile: "nasc-be"}, {coreNetwork: "5gc", ue: "ue[1]", drbId: 2, mappedQfis: [5], lcg: 1, rlcMode: "UM", profile: "nasc-be"}, {coreNetwork: "5gc", ue: "ue[1]", drbId: 4, mappedQfis: [10], lcg: 2, rlcMode: "UM", profile: "nasc-be"}, {coreNetwork: "5gc", ue: "ue[2]", drbId: 1, isDefault: true, lcg: 3, rlcMode: "UM", profile: "nasc-be"}, {coreNetwork: "5gc", ue: "ue[2]", drbId: 2, mappedQfis: [5], lcg: 1, rlcMode: "UM", profile: "nasc-be"}, {coreNetwork: "5gc", ue: "ue[2]", drbId: 4, mappedQfis: [10], lcg: 2, rlcMode: "UM", profile: "nasc-be"}, {coreNetwork: "5gc", ue: "ue[3]", drbId: 1, isDefault: true, lcg: 3, rlcMode: "UM", profile: "nasc-be"}, {coreNetwork: "5gc", ue: "ue[3]", drbId: 2, mappedQfis: [5], lcg: 1, rlcMode: "UM", profile: "nasc-be"}, {coreNetwork: "5gc", ue: "ue[3]", drbId: 4, mappedQfis: [10], lcg: 2, rlcMode: "UM", profile: "nasc-be"} ]
+   qde -> qdu, claim 'priority' (only the profile of the gPTP DRB differs (its priority); mapping, scheduler, traffic and load equal): ISOLATED (expected ISOLATED); 1 differing entries
+      *.bearerConfigurator.staticDrbs
+         qde: [ {coreNetwork: "5gc", ue: "ue[0]", drbId: 1, isDefault: true, lcg: 3, rlcMode: "UM", profile: "nasc-be"}, {coreNetwork: "5gc", ue: "ue[0]", drbId: 2, mappedQfis: [5], lcg: 1, rlcMode: "UM", profile: "nasc-be"}, {coreNetwork: "5gc", ue: "ue[0]", drbId: 4, mappedQfis: [10], lcg: 2, rlcMode: "UM", profile: "nasc-be"}, {coreNetwork: "5gc", ue: "ue[1]", drbId: 1, isDefault: true, lcg: 3, rlcMode: "UM", profile: "nasc-be"}, {coreNetwork: "5gc", ue: "ue[1]", drbId: 2, mappedQfis: [5], lcg: 1, rlcMode: "UM", profile: "nasc-be"}, {coreNetwork: "5gc", ue: "ue[1]", drbId: 4, mappedQfis: [10], lcg: 2, rlcMode: "UM", profile: "nasc-be"}, {coreNetwork: "5gc", ue: "ue[2]", drbId: 1, isDefault: true, lcg: 3, rlcMode: "UM", profile: "nasc-be"}, {coreNetwork: "5gc", ue: "ue[2]", drbId: 2, mappedQfis: [5], lcg: 1, rlcMode: "UM", profile: "nasc-be"}, {coreNetwork: "5gc", ue: "ue[2]", drbId: 4, mappedQfis: [10], lcg: 2, rlcMode: "UM", profile: "nasc-be"}, {coreNetwork: "5gc", ue: "ue[3]", drbId: 1, isDefault: true, lcg: 3, rlcMode: "UM", profile: "nasc-be"}, {coreNetwork: "5gc", ue: "ue[3]", drbId: 2, mappedQfis: [5], lcg: 1, rlcMode: "UM", profile: "nasc-be"}, {coreNetwork: "5gc", ue: "ue[3]", drbId: 4, mappedQfis: [10], lcg: 2, rlcMode: "UM", profile: "nasc-be"} ]
+         qdu: [ {coreNetwork: "5gc", ue: "ue[0]", drbId: 1, isDefault: true, lcg: 3, rlcMode: "UM", profile: "nasc-be"}, {coreNetwork: "5gc", ue: "ue[0]", drbId: 2, mappedQfis: [5], lcg: 1, rlcMode: "UM", profile: "nasc-be"}, {coreNetwork: "5gc", ue: "ue[0]", drbId: 4, mappedQfis: [10], lcg: 2, rlcMode: "UM", profile: "nasc-gptp"}, {coreNetwork: "5gc", ue: "ue[1]", drbId: 1, isDefault: true, lcg: 3, rlcMode: "UM", profile: "nasc-be"}, {coreNetwork: "5gc", ue: "ue[1]", drbId: 2, mappedQfis: [5], lcg: 1, rlcMode: "UM", profile: "nasc-be"}, {coreNetwork: "5gc", ue: "ue[1]", drbId: 4, mappedQfis: [10], lcg: 2, rlcMode: "UM", profile: "nasc-gptp"}, {coreNetwork: "5gc", ue: "ue[2]", drbId: 1, isDefault: true, lcg: 3, rlcMode: "UM", profile: "nasc-be"}, {coreNetwork: "5gc", ue: "ue[2]", drbId: 2, mappedQfis: [5], lcg: 1, rlcMode: "UM", profile: "nasc-be"}, {coreNetwork: "5gc", ue: "ue[2]", drbId: 4, mappedQfis: [10], lcg: 2, rlcMode: "UM", profile: "nasc-gptp"}, {coreNetwork: "5gc", ue: "ue[3]", drbId: 1, isDefault: true, lcg: 3, rlcMode: "UM", profile: "nasc-be"}, {coreNetwork: "5gc", ue: "ue[3]", drbId: 2, mappedQfis: [5], lcg: 1, rlcMode: "UM", profile: "nasc-be"}, {coreNetwork: "5gc", ue: "ue[3]", drbId: 4, mappedQfis: [10], lcg: 2, rlcMode: "UM", profile: "nasc-gptp"} ]
+   q0p -> qdu, claim 'mapping' (only the gPTP DRB mapping differs (an added DL QFI rule and the DRB(s) it maps to); every added DRB has the profile of the default DRB (no priority difference); scheduler, traffic and load equal): NOT ISOLATED (expected NOT ISOLATED); 2 differing entries; not allowed by the claim: ['*.bearerConfigurator.staticDrbs']
+      *.bearerConfigurator.dlQfiRules
+         q0p: [{filter: "expr(has(ieee8021qctag) && ieee8021qctag.pcp == 5)", qfi: 5}]
+         qdu: [ {filter: "expr(has(GptpSync) || has(GptpFollowUp))", qfi: 10}, {filter: "expr(has(ieee8021qctag) && ieee8021qctag.pcp == 5)", qfi: 5} ]
+      *.bearerConfigurator.staticDrbs
+         q0p: [ {coreNetwork: "5gc", ue: "ue[0]", drbId: 1, isDefault: true, lcg: 3, rlcMode: "UM", profile: "nasc-be"}, {coreNetwork: "5gc", ue: "ue[0]", drbId: 2, mappedQfis: [5], lcg: 1, rlcMode: "UM", profile: "nasc-be"}, {coreNetwork: "5gc", ue: "ue[1]", drbId: 1, isDefault: true, lcg: 3, rlcMode: "UM", profile: "nasc-be"}, {coreNetwork: "5gc", ue: "ue[1]", drbId: 2, mappedQfis: [5], lcg: 1, rlcMode: "UM", profile: "nasc-be"}, {coreNetwork: "5gc", ue: "ue[2]", drbId: 1, isDefault: true, lcg: 3, rlcMode: "UM", profile: "nasc-be"}, {coreNetwork: "5gc", ue: "ue[2]", drbId: 2, mappedQfis: [5], lcg: 1, rlcMode: "UM", profile: "nasc-be"}, {coreNetwork: "5gc", ue: "ue[3]", drbId: 1, isDefault: true, lcg: 3, rlcMode: "UM", profile: "nasc-be"}, {coreNetwork: "5gc", ue: "ue[3]", drbId: 2, mappedQfis: [5], lcg: 1, rlcMode: "UM", profile: "nasc-be"} ]
+         qdu: [ {coreNetwork: "5gc", ue: "ue[0]", drbId: 1, isDefault: true, lcg: 3, rlcMode: "UM", profile: "nasc-be"}, {coreNetwork: "5gc", ue: "ue[0]", drbId: 2, mappedQfis: [5], lcg: 1, rlcMode: "UM", profile: "nasc-be"}, {coreNetwork: "5gc", ue: "ue[0]", drbId: 4, mappedQfis: [10], lcg: 2, rlcMode: "UM", profile: "nasc-gptp"}, {coreNetwork: "5gc", ue: "ue[1]", drbId: 1, isDefault: true, lcg: 3, rlcMode: "UM", profile: "nasc-be"}, {coreNetwork: "5gc", ue: "ue[1]", drbId: 2, mappedQfis: [5], lcg: 1, rlcMode: "UM", profile: "nasc-be"}, {coreNetwork: "5gc", ue: "ue[1]", drbId: 4, mappedQfis: [10], lcg: 2, rlcMode: "UM", profile: "nasc-gptp"}, {coreNetwork: "5gc", ue: "ue[2]", drbId: 1, isDefault: true, lcg: 3, rlcMode: "UM", profile: "nasc-be"}, {coreNetwork: "5gc", ue: "ue[2]", drbId: 2, mappedQfis: [5], lcg: 1, rlcMode: "UM", profile: "nasc-be"}, {coreNetwork: "5gc", ue: "ue[2]", drbId: 4, mappedQfis: [10], lcg: 2, rlcMode: "UM", profile: "nasc-gptp"}, {coreNetwork: "5gc", ue: "ue[3]", drbId: 1, isDefault: true, lcg: 3, rlcMode: "UM", profile: "nasc-be"}, {coreNetwork: "5gc", ue: "ue[3]", drbId: 2, mappedQfis: [5], lcg: 1, rlcMode: "UM", profile: "nasc-be"}, {coreNetwork: "5gc", ue: "ue[3]", drbId: 4, mappedQfis: [10], lcg: 2, rlcMode: "UM", profile: "nasc-gptp"} ]
+== one0, N = 8, factor 1.25, HARQ16 (E0v-N)
+   q0 -> q0p, claim 'scheduler' (only the MAC scheduling discipline differs (DRB profile annotations, read only by QoSAwareScheduler, may differ; every DRB's mapping, RLC mode, LCG and every traffic / load setting equal)): ISOLATED (expected ISOLATED); 4 differing entries
+      *.bearerConfigurator.drbProfiles
+         q0: None
+         q0p: { "nasc-be": {qosPriorityLevel: 90, packetDelayBudget: 300}, "nasc-gptp": {qosPriorityLevel: 10, packetDelayBudget: 5} }
+      *.bearerConfigurator.staticDrbs
+         q0: [ {coreNetwork: "5gc", ue: "ue[0]", drbId: 1, isDefault: true, lcg: 3, rlcMode: "UM"}, {coreNetwork: "5gc", ue: "ue[0]", drbId: 2, mappedQfis: [5], lcg: 1, rlcMode: "UM"}, {coreNetwork: "5gc", ue: "ue[1]", drbId: 1, isDefault: true, lcg: 3, rlcMode: "UM"}, {coreNetwork: "5gc", ue: "ue[1]", drbId: 2, mappedQfis: [5], lcg: 1, rlcMode: "UM"}, {coreNetwork: "5gc", ue: "ue[2]", drbId: 1, isDefault: true, lcg: 3, rlcMode: "UM"}, {coreNetwork: "5gc", ue: "ue[2]", drbId: 2, mappedQfis: [5], lcg: 1, rlcMode: "UM"}, {coreNetwork: "5gc", ue: "ue[3]", drbId: 1, isDefault: true, lcg: 3, rlcMode: "UM"}, {coreNetwork: "5gc", ue: "ue[3]", drbId: 2, mappedQfis: [5], lcg: 1, rlcMode: "UM"}, {coreNetwork: "5gc", ue: "ue[4]", drbId: 1, isDefault: true, lcg: 3, rlcMode: "UM"}, {coreNetwork: "5gc", ue: "ue[4]", drbId: 2, mappedQfis: [5], lcg: 1, rlcMode: "UM"}, {coreNetwork: "5gc", ue: "ue[5]", drbId: 1, isDefault: true, lcg: 3, rlcMode: "UM"}, {coreNetwork: "5gc", ue: "ue[5]", drbId: 2, mappedQfis: [5], lcg: 1, rlcMode: "UM"}, {coreNetwork: "5gc", ue: "ue[6]", drbId: 1, isDefault: true, lcg: 3, rlcMode: "UM"}, {coreNetwork: "5gc", ue: "ue[6]", drbId: 2, mappedQfis: [5], lcg: 1, rlcMode: "UM"}, {coreNetwork: "5gc", ue: "ue[7]", drbId: 1, isDefault: true, lcg: 3, rlcMode: "UM"}, {coreNetwork: "5gc", ue: "ue[7]", drbId: 2, mappedQfis: [5], lcg: 1, rlcMode: "UM"} ]
+         q0p: [ {coreNetwork: "5gc", ue: "ue[0]", drbId: 1, isDefault: true, lcg: 3, rlcMode: "UM", profile: "nasc-be"}, {coreNetwork: "5gc", ue: "ue[0]", drbId: 2, mappedQfis: [5], lcg: 1, rlcMode: "UM", profile: "nasc-be"}, {coreNetwork: "5gc", ue: "ue[1]", drbId: 1, isDefault: true, lcg: 3, rlcMode: "UM", profile: "nasc-be"}, {coreNetwork: "5gc", ue: "ue[1]", drbId: 2, mappedQfis: [5], lcg: 1, rlcMode: "UM", profile: "nasc-be"}, {coreNetwork: "5gc", ue: "ue[2]", drbId: 1, isDefault: true, lcg: 3, rlcMode: "UM", profile: "nasc-be"}, {coreNetwork: "5gc", ue: "ue[2]", drbId: 2, mappedQfis: [5], lcg: 1, rlcMode: "UM", profile: "nasc-be"}, {coreNetwork: "5gc", ue: "ue[3]", drbId: 1, isDefault: true, lcg: 3, rlcMode: "UM", profile: "nasc-be"}, {coreNetwork: "5gc", ue: "ue[3]", drbId: 2, mappedQfis: [5], lcg: 1, rlcMode: "UM", profile: "nasc-be"}, {coreNetwork: "5gc", ue: "ue[4]", drbId: 1, isDefault: true, lcg: 3, rlcMode: "UM", profile: "nasc-be"}, {coreNetwork: "5gc", ue: "ue[4]", drbId: 2, mappedQfis: [5], lcg: 1, rlcMode: "UM", profile: "nasc-be"}, {coreNetwork: "5gc", ue: "ue[5]", drbId: 1, isDefault: true, lcg: 3, rlcMode: "UM", profile: "nasc-be"}, {coreNetwork: "5gc", ue: "ue[5]", drbId: 2, mappedQfis: [5], lcg: 1, rlcMode: "UM", profile: "nasc-be"}, {coreNetwork: "5gc", ue: "ue[6]", drbId: 1, isDefault: true, lcg: 3, rlcMode: "UM", profile: "nasc-be"}, {coreNetwork: "5gc", ue: "ue[6]", drbId: 2, mappedQfis: [5], lcg: 1, rlcMode: "UM", profile: "nasc-be"}, {coreNetwork: "5gc", ue: "ue[7]", drbId: 1, isDefault: true, lcg: 3, rlcMode: "UM", profile: "nasc-be"}, {coreNetwork: "5gc", ue: "ue[7]", drbId: 2, mappedQfis: [5], lcg: 1, rlcMode: "UM", profile: "nasc-be"} ]
+      *.gnb1.cellularNic.mac.schedulingDisciplineDl
+         q0: None
+         q0p: "QOS_PF"
+      *.gnb1.cellularNic.mac.schedulingDisciplineUl
+         q0: None
+         q0p: "QOS_PF"
+   q0p -> qde, claim 'mapping' (only the gPTP DRB mapping differs (an added DL QFI rule and the DRB(s) it maps to); every added DRB has the profile of the default DRB (no priority difference); scheduler, traffic and load equal): ISOLATED (expected ISOLATED); 2 differing entries
+      *.bearerConfigurator.dlQfiRules
+         q0p: [{filter: "expr(has(ieee8021qctag) && ieee8021qctag.pcp == 5)", qfi: 5}]
+         qde: [ {filter: "expr(has(GptpSync) || has(GptpFollowUp))", qfi: 10}, {filter: "expr(has(ieee8021qctag) && ieee8021qctag.pcp == 5)", qfi: 5} ]
+      *.bearerConfigurator.staticDrbs
+         q0p: [ {coreNetwork: "5gc", ue: "ue[0]", drbId: 1, isDefault: true, lcg: 3, rlcMode: "UM", profile: "nasc-be"}, {coreNetwork: "5gc", ue: "ue[0]", drbId: 2, mappedQfis: [5], lcg: 1, rlcMode: "UM", profile: "nasc-be"}, {coreNetwork: "5gc", ue: "ue[1]", drbId: 1, isDefault: true, lcg: 3, rlcMode: "UM", profile: "nasc-be"}, {coreNetwork: "5gc", ue: "ue[1]", drbId: 2, mappedQfis: [5], lcg: 1, rlcMode: "UM", profile: "nasc-be"}, {coreNetwork: "5gc", ue: "ue[2]", drbId: 1, isDefault: true, lcg: 3, rlcMode: "UM", profile: "nasc-be"}, {coreNetwork: "5gc", ue: "ue[2]", drbId: 2, mappedQfis: [5], lcg: 1, rlcMode: "UM", profile: "nasc-be"}, {coreNetwork: "5gc", ue: "ue[3]", drbId: 1, isDefault: true, lcg: 3, rlcMode: "UM", profile: "nasc-be"}, {coreNetwork: "5gc", ue: "ue[3]", drbId: 2, mappedQfis: [5], lcg: 1, rlcMode: "UM", profile: "nasc-be"}, {coreNetwork: "5gc", ue: "ue[4]", drbId: 1, isDefault: true, lcg: 3, rlcMode: "UM", profile: "nasc-be"}, {coreNetwork: "5gc", ue: "ue[4]", drbId: 2, mappedQfis: [5], lcg: 1, rlcMode: "UM", profile: "nasc-be"}, {coreNetwork: "5gc", ue: "ue[5]", drbId: 1, isDefault: true, lcg: 3, rlcMode: "UM", profile: "nasc-be"}, {coreNetwork: "5gc", ue: "ue[5]", drbId: 2, mappedQfis: [5], lcg: 1, rlcMode: "UM", profile: "nasc-be"}, {coreNetwork: "5gc", ue: "ue[6]", drbId: 1, isDefault: true, lcg: 3, rlcMode: "UM", profile: "nasc-be"}, {coreNetwork: "5gc", ue: "ue[6]", drbId: 2, mappedQfis: [5], lcg: 1, rlcMode: "UM", profile: "nasc-be"}, {coreNetwork: "5gc", ue: "ue[7]", drbId: 1, isDefault: true, lcg: 3, rlcMode: "UM", profile: "nasc-be"}, {coreNetwork: "5gc", ue: "ue[7]", drbId: 2, mappedQfis: [5], lcg: 1, rlcMode: "UM", profile: "nasc-be"} ]
+         qde: [ {coreNetwork: "5gc", ue: "ue[0]", drbId: 1, isDefault: true, lcg: 3, rlcMode: "UM", profile: "nasc-be"}, {coreNetwork: "5gc", ue: "ue[0]", drbId: 2, mappedQfis: [5], lcg: 1, rlcMode: "UM", profile: "nasc-be"}, {coreNetwork: "5gc", ue: "ue[0]", drbId: 4, mappedQfis: [10], lcg: 2, rlcMode: "UM", profile: "nasc-be"}, {coreNetwork: "5gc", ue: "ue[1]", drbId: 1, isDefault: true, lcg: 3, rlcMode: "UM", profile: "nasc-be"}, {coreNetwork: "5gc", ue: "ue[1]", drbId: 2, mappedQfis: [5], lcg: 1, rlcMode: "UM", profile: "nasc-be"}, {coreNetwork: "5gc", ue: "ue[1]", drbId: 4, mappedQfis: [10], lcg: 2, rlcMode: "UM", profile: "nasc-be"}, {coreNetwork: "5gc", ue: "ue[2]", drbId: 1, isDefault: true, lcg: 3, rlcMode: "UM", profile: "nasc-be"}, {coreNetwork: "5gc", ue: "ue[2]", drbId: 2, mappedQfis: [5], lcg: 1, rlcMode: "UM", profile: "nasc-be"}, {coreNetwork: "5gc", ue: "ue[2]", drbId: 4, mappedQfis: [10], lcg: 2, rlcMode: "UM", profile: "nasc-be"}, {coreNetwork: "5gc", ue: "ue[3]", drbId: 1, isDefault: true, lcg: 3, rlcMode: "UM", profile: "nasc-be"}, {coreNetwork: "5gc", ue: "ue[3]", drbId: 2, mappedQfis: [5], lcg: 1, rlcMode: "UM", profile: "nasc-be"}, {coreNetwork: "5gc", ue: "ue[3]", drbId: 4, mappedQfis: [10], lcg: 2, rlcMode: "UM", profile: "nasc-be"}, {coreNetwork: "5gc", ue: "ue[4]", drbId: 1, isDefault: true, lcg: 3, rlcMode: "UM", profile: "nasc-be"}, {coreNetwork: "5gc", ue: "ue[4]", drbId: 2, mappedQfis: [5], lcg: 1, rlcMode: "UM", profile: "nasc-be"}, {coreNetwork: "5gc", ue: "ue[4]", drbId: 4, mappedQfis: [10], lcg: 2, rlcMode: "UM", profile: "nasc-be"}, {coreNetwork: "5gc", ue: "ue[5]", drbId: 1, isDefault: true, lcg: 3, rlcMode: "UM", profile: "nasc-be"}, {coreNetwork: "5gc", ue: "ue[5]", drbId: 2, mappedQfis: [5], lcg: 1, rlcMode: "UM", profile: "nasc-be"}, {coreNetwork: "5gc", ue: "ue[5]", drbId: 4, mappedQfis: [10], lcg: 2, rlcMode: "UM", profile: "nasc-be"}, {coreNetwork: "5gc", ue: "ue[6]", drbId: 1, isDefault: true, lcg: 3, rlcMode: "UM", profile: "nasc-be"}, {coreNetwork: "5gc", ue: "ue[6]", drbId: 2, mappedQfis: [5], lcg: 1, rlcMode: "UM", profile: "nasc-be"}, {coreNetwork: "5gc", ue: "ue[6]", drbId: 4, mappedQfis: [10], lcg: 2, rlcMode: "UM", profile: "nasc-be"}, {coreNetwork: "5gc", ue: "ue[7]", drbId: 1, isDefault: true, lcg: 3, rlcMode: "UM", profile: "nasc-be"}, {coreNetwork: "5gc", ue: "ue[7]", drbId: 2, mappedQfis: [5], lcg: 1, rlcMode: "UM", profile: "nasc-be"}, {coreNetwork: "5gc", ue: "ue[7]", drbId: 4, mappedQfis: [10], lcg: 2, rlcMode: "UM", profile: "nasc-be"} ]
+   qde -> qdu, claim 'priority' (only the profile of the gPTP DRB differs (its priority); mapping, scheduler, traffic and load equal): ISOLATED (expected ISOLATED); 1 differing entries
+      *.bearerConfigurator.staticDrbs
+         qde: [ {coreNetwork: "5gc", ue: "ue[0]", drbId: 1, isDefault: true, lcg: 3, rlcMode: "UM", profile: "nasc-be"}, {coreNetwork: "5gc", ue: "ue[0]", drbId: 2, mappedQfis: [5], lcg: 1, rlcMode: "UM", profile: "nasc-be"}, {coreNetwork: "5gc", ue: "ue[0]", drbId: 4, mappedQfis: [10], lcg: 2, rlcMode: "UM", profile: "nasc-be"}, {coreNetwork: "5gc", ue: "ue[1]", drbId: 1, isDefault: true, lcg: 3, rlcMode: "UM", profile: "nasc-be"}, {coreNetwork: "5gc", ue: "ue[1]", drbId: 2, mappedQfis: [5], lcg: 1, rlcMode: "UM", profile: "nasc-be"}, {coreNetwork: "5gc", ue: "ue[1]", drbId: 4, mappedQfis: [10], lcg: 2, rlcMode: "UM", profile: "nasc-be"}, {coreNetwork: "5gc", ue: "ue[2]", drbId: 1, isDefault: true, lcg: 3, rlcMode: "UM", profile: "nasc-be"}, {coreNetwork: "5gc", ue: "ue[2]", drbId: 2, mappedQfis: [5], lcg: 1, rlcMode: "UM", profile: "nasc-be"}, {coreNetwork: "5gc", ue: "ue[2]", drbId: 4, mappedQfis: [10], lcg: 2, rlcMode: "UM", profile: "nasc-be"}, {coreNetwork: "5gc", ue: "ue[3]", drbId: 1, isDefault: true, lcg: 3, rlcMode: "UM", profile: "nasc-be"}, {coreNetwork: "5gc", ue: "ue[3]", drbId: 2, mappedQfis: [5], lcg: 1, rlcMode: "UM", profile: "nasc-be"}, {coreNetwork: "5gc", ue: "ue[3]", drbId: 4, mappedQfis: [10], lcg: 2, rlcMode: "UM", profile: "nasc-be"}, {coreNetwork: "5gc", ue: "ue[4]", drbId: 1, isDefault: true, lcg: 3, rlcMode: "UM", profile: "nasc-be"}, {coreNetwork: "5gc", ue: "ue[4]", drbId: 2, mappedQfis: [5], lcg: 1, rlcMode: "UM", profile: "nasc-be"}, {coreNetwork: "5gc", ue: "ue[4]", drbId: 4, mappedQfis: [10], lcg: 2, rlcMode: "UM", profile: "nasc-be"}, {coreNetwork: "5gc", ue: "ue[5]", drbId: 1, isDefault: true, lcg: 3, rlcMode: "UM", profile: "nasc-be"}, {coreNetwork: "5gc", ue: "ue[5]", drbId: 2, mappedQfis: [5], lcg: 1, rlcMode: "UM", profile: "nasc-be"}, {coreNetwork: "5gc", ue: "ue[5]", drbId: 4, mappedQfis: [10], lcg: 2, rlcMode: "UM", profile: "nasc-be"}, {coreNetwork: "5gc", ue: "ue[6]", drbId: 1, isDefault: true, lcg: 3, rlcMode: "UM", profile: "nasc-be"}, {coreNetwork: "5gc", ue: "ue[6]", drbId: 2, mappedQfis: [5], lcg: 1, rlcMode: "UM", profile: "nasc-be"}, {coreNetwork: "5gc", ue: "ue[6]", drbId: 4, mappedQfis: [10], lcg: 2, rlcMode: "UM", profile: "nasc-be"}, {coreNetwork: "5gc", ue: "ue[7]", drbId: 1, isDefault: true, lcg: 3, rlcMode: "UM", profile: "nasc-be"}, {coreNetwork: "5gc", ue: "ue[7]", drbId: 2, mappedQfis: [5], lcg: 1, rlcMode: "UM", profile: "nasc-be"}, {coreNetwork: "5gc", ue: "ue[7]", drbId: 4, mappedQfis: [10], lcg: 2, rlcMode: "UM", profile: "nasc-be"} ]
+         qdu: [ {coreNetwork: "5gc", ue: "ue[0]", drbId: 1, isDefault: true, lcg: 3, rlcMode: "UM", profile: "nasc-be"}, {coreNetwork: "5gc", ue: "ue[0]", drbId: 2, mappedQfis: [5], lcg: 1, rlcMode: "UM", profile: "nasc-be"}, {coreNetwork: "5gc", ue: "ue[0]", drbId: 4, mappedQfis: [10], lcg: 2, rlcMode: "UM", profile: "nasc-gptp"}, {coreNetwork: "5gc", ue: "ue[1]", drbId: 1, isDefault: true, lcg: 3, rlcMode: "UM", profile: "nasc-be"}, {coreNetwork: "5gc", ue: "ue[1]", drbId: 2, mappedQfis: [5], lcg: 1, rlcMode: "UM", profile: "nasc-be"}, {coreNetwork: "5gc", ue: "ue[1]", drbId: 4, mappedQfis: [10], lcg: 2, rlcMode: "UM", profile: "nasc-gptp"}, {coreNetwork: "5gc", ue: "ue[2]", drbId: 1, isDefault: true, lcg: 3, rlcMode: "UM", profile: "nasc-be"}, {coreNetwork: "5gc", ue: "ue[2]", drbId: 2, mappedQfis: [5], lcg: 1, rlcMode: "UM", profile: "nasc-be"}, {coreNetwork: "5gc", ue: "ue[2]", drbId: 4, mappedQfis: [10], lcg: 2, rlcMode: "UM", profile: "nasc-gptp"}, {coreNetwork: "5gc", ue: "ue[3]", drbId: 1, isDefault: true, lcg: 3, rlcMode: "UM", profile: "nasc-be"}, {coreNetwork: "5gc", ue: "ue[3]", drbId: 2, mappedQfis: [5], lcg: 1, rlcMode: "UM", profile: "nasc-be"}, {coreNetwork: "5gc", ue: "ue[3]", drbId: 4, mappedQfis: [10], lcg: 2, rlcMode: "UM", profile: "nasc-gptp"}, {coreNetwork: "5gc", ue: "ue[4]", drbId: 1, isDefault: true, lcg: 3, rlcMode: "UM", profile: "nasc-be"}, {coreNetwork: "5gc", ue: "ue[4]", drbId: 2, mappedQfis: [5], lcg: 1, rlcMode: "UM", profile: "nasc-be"}, {coreNetwork: "5gc", ue: "ue[4]", drbId: 4, mappedQfis: [10], lcg: 2, rlcMode: "UM", profile: "nasc-gptp"}, {coreNetwork: "5gc", ue: "ue[5]", drbId: 1, isDefault: true, lcg: 3, rlcMode: "UM", profile: "nasc-be"}, {coreNetwork: "5gc", ue: "ue[5]", drbId: 2, mappedQfis: [5], lcg: 1, rlcMode: "UM", profile: "nasc-be"}, {coreNetwork: "5gc", ue: "ue[5]", drbId: 4, mappedQfis: [10], lcg: 2, rlcMode: "UM", profile: "nasc-gptp"}, {coreNetwork: "5gc", ue: "ue[6]", drbId: 1, isDefault: true, lcg: 3, rlcMode: "UM", profile: "nasc-be"}, {coreNetwork: "5gc", ue: "ue[6]", drbId: 2, mappedQfis: [5], lcg: 1, rlcMode: "UM", profile: "nasc-be"}, {coreNetwork: "5gc", ue: "ue[6]", drbId: 4, mappedQfis: [10], lcg: 2, rlcMode: "UM", profile: "nasc-gptp"}, {coreNetwork: "5gc", ue: "ue[7]", drbId: 1, isDefault: true, lcg: 3, rlcMode: "UM", profile: "nasc-be"}, {coreNetwork: "5gc", ue: "ue[7]", drbId: 2, mappedQfis: [5], lcg: 1, rlcMode: "UM", profile: "nasc-be"}, {coreNetwork: "5gc", ue: "ue[7]", drbId: 4, mappedQfis: [10], lcg: 2, rlcMode: "UM", profile: "nasc-gptp"} ]
+   q0p -> qdu, claim 'mapping' (only the gPTP DRB mapping differs (an added DL QFI rule and the DRB(s) it maps to); every added DRB has the profile of the default DRB (no priority difference); scheduler, traffic and load equal): NOT ISOLATED (expected NOT ISOLATED); 2 differing entries; not allowed by the claim: ['*.bearerConfigurator.staticDrbs']
+      *.bearerConfigurator.dlQfiRules
+         q0p: [{filter: "expr(has(ieee8021qctag) && ieee8021qctag.pcp == 5)", qfi: 5}]
+         qdu: [ {filter: "expr(has(GptpSync) || has(GptpFollowUp))", qfi: 10}, {filter: "expr(has(ieee8021qctag) && ieee8021qctag.pcp == 5)", qfi: 5} ]
+      *.bearerConfigurator.staticDrbs
+         q0p: [ {coreNetwork: "5gc", ue: "ue[0]", drbId: 1, isDefault: true, lcg: 3, rlcMode: "UM", profile: "nasc-be"}, {coreNetwork: "5gc", ue: "ue[0]", drbId: 2, mappedQfis: [5], lcg: 1, rlcMode: "UM", profile: "nasc-be"}, {coreNetwork: "5gc", ue: "ue[1]", drbId: 1, isDefault: true, lcg: 3, rlcMode: "UM", profile: "nasc-be"}, {coreNetwork: "5gc", ue: "ue[1]", drbId: 2, mappedQfis: [5], lcg: 1, rlcMode: "UM", profile: "nasc-be"}, {coreNetwork: "5gc", ue: "ue[2]", drbId: 1, isDefault: true, lcg: 3, rlcMode: "UM", profile: "nasc-be"}, {coreNetwork: "5gc", ue: "ue[2]", drbId: 2, mappedQfis: [5], lcg: 1, rlcMode: "UM", profile: "nasc-be"}, {coreNetwork: "5gc", ue: "ue[3]", drbId: 1, isDefault: true, lcg: 3, rlcMode: "UM", profile: "nasc-be"}, {coreNetwork: "5gc", ue: "ue[3]", drbId: 2, mappedQfis: [5], lcg: 1, rlcMode: "UM", profile: "nasc-be"}, {coreNetwork: "5gc", ue: "ue[4]", drbId: 1, isDefault: true, lcg: 3, rlcMode: "UM", profile: "nasc-be"}, {coreNetwork: "5gc", ue: "ue[4]", drbId: 2, mappedQfis: [5], lcg: 1, rlcMode: "UM", profile: "nasc-be"}, {coreNetwork: "5gc", ue: "ue[5]", drbId: 1, isDefault: true, lcg: 3, rlcMode: "UM", profile: "nasc-be"}, {coreNetwork: "5gc", ue: "ue[5]", drbId: 2, mappedQfis: [5], lcg: 1, rlcMode: "UM", profile: "nasc-be"}, {coreNetwork: "5gc", ue: "ue[6]", drbId: 1, isDefault: true, lcg: 3, rlcMode: "UM", profile: "nasc-be"}, {coreNetwork: "5gc", ue: "ue[6]", drbId: 2, mappedQfis: [5], lcg: 1, rlcMode: "UM", profile: "nasc-be"}, {coreNetwork: "5gc", ue: "ue[7]", drbId: 1, isDefault: true, lcg: 3, rlcMode: "UM", profile: "nasc-be"}, {coreNetwork: "5gc", ue: "ue[7]", drbId: 2, mappedQfis: [5], lcg: 1, rlcMode: "UM", profile: "nasc-be"} ]
+         qdu: [ {coreNetwork: "5gc", ue: "ue[0]", drbId: 1, isDefault: true, lcg: 3, rlcMode: "UM", profile: "nasc-be"}, {coreNetwork: "5gc", ue: "ue[0]", drbId: 2, mappedQfis: [5], lcg: 1, rlcMode: "UM", profile: "nasc-be"}, {coreNetwork: "5gc", ue: "ue[0]", drbId: 4, mappedQfis: [10], lcg: 2, rlcMode: "UM", profile: "nasc-gptp"}, {coreNetwork: "5gc", ue: "ue[1]", drbId: 1, isDefault: true, lcg: 3, rlcMode: "UM", profile: "nasc-be"}, {coreNetwork: "5gc", ue: "ue[1]", drbId: 2, mappedQfis: [5], lcg: 1, rlcMode: "UM", profile: "nasc-be"}, {coreNetwork: "5gc", ue: "ue[1]", drbId: 4, mappedQfis: [10], lcg: 2, rlcMode: "UM", profile: "nasc-gptp"}, {coreNetwork: "5gc", ue: "ue[2]", drbId: 1, isDefault: true, lcg: 3, rlcMode: "UM", profile: "nasc-be"}, {coreNetwork: "5gc", ue: "ue[2]", drbId: 2, mappedQfis: [5], lcg: 1, rlcMode: "UM", profile: "nasc-be"}, {coreNetwork: "5gc", ue: "ue[2]", drbId: 4, mappedQfis: [10], lcg: 2, rlcMode: "UM", profile: "nasc-gptp"}, {coreNetwork: "5gc", ue: "ue[3]", drbId: 1, isDefault: true, lcg: 3, rlcMode: "UM", profile: "nasc-be"}, {coreNetwork: "5gc", ue: "ue[3]", drbId: 2, mappedQfis: [5], lcg: 1, rlcMode: "UM", profile: "nasc-be"}, {coreNetwork: "5gc", ue: "ue[3]", drbId: 4, mappedQfis: [10], lcg: 2, rlcMode: "UM", profile: "nasc-gptp"}, {coreNetwork: "5gc", ue: "ue[4]", drbId: 1, isDefault: true, lcg: 3, rlcMode: "UM", profile: "nasc-be"}, {coreNetwork: "5gc", ue: "ue[4]", drbId: 2, mappedQfis: [5], lcg: 1, rlcMode: "UM", profile: "nasc-be"}, {coreNetwork: "5gc", ue: "ue[4]", drbId: 4, mappedQfis: [10], lcg: 2, rlcMode: "UM", profile: "nasc-gptp"}, {coreNetwork: "5gc", ue: "ue[5]", drbId: 1, isDefault: true, lcg: 3, rlcMode: "UM", profile: "nasc-be"}, {coreNetwork: "5gc", ue: "ue[5]", drbId: 2, mappedQfis: [5], lcg: 1, rlcMode: "UM", profile: "nasc-be"}, {coreNetwork: "5gc", ue: "ue[5]", drbId: 4, mappedQfis: [10], lcg: 2, rlcMode: "UM", profile: "nasc-gptp"}, {coreNetwork: "5gc", ue: "ue[6]", drbId: 1, isDefault: true, lcg: 3, rlcMode: "UM", profile: "nasc-be"}, {coreNetwork: "5gc", ue: "ue[6]", drbId: 2, mappedQfis: [5], lcg: 1, rlcMode: "UM", profile: "nasc-be"}, {coreNetwork: "5gc", ue: "ue[6]", drbId: 4, mappedQfis: [10], lcg: 2, rlcMode: "UM", profile: "nasc-gptp"}, {coreNetwork: "5gc", ue: "ue[7]", drbId: 1, isDefault: true, lcg: 3, rlcMode: "UM", profile: "nasc-be"}, {coreNetwork: "5gc", ue: "ue[7]", drbId: 2, mappedQfis: [5], lcg: 1, rlcMode: "UM", profile: "nasc-be"}, {coreNetwork: "5gc", ue: "ue[7]", drbId: 4, mappedQfis: [10], lcg: 2, rlcMode: "UM", profile: "nasc-gptp"} ]
+option comparisons (RD-4, D-1): every comparison as expected
+rc 0
+
+== python3 tools/m2s72_gen.py verify opp_run -u Cmdenv -f omnetpp.ini
+M2S71-q0-idle: 202 entries; rules {'anyTt': 18, 'appSel': 11, 'bearerGlobal': 1, 'dsTt': 6, 'dsTtClockId': 1, 'dsTtTtId': 3, 'general': 8, 'hasPassThroughTts': 1, 'listener': 20, 'listenerNumApps': 1, 'listenerRemote': 1, 'meta': 34, 'modulesShared': 26, 'network': 2, 'oscRng': 1, 'perUeList': 2, 'sinkAddress': 1, 'starstar': 38, 'talker': 23, 'ue0': 4}
+M2S71-qdu-idle: 207 entries; rules {'anyTt': 18, 'appSel': 11, 'bearerGlobal': 3, 'dsTt': 6, 'dsTtClockId': 1, 'dsTtTtId': 3, 'general': 8, 'hasPassThroughTts': 1, 'listener': 20, 'listenerNumApps': 1, 'listenerRemote': 1, 'meta': 34, 'modulesShared': 28, 'network': 2, 'oscRng': 1, 'perUeList': 3, 'sinkAddress': 1, 'starstar': 38, 'talker': 23, 'ue0': 4}
+M2S71-q0-load: 219 entries; rules {'anyTt': 18, 'app3': 12, 'appSel': 12, 'bearerGlobal': 1, 'dsTt': 6, 'dsTtClockId': 1, 'dsTtTtId': 3, 'general': 8, 'hasPassThroughTts': 1, 'listener': 20, 'listenerNumApps': 2, 'listenerRemote': 1, 'meta': 36, 'modulesShared': 26, 'network': 2, 'oscRng': 1, 'perUeList': 2, 'sinkAddress': 1, 'starstar': 38, 'talker': 24, 'ue0': 4}
+M2S6-C-a: 210 entries; rules {'anyTt': 18, 'appSel': 11, 'bearerGlobal': 1, 'dsTt': 3, 'dsTtClockId': 1, 'dsTtTtId': 3, 'general': 7, 'hasPassThroughTts': 1, 'listener': 23, 'listenerNumApps': 1, 'listenerRemote': 1, 'meta': 37, 'modulesShared': 32, 'network': 2, 'oscRng': 1, 'perUeList': 2, 'sinkAddress': 1, 'starstar': 35, 'talker': 26, 'ue0': 4}
+M2S6-E-all: 224 entries; rules {'anyTt': 21, 'appSel': 11, 'bearerGlobal': 1, 'dsTt': 3, 'dsTtClockId': 1, 'dsTtTtId': 3, 'dsTtTtParam': 3, 'general': 7, 'hasPassThroughTts': 1, 'listener': 23, 'listenerNumApps': 1, 'listenerRemote': 1, 'meta': 40, 'modulesShared': 35, 'network': 2, 'oscRng': 1, 'perUeList': 2, 'sinkAddress': 1, 'starstar': 36, 'talker': 26, 'ttRng': 1, 'ue0': 4}
+M2S71-q0-Ca: 220 entries; rules {'anyTt': 18, 'appSel': 11, 'bearerGlobal': 1, 'dsTt': 6, 'dsTtClockId': 1, 'dsTtTtId': 3, 'general': 8, 'hasPassThroughTts': 1, 'listener': 23, 'listenerNumApps': 1, 'listenerRemote': 1, 'meta': 40, 'modulesShared': 32, 'network': 2, 'oscRng': 1, 'perUeList': 2, 'sinkAddress': 1, 'starstar': 38, 'talker': 26, 'ue0': 4}
+M2S71-qdu-Ca: 225 entries; rules {'anyTt': 18, 'appSel': 11, 'bearerGlobal': 3, 'dsTt': 6, 'dsTtClockId': 1, 'dsTtTtId': 3, 'general': 8, 'hasPassThroughTts': 1, 'listener': 23, 'listenerNumApps': 1, 'listenerRemote': 1, 'meta': 40, 'modulesShared': 34, 'network': 2, 'oscRng': 1, 'perUeList': 3, 'sinkAddress': 1, 'starstar': 38, 'talker': 26, 'ue0': 4}
+M2S71-q0-Ca-sus: 241 entries; rules {'anyTt': 18, 'app3': 13, 'appSel': 13, 'bearerGlobal': 1, 'dsTt': 6, 'dsTtClockId': 1, 'dsTtTtId': 3, 'general': 8, 'hasPassThroughTts': 1, 'listener': 23, 'listenerNumApps': 2, 'listenerRemote': 1, 'meta': 44, 'modulesShared': 32, 'network': 2, 'oscRng': 1, 'perUeList': 2, 'sinkAddress': 1, 'starstar': 38, 'talker': 27, 'ue0': 4}
+M2S71-qdu-Ca-sus: 246 entries; rules {'anyTt': 18, 'app3': 13, 'appSel': 13, 'bearerGlobal': 3, 'dsTt': 6, 'dsTtClockId': 1, 'dsTtTtId': 3, 'general': 8, 'hasPassThroughTts': 1, 'listener': 23, 'listenerNumApps': 2, 'listenerRemote': 1, 'meta': 44, 'modulesShared': 34, 'network': 2, 'oscRng': 1, 'perUeList': 3, 'sinkAddress': 1, 'starstar': 38, 'talker': 27, 'ue0': 4}
+M2S71-q0-Ca-sus@L: 241 entries; rules {'anyTt': 18, 'app3': 13, 'appSel': 13, 'bearerGlobal': 1, 'dsTt': 6, 'dsTtClockId': 1, 'dsTtTtId': 3, 'general': 8, 'hasPassThroughTts': 1, 'listener': 23, 'listenerNumApps': 2, 'listenerRemote': 1, 'meta': 44, 'modulesShared': 32, 'network': 2, 'oscRng': 1, 'perUeList': 2, 'sinkAddress': 1, 'starstar': 38, 'talker': 27, 'ue0': 4}
+M2S71-qdu-Ca-sus@L: 246 entries; rules {'anyTt': 18, 'app3': 13, 'appSel': 13, 'bearerGlobal': 3, 'dsTt': 6, 'dsTtClockId': 1, 'dsTtTtId': 3, 'general': 8, 'hasPassThroughTts': 1, 'listener': 23, 'listenerNumApps': 2, 'listenerRemote': 1, 'meta': 44, 'modulesShared': 34, 'network': 2, 'oscRng': 1, 'perUeList': 3, 'sinkAddress': 1, 'starstar': 38, 'talker': 27, 'ue0': 4}
+M2S71-q0-idle: generator 202 entries, OMNeT++ runconfig 162 entries: DIFFERENT
+   first difference at entry 2: generator ('description', '"(mixin) Q-0: gPTP on default DRB 1 (no rule)"') vs runconfig ('sim-time-limit', '12s')
+M2S71-qdu-idle: generator 207 entries, OMNeT++ runconfig 165 entries: DIFFERENT
+   first difference at entry 2: generator ('description', '"(mixin) Q-d (UM): gPTP on DRB 4 UM, QOS_PF, nasc-gptp"') vs runconfig ('*.bearerConfigurator.staticDrbs', '[ {coreNetwork: "5gc", ue: "ue[0]", drbId: 1, isDefault: true, lcg: 3, rlcMode: "UM", profile: "nasc-be"}, {coreNetwork: "5gc", ue: "ue[0]", drbId: 2, mappedQfis: [5], lcg: 1, rlcMode: "UM", profile: "nasc-be"}, {coreNetwork: "5gc", ue: "ue[0]", drbId: 4, mappedQfis: [10], lcg: 2, rlcMode: "UM", profile: "nasc-gptp"} ]')
+M2S71-q0-load: generator 219 entries, OMNeT++ runconfig 174 entries: DIFFERENT
+   first difference at entry 2: generator ('description', '"(mixin) Q-0: gPTP on default DRB 1 (no rule)"') vs runconfig ('*.talker.numApps', '4')
+M2S6-C-a: generator 210 entries, OMNeT++ runconfig 167 entries: DIFFERENT
+   first difference at entry 2: generator ('description', '"(mixin) GM +100 ppm"') vs runconfig ('*.listener.clock.oscillator.driftRate', '100ppm')
+M2S6-E-all: generator 224 entries, OMNeT++ runconfig 178 entries: DIFFERENT
+   first difference at entry 9: generator ('description', '"(mixin) M2-S6 TT clocks (A2) on both translators, logged, noise on RNG 1"') vs runconfig ('*.*Tt.eth[1].trafficConditionerLayer.ttClock.typename', '"nasctime.m2.TtClock"')
+M2S71-q0-Ca: generator 220 entries, OMNeT++ runconfig 172 entries: DIFFERENT
+   first difference at entry 2: generator ('description', '"(mixin) Q-0: gPTP on default DRB 1 (no rule)"') vs runconfig ('*.listener.clock.oscillator.driftRate', '100ppm')
+M2S71-qdu-Ca: generator 225 entries, OMNeT++ runconfig 175 entries: DIFFERENT
+   first difference at entry 2: generator ('description', '"(mixin) Q-d (UM): gPTP on DRB 4 UM, QOS_PF, nasc-gptp"') vs runconfig ('*.bearerConfigurator.staticDrbs', '[ {coreNetwork: "5gc", ue: "ue[0]", drbId: 1, isDefault: true, lcg: 3, rlcMode: "UM", profile: "nasc-be"}, {coreNetwork: "5gc", ue: "ue[0]", drbId: 2, mappedQfis: [5], lcg: 1, rlcMode: "UM", profile: "nasc-be"}, {coreNetwork: "5gc", ue: "ue[0]", drbId: 4, mappedQfis: [10], lcg: 2, rlcMode: "UM", profile: "nasc-gptp"} ]')
+M2S71-q0-Ca-sus: generator 241 entries, OMNeT++ runconfig 184 entries: DIFFERENT
+   first difference at entry 2: generator ('description', '"(mixin) Q-0: gPTP on default DRB 1 (no rule)"') vs runconfig ('**.app[3].source.productionInterval', '0.25ms')
+M2S71-qdu-Ca-sus: generator 246 entries, OMNeT++ runconfig 187 entries: DIFFERENT
+   first difference at entry 2: generator ('description', '"(mixin) Q-d (UM): gPTP on DRB 4 UM, QOS_PF, nasc-gptp"') vs runconfig ('*.bearerConfigurator.staticDrbs', '[ {coreNetwork: "5gc", ue: "ue[0]", drbId: 1, isDefault: true, lcg: 3, rlcMode: "UM", profile: "nasc-be"}, {coreNetwork: "5gc", ue: "ue[0]", drbId: 2, mappedQfis: [5], lcg: 1, rlcMode: "UM", profile: "nasc-be"}, {coreNetwork: "5gc", ue: "ue[0]", drbId: 4, mappedQfis: [10], lcg: 2, rlcMode: "UM", profile: "nasc-gptp"} ]')
+M2S72-T0-q0-idle: no listener address, no MAC-table setting
+M2S72-T0-qdu-idle: no listener address, no MAC-table setting
+M2S72-T0-q0-load: no listener address, no MAC-table setting
+M2S72-T0-C-a: no listener address, no MAC-table setting
+M2S72-T0-E-all: no listener address, no MAC-table setting
+M2S72-T0-q0-Ca: no listener address, no MAC-table setting
+M2S72-T0-qdu-Ca: no listener address, no MAC-table setting
+M2S72-F0-q0-n1: effective static-listener settings as generated
+M2S72-F0-q0-n1-ev: effective static-listener settings as generated
+M2S72-F0-q0-n1-norec: effective static-listener settings as generated
+M2S72-F0-q0-n2: effective static-listener settings as generated
+M2S72-F0-q0-n2-ev: effective static-listener settings as generated
+M2S72-F0-q0-n2-norec: effective static-listener settings as generated
+M2S72-F0-q0-n4: effective static-listener settings as generated
+M2S72-F0-q0-n4-ev: effective static-listener settings as generated
+M2S72-F0-q0-n4-norec: effective static-listener settings as generated
+M2S72-F0-q0-n8: effective static-listener settings as generated
+M2S72-F0-q0-n8-ev: effective static-listener settings as generated
+M2S72-F0-q0-n8-norec: effective static-listener settings as generated
+M2S72-F0-qdu-n1: effective static-listener settings as generated
+M2S72-F0-qdu-n1-ev: effective static-listener settings as generated
+M2S72-F0-qdu-n1-norec: effective static-listener settings as generated
+M2S72-F0-qdu-n2: effective static-listener settings as generated
+M2S72-F0-qdu-n2-ev: effective static-listener settings as generated
+M2S72-F0-qdu-n2-norec: effective static-listener settings as generated
+M2S72-F0-qdu-n4: effective static-listener settings as generated
+M2S72-F0-qdu-n4-ev: effective static-listener settings as generated
+M2S72-F0-qdu-n4-norec: effective static-listener settings as generated
+M2S72-F0-qdu-n8: effective static-listener settings as generated
+M2S72-F0-qdu-n8-ev: effective static-listener settings as generated
+M2S72-F0-qdu-n8-norec: effective static-listener settings as generated
+M2S72-F0N-missing: effective static-listener settings as generated
+M2S72-F0N-missing-ev: effective static-listener settings as generated
+M2S72-F0N-vlan: effective static-listener settings as generated
+M2S72-F0N-vlan-ev: effective static-listener settings as generated
+M2S72-F0N-age: effective static-listener settings as generated
+M2S72-F0N-age-ev: effective static-listener settings as generated
+M2S72-F0N-port: effective static-listener settings as generated
+M2S72-F0N-port-ev: effective static-listener settings as generated
+M2S72-B-q0-ideal-n1: effective static-listener settings as generated
+M2S72-B-q0-ideal-n2: effective static-listener settings as generated
+M2S72-B-q0-ideal-n4: effective static-listener settings as generated
+M2S72-B-q0-Ca-n1: effective static-listener settings as generated
+M2S72-B-q0-Ca-n2: effective static-listener settings as generated
+M2S72-B-q0-Ca-n4: effective static-listener settings as generated
+M2S72-B-q0-Eall-n1: effective static-listener settings as generated
+M2S72-B-q0-Eall-n2: effective static-listener settings as generated
+M2S72-B-q0-Eall-n4: effective static-listener settings as generated
+M2S72-B-qdu-ideal-n1: effective static-listener settings as generated
+M2S72-B-qdu-ideal-n2: effective static-listener settings as generated
+M2S72-B-qdu-ideal-n4: effective static-listener settings as generated
+M2S72-B-qdu-Ca-n1: effective static-listener settings as generated
+M2S72-B-qdu-Ca-n2: effective static-listener settings as generated
+M2S72-B-qdu-Ca-n4: effective static-listener settings as generated
+M2S72-B-qdu-Eall-n1: effective static-listener settings as generated
+M2S72-B-qdu-Eall-n2: effective static-listener settings as generated
+M2S72-B-qdu-Eall-n4: effective static-listener settings as generated
+M2S72-BN-theta1: effective static-listener settings as generated
+M2S72-H-q0-Ca-n2: effective static-listener settings as generated
+M2S72-H-q0-Ca-n4: effective static-listener settings as generated
+M2S72-H-qdu-Ca-n2: effective static-listener settings as generated
+M2S72-H-qdu-Ca-n4: effective static-listener settings as generated
+M2S72-BN-rng: effective static-listener settings as generated
+M2S72-H16-q0-Ca-n2: effective static-listener settings as generated
+M2S72-H16-q0-Ca-n4: effective static-listener settings as generated
+M2S72-H16-qdu-Ca-n2: effective static-listener settings as generated
+M2S72-H16-qdu-Ca-n4: effective static-listener settings as generated
+M2S72-H16N-nohold: effective static-listener settings as generated
+M2S72-H16N-hto: effective static-listener settings as generated
+M2S72-E0-q0-f1: effective static-listener settings as generated
+M2S72-E0NL-q0-f1: effective static-listener settings as generated
+M2S72-E0-q0-f2: effective static-listener settings as generated
+M2S72-E0NL-q0-f2: effective static-listener settings as generated
+M2S72-E0-q0-f4: effective static-listener settings as generated
+M2S72-E0NL-q0-f4: effective static-listener settings as generated
+M2S72-E0-q0-f8: effective static-listener settings as generated
+M2S72-E0NL-q0-f8: effective static-listener settings as generated
+M2S72-E0-qdu-f1: effective static-listener settings as generated
+M2S72-E0-qdu-f2: effective static-listener settings as generated
+M2S72-E0-qdu-f4: effective static-listener settings as generated
+M2S72-E0-qdu-f8: effective static-listener settings as generated
+M2S72-E2-q0-one0-n1-f0p8: effective static-listener settings as generated
+M2S72-E2H5-q0-one0-n1-f0p8: effective static-listener settings as generated
+M2S72-E2-q0-one0-n1-f1: effective static-listener settings as generated
+M2S72-E2H5-q0-one0-n1-f1: effective static-listener settings as generated
+M2S72-E2-q0-one0-n1-f1p1: effective static-listener settings as generated
+M2S72-E2H5-q0-one0-n1-f1p1: effective static-listener settings as generated
+M2S72-E2-q0-one0-n1-f1p2: effective static-listener settings as generated
+M2S72-E2H5-q0-one0-n1-f1p2: effective static-listener settings as generated
+M2S72-E2-q0-one0-n1-f1p3: effective static-listener settings as generated
+M2S72-E2H5-q0-one0-n1-f1p3: effective static-listener settings as generated
+M2S72-E2-q0-one0-n1-f1p5: effective static-listener settings as generated
+M2S72-E2H5-q0-one0-n1-f1p5: effective static-listener settings as generated
+M2S72-E2-q0-one0-n1-f2: effective static-listener settings as generated
+M2S72-E2H5-q0-one0-n1-f2: effective static-listener settings as generated
+M2S72-E2-q0-one0-n2-f0p8: effective static-listener settings as generated
+M2S72-E2H5-q0-one0-n2-f0p8: effective static-listener settings as generated
+M2S72-E2-q0-one0-n2-f1: effective static-listener settings as generated
+M2S72-E2H5-q0-one0-n2-f1: effective static-listener settings as generated
+M2S72-E2-q0-one0-n2-f1p1: effective static-listener settings as generated
+M2S72-E2H5-q0-one0-n2-f1p1: effective static-listener settings as generated
+M2S72-E2-q0-one0-n2-f1p2: effective static-listener settings as generated
+M2S72-E2H5-q0-one0-n2-f1p2: effective static-listener settings as generated
+M2S72-E2-q0-one0-n2-f1p3: effective static-listener settings as generated
+M2S72-E2H5-q0-one0-n2-f1p3: effective static-listener settings as generated
+M2S72-E2-q0-one0-n2-f1p5: effective static-listener settings as generated
+M2S72-E2H5-q0-one0-n2-f1p5: effective static-listener settings as generated
+M2S72-E2-q0-one0-n2-f2: effective static-listener settings as generated
+M2S72-E2H5-q0-one0-n2-f2: effective static-listener settings as generated
+M2S72-E2-q0-sym-n2-f0p8: effective static-listener settings as generated
+M2S72-E2H5-q0-sym-n2-f0p8: effective static-listener settings as generated
+M2S72-E2-q0-sym-n2-f1: effective static-listener settings as generated
+M2S72-E2H5-q0-sym-n2-f1: effective static-listener settings as generated
+M2S72-E2-q0-sym-n2-f1p1: effective static-listener settings as generated
+M2S72-E2H5-q0-sym-n2-f1p1: effective static-listener settings as generated
+M2S72-E2-q0-sym-n2-f1p2: effective static-listener settings as generated
+M2S72-E2H5-q0-sym-n2-f1p2: effective static-listener settings as generated
+M2S72-E2-q0-sym-n2-f1p3: effective static-listener settings as generated
+M2S72-E2H5-q0-sym-n2-f1p3: effective static-listener settings as generated
+M2S72-E2-q0-sym-n2-f1p5: effective static-listener settings as generated
+M2S72-E2H5-q0-sym-n2-f1p5: effective static-listener settings as generated
+M2S72-E2-q0-sym-n2-f2: effective static-listener settings as generated
+M2S72-E2H5-q0-sym-n2-f2: effective static-listener settings as generated
+M2S72-E2-q0-one0-n4-f0p8: effective static-listener settings as generated
+M2S72-E2H5-q0-one0-n4-f0p8: effective static-listener settings as generated
+M2S72-E2-q0-one0-n4-f1: effective static-listener settings as generated
+M2S72-E2H5-q0-one0-n4-f1: effective static-listener settings as generated
+M2S72-E2-q0-one0-n4-f1p1: effective static-listener settings as generated
+M2S72-E2H5-q0-one0-n4-f1p1: effective static-listener settings as generated
+M2S72-E2-q0-one0-n4-f1p2: effective static-listener settings as generated
+M2S72-E2H5-q0-one0-n4-f1p2: effective static-listener settings as generated
+M2S72-E2-q0-one0-n4-f1p3: effective static-listener settings as generated
+M2S72-E2H5-q0-one0-n4-f1p3: effective static-listener settings as generated
+M2S72-E2-q0-one0-n4-f1p5: effective static-listener settings as generated
+M2S72-E2H5-q0-one0-n4-f1p5: effective static-listener settings as generated
+M2S72-E2-q0-one0-n4-f2: effective static-listener settings as generated
+M2S72-E2H5-q0-one0-n4-f2: effective static-listener settings as generated
+M2S72-E2-q0-sym-n4-f0p8: effective static-listener settings as generated
+M2S72-E2H5-q0-sym-n4-f0p8: effective static-listener settings as generated
+M2S72-E2-q0-sym-n4-f1: effective static-listener settings as generated
+M2S72-E2H5-q0-sym-n4-f1: effective static-listener settings as generated
+M2S72-E2-q0-sym-n4-f1p1: effective static-listener settings as generated
+M2S72-E2H5-q0-sym-n4-f1p1: effective static-listener settings as generated
+M2S72-E2-q0-sym-n4-f1p2: effective static-listener settings as generated
+M2S72-E2H5-q0-sym-n4-f1p2: effective static-listener settings as generated
+M2S72-E2-q0-sym-n4-f1p3: effective static-listener settings as generated
+M2S72-E2H5-q0-sym-n4-f1p3: effective static-listener settings as generated
+M2S72-E2-q0-sym-n4-f1p5: effective static-listener settings as generated
+M2S72-E2H5-q0-sym-n4-f1p5: effective static-listener settings as generated
+M2S72-E2-q0-sym-n4-f2: effective static-listener settings as generated
+M2S72-E2H5-q0-sym-n4-f2: effective static-listener settings as generated
+M2S72-E2-q0-one0-n8-f0p8: effective static-listener settings as generated
+M2S72-E2H5-q0-one0-n8-f0p8: effective static-listener settings as generated
+M2S72-E2-q0-one0-n8-f1: effective static-listener settings as generated
+M2S72-E2H5-q0-one0-n8-f1: effective static-listener settings as generated
+M2S72-E2-q0-one0-n8-f1p1: effective static-listener settings as generated
+M2S72-E2H5-q0-one0-n8-f1p1: effective static-listener settings as generated
+M2S72-E2-q0-one0-n8-f1p2: effective static-listener settings as generated
+M2S72-E2H5-q0-one0-n8-f1p2: effective static-listener settings as generated
+M2S72-E2-q0-one0-n8-f1p3: effective static-listener settings as generated
+M2S72-E2H5-q0-one0-n8-f1p3: effective static-listener settings as generated
+M2S72-E2-q0-one0-n8-f1p5: effective static-listener settings as generated
+M2S72-E2H5-q0-one0-n8-f1p5: effective static-listener settings as generated
+M2S72-E2-q0-one0-n8-f2: effective static-listener settings as generated
+M2S72-E2H5-q0-one0-n8-f2: effective static-listener settings as generated
+M2S72-E2-q0-sym-n8-f0p8: effective static-listener settings as generated
+M2S72-E2H5-q0-sym-n8-f0p8: effective static-listener settings as generated
+M2S72-E2-q0-sym-n8-f1: effective static-listener settings as generated
+M2S72-E2H5-q0-sym-n8-f1: effective static-listener settings as generated
+M2S72-E2-q0-sym-n8-f1p1: effective static-listener settings as generated
+M2S72-E2H5-q0-sym-n8-f1p1: effective static-listener settings as generated
+M2S72-E2-q0-sym-n8-f1p2: effective static-listener settings as generated
+M2S72-E2H5-q0-sym-n8-f1p2: effective static-listener settings as generated
+M2S72-E2-q0-sym-n8-f1p3: effective static-listener settings as generated
+M2S72-E2H5-q0-sym-n8-f1p3: effective static-listener settings as generated
+M2S72-E2-q0-sym-n8-f1p5: effective static-listener settings as generated
+M2S72-E2H5-q0-sym-n8-f1p5: effective static-listener settings as generated
+M2S72-E2-q0-sym-n8-f2: effective static-listener settings as generated
+M2S72-E2H5-q0-sym-n8-f2: effective static-listener settings as generated
+M2S72-E2-qdu-one0-n1-f0p8: effective static-listener settings as generated
+M2S72-E2H5-qdu-one0-n1-f0p8: effective static-listener settings as generated
+M2S72-E2-qdu-one0-n1-f1: effective static-listener settings as generated
+M2S72-E2H5-qdu-one0-n1-f1: effective static-listener settings as generated
+M2S72-E2-qdu-one0-n1-f1p1: effective static-listener settings as generated
+M2S72-E2H5-qdu-one0-n1-f1p1: effective static-listener settings as generated
+M2S72-E2-qdu-one0-n1-f1p2: effective static-listener settings as generated
+M2S72-E2H5-qdu-one0-n1-f1p2: effective static-listener settings as generated
+M2S72-E2-qdu-one0-n1-f1p3: effective static-listener settings as generated
+M2S72-E2H5-qdu-one0-n1-f1p3: effective static-listener settings as generated
+M2S72-E2-qdu-one0-n1-f1p5: effective static-listener settings as generated
+M2S72-E2H5-qdu-one0-n1-f1p5: effective static-listener settings as generated
+M2S72-E2-qdu-one0-n1-f2: effective static-listener settings as generated
+M2S72-E2H5-qdu-one0-n1-f2: effective static-listener settings as generated
+M2S72-E2-qdu-one0-n2-f0p8: effective static-listener settings as generated
+M2S72-E2H5-qdu-one0-n2-f0p8: effective static-listener settings as generated
+M2S72-E2-qdu-one0-n2-f1: effective static-listener settings as generated
+M2S72-E2H5-qdu-one0-n2-f1: effective static-listener settings as generated
+M2S72-E2-qdu-one0-n2-f1p1: effective static-listener settings as generated
+M2S72-E2H5-qdu-one0-n2-f1p1: effective static-listener settings as generated
+M2S72-E2-qdu-one0-n2-f1p2: effective static-listener settings as generated
+M2S72-E2H5-qdu-one0-n2-f1p2: effective static-listener settings as generated
+M2S72-E2-qdu-one0-n2-f1p3: effective static-listener settings as generated
+M2S72-E2H5-qdu-one0-n2-f1p3: effective static-listener settings as generated
+M2S72-E2-qdu-one0-n2-f1p5: effective static-listener settings as generated
+M2S72-E2H5-qdu-one0-n2-f1p5: effective static-listener settings as generated
+M2S72-E2-qdu-one0-n2-f2: effective static-listener settings as generated
+M2S72-E2H5-qdu-one0-n2-f2: effective static-listener settings as generated
+M2S72-E2-qdu-sym-n2-f0p8: effective static-listener settings as generated
+M2S72-E2H5-qdu-sym-n2-f0p8: effective static-listener settings as generated
+M2S72-E2-qdu-sym-n2-f1: effective static-listener settings as generated
+M2S72-E2H5-qdu-sym-n2-f1: effective static-listener settings as generated
+M2S72-E2-qdu-sym-n2-f1p1: effective static-listener settings as generated
+M2S72-E2H5-qdu-sym-n2-f1p1: effective static-listener settings as generated
+M2S72-E2-qdu-sym-n2-f1p2: effective static-listener settings as generated
+M2S72-E2H5-qdu-sym-n2-f1p2: effective static-listener settings as generated
+M2S72-E2-qdu-sym-n2-f1p3: effective static-listener settings as generated
+M2S72-E2H5-qdu-sym-n2-f1p3: effective static-listener settings as generated
+M2S72-E2-qdu-sym-n2-f1p5: effective static-listener settings as generated
+M2S72-E2H5-qdu-sym-n2-f1p5: effective static-listener settings as generated
+M2S72-E2-qdu-sym-n2-f2: effective static-listener settings as generated
+M2S72-E2H5-qdu-sym-n2-f2: effective static-listener settings as generated
+M2S72-E2-qdu-one0-n4-f0p8: effective static-listener settings as generated
+M2S72-E2H5-qdu-one0-n4-f0p8: effective static-listener settings as generated
+M2S72-E2-qdu-one0-n4-f1: effective static-listener settings as generated
+M2S72-E2H5-qdu-one0-n4-f1: effective static-listener settings as generated
+M2S72-E2-qdu-one0-n4-f1p1: effective static-listener settings as generated
+M2S72-E2H5-qdu-one0-n4-f1p1: effective static-listener settings as generated
+M2S72-E2-qdu-one0-n4-f1p2: effective static-listener settings as generated
+M2S72-E2H5-qdu-one0-n4-f1p2: effective static-listener settings as generated
+M2S72-E2-qdu-one0-n4-f1p3: effective static-listener settings as generated
+M2S72-E2H5-qdu-one0-n4-f1p3: effective static-listener settings as generated
+M2S72-E2-qdu-one0-n4-f1p5: effective static-listener settings as generated
+M2S72-E2H5-qdu-one0-n4-f1p5: effective static-listener settings as generated
+M2S72-E2-qdu-one0-n4-f2: effective static-listener settings as generated
+M2S72-E2H5-qdu-one0-n4-f2: effective static-listener settings as generated
+M2S72-E2-qdu-sym-n4-f0p8: effective static-listener settings as generated
+M2S72-E2H5-qdu-sym-n4-f0p8: effective static-listener settings as generated
+M2S72-E2-qdu-sym-n4-f1: effective static-listener settings as generated
+M2S72-E2H5-qdu-sym-n4-f1: effective static-listener settings as generated
+M2S72-E2-qdu-sym-n4-f1p1: effective static-listener settings as generated
+M2S72-E2H5-qdu-sym-n4-f1p1: effective static-listener settings as generated
+M2S72-E2-qdu-sym-n4-f1p2: effective static-listener settings as generated
+M2S72-E2H5-qdu-sym-n4-f1p2: effective static-listener settings as generated
+M2S72-E2-qdu-sym-n4-f1p3: effective static-listener settings as generated
+M2S72-E2H5-qdu-sym-n4-f1p3: effective static-listener settings as generated
+M2S72-E2-qdu-sym-n4-f1p5: effective static-listener settings as generated
+M2S72-E2H5-qdu-sym-n4-f1p5: effective static-listener settings as generated
+M2S72-E2-qdu-sym-n4-f2: effective static-listener settings as generated
+M2S72-E2H5-qdu-sym-n4-f2: effective static-listener settings as generated
+M2S72-E2-qdu-one0-n8-f0p8: effective static-listener settings as generated
+M2S72-E2H5-qdu-one0-n8-f0p8: effective static-listener settings as generated
+M2S72-E2-qdu-one0-n8-f1: effective static-listener settings as generated
+M2S72-E2H5-qdu-one0-n8-f1: effective static-listener settings as generated
+M2S72-E2-qdu-one0-n8-f1p1: effective static-listener settings as generated
+M2S72-E2H5-qdu-one0-n8-f1p1: effective static-listener settings as generated
+M2S72-E2-qdu-one0-n8-f1p2: effective static-listener settings as generated
+M2S72-E2H5-qdu-one0-n8-f1p2: effective static-listener settings as generated
+M2S72-E2-qdu-one0-n8-f1p3: effective static-listener settings as generated
+M2S72-E2H5-qdu-one0-n8-f1p3: effective static-listener settings as generated
+M2S72-E2-qdu-one0-n8-f1p5: effective static-listener settings as generated
+M2S72-E2H5-qdu-one0-n8-f1p5: effective static-listener settings as generated
+M2S72-E2-qdu-one0-n8-f2: effective static-listener settings as generated
+M2S72-E2H5-qdu-one0-n8-f2: effective static-listener settings as generated
+M2S72-E2-qdu-sym-n8-f0p8: effective static-listener settings as generated
+M2S72-E2H5-qdu-sym-n8-f0p8: effective static-listener settings as generated
+M2S72-E2-qdu-sym-n8-f1: effective static-listener settings as generated
+M2S72-E2H5-qdu-sym-n8-f1: effective static-listener settings as generated
+M2S72-E2-qdu-sym-n8-f1p1: effective static-listener settings as generated
+M2S72-E2H5-qdu-sym-n8-f1p1: effective static-listener settings as generated
+M2S72-E2-qdu-sym-n8-f1p2: effective static-listener settings as generated
+M2S72-E2H5-qdu-sym-n8-f1p2: effective static-listener settings as generated
+M2S72-E2-qdu-sym-n8-f1p3: effective static-listener settings as generated
+M2S72-E2H5-qdu-sym-n8-f1p3: effective static-listener settings as generated
+M2S72-E2-qdu-sym-n8-f1p5: effective static-listener settings as generated
+M2S72-E2H5-qdu-sym-n8-f1p5: effective static-listener settings as generated
+M2S72-E2-qdu-sym-n8-f2: effective static-listener settings as generated
+M2S72-E2H5-qdu-sym-n8-f2: effective static-listener settings as generated
+generated-config check (rev. 2.1 A-1): all as generated
+M2S72-E0-q0-f1: exact load configuration (24 values), MAC log
+M2S72-E0NL-q0-f1: exact load configuration (24 values), no MAC log
+M2S72-E0-q0-f2: exact load configuration (24 values), MAC log
+M2S72-E0NL-q0-f2: exact load configuration (24 values), no MAC log
+M2S72-E0-q0-f4: exact load configuration (24 values), MAC log
+M2S72-E0NL-q0-f4: exact load configuration (24 values), no MAC log
+M2S72-E0-q0-f8: exact load configuration (24 values), MAC log
+M2S72-E0NL-q0-f8: exact load configuration (24 values), no MAC log
+M2S72-E0-qdu-f1: exact load configuration (24 values), MAC log
+M2S72-E0-qdu-f2: exact load configuration (24 values), MAC log
+M2S72-E0-qdu-f4: exact load configuration (24 values), MAC log
+M2S72-E0-qdu-f8: exact load configuration (24 values), MAC log
+E0 twin M2S72-E0NL-q0-f1: effective configuration = M2S72-E0-q0-f1 without exactly the M2S72-MACLOG entries: yes
+E0 twin M2S72-E0NL-q0-f2: effective configuration = M2S72-E0-q0-f2 without exactly the M2S72-MACLOG entries: yes
+E0 twin M2S72-E0NL-q0-f4: effective configuration = M2S72-E0-q0-f4 without exactly the M2S72-MACLOG entries: yes
+E0 twin M2S72-E0NL-q0-f8: effective configuration = M2S72-E0-q0-f8 without exactly the M2S72-MACLOG entries: yes
+Stage 5 load-configuration check (exact): all as generated
+M2S72-E2-q0-one0-n1-f0p8: exact DL-only configuration (13 load values, no UL load, HARQ16, MAC log)
+M2S72-E2H5-q0-one0-n1-f0p8: exact DL-only configuration (13 load values, no UL load, HARQ5, MAC log)
+M2S72-E2-q0-one0-n1-f1: exact DL-only configuration (13 load values, no UL load, HARQ16, MAC log)
+M2S72-E2H5-q0-one0-n1-f1: exact DL-only configuration (13 load values, no UL load, HARQ5, MAC log)
+M2S72-E2-q0-one0-n1-f1p1: exact DL-only configuration (13 load values, no UL load, HARQ16, MAC log)
+M2S72-E2H5-q0-one0-n1-f1p1: exact DL-only configuration (13 load values, no UL load, HARQ5, MAC log)
+M2S72-E2-q0-one0-n1-f1p2: exact DL-only configuration (13 load values, no UL load, HARQ16, MAC log)
+M2S72-E2H5-q0-one0-n1-f1p2: exact DL-only configuration (13 load values, no UL load, HARQ5, MAC log)
+M2S72-E2-q0-one0-n1-f1p3: exact DL-only configuration (13 load values, no UL load, HARQ16, MAC log)
+M2S72-E2H5-q0-one0-n1-f1p3: exact DL-only configuration (13 load values, no UL load, HARQ5, MAC log)
+M2S72-E2-q0-one0-n1-f1p5: exact DL-only configuration (13 load values, no UL load, HARQ16, MAC log)
+M2S72-E2H5-q0-one0-n1-f1p5: exact DL-only configuration (13 load values, no UL load, HARQ5, MAC log)
+M2S72-E2-q0-one0-n1-f2: exact DL-only configuration (13 load values, no UL load, HARQ16, MAC log)
+M2S72-E2H5-q0-one0-n1-f2: exact DL-only configuration (13 load values, no UL load, HARQ5, MAC log)
+M2S72-E2-q0-one0-n2-f0p8: exact DL-only configuration (14 load values, no UL load, HARQ16, MAC log)
+M2S72-E2H5-q0-one0-n2-f0p8: exact DL-only configuration (14 load values, no UL load, HARQ5, MAC log)
+M2S72-E2-q0-one0-n2-f1: exact DL-only configuration (14 load values, no UL load, HARQ16, MAC log)
+M2S72-E2H5-q0-one0-n2-f1: exact DL-only configuration (14 load values, no UL load, HARQ5, MAC log)
+M2S72-E2-q0-one0-n2-f1p1: exact DL-only configuration (14 load values, no UL load, HARQ16, MAC log)
+M2S72-E2H5-q0-one0-n2-f1p1: exact DL-only configuration (14 load values, no UL load, HARQ5, MAC log)
+M2S72-E2-q0-one0-n2-f1p2: exact DL-only configuration (14 load values, no UL load, HARQ16, MAC log)
+M2S72-E2H5-q0-one0-n2-f1p2: exact DL-only configuration (14 load values, no UL load, HARQ5, MAC log)
+M2S72-E2-q0-one0-n2-f1p3: exact DL-only configuration (14 load values, no UL load, HARQ16, MAC log)
+M2S72-E2H5-q0-one0-n2-f1p3: exact DL-only configuration (14 load values, no UL load, HARQ5, MAC log)
+M2S72-E2-q0-one0-n2-f1p5: exact DL-only configuration (14 load values, no UL load, HARQ16, MAC log)
+M2S72-E2H5-q0-one0-n2-f1p5: exact DL-only configuration (14 load values, no UL load, HARQ5, MAC log)
+M2S72-E2-q0-one0-n2-f2: exact DL-only configuration (14 load values, no UL load, HARQ16, MAC log)
+M2S72-E2H5-q0-one0-n2-f2: exact DL-only configuration (14 load values, no UL load, HARQ5, MAC log)
+M2S72-E2-q0-sym-n2-f0p8: exact DL-only configuration (25 load values, no UL load, HARQ16, MAC log)
+M2S72-E2H5-q0-sym-n2-f0p8: exact DL-only configuration (25 load values, no UL load, HARQ5, MAC log)
+M2S72-E2-q0-sym-n2-f1: exact DL-only configuration (25 load values, no UL load, HARQ16, MAC log)
+M2S72-E2H5-q0-sym-n2-f1: exact DL-only configuration (25 load values, no UL load, HARQ5, MAC log)
+M2S72-E2-q0-sym-n2-f1p1: exact DL-only configuration (25 load values, no UL load, HARQ16, MAC log)
+M2S72-E2H5-q0-sym-n2-f1p1: exact DL-only configuration (25 load values, no UL load, HARQ5, MAC log)
+M2S72-E2-q0-sym-n2-f1p2: exact DL-only configuration (25 load values, no UL load, HARQ16, MAC log)
+M2S72-E2H5-q0-sym-n2-f1p2: exact DL-only configuration (25 load values, no UL load, HARQ5, MAC log)
+M2S72-E2-q0-sym-n2-f1p3: exact DL-only configuration (25 load values, no UL load, HARQ16, MAC log)
+M2S72-E2H5-q0-sym-n2-f1p3: exact DL-only configuration (25 load values, no UL load, HARQ5, MAC log)
+M2S72-E2-q0-sym-n2-f1p5: exact DL-only configuration (25 load values, no UL load, HARQ16, MAC log)
+M2S72-E2H5-q0-sym-n2-f1p5: exact DL-only configuration (25 load values, no UL load, HARQ5, MAC log)
+M2S72-E2-q0-sym-n2-f2: exact DL-only configuration (25 load values, no UL load, HARQ16, MAC log)
+M2S72-E2H5-q0-sym-n2-f2: exact DL-only configuration (25 load values, no UL load, HARQ5, MAC log)
+M2S72-E2-q0-one0-n4-f0p8: exact DL-only configuration (16 load values, no UL load, HARQ16, MAC log)
+M2S72-E2H5-q0-one0-n4-f0p8: exact DL-only configuration (16 load values, no UL load, HARQ5, MAC log)
+M2S72-E2-q0-one0-n4-f1: exact DL-only configuration (16 load values, no UL load, HARQ16, MAC log)
+M2S72-E2H5-q0-one0-n4-f1: exact DL-only configuration (16 load values, no UL load, HARQ5, MAC log)
+M2S72-E2-q0-one0-n4-f1p1: exact DL-only configuration (16 load values, no UL load, HARQ16, MAC log)
+M2S72-E2H5-q0-one0-n4-f1p1: exact DL-only configuration (16 load values, no UL load, HARQ5, MAC log)
+M2S72-E2-q0-one0-n4-f1p2: exact DL-only configuration (16 load values, no UL load, HARQ16, MAC log)
+M2S72-E2H5-q0-one0-n4-f1p2: exact DL-only configuration (16 load values, no UL load, HARQ5, MAC log)
+M2S72-E2-q0-one0-n4-f1p3: exact DL-only configuration (16 load values, no UL load, HARQ16, MAC log)
+M2S72-E2H5-q0-one0-n4-f1p3: exact DL-only configuration (16 load values, no UL load, HARQ5, MAC log)
+M2S72-E2-q0-one0-n4-f1p5: exact DL-only configuration (16 load values, no UL load, HARQ16, MAC log)
+M2S72-E2H5-q0-one0-n4-f1p5: exact DL-only configuration (16 load values, no UL load, HARQ5, MAC log)
+M2S72-E2-q0-one0-n4-f2: exact DL-only configuration (16 load values, no UL load, HARQ16, MAC log)
+M2S72-E2H5-q0-one0-n4-f2: exact DL-only configuration (16 load values, no UL load, HARQ5, MAC log)
+M2S72-E2-q0-sym-n4-f0p8: exact DL-only configuration (49 load values, no UL load, HARQ16, MAC log)
+M2S72-E2H5-q0-sym-n4-f0p8: exact DL-only configuration (49 load values, no UL load, HARQ5, MAC log)
+M2S72-E2-q0-sym-n4-f1: exact DL-only configuration (49 load values, no UL load, HARQ16, MAC log)
+M2S72-E2H5-q0-sym-n4-f1: exact DL-only configuration (49 load values, no UL load, HARQ5, MAC log)
+M2S72-E2-q0-sym-n4-f1p1: exact DL-only configuration (49 load values, no UL load, HARQ16, MAC log)
+M2S72-E2H5-q0-sym-n4-f1p1: exact DL-only configuration (49 load values, no UL load, HARQ5, MAC log)
+M2S72-E2-q0-sym-n4-f1p2: exact DL-only configuration (49 load values, no UL load, HARQ16, MAC log)
+M2S72-E2H5-q0-sym-n4-f1p2: exact DL-only configuration (49 load values, no UL load, HARQ5, MAC log)
+M2S72-E2-q0-sym-n4-f1p3: exact DL-only configuration (49 load values, no UL load, HARQ16, MAC log)
+M2S72-E2H5-q0-sym-n4-f1p3: exact DL-only configuration (49 load values, no UL load, HARQ5, MAC log)
+M2S72-E2-q0-sym-n4-f1p5: exact DL-only configuration (49 load values, no UL load, HARQ16, MAC log)
+M2S72-E2H5-q0-sym-n4-f1p5: exact DL-only configuration (49 load values, no UL load, HARQ5, MAC log)
+M2S72-E2-q0-sym-n4-f2: exact DL-only configuration (49 load values, no UL load, HARQ16, MAC log)
+M2S72-E2H5-q0-sym-n4-f2: exact DL-only configuration (49 load values, no UL load, HARQ5, MAC log)
+M2S72-E2-q0-one0-n8-f0p8: exact DL-only configuration (20 load values, no UL load, HARQ16, MAC log)
+M2S72-E2H5-q0-one0-n8-f0p8: exact DL-only configuration (20 load values, no UL load, HARQ5, MAC log)
+M2S72-E2-q0-one0-n8-f1: exact DL-only configuration (20 load values, no UL load, HARQ16, MAC log)
+M2S72-E2H5-q0-one0-n8-f1: exact DL-only configuration (20 load values, no UL load, HARQ5, MAC log)
+M2S72-E2-q0-one0-n8-f1p1: exact DL-only configuration (20 load values, no UL load, HARQ16, MAC log)
+M2S72-E2H5-q0-one0-n8-f1p1: exact DL-only configuration (20 load values, no UL load, HARQ5, MAC log)
+M2S72-E2-q0-one0-n8-f1p2: exact DL-only configuration (20 load values, no UL load, HARQ16, MAC log)
+M2S72-E2H5-q0-one0-n8-f1p2: exact DL-only configuration (20 load values, no UL load, HARQ5, MAC log)
+M2S72-E2-q0-one0-n8-f1p3: exact DL-only configuration (20 load values, no UL load, HARQ16, MAC log)
+M2S72-E2H5-q0-one0-n8-f1p3: exact DL-only configuration (20 load values, no UL load, HARQ5, MAC log)
+M2S72-E2-q0-one0-n8-f1p5: exact DL-only configuration (20 load values, no UL load, HARQ16, MAC log)
+M2S72-E2H5-q0-one0-n8-f1p5: exact DL-only configuration (20 load values, no UL load, HARQ5, MAC log)
+M2S72-E2-q0-one0-n8-f2: exact DL-only configuration (20 load values, no UL load, HARQ16, MAC log)
+M2S72-E2H5-q0-one0-n8-f2: exact DL-only configuration (20 load values, no UL load, HARQ5, MAC log)
+M2S72-E2-q0-sym-n8-f0p8: exact DL-only configuration (97 load values, no UL load, HARQ16, MAC log)
+M2S72-E2H5-q0-sym-n8-f0p8: exact DL-only configuration (97 load values, no UL load, HARQ5, MAC log)
+M2S72-E2-q0-sym-n8-f1: exact DL-only configuration (97 load values, no UL load, HARQ16, MAC log)
+M2S72-E2H5-q0-sym-n8-f1: exact DL-only configuration (97 load values, no UL load, HARQ5, MAC log)
+M2S72-E2-q0-sym-n8-f1p1: exact DL-only configuration (97 load values, no UL load, HARQ16, MAC log)
+M2S72-E2H5-q0-sym-n8-f1p1: exact DL-only configuration (97 load values, no UL load, HARQ5, MAC log)
+M2S72-E2-q0-sym-n8-f1p2: exact DL-only configuration (97 load values, no UL load, HARQ16, MAC log)
+M2S72-E2H5-q0-sym-n8-f1p2: exact DL-only configuration (97 load values, no UL load, HARQ5, MAC log)
+M2S72-E2-q0-sym-n8-f1p3: exact DL-only configuration (97 load values, no UL load, HARQ16, MAC log)
+M2S72-E2H5-q0-sym-n8-f1p3: exact DL-only configuration (97 load values, no UL load, HARQ5, MAC log)
+M2S72-E2-q0-sym-n8-f1p5: exact DL-only configuration (97 load values, no UL load, HARQ16, MAC log)
+M2S72-E2H5-q0-sym-n8-f1p5: exact DL-only configuration (97 load values, no UL load, HARQ5, MAC log)
+M2S72-E2-q0-sym-n8-f2: exact DL-only configuration (97 load values, no UL load, HARQ16, MAC log)
+M2S72-E2H5-q0-sym-n8-f2: exact DL-only configuration (97 load values, no UL load, HARQ5, MAC log)
+M2S72-E2-qdu-one0-n1-f0p8: exact DL-only configuration (13 load values, no UL load, HARQ16, MAC log)
+M2S72-E2H5-qdu-one0-n1-f0p8: exact DL-only configuration (13 load values, no UL load, HARQ5, MAC log)
+M2S72-E2-qdu-one0-n1-f1: exact DL-only configuration (13 load values, no UL load, HARQ16, MAC log)
+M2S72-E2H5-qdu-one0-n1-f1: exact DL-only configuration (13 load values, no UL load, HARQ5, MAC log)
+M2S72-E2-qdu-one0-n1-f1p1: exact DL-only configuration (13 load values, no UL load, HARQ16, MAC log)
+M2S72-E2H5-qdu-one0-n1-f1p1: exact DL-only configuration (13 load values, no UL load, HARQ5, MAC log)
+M2S72-E2-qdu-one0-n1-f1p2: exact DL-only configuration (13 load values, no UL load, HARQ16, MAC log)
+M2S72-E2H5-qdu-one0-n1-f1p2: exact DL-only configuration (13 load values, no UL load, HARQ5, MAC log)
+M2S72-E2-qdu-one0-n1-f1p3: exact DL-only configuration (13 load values, no UL load, HARQ16, MAC log)
+M2S72-E2H5-qdu-one0-n1-f1p3: exact DL-only configuration (13 load values, no UL load, HARQ5, MAC log)
+M2S72-E2-qdu-one0-n1-f1p5: exact DL-only configuration (13 load values, no UL load, HARQ16, MAC log)
+M2S72-E2H5-qdu-one0-n1-f1p5: exact DL-only configuration (13 load values, no UL load, HARQ5, MAC log)
+M2S72-E2-qdu-one0-n1-f2: exact DL-only configuration (13 load values, no UL load, HARQ16, MAC log)
+M2S72-E2H5-qdu-one0-n1-f2: exact DL-only configuration (13 load values, no UL load, HARQ5, MAC log)
+M2S72-E2-qdu-one0-n2-f0p8: exact DL-only configuration (14 load values, no UL load, HARQ16, MAC log)
+M2S72-E2H5-qdu-one0-n2-f0p8: exact DL-only configuration (14 load values, no UL load, HARQ5, MAC log)
+M2S72-E2-qdu-one0-n2-f1: exact DL-only configuration (14 load values, no UL load, HARQ16, MAC log)
+M2S72-E2H5-qdu-one0-n2-f1: exact DL-only configuration (14 load values, no UL load, HARQ5, MAC log)
+M2S72-E2-qdu-one0-n2-f1p1: exact DL-only configuration (14 load values, no UL load, HARQ16, MAC log)
+M2S72-E2H5-qdu-one0-n2-f1p1: exact DL-only configuration (14 load values, no UL load, HARQ5, MAC log)
+M2S72-E2-qdu-one0-n2-f1p2: exact DL-only configuration (14 load values, no UL load, HARQ16, MAC log)
+M2S72-E2H5-qdu-one0-n2-f1p2: exact DL-only configuration (14 load values, no UL load, HARQ5, MAC log)
+M2S72-E2-qdu-one0-n2-f1p3: exact DL-only configuration (14 load values, no UL load, HARQ16, MAC log)
+M2S72-E2H5-qdu-one0-n2-f1p3: exact DL-only configuration (14 load values, no UL load, HARQ5, MAC log)
+M2S72-E2-qdu-one0-n2-f1p5: exact DL-only configuration (14 load values, no UL load, HARQ16, MAC log)
+M2S72-E2H5-qdu-one0-n2-f1p5: exact DL-only configuration (14 load values, no UL load, HARQ5, MAC log)
+M2S72-E2-qdu-one0-n2-f2: exact DL-only configuration (14 load values, no UL load, HARQ16, MAC log)
+M2S72-E2H5-qdu-one0-n2-f2: exact DL-only configuration (14 load values, no UL load, HARQ5, MAC log)
+M2S72-E2-qdu-sym-n2-f0p8: exact DL-only configuration (25 load values, no UL load, HARQ16, MAC log)
+M2S72-E2H5-qdu-sym-n2-f0p8: exact DL-only configuration (25 load values, no UL load, HARQ5, MAC log)
+M2S72-E2-qdu-sym-n2-f1: exact DL-only configuration (25 load values, no UL load, HARQ16, MAC log)
+M2S72-E2H5-qdu-sym-n2-f1: exact DL-only configuration (25 load values, no UL load, HARQ5, MAC log)
+M2S72-E2-qdu-sym-n2-f1p1: exact DL-only configuration (25 load values, no UL load, HARQ16, MAC log)
+M2S72-E2H5-qdu-sym-n2-f1p1: exact DL-only configuration (25 load values, no UL load, HARQ5, MAC log)
+M2S72-E2-qdu-sym-n2-f1p2: exact DL-only configuration (25 load values, no UL load, HARQ16, MAC log)
+M2S72-E2H5-qdu-sym-n2-f1p2: exact DL-only configuration (25 load values, no UL load, HARQ5, MAC log)
+M2S72-E2-qdu-sym-n2-f1p3: exact DL-only configuration (25 load values, no UL load, HARQ16, MAC log)
+M2S72-E2H5-qdu-sym-n2-f1p3: exact DL-only configuration (25 load values, no UL load, HARQ5, MAC log)
+M2S72-E2-qdu-sym-n2-f1p5: exact DL-only configuration (25 load values, no UL load, HARQ16, MAC log)
+M2S72-E2H5-qdu-sym-n2-f1p5: exact DL-only configuration (25 load values, no UL load, HARQ5, MAC log)
+M2S72-E2-qdu-sym-n2-f2: exact DL-only configuration (25 load values, no UL load, HARQ16, MAC log)
+M2S72-E2H5-qdu-sym-n2-f2: exact DL-only configuration (25 load values, no UL load, HARQ5, MAC log)
+M2S72-E2-qdu-one0-n4-f0p8: exact DL-only configuration (16 load values, no UL load, HARQ16, MAC log)
+M2S72-E2H5-qdu-one0-n4-f0p8: exact DL-only configuration (16 load values, no UL load, HARQ5, MAC log)
+M2S72-E2-qdu-one0-n4-f1: exact DL-only configuration (16 load values, no UL load, HARQ16, MAC log)
+M2S72-E2H5-qdu-one0-n4-f1: exact DL-only configuration (16 load values, no UL load, HARQ5, MAC log)
+M2S72-E2-qdu-one0-n4-f1p1: exact DL-only configuration (16 load values, no UL load, HARQ16, MAC log)
+M2S72-E2H5-qdu-one0-n4-f1p1: exact DL-only configuration (16 load values, no UL load, HARQ5, MAC log)
+M2S72-E2-qdu-one0-n4-f1p2: exact DL-only configuration (16 load values, no UL load, HARQ16, MAC log)
+M2S72-E2H5-qdu-one0-n4-f1p2: exact DL-only configuration (16 load values, no UL load, HARQ5, MAC log)
+M2S72-E2-qdu-one0-n4-f1p3: exact DL-only configuration (16 load values, no UL load, HARQ16, MAC log)
+M2S72-E2H5-qdu-one0-n4-f1p3: exact DL-only configuration (16 load values, no UL load, HARQ5, MAC log)
+M2S72-E2-qdu-one0-n4-f1p5: exact DL-only configuration (16 load values, no UL load, HARQ16, MAC log)
+M2S72-E2H5-qdu-one0-n4-f1p5: exact DL-only configuration (16 load values, no UL load, HARQ5, MAC log)
+M2S72-E2-qdu-one0-n4-f2: exact DL-only configuration (16 load values, no UL load, HARQ16, MAC log)
+M2S72-E2H5-qdu-one0-n4-f2: exact DL-only configuration (16 load values, no UL load, HARQ5, MAC log)
+M2S72-E2-qdu-sym-n4-f0p8: exact DL-only configuration (49 load values, no UL load, HARQ16, MAC log)
+M2S72-E2H5-qdu-sym-n4-f0p8: exact DL-only configuration (49 load values, no UL load, HARQ5, MAC log)
+M2S72-E2-qdu-sym-n4-f1: exact DL-only configuration (49 load values, no UL load, HARQ16, MAC log)
+M2S72-E2H5-qdu-sym-n4-f1: exact DL-only configuration (49 load values, no UL load, HARQ5, MAC log)
+M2S72-E2-qdu-sym-n4-f1p1: exact DL-only configuration (49 load values, no UL load, HARQ16, MAC log)
+M2S72-E2H5-qdu-sym-n4-f1p1: exact DL-only configuration (49 load values, no UL load, HARQ5, MAC log)
+M2S72-E2-qdu-sym-n4-f1p2: exact DL-only configuration (49 load values, no UL load, HARQ16, MAC log)
+M2S72-E2H5-qdu-sym-n4-f1p2: exact DL-only configuration (49 load values, no UL load, HARQ5, MAC log)
+M2S72-E2-qdu-sym-n4-f1p3: exact DL-only configuration (49 load values, no UL load, HARQ16, MAC log)
+M2S72-E2H5-qdu-sym-n4-f1p3: exact DL-only configuration (49 load values, no UL load, HARQ5, MAC log)
+M2S72-E2-qdu-sym-n4-f1p5: exact DL-only configuration (49 load values, no UL load, HARQ16, MAC log)
+M2S72-E2H5-qdu-sym-n4-f1p5: exact DL-only configuration (49 load values, no UL load, HARQ5, MAC log)
+M2S72-E2-qdu-sym-n4-f2: exact DL-only configuration (49 load values, no UL load, HARQ16, MAC log)
+M2S72-E2H5-qdu-sym-n4-f2: exact DL-only configuration (49 load values, no UL load, HARQ5, MAC log)
+M2S72-E2-qdu-one0-n8-f0p8: exact DL-only configuration (20 load values, no UL load, HARQ16, MAC log)
+M2S72-E2H5-qdu-one0-n8-f0p8: exact DL-only configuration (20 load values, no UL load, HARQ5, MAC log)
+M2S72-E2-qdu-one0-n8-f1: exact DL-only configuration (20 load values, no UL load, HARQ16, MAC log)
+M2S72-E2H5-qdu-one0-n8-f1: exact DL-only configuration (20 load values, no UL load, HARQ5, MAC log)
+M2S72-E2-qdu-one0-n8-f1p1: exact DL-only configuration (20 load values, no UL load, HARQ16, MAC log)
+M2S72-E2H5-qdu-one0-n8-f1p1: exact DL-only configuration (20 load values, no UL load, HARQ5, MAC log)
+M2S72-E2-qdu-one0-n8-f1p2: exact DL-only configuration (20 load values, no UL load, HARQ16, MAC log)
+M2S72-E2H5-qdu-one0-n8-f1p2: exact DL-only configuration (20 load values, no UL load, HARQ5, MAC log)
+M2S72-E2-qdu-one0-n8-f1p3: exact DL-only configuration (20 load values, no UL load, HARQ16, MAC log)
+M2S72-E2H5-qdu-one0-n8-f1p3: exact DL-only configuration (20 load values, no UL load, HARQ5, MAC log)
+M2S72-E2-qdu-one0-n8-f1p5: exact DL-only configuration (20 load values, no UL load, HARQ16, MAC log)
+M2S72-E2H5-qdu-one0-n8-f1p5: exact DL-only configuration (20 load values, no UL load, HARQ5, MAC log)
+M2S72-E2-qdu-one0-n8-f2: exact DL-only configuration (20 load values, no UL load, HARQ16, MAC log)
+M2S72-E2H5-qdu-one0-n8-f2: exact DL-only configuration (20 load values, no UL load, HARQ5, MAC log)
+M2S72-E2-qdu-sym-n8-f0p8: exact DL-only configuration (97 load values, no UL load, HARQ16, MAC log)
+M2S72-E2H5-qdu-sym-n8-f0p8: exact DL-only configuration (97 load values, no UL load, HARQ5, MAC log)
+M2S72-E2-qdu-sym-n8-f1: exact DL-only configuration (97 load values, no UL load, HARQ16, MAC log)
+M2S72-E2H5-qdu-sym-n8-f1: exact DL-only configuration (97 load values, no UL load, HARQ5, MAC log)
+M2S72-E2-qdu-sym-n8-f1p1: exact DL-only configuration (97 load values, no UL load, HARQ16, MAC log)
+M2S72-E2H5-qdu-sym-n8-f1p1: exact DL-only configuration (97 load values, no UL load, HARQ5, MAC log)
+M2S72-E2-qdu-sym-n8-f1p2: exact DL-only configuration (97 load values, no UL load, HARQ16, MAC log)
+M2S72-E2H5-qdu-sym-n8-f1p2: exact DL-only configuration (97 load values, no UL load, HARQ5, MAC log)
+M2S72-E2-qdu-sym-n8-f1p3: exact DL-only configuration (97 load values, no UL load, HARQ16, MAC log)
+M2S72-E2H5-qdu-sym-n8-f1p3: exact DL-only configuration (97 load values, no UL load, HARQ5, MAC log)
+M2S72-E2-qdu-sym-n8-f1p5: exact DL-only configuration (97 load values, no UL load, HARQ16, MAC log)
+M2S72-E2H5-qdu-sym-n8-f1p5: exact DL-only configuration (97 load values, no UL load, HARQ5, MAC log)
+M2S72-E2-qdu-sym-n8-f2: exact DL-only configuration (97 load values, no UL load, HARQ16, MAC log)
+M2S72-E2H5-qdu-sym-n8-f2: exact DL-only configuration (97 load values, no UL load, HARQ5, MAC log)
+E2 HARQ16 / HARQ5 pairs differ exactly by the HARQ16 entries: 98 pairs checked
+Stage 5 E2 configuration check (196 configs, exact, DL-only): all as generated
+XM2S72LD-q0-Ca-L-one0-n1-f0p5: exact load configuration (24 values), no MAC log
+XM2S72LD-q0-Ca-L-one0-n1-f1: exact load configuration (24 values), no MAC log
+XM2S72LD-q0-Ca-L-one0-n1-f2: exact load configuration (24 values), no MAC log
+XM2S72LD-q0-Ca-L-one0-n1-f4: exact load configuration (24 values), no MAC log
+XM2S72LD-q0-Ca-L-one0-n1-f8: exact load configuration (24 values), no MAC log
+XM2S72LD-q0-Ca-L-one0-n2-f0p5: exact load configuration (25 values), no MAC log
+XM2S72LD-q0-Ca-L-one0-n2-f1: exact load configuration (25 values), no MAC log
+XM2S72LD-q0-Ca-L-one0-n2-f2: exact load configuration (25 values), no MAC log
+XM2S72LD-q0-Ca-L-one0-n2-f4: exact load configuration (25 values), no MAC log
+XM2S72LD-q0-Ca-L-one0-n2-f8: exact load configuration (25 values), no MAC log
+XM2S72LD-q0-Ca-L-one0-n4-f0p5: exact load configuration (27 values), no MAC log
+XM2S72LD-q0-Ca-L-one0-n4-f1: exact load configuration (27 values), no MAC log
+XM2S72LD-q0-Ca-L-one0-n4-f2: exact load configuration (27 values), no MAC log
+XM2S72LD-q0-Ca-L-one0-n4-f4: exact load configuration (27 values), no MAC log
+XM2S72LD-q0-Ca-L-one0-n4-f8: exact load configuration (27 values), no MAC log
+XM2S72LD-q0-Ca-L-one0-n8-f0p5: exact load configuration (31 values), no MAC log
+XM2S72LD-q0-Ca-L-one0-n8-f1: exact load configuration (31 values), no MAC log
+XM2S72LD-q0-Ca-L-one0-n8-f2: exact load configuration (31 values), no MAC log
+XM2S72LD-q0-Ca-L-one0-n8-f4: exact load configuration (31 values), no MAC log
+XM2S72LD-q0-Ca-L-one0-n8-f8: exact load configuration (31 values), no MAC log
+XM2S72LD-q0-Ca-L-sym-n2-f0p5: exact load configuration (47 values), no MAC log
+XM2S72LD-q0-Ca-L-sym-n2-f1: exact load configuration (47 values), no MAC log
+XM2S72LD-q0-Ca-L-sym-n2-f2: exact load configuration (47 values), no MAC log
+XM2S72LD-q0-Ca-L-sym-n2-f4: exact load configuration (47 values), no MAC log
+XM2S72LD-q0-Ca-L-sym-n2-f8: exact load configuration (47 values), no MAC log
+XM2S72LD-q0-Ca-L-sym-n4-f0p5: exact load configuration (93 values), no MAC log
+XM2S72LD-q0-Ca-L-sym-n4-f1: exact load configuration (93 values), no MAC log
+XM2S72LD-q0-Ca-L-sym-n4-f2: exact load configuration (93 values), no MAC log
+XM2S72LD-q0-Ca-L-sym-n4-f4: exact load configuration (93 values), no MAC log
+XM2S72LD-q0-Ca-L-sym-n4-f8: exact load configuration (93 values), no MAC log
+XM2S72LD-q0-Ca-L-sym-n8-f0p5: exact load configuration (185 values), no MAC log
+XM2S72LD-q0-Ca-L-sym-n8-f1: exact load configuration (185 values), no MAC log
+XM2S72LD-q0-Ca-L-sym-n8-f2: exact load configuration (185 values), no MAC log
+XM2S72LD-q0-Ca-L-sym-n8-f4: exact load configuration (185 values), no MAC log
+XM2S72LD-q0-Ca-L-sym-n8-f8: exact load configuration (185 values), no MAC log
+XM2S72LD-q0-Ca-L-sym-n4-f2-u2: exact load configuration (93 values), no MAC log
+XM2S72LD-q0-Ca-L-one0-n4-f2-u0p5: exact load configuration (27 values), no MAC log
+XM2S72LD-qdu-Ca-L-one0-n1-f0p5: exact load configuration (24 values), no MAC log
+XM2S72LD-qdu-Ca-L-one0-n1-f1: exact load configuration (24 values), no MAC log
+XM2S72LD-qdu-Ca-L-one0-n1-f2: exact load configuration (24 values), no MAC log
+XM2S72LD-qdu-Ca-L-one0-n1-f4: exact load configuration (24 values), no MAC log
+XM2S72LD-qdu-Ca-L-one0-n1-f8: exact load configuration (24 values), no MAC log
+XM2S72LD-qdu-Ca-L-one0-n2-f0p5: exact load configuration (25 values), no MAC log
+XM2S72LD-qdu-Ca-L-one0-n2-f1: exact load configuration (25 values), no MAC log
+XM2S72LD-qdu-Ca-L-one0-n2-f2: exact load configuration (25 values), no MAC log
+XM2S72LD-qdu-Ca-L-one0-n2-f4: exact load configuration (25 values), no MAC log
+XM2S72LD-qdu-Ca-L-one0-n2-f8: exact load configuration (25 values), no MAC log
+XM2S72LD-qdu-Ca-L-one0-n4-f0p5: exact load configuration (27 values), no MAC log
+XM2S72LD-qdu-Ca-L-one0-n4-f1: exact load configuration (27 values), no MAC log
+XM2S72LD-qdu-Ca-L-one0-n4-f2: exact load configuration (27 values), no MAC log
+XM2S72LD-qdu-Ca-L-one0-n4-f4: exact load configuration (27 values), no MAC log
+XM2S72LD-qdu-Ca-L-one0-n4-f8: exact load configuration (27 values), no MAC log
+XM2S72LD-qdu-Ca-L-one0-n8-f0p5: exact load configuration (31 values), no MAC log
+XM2S72LD-qdu-Ca-L-one0-n8-f1: exact load configuration (31 values), no MAC log
+XM2S72LD-qdu-Ca-L-one0-n8-f2: exact load configuration (31 values), no MAC log
+XM2S72LD-qdu-Ca-L-one0-n8-f4: exact load configuration (31 values), no MAC log
+XM2S72LD-qdu-Ca-L-one0-n8-f8: exact load configuration (31 values), no MAC log
+XM2S72LD-qdu-Ca-L-sym-n2-f0p5: exact load configuration (47 values), no MAC log
+XM2S72LD-qdu-Ca-L-sym-n2-f1: exact load configuration (47 values), no MAC log
+XM2S72LD-qdu-Ca-L-sym-n2-f2: exact load configuration (47 values), no MAC log
+XM2S72LD-qdu-Ca-L-sym-n2-f4: exact load configuration (47 values), no MAC log
+XM2S72LD-qdu-Ca-L-sym-n2-f8: exact load configuration (47 values), no MAC log
+XM2S72LD-qdu-Ca-L-sym-n4-f0p5: exact load configuration (93 values), no MAC log
+XM2S72LD-qdu-Ca-L-sym-n4-f1: exact load configuration (93 values), no MAC log
+XM2S72LD-qdu-Ca-L-sym-n4-f2: exact load configuration (93 values), no MAC log
+XM2S72LD-qdu-Ca-L-sym-n4-f4: exact load configuration (93 values), no MAC log
+XM2S72LD-qdu-Ca-L-sym-n4-f8: exact load configuration (93 values), no MAC log
+XM2S72LD-qdu-Ca-L-sym-n8-f0p5: exact load configuration (185 values), no MAC log
+XM2S72LD-qdu-Ca-L-sym-n8-f1: exact load configuration (185 values), no MAC log
+XM2S72LD-qdu-Ca-L-sym-n8-f2: exact load configuration (185 values), no MAC log
+XM2S72LD-qdu-Ca-L-sym-n8-f4: exact load configuration (185 values), no MAC log
+XM2S72LD-qdu-Ca-L-sym-n8-f8: exact load configuration (185 values), no MAC log
+XM2S72LD-qdu-Ca-L-sym-n4-f2-u2: exact load configuration (93 values), no MAC log
+XM2S72LD-qdu-Ca-L-one0-n4-f2-u0p5: exact load configuration (27 values), no MAC log
+Stage 5 placement check (one0 / sym mixins, 74 test configs, exact): all as generated
+rc 1
+
+== python3 tools/m2s72_verify_eff.py check opp_run -u Cmdenv -f omnetpp.ini
+M2S71-q0-idle: effective entries generator 162, OMNeT++ 162: IDENTICAL (keys, values, order); runconfig form: first per key (162 printed, chain 202)
+M2S71-qdu-idle: effective entries generator 165, OMNeT++ 165: IDENTICAL (keys, values, order); runconfig form: first per key (165 printed, chain 207)
+M2S71-q0-load: effective entries generator 174, OMNeT++ 174: IDENTICAL (keys, values, order); runconfig form: first per key (174 printed, chain 219)
+M2S6-C-a: effective entries generator 167, OMNeT++ 167: IDENTICAL (keys, values, order); runconfig form: first per key (167 printed, chain 210)
+M2S6-E-all: effective entries generator 178, OMNeT++ 178: IDENTICAL (keys, values, order); runconfig form: first per key (178 printed, chain 224)
+M2S71-q0-Ca: effective entries generator 172, OMNeT++ 172: IDENTICAL (keys, values, order); runconfig form: first per key (172 printed, chain 220)
+M2S71-qdu-Ca: effective entries generator 175, OMNeT++ 175: IDENTICAL (keys, values, order); runconfig form: first per key (175 printed, chain 225)
+M2S71-q0-Ca-sus: effective entries generator 184, OMNeT++ 184: IDENTICAL (keys, values, order); runconfig form: first per key (184 printed, chain 241)
+M2S71-qdu-Ca-sus: effective entries generator 187, OMNeT++ 187: IDENTICAL (keys, values, order); runconfig form: first per key (187 printed, chain 246)
+effective-entry check: all IDENTICAL
+rc 0
+
+== python3 tools/m2s72_verify_eff.py control opp_run -u Cmdenv -f omnetpp.ini
+PASS | M2S71-q0-idle: NC-value: one effective value changed
+PASS | M2S71-q0-idle: NC-drop: one effective key dropped
+PASS | M2S71-q0-idle: NC-order: two effective entries swapped
+PASS | M2S71-q0-idle: PC-shadow: a shadowed entry changed (description) is not an effective change
+PASS | M2S71-q0-idle: baseline: unmutated effective lists identical
+effective-entry controls: 5 / 5 PASS
+rc 0
+
+== python3 check/test_m2s72s5.py
+PASS | classify: gNB 'no free H-ARQ process' with rc != 0 -> SIM-ABORT
+PASS | classify: UE UL 'no free H-ARQ process' -> SIM-ABORT
+PASS | classify: 'marked inactive with N bytes' -> SIM-ABORT
+PASS | classify: an abort text with rc 0 -> ERROR (fail closed, never OK)
+PASS | classify: rc 124 -> TIMEOUT
+PASS | classify: the UE info line 'no free H-ARQ process for the grant ... not used' alone, rc 1 -> ERROR, not SIM-ABORT
+PASS | classify: other runtime error -> ERROR, not SIM-ABORT
+PASS | classify: rc 0 with an error line -> ERROR
+PASS | classify: normal log incl. the UE 'grant is not used' info line -> OK
+PASS | space rule: free >= 1.5 x run + twin + 1 GB + 2 GB
+PASS | manifest: every file listed; verify passes; a changed byte and a missing file fail
+PASS | retain (tier B): gzip -n in place, originals removed, manifest still verifies; a corrupted .gz fails
+PASS | committed: HEAD blob equal -> ok; local differs -> fail; path not in HEAD -> fail
+PASS | RD-4 classifier: q0->q0p scheduler ISOLATED; q0p->qde mapping ISOLATED; qde->qdu priority ISOLATED
+PASS | RD-4 classifier: q0p->qdu is NOT mapping-only (the gPTP DRB has another profile)
+PASS | RD-4 classifier mutations: a load / traffic difference, an RLC-mode change, a scheduler change are not allowed
+PASS | name parser: E0v / twins / H5 / E0 (1.8.0) / E0v-N; unknown names refused
+PASS | Q-0p analysis mapping: m2s71_lib OPTIONS q0p = q0 in DRBs / RLC mode / split; scheduler differs
+PASS | generator: m2s72s5.ini regenerates byte for byte; m2s72.ini unchanged; every matrix config present
+PASS | Q-de (D-1): each per-N mixin is Q-d's accepted section with only the gPTP DRB profile changed; base / D-4 extend Q-d's
+PASS | Q-de refusal: a gPTP-profile substitution outside DRB 4 or with the wrong count is refused
+PASS | generator refusal: a factor whose interval is not an exact ns (0.75 at one loaded UE)
+PASS | generator refusal: a config name already defined in m2s72.ini
+PASS | generator refusal: m2s72.ini not regenerated byte for byte by the accepted generator
+PASS | grammar: H-ARQ occupancy in LOG order (feedback logged after the insert of the same TTI keeps the process busy)
+PASS | grammar: UE 'grant is not used' counted (not a loss); a UE loss-like line and a 1.8.0-only text fail MG-1
+PASS | manifest: a missing result directory is skipped (early abort); a manifest of nothing is refused
+PASS | runner guard: no S5_ENV_DECISION -> refused before anything is created (RD-7)
+PASS | runner guard: Simu5G Version other than 1.8.1 -> refused
+PASS | runner guard: no NASCTIME_RESULTS_ROOT (legacy mode) -> refused; a root inside simulations/m2/results -> refused
+PASS | runner lifecycle (records repo): runs OK -> check -> manifest -> records committed and verified -> raw deleted
+PASS | runner lifecycle (no records repo): raw outputs kept, pending release; 'release' later commits then deletes
+PASS | runner: SIM-ABORT -> batch stops (exit 5), outcome recorded, raw kept as tier B (gzip, verified), nothing deleted
+PASS | runner: a failed per-run check -> batch stops (exit 6), raw kept as tier B
+PASS | runner smoke: one run E0v-q0-f1, check, quick, controls-q8, manifest; raw held uncompressed and read-only; nothing committed or deleted even with S5_RECORDS_REPO; release of the smoke stage refused
+PASS | runner smoke: a failed per-run check -> exit 6, every later step still recorded, raw held uncompressed
+PASS | runner: an existing stage directory is never overwritten
+PASS | runner e0v (stub): factors 1, 2, 4, 8, controls on q0-f1 and qdu-f2, twin of the top factor, every hold released
+S5-1 tests: 38 / 38 PASS
+rc 0
+
+== python3 ../tools/g0_env_equivalence.py selftest --ref ../results/simu5g-1.8.1
+PASS | identity: reference vs itself holds, all byte-identical
+PASS | canary: one PASS -> FAIL in M2-S6 check.txt is VERDICT-DIFFERENT
+PASS | canary: gate OPEN -> CLOSED is VERDICT-DIFFERENT
+PASS | canary: one changed number is listed (G0-N) without a verdict change
+PASS | canary: one CP2 row PASS -> FAIL is VERDICT-DIFFERENT
+PASS | G0-R1: 6.5.0-form regen.txt with matching verify-eff is ATTRIBUTED, not counted as different
+PASS | G0-R1 canary: one other changed line defeats the attribution
+PASS | G0-R1 canary: a runconfig count other than the effective count defeats the attribution
+PASS | format: single-file r2 check and batch evaluations give the same row keys (2411) and controls (13)
+G0 tool selftest: 9 / 9 PASS
+rc 0
