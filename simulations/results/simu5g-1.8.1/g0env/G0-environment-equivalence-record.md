@@ -1,8 +1,13 @@
 # G0 environment-equivalence record: OMNeT++ 6.4.0 (accepted) → OMNeT++ 6.5.0 (D-2 reference)
 
-**Revision 2 (2026-11-15).** Revision 1 (`86d7599`) declared the criteria and the closure conditions before any VM file was compared. Revision 2 adds the VM evidence: `g0-compare.txt`, CP1 and CP2 completed independently on the VM. The criteria (§2) and the closure conditions (§7) are unchanged.
+**Revision 3, closing (2026-11-15).**
+- Revision 1 (`86d7599`) declared the criteria and the closure conditions before any VM file was compared.
+- Revision 2 (`5bfded0`) added `g0-compare.txt` and the independent CP1 / CP2 results, with the status kept OPEN.
+- Revision 3 adds the VM environment evidence (B-1) and the original report's checksum (B-2), and closes the record.
 
-**Status: OPEN.** Three of the four declared closure conditions are satisfied. **Condition 4 is not:** the VM environment identities and the clean-worktree evidence must come from the VM's own files, which I have not received (§8, blocker B-1). The integrity of the committed `g0-compare.txt` copy also awaits one checksum from the VM (§8, B-2). The record is not closed by assumption.
+The criteria (§2) and the closure conditions (§7) are unchanged since revision 1.
+
+**Status: CLOSED.** All four declared closure conditions are satisfied (§7). The basis for each is stated there, including what rests on the reviewer's statement rather than on a file.
 
 **What G0 establishes, and what it does not.** G0 establishes **validation-verdict equivalence**:
 - every compared validation record of the accepted environment reproduces its verdict on OMNeT++ 6.5.0, historical FAILs included;
@@ -20,14 +25,25 @@ It does **not** establish raw-output identity or numerical equivalence of the si
 
 ## 1. Environments
 
+**V column sources** (§8; committed under `evidence-vm/`):
+- the 28 runner-written `env*.txt` / `stack.txt` files (`B1-environment-files.tar.gz`);
+- the identity report (`B1-VM-identities.txt`, 2026-11-15T16:07:46Z).
+
 | | Accepted (A) | D-2 reference (V) |
 |---|---|---|
-| Machine | the original cloud container (2 cores, 11 GB disk allowance; since replaced) | your VirtualBox VM (`/home/vboxuser/testing_nasc`, results also on `/mnt/nasctime-results`) |
-| OMNeT++ | 6.4.0, build 260506-2cf25223fe | **6.5.0** (reported). Build id: **pending B-1** |
-| INET | 4.7.0 (`inet-4.7.0-dfe270b21f`) | 4.7.0 (reported). Commit, library hash: **pending B-1** |
-| Simu5G | 1.8.1, tag `v1.8.1` (`7477d266`), unmodified; `libsimu5g.so` `0dbda409…` (build path embedded) | 1.8.1, unmodified (reported). Commit, `git status`, library hash: **pending B-1** |
-| Compiler | Ubuntu clang 18.1.3 | **pending B-1** |
-| nascTime | `m2/simu5g-1.8.1` at `2586bce` | worktrees `nascTime-r181` (expected `2586bce`) and `nascTime-s5-2` (expected `decf848`), both **reported clean**, without the VM NED / INI patch. `rev-parse` / `status` output and the commit used by each part: **pending B-1** |
+| Machine | the original cloud container (2 cores, 11 GB disk allowance; since replaced) | the reviewer's VirtualBox VM, Linux x86_64. Kernel `6.8.0-136-generic` for the 2026-11-12 runs (M1, M2); `6.8.0-138-generic` for the 2026-11-15 runs (CP1, CP2, Stage 5 regen) and the identity report |
+| OMNeT++ | 6.4.0, build 260506-2cf25223fe | **6.5.0, build `261029-ccd51e11a4`** in every one of the 18 env files and in the identity report; root `/home/vboxuser/testing_nasc/omnetpp-6.5.0` (every `stack.txt`). This is the same build id as the `omnetpp-6.5.0-core` release built in the development environment (`M2-S7.2a-s5-checks-omnetpp650.txt`) |
+| INET | 4.7.0 (`inet-4.7.0-dfe270b21f`) | **`inet-4.7.0-dfe270b21f`** (`Version` file, every env / stack file); `libINET.so` sha256 `da6391946d9e1e5c7f8cc71291f66bcb51a43ce75273194934f4d4a04ad9823c`; root `/home/vboxuser/testing_nasc/inet-4.7.0`. **Not a git checkout:** source state not verifiable by `git status` (§8.1) |
+| Simu5G | 1.8.1, tag `v1.8.1` (`7477d266`), unmodified; `libsimu5g.so` `0dbda409…` (build path embedded) | **`Version` 1.8.1**; `libsimu5g.so` sha256 `28a4cbf659e1d7682bd8c5e3b57a28ad6253b91d21f4ad80078a98f9ccaf0d96`, the same in all 10 `stack.txt` files, the Stage 5 regen env and the identity report; root `/home/vboxuser/testing_nasc/simu5g-1.8.1`. **Not a git checkout:** "unmodified" is the reviewer's statement, not verified by `git status` (§8.1) |
+| Compiler / Python | Ubuntu clang 18.1.3; Python 3.13.16 | **clang 21.1.8** (env files of M2-S5, M2-S6, CP1, CP2; identity report); **Python 3.13.13** (env files from M2-S4 on; identity report) |
+| nascTime, M1 and M2 (V1, V2) | `m2/simu5g-1.8.1` at `2586bce` | `nascTime_commit: 2586bce106bf021284191f6907a599a92fe77d83` in every M1-S4 / S5 and M2-S0 / S1 / S4 / S5 / S6 env and stack file; `libnasctime_m2` sha256 `2ff73f52…` |
+| nascTime, CP1 and CP2 | (CP1 rev. 2, CP2 rev. 2 records) | `nascTime_commit: 2586bce…` in all 10 CP1 / CP2 env files and both `stack.txt`; `libnasctime_m2` `2ff73f52…` (the same library as M2); `m2s72_ini_sha256: dfc8a7f7…`, the accepted `m2s72.ini` |
+| nascTime, G0 comparison | — | reference records read from worktree `nascTime-s5-2` at `decf848` (paths in `g0-compare.txt`; HEAD in the identity report). Those records are byte-identical to `2586bce`'s (additions only) |
+| Worktrees (identity report) | — | `nascTime-r181` `2586bce…`, `nascTime-s5` `86d7599…`, `nascTime-s5-2` `decf848…`. **Clean:** stated by the reviewer (2026-11-15, twice). Basis in the report: §7, condition 4 |
+
+**Consistency observations** (recorded, not used as criteria):
+- The VM gate times of §5 fall inside the VM run sequence: the M2-S4 gate at 16:23:37, then the M2-S5 env at 16:23:39; the M2-S5 gate at 16:41:43, then the M2-S6 env at 16:41:46.
+- The Stage 5 regen (VM procedure §2) ran from `nascTime-s5` at `86d7599`, with `libnasctime_m2` `f643c660…`. That library hash differs from `2ff73f52…`, although `git diff 2586bce 86d7599 -- src` is empty. The cause is not determined (the worktree path differs). That run is not a G0 record.
 
 ## 2. Criteria (declared before the VM files are compared)
 
@@ -107,11 +123,25 @@ Compared records (paths relative to the VM roots of the acceptance checklist):
 
 ## 4. Results (VM evidence)
 
-**Source:** `g0-compare.txt` in this directory, produced on the VM by `simulations/tools/g0_env_equivalence.py compare`.
-- Its conclusions are incorporated unchanged.
-- The file is committed **exactly as received**. The received copy has CRLF line endings (114 / 114 lines); the tool writes LF, so the copy was transformed in transfer.
-  - received copy: sha256 `2db61d14140502f346510c0268dcd6d322df4e131789eb7ceb9513d0716fa7fa`, 11,408 bytes;
-  - LF-normalised content: sha256 `b3faf345875696908b6bec82100e09eecca2ab6b7f307cb51f700a2e0fbba570`, 11,294 bytes. It must equal the VM file's sha256 (B-2).
+**Source:** the VM comparison report, produced on the VM by `simulations/tools/g0_env_equivalence.py compare`. Its conclusions are incorporated unchanged.
+
+**Copies in this directory, and their exact relation (B-2):**
+
+| File | sha256 | Bytes | What it is |
+|---|---|---|---|
+| VM original `/mnt/nasctime-results/g0-validation/g0-compare-corrected.txt` | `a92751f27e64e2f2eb8eccf4b3c737f7b371cfea9e15bc3f7df3e6a9c2a11096` | 11,295 | as reported (`evidence-vm/B2-original-comparison-sha256.txt`; the file name is the reviewer's) |
+| `g0-compare.txt` (rev. 2, unchanged) | `2db61d14140502f346510c0268dcd6d322df4e131789eb7ceb9513d0716fa7fa` | 11,408 | the transferred copy, as received |
+| `g0-compare.vm-original.txt` (rev. 3) | `a92751f27e64e2f2eb8eccf4b3c737f7b371cfea9e15bc3f7df3e6a9c2a11096` | 11,295 | **byte-identical to the VM original** (equal sha256), reconstructed from the transferred copy |
+
+**Exact explanation:** the VM original ends with two LF characters. The comparator itself produces that: its appendix list ends with an empty element, so `"\n".join(...)` ends in LF and `print` adds a second one (`g0_env_equivalence.py`, lines 291 / 299 and 430).
+
+The transferred copy is the VM original with two changes:
+1. every line terminator converted from LF to CRLF;
+2. the final empty line removed.
+
+No other byte differs. So `(transferred copy with CR removed) + one LF` reproduces the VM original exactly (sha256 equal, 11,295 bytes). The two copies have the same 114 lines of text.
+
+**Correction to revision 2.** Revision 2 predicted `b3faf345…` (the CR-free transferred copy, 11,294 bytes) "if only the line endings changed". That prediction missed the dropped final empty line; it is superseded by the exact relation above, not adjusted after the fact. The transferred copy is kept unchanged; both copies stay.
 
 **Comparator self-test on the VM:** 9 / 9 PASS (reported).
 
@@ -210,42 +240,35 @@ Under the declared criteria, G0-H is informational (D-2: no return to OMNeT++ 6.
 
 ## 7. Closure conditions (declared in revision 1, unchanged) and their state
 
-| # | Condition | State | Evidence |
+| # | Condition | State | Basis |
 |---|---|---|---|
-| 1 | `g0-compare.txt` committed here; G0-V `HOLDS` or `HOLDS EXCEPT … ATTRIBUTED (G0-R1 …)`, no unattributed verdict difference | **satisfied**, with integrity confirmation pending (B-2) | §4; `g0-compare.txt` |
-| 2 | every G0-N line attributed in §5 | **satisfied** | §5 (N-1, N-2 mechanical from the gate scripts and the reference manifests; N-3 G0-R1, tested) |
-| 3 | CP1 and CP2 as in §4.2 | **satisfied** | §4.2 |
-| 4 | the VM environment identities in §1 filled in from the VM `env*.txt` / `stack.txt`, and the VM worktree clean | **NOT satisfied** | §1 still holds the reported values only. The clean worktrees are reported (`nascTime-r181`, `nascTime-s5-2`), but the `git status` / `rev-parse` outputs and the env files are not in hand (B-1) |
+| 1 | `g0-compare.txt` committed here; G0-V `HOLDS` or `HOLDS EXCEPT … ATTRIBUTED (G0-R1 …)`, no unattributed verdict difference | **satisfied** | `HOLDS EXCEPT 1 ATTRIBUTED DIFFERENCE(S) (G0-R1; historical verdict kept)`; 0 unattributed; 0 missing. The committed copies relate exactly to the VM original (§4, B-2); `g0-compare.vm-original.txt` is byte-identical to it |
+| 2 | every G0-N line attributed in §5 | **satisfied** | N-1, N-2: gate time (`date -u`) and the stage manifest digest, a consequence of the G0-H non-identity, not an explanation of it; N-3: G0-R1, tested by the comparator |
+| 3 | CP1 and CP2 as in §4.2 | **satisfied** | §4.2. CP1 / CP2 ran at `nascTime_commit 2586bce` on OMNeT++ 6.5.0 build `261029-ccd51e11a4` (env / stack files) |
+| 4 | the VM environment identities in §1 filled in from the VM `env*.txt` / `stack.txt`, and the VM worktree clean | **satisfied** | **Identities:** §1, every value from the 28 env / stack files and the identity report, mutually consistent. **Clean worktree:** the reviewer's explicit statement. The identity report gives each worktree's HEAD. In its dependency blocks each tree gets two git commands (two `fatal` lines each for INET / Simu5G); for the nascTime worktrees nothing follows the HEAD line, which is what an empty `git status --short` prints. The report does not print the commands themselves, so the cleanliness rests on the reviewer's statement, with the report consistent with it |
 
-**G0 stays OPEN.** Stage 5 simulation modes stay unauthorised. The closing commit will fill §1 from the files of B-1, record B-2, set the status to CLOSED, and nothing else. Under protocol §8, `S5_ENV_DECISION` names that commit.
+**G0 is CLOSED** by this revision's commit. Under protocol §8, `S5_ENV_DECISION` names that commit. Closure lifts the environment condition (D-2, condition 1) only; it authorises no simulation. The smoke run and every Stage 5 experiment still need their own authorisation.
 
-## 8. Evidence still needed from the VM (nothing below is invented here)
+## 8. Evidence received from the VM
 
-**B-1 (blocks condition 4).**
+All files are committed as received; sha256 of each upload is listed in `EVIDENCE.sha256` (this directory):
 
-1. **Environment files:** every `env*.txt` and `stack.txt` that the runners wrote under these roots:
-   - `~/testing_nasc/r181-results` (M1, M2, CP1);
-   - `/mnt/nasctime-results/cp2-validation-1` (CP2).
-2. **Stack and worktree identity:** the output of these commands, with the environment variables as used for the runs:
+| File | Content |
+|---|---|
+| `evidence-vm/B1-VM-identities.txt` | identity report, 2026-11-15T16:07:46Z: OMNeT++, INET, Simu5G, library hashes, compiler, Python, OS, worktree HEADs |
+| `evidence-vm/B1-environment-files.tar.gz` | the 28 runner-written `env*.txt` / `stack.txt` files: M1-S4 / S5; M2-S0 / S1 / S4 / S5 / S6; CP1 rev. 2 (`env-all`, `-regen`, `-f0`, `-t0`, `-hashes`); CP2 rev. 2 (`env-r2`, `-r2regen`, `-r2run`, `-r2hashes`, `-r2check`); Stage 5 regen |
+| `evidence-vm/B2-original-comparison-sha256.txt` | sha256 of the VM original comparison report |
+| `g0-compare.txt`, `g0-compare.vm-original.txt` | §4 |
+
+### 8.1 Limitations carried forward (not closure conditions)
+
+1. **Dependency source state.** INET and Simu5G on the VM are release trees, not git checkouts. Their identity is established by `Version` files and library hashes. That they are unmodified rests on the reviewer's statement. Optional check **O-4**, on the VM, no simulation:
 
 ```bash
-opp_run -v | head -3
-cat $INET_ROOT/Version; git -C $INET_ROOT rev-parse HEAD; git -C $INET_ROOT status --short | wc -l
-cat $SIMU5G_ROOT/Version; git -C $SIMU5G_ROOT rev-parse HEAD; git -C $SIMU5G_ROOT status --short | wc -l
-sha256sum $INET_ROOT/src/libINET.so $SIMU5G_ROOT/src/libsimu5g.so
-${CXX:-clang++} --version | head -1; python3 --version; uname -srm
-for w in ~/testing_nasc/nascTime-r181 ~/testing_nasc/nascTime-s5-2 <any other worktree used for CP1 / CP2>; do
-  echo "== $w"; git -C $w rev-parse HEAD; git -C $w status --short | wc -l; git -C $w status --short; done
+git clone -q --depth 1 -b v1.8.1 https://github.com/Unipisa/Simu5G.git /tmp/s5ref && diff -rq /tmp/s5ref/src $SIMU5G_ROOT/src | grep -v '\.\(o\|so\|d\)$\|_m\.\(cc\|h\)' ; echo rc $?
+git clone -q --depth 1 -b v4.7.0 https://github.com/inet-framework/inet.git /tmp/inetref && diff -rq /tmp/inetref/src $INET_ROOT/src | grep -v '\.\(o\|so\|d\)$\|_m\.\(cc\|h\)' ; echo rc $?
 ```
 
-3. **Which worktree and commit ran each part:** M1 (V1), M2 (V2), CP1, CP2 and the G0 comparison. The `nascTime_commit` line of each env file may already say this.
-
-**B-2 (integrity of the committed copy).**
-- `sha256sum` of the VM's `g0-compare.txt`.
-- Expected `b3faf345875696908b6bec82100e09eecca2ab6b7f307cb51f700a2e0fbba570` if only the line endings changed in transfer.
-- A different value means the content differs, and the record would then be rebuilt from the VM file.
-
-**Optional (G0-H detail; does not block closure):**
-- **O-1:** the VM `raw-outputs.sha256` of M2-S0 and M2-S1, so the 13 and 15 differing CSV files can be named (identity only, no explanation).
-- **O-2:** `sha256sum` of the VM `M2-S4/raw-outputs.sha256` and `M2-S5/raw-outputs.sha256`; prefixes `cc094d5b2d56ca91` and `c593248c23463b75` expected.
-- **O-3:** the M1 `raw-outputs-all.sha256` lists, if the M1 runner wrote them under another name.
+   Only build products should be listed: `Only in …` lines for generated files.
+2. **G0-H as in §6.** Unexplained CSV non-identity in M2-S0 (13) and M2-S1 (15); `.sca` / `.vec` / `.vci` and log non-identity everywhere; no numerical-equivalence claim; M1 lists not provided. Optional O-1…O-3 (revision 2) remain open and do not affect this closure.
+3. **Worktree cleanliness** rests on the reviewer's statement (condition 4 above).

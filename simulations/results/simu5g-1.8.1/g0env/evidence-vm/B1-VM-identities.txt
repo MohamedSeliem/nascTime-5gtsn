@@ -1,0 +1,36 @@
+=== Date ===
+Sun Nov 15 16:07:46 UTC 2026
+=== OMNeT++ ===
+OMNeT++ Discrete Event Simulation  (C) 1992-2026 Andras Varga, OpenSim Ltd.
+Version: 6.5.0, build: 261029-ccd51e11a4, edition: Academic Public License -- NOT FOR COMMERCIAL USE
+See the license for distribution terms and warranty disclaimer
+
+Setting up Qtenv...
+
+Build: omnetpp-6.5.0 261029-ccd51e11a4
+Compiler: CLANG 21.1.8 
+=== Dependency paths ===
+INET=/home/vboxuser/testing_nasc/inet-4.7.0
+SIMU5G=/home/vboxuser/testing_nasc/simu5g-1.8.1
+=== Dependency: /home/vboxuser/testing_nasc/inet-4.7.0 ===
+inet-4.7.0-dfe270b21f
+fatal: not a git repository (or any of the parent directories): .git
+fatal: not a git repository (or any of the parent directories): .git
+=== Dependency: /home/vboxuser/testing_nasc/simu5g-1.8.1 ===
+1.8.1
+fatal: not a git repository (or any of the parent directories): .git
+fatal: not a git repository (or any of the parent directories): .git
+=== Libraries ===
+da6391946d9e1e5c7f8cc71291f66bcb51a43ce75273194934f4d4a04ad9823c  /home/vboxuser/testing_nasc/inet-4.7.0/src/libINET.so
+28a4cbf659e1d7682bd8c5e3b57a28ad6253b91d21f4ad80078a98f9ccaf0d96  /home/vboxuser/testing_nasc/simu5g-1.8.1/src/libsimu5g.so
+=== Compiler / Python / OS ===
+clang version 21.1.8
+Python 3.13.13
+Linux 6.8.0-138-generic x86_64
+=== nascTime worktrees ===
+=== /home/vboxuser/testing_nasc/nascTime-r181 ===
+2586bce106bf021284191f6907a599a92fe77d83
+=== /home/vboxuser/testing_nasc/nascTime-s5 ===
+86d7599a95f136a139a00bfd139cabc369b3a954
+=== /home/vboxuser/testing_nasc/nascTime-s5-2 ===
+decf848e9e83cecc7fae39cf84b119c13ed187be
