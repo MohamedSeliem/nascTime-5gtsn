@@ -1,0 +1,114 @@
+# G0 environment-equivalence comparison
+
+reference: /home/vboxuser/testing_nasc/nascTime-s5-2/simulations/results/simu5g-1.8.1
+vm m1: /home/vboxuser/testing_nasc/r181-results
+vm m1x: /mnt/nasctime-results/g0-validation/m1x
+vm m2: /home/vboxuser/testing_nasc/r181-results/m2
+vm cp1: /home/vboxuser/testing_nasc/r181-results/s72
+vm cp2: /mnt/nasctime-results/cp2-validation-1/m2/M2-S7.2a-cp2r2/cp2r2-check.txt
+
+## G0-V verdict identity (required) and G0-N differences (listed)
+
+| Group | Record | Expected (acceptance) | Status | Detail |
+|---|---|---|---|---|
+| M1-S4 | `transport-check.txt` | PASS | BYTE-IDENTICAL | PASS 9 / FAIL 0 |
+| M1-S4 | `clock-check.txt` | PASS | BYTE-IDENTICAL | PASS 5 / FAIL 0 |
+| M1-S5 | `check.txt` | historical FAIL (W-identity, R-ingress, R-egress) | BYTE-IDENTICAL | PASS 5 / FAIL 4 |
+| M1-S5 | `v181-s5.txt` | W-identity-v PASS, R-egress-v FAIL | BYTE-IDENTICAL | PASS 1 / FAIL 2 |
+| M1-S5 | `v181-s5-mutation.txt` | mutation FAIL | BYTE-IDENTICAL | PASS 0 / FAIL 3 |
+| M1-S5 | `s5e.txt` | PASS 1073/1073 | BYTE-IDENTICAL | PASS 2 / FAIL 0 |
+| M1-S5 | `s5e-mutation.txt` | mutation FAIL | BYTE-IDENTICAL | PASS 0 / FAIL 2 |
+| M1-S5 | `s5i.txt` | PASS | BYTE-IDENTICAL | PASS 2 / FAIL 0 |
+| M1-S5 | `s5i-mutation.txt` | mutation FAIL | BYTE-IDENTICAL | PASS 0 / FAIL 2 |
+| M2-S0 | `check.txt` | historical FAIL 20/21 (A7) | BYTE-IDENTICAL | PASS 21 / FAIL 2 |
+| M2-S0 | `census.txt` | as committed | BYTE-IDENTICAL | PASS 0 / FAIL 0 |
+| M2-S1 | `check.txt` | historical FAIL 27/28 (C10) | BYTE-IDENTICAL | PASS 27 / FAIL 2 |
+| M2-S1 | `census.txt` | as committed | BYTE-IDENTICAL | PASS 0 / FAIL 0 |
+| M2-S4 | `check.txt` | historical FAIL 54/55 (R2b) | BYTE-IDENTICAL | PASS 54 / FAIL 2 |
+| M2-S4 | `r2b-v-check.txt` | R2b-v PASS | BYTE-IDENTICAL | PASS 2 / FAIL 0 |
+| M2-S4 | `r2b-v-mutation-check.txt` | mutation FAIL | BYTE-IDENTICAL | PASS 0 / FAIL 2 |
+| M2-S4 | `DEPENDENCY-GATE.txt` | OPEN | VERDICT-IDENTICAL | PASS 2 / FAIL 3; gate / identity words {'OPEN': 1}; 1 matched lines with changed numbers; 2 unmatched lines |
+| M2-S5 | `check.txt` | historical FAIL 66/71 | BYTE-IDENTICAL | PASS 66 / FAIL 6 |
+| M2-S5 | `check-v181c.txt` | 69/71 (N-tseSlot, N-noFcsNw) | BYTE-IDENTICAL | PASS 69 / FAIL 3 |
+| M2-S5 | `c8demo-v181c.txt` | PASS | BYTE-IDENTICAL | PASS 6 / FAIL 4 |
+| M2-S5 | `controls-v181c.txt` | PASS | BYTE-IDENTICAL | PASS 3 / FAIL 0 |
+| M2-S5 | `DEPENDENCY-GATE.txt` | OPEN | VERDICT-IDENTICAL | PASS 3 / FAIL 3; gate / identity words {'OPEN': 1}; 1 matched lines with changed numbers; 2 unmatched lines |
+| M2-S6 | `check.txt` | PASS 1863/1863 | BYTE-IDENTICAL | PASS 1864 / FAIL 0 |
+| M2-S6 | `gate-D0.txt` | 8/8 | BYTE-IDENTICAL | PASS 9 / FAIL 0 |
+| M2-S6 | `gate-E0b.txt` | 3/3 | BYTE-IDENTICAL | PASS 4 / FAIL 0 |
+| M2-S6 | `report.txt` | as committed | BYTE-IDENTICAL | PASS 0 / FAIL 0 |
+| CP1 | `regen.txt` | 6.4.0: flattening IDENTICAL x9, verify rc 0; on 6.5.0 predicted DIFFERENT x9, verify rc 1 (G0-R1) | VERDICT-DIFFERENT, ATTRIBUTED G0-R1 | PASS 68 / FAIL 1; gate / identity words {'IDENTICAL': 1, 'DIFFERENT': 9}; 1 matched lines with changed numbers; 27 unmatched lines; gate / identity words Counter({'IDENTICAL': 10}) -> Counter({'DIFFERENT': 9, 'IDENTICAL': 1}); attribution: G0-R1 holds: 9 flattening lines DIFFERENT, each runconfig count = its effective count; verify-eff all IDENTICAL |
+| CP1 | `f0-check.txt` | F0 PASS, controls 6/6 | BYTE-IDENTICAL | PASS 118 / FAIL 21 |
+| CP1 | `comparator-canaries.txt` | as committed | BYTE-IDENTICAL | PASS 18 / FAIL 1 |
+| CP1 | `t0-check.txt` | 5 PASS / 5 FAIL (T0-R vs 1.8.0 hashes) | BYTE-IDENTICAL | PASS 6 / FAIL 6 |
+| CP2 | rows, controls, verdict | 2391 gate rows PASS / 0 FAIL, controls 13/13, I-2H PASS | VERDICT-IDENTICAL | rows 2411 (reference 2411); PASS rows outside information families 2391 (reference 2391); controls 13/13 (reference 13/13); verdict PASS (reference PASS); 0 differing row / control keys |
+
+## G0-H raw-output hash identity (informational)
+
+| Group | Hash list | Status | Per class: identical / different / only ref / only vm |
+|---|---|---|---|
+| M1-S4 | `out/m1/S4/raw-outputs-all.sha256` | NOT PROVIDED |  |
+| M1-S5 | `out/m1/S5/raw-outputs-all.sha256` | NOT PROVIDED |  |
+| M2-S0 | `out-r181c-m2/m2/M2-S0/raw-outputs.sha256` | COMPARED | csv: 160/13/0/0; pcapng: 154/0/0/0; sca: 0/22/0/0; vec: 0/22/0/0 |
+| M2-S0 | `out-r181c-m2/m2/M2-S0/r181c-files.sha256` | COMPARED | csv: 160/13/0/0; log: 1/13/0/0; pcapng: 154/0/0/0; sca: 0/22/0/0; vci: 0/22/0/0; vec: 0/22/0/0 |
+| M2-S1 | `out-r181c-m2/m2/M2-S1/raw-outputs.sha256` | COMPARED | csv: 416/15/0/0; pcapng: 216/0/0/0; sca: 0/24/0/0; vec: 0/24/0/0 |
+| M2-S1 | `out-r181c-m2/m2/M2-S1/r181c-files.sha256` | COMPARED | csv: 416/15/0/0; log: 1/15/0/0; pcapng: 216/0/0/0; sca: 0/24/0/0; vci: 0/24/0/0; vec: 0/24/0/0 |
+| M2-S4 | `out-r181c-m2/m2/M2-S4/raw-outputs.sha256` | COMPARED | csv: 1138/0/0/0; pcapng: 510/0/0/0; sca: 0/73/0/0; vec: 0/73/0/0 |
+| M2-S4 | `out-r181c-m2/m2/M2-S4/r181c-files.sha256` | COMPARED | csv: 1138/0/0/0; log: 1/46/0/0; pcapng: 510/0/0/0; sca: 0/73/0/0; vci: 0/73/0/0; vec: 0/73/0/0 |
+| M2-S5 | `out-r181c-m2/m2/M2-S5/raw-outputs.sha256` | COMPARED | csv: 1656/0/0/0; pcapng: 669/0/0/0; sca: 0/77/0/0; vec: 0/77/0/0 |
+| M2-S5 | `out-r181c-m2/m2/M2-S5/r181c-files.sha256` | COMPARED | csv: 1656/0/0/0; log: 1/59/0/0; pcapng: 669/0/0/0; sca: 0/77/0/0; vci: 0/77/0/0; vec: 0/77/0/0 |
+| M2-S6 | `out-r181c-m2/m2/M2-S6/raw-outputs.sha256` | COMPARED | csv: 1816/0/0/0; pcapng: 911/0/0/0; sca: 0/121/0/0; vec: 0/121/0/0 |
+| M2-S6 | `out-r181c-m2/m2/M2-S6/r181c-files.sha256` | COMPARED | csv: 1816/0/0/0; log: 1/69/0/0; pcapng: 911/0/0/0; sca: 0/121/0/0; vci: 0/121/0/0; vec: 0/121/0/0 |
+| M2-S5 | `out-r181c-m2/m2/M2-S5-r181c/r181c-files.sha256` | COMPARED | csv: 70/0/0/0; log: 0/3/0/0; pcapng: 27/0/0/0; sca: 0/3/0/0; vci: 0/3/0/0; vec: 0/3/0/0 |
+| CP1 | `out-s72/m2/M2-S7.2a-cp1r2/raw-outputs.sha256` | COMPARED | csv: 2012/0/0/0; pcapng: 722/0/0/0 |
+
+G0-V summary: 30 verdict-identical, 1 verdict-different and attributed (G0-R1), 0 verdict-different, 0 not provided
+G0-V verdict identity: HOLDS EXCEPT 1 ATTRIBUTED DIFFERENCE(S) (G0-R1; historical verdict kept)
+
+## Appendix: every difference (G0-N attribution input)
+
+### M2-S4 out-r181c-m2/m2/M2-S4/DEPENDENCY-GATE.txt
+
+## out-r181c-m2/m2/M2-S4/DEPENDENCY-GATE.txt: verdict words old PASS 2 / FAIL 3 -> new PASS 2 / FAIL 3; 0 changed or re-aligned verdict-bearing lines, 1 matched lines with changed numbers
+- line 1/1 `M2-R181b dependency gate M2-S4 -> M2-S5: OPEN (2026-11-12T12:55:34Z)`: numbers: 12 -> 16; 55 -> 23; 34 -> 37
+- removed line 4: `G3: raw-outputs.sha256 computed by the m2s4.sh hash command over these runs: 1794 files, sha256 7dafacb610710ec3`
+- added line 4: `G3: raw-outputs.sha256 computed by the m2s4.sh hash command over these runs: 1794 files, sha256 cc094d5b2d56ca91`
+
+### M2-S5 out-r181c-m2/m2/M2-S5/DEPENDENCY-GATE.txt
+
+## out-r181c-m2/m2/M2-S5/DEPENDENCY-GATE.txt: verdict words old PASS 3 / FAIL 3 -> new PASS 3 / FAIL 3; 0 changed or re-aligned verdict-bearing lines, 1 matched lines with changed numbers
+- line 1/1 `M2-R181c dependency gate M2-S5 -> M2-S6: OPEN (2026-11-12T13:15:40Z)`: numbers: 13 -> 16; 15 -> 41; 40 -> 43
+- removed line 6: `raw-outputs.sha256 by the m2s5.sh hash command over these runs: 2479 files, sha256 ee09b70f2c152a70`
+- added line 6: `raw-outputs.sha256 by the m2s5.sh hash command over these runs: 2479 files, sha256 c593248c23463b75`
+
+### CP1 out-s72/m2/M2-S7.2a-cp1r2/regen.txt
+
+## out-s72/m2/M2-S7.2a-cp1r2/regen.txt: verdict words old PASS 68 / FAIL 1 -> new PASS 68 / FAIL 1; 0 changed or re-aligned verdict-bearing lines, 1 matched lines with changed numbers
+- removed line 34: `M2S71-q0-idle: generator 202 entries, OMNeT++ runconfig 202 entries: IDENTICAL (keys, values, order)`
+- removed line 35: `M2S71-qdu-idle: generator 207 entries, OMNeT++ runconfig 207 entries: IDENTICAL (keys, values, order)`
+- removed line 36: `M2S71-q0-load: generator 219 entries, OMNeT++ runconfig 219 entries: IDENTICAL (keys, values, order)`
+- removed line 37: `M2S6-C-a: generator 210 entries, OMNeT++ runconfig 210 entries: IDENTICAL (keys, values, order)`
+- removed line 38: `M2S6-E-all: generator 224 entries, OMNeT++ runconfig 224 entries: IDENTICAL (keys, values, order)`
+- removed line 39: `M2S71-q0-Ca: generator 220 entries, OMNeT++ runconfig 220 entries: IDENTICAL (keys, values, order)`
+- removed line 40: `M2S71-qdu-Ca: generator 225 entries, OMNeT++ runconfig 225 entries: IDENTICAL (keys, values, order)`
+- removed line 41: `M2S71-q0-Ca-sus: generator 241 entries, OMNeT++ runconfig 241 entries: IDENTICAL (keys, values, order)`
+- removed line 42: `M2S71-qdu-Ca-sus: generator 246 entries, OMNeT++ runconfig 246 entries: IDENTICAL (keys, values, order)`
+- added line 34: `M2S71-q0-idle: generator 202 entries, OMNeT++ runconfig 162 entries: DIFFERENT`
+- added line 35: ` first difference at entry 2: generator ('description', '"(mixin) Q-0: gPTP on default DRB 1 (no rule)"') vs runconfig ('sim-time-limit', '12s')`
+- added line 36: `M2S71-qdu-idle: generator 207 entries, OMNeT++ runconfig 165 entries: DIFFERENT`
+- added line 37: ` first difference at entry 2: generator ('description', '"(mixin) Q-d (UM): gPTP on DRB 4 UM, QOS_PF, nasc-gptp"') vs runconfig ('*.bearerConfigurator.staticDrb`
+- added line 38: `M2S71-q0-load: generator 219 entries, OMNeT++ runconfig 174 entries: DIFFERENT`
+- added line 39: ` first difference at entry 2: generator ('description', '"(mixin) Q-0: gPTP on default DRB 1 (no rule)"') vs runconfig ('*.talker.numApps', '4')`
+- added line 40: `M2S6-C-a: generator 210 entries, OMNeT++ runconfig 167 entries: DIFFERENT`
+- added line 41: ` first difference at entry 2: generator ('description', '"(mixin) GM +100 ppm"') vs runconfig ('*.listener.clock.oscillator.driftRate', '100ppm')`
+- added line 42: `M2S6-E-all: generator 224 entries, OMNeT++ runconfig 178 entries: DIFFERENT`
+- added line 43: ` first difference at entry 9: generator ('description', '"(mixin) M2-S6 TT clocks (A2) on both translators, logged, noise on RNG 1"') vs runconfig ('*.*Tt.eth[1`
+- added line 44: `M2S71-q0-Ca: generator 220 entries, OMNeT++ runconfig 172 entries: DIFFERENT`
+- added line 45: ` first difference at entry 2: generator ('description', '"(mixin) Q-0: gPTP on default DRB 1 (no rule)"') vs runconfig ('*.listener.clock.oscillator.driftRate',`
+- added line 46: `M2S71-qdu-Ca: generator 225 entries, OMNeT++ runconfig 175 entries: DIFFERENT`
+- added line 47: ` first difference at entry 2: generator ('description', '"(mixin) Q-d (UM): gPTP on DRB 4 UM, QOS_PF, nasc-gptp"') vs runconfig ('*.bearerConfigurator.staticDrb`
+- added line 48: `M2S71-q0-Ca-sus: generator 241 entries, OMNeT++ runconfig 184 entries: DIFFERENT`
+- added line 49: ` first difference at entry 2: generator ('description', '"(mixin) Q-0: gPTP on default DRB 1 (no rule)"') vs runconfig ('**.app[3].source.productionInterval', '`
+- added line 50: `M2S71-qdu-Ca-sus: generator 246 entries, OMNeT++ runconfig 187 entries: DIFFERENT`
+- added line 51: ` first difference at entry 2: generator ('description', '"(mixin) Q-d (UM): gPTP on DRB 4 UM, QOS_PF, nasc-gptp"') vs runconfig ('*.bearerConfigurator.staticDrb`
+- line 611/620 `verify rc 0`: numbers: 0 -> 1
