@@ -1,0 +1,502 @@
+M2-S7.2a S5-2 static RNG-stream audit (no simulation), 2026-11-15T14:21:48Z
+omnetpp: Version: 6.5.0, build: 261029-ccd51e11a4, edition: Academic Public License -- NOT FOR COMMERCIAL USE
+tool: check/m2s72_rngaudit.py (OMNeT++ PatternMatcher port; fixture check/fixtures/omnetpp-pattern-xcheck.tsv, 0 disagreements)
+m2s72.ini sha256 dfc8a7f7bb7cd1632c335c169cdbd3535e4e90a14b0d04882bb07b406aaf5505; m2s72s5.ini sha256 e563c489852db4cac7ad8562c97373e2379c8bd4029c7f1ebb9d2ace2ff96903
+
+######## per configuration (RA-1..RA-3; the map as configured)
+== M2S72-E0v-q0-f1 (N = 1), as configured
+  PASS  RA-1  num-rngs 2; seeds [(0, 0, 'explicit'), (1, 1000, 'explicit')]; auto-seeded with consumers []; duplicate seed values []; unresolved maps []; out of range []
+  PASS  RA-2  every clock module on a physical RNG without non-clock consumers
+  INFO  RA-3  physical RNGs drawn by modules of >= 2 UEs: none; consumers of physical RNG 0: ['direct', 'gnb', 'gnb-shared', 'ue0'] (10 modules)
+== M2S72-E0v-q0-f1 (N = 1), with the proposed isolation mixin
+  PASS  RA-1  num-rngs 25; seeds [(0, 0, 'explicit'), (1, 1000, 'explicit'), (2, 2000, 'explicit'), (3, 3000, 'explicit'), (4, 4000, 'explicit'), (5, 5000, 'explicit'), (6, 6000, 'explicit'), (7, 7000, 'explicit'), (8, 8000, 'explicit'), (9, 9000, 'explicit'), (10, 10000, 'explicit'), (11, 11000, 'explicit'), (12, 12000, 'explicit'), (13, 13000, 'explicit'), (14, 14000, 'explicit'), (15, 15000, 'explicit'), (16, 16000, 'explicit'), (17, 17000, 'explicit'), (18, 18000, 'explicit'), (19, 19000, 'explicit'), (20, 20000, 'explicit'), (21, 21000, 'explicit'), (22, 22000, 'explicit'), (23, 23000, 'explicit'), (24, 24000, 'explicit')]; auto-seeded with consumers []; duplicate seed values []; unresolved maps []; out of range []
+  PASS  RA-2  every clock module on a physical RNG without non-clock consumers
+  INFO  RA-3  physical RNGs drawn by modules of >= 2 UEs: none; consumers of physical RNG 0: ['direct'] (2 modules)
+  map (as configured):
+    (direct getRNG(0)).scheduler-tiebreak                ->   0  [direct caller]  MAXCI equal-score coin flip / QoS-PF and PF score jitter (gNB, every scheduled TTI with candidates)
+    (direct getRNG(0)).bler-table                        ->   0  [direct caller]  PhyPisaData constructor (once, at start-up; independent of N)
+    gnb1.cellularNic.mac                                 ->   0  [default (local 0 -> physical 0)]  scheduler module (its own draws: none found; tie-breaks are direct)
+    gnb1.cellularNic.phy                                 ->   0  [default (local 0 -> physical 0)]  PhyEnb randomChannelIndex_ (initialisation)
+    gnb1.cellularNic.channelModel[0]                     ->   0  [default (local 0 -> physical 0)]  UL reception / fading / shadowing of EVERY UE (one module)
+    listener.clock.oscillator                            ->   1  [**.clock.oscillator.rng-0 = 1]  GM clock oscillator (draws only with a random-drift oscillator); oscillator typename "ConstantDriftOscillator"
+    listener.app[0].source                               ->   0  [default (local 0 -> physical 0)]  constant production interval and length: no draw
+    listener.app[1].source                               ->   0  [default (local 0 -> physical 0)]  constant production interval and length: no draw
+    listener.app[2].source                               ->   0  [default (local 0 -> physical 0)]  constant production interval and length: no draw
+    ue[0].cellularNic.nrMac                              ->   0  [default (local 0 -> physical 0)]  random access (checkRAC): preamble, back-off
+    ue[0].cellularNic.mac                                ->   0  [default (local 0 -> physical 0)]  LTE-leg MAC random access (if the LTE leg is active)
+    ue[0].cellularNic.nrPhy                              ->   0  [default (local 0 -> physical 0)]  PHY (draws only through its channel model)
+    ue[0].cellularNic.nrChannelModel[0]                  ->   0  [default (local 0 -> physical 0)]  DL reception success, Jakes fading, shadowing of UE k's own frames
+    ue[0].cellularNic.channelModel[0]                    ->   0  [default (local 0 -> physical 0)]  LTE-leg channel model
+    talker[0].clock.oscillator                           ->   1  [**.clock.oscillator.rng-0 = 1]  slave 0 clock oscillator; oscillator typename "ConstantDriftOscillator"
+    talker[0].app[0].source                              ->   0  [default (local 0 -> physical 0)]  constant production interval and length: no draw
+== M2S72-E0vN-q0-one0-n2-f1 (N = 2), as configured
+  PASS  RA-1  num-rngs 4; seeds [(0, 0, 'explicit'), (1, 1000, 'explicit'), (2, 2000, 'explicit'), (3, 3000, 'explicit')]; auto-seeded with consumers []; duplicate seed values []; unresolved maps []; out of range []
+  PASS  RA-2  every clock module on a physical RNG without non-clock consumers
+  INFO  RA-3  physical RNGs drawn by modules of >= 2 UEs: {0: [0, 1]}; consumers of physical RNG 0: ['direct', 'gnb', 'gnb-shared', 'ue0', 'ue1'] (15 modules)
+== M2S72-E0vN-q0-one0-n2-f1 (N = 2), with the proposed isolation mixin
+  PASS  RA-1  num-rngs 25; seeds [(0, 0, 'explicit'), (1, 1000, 'explicit'), (2, 2000, 'explicit'), (3, 3000, 'explicit'), (4, 4000, 'explicit'), (5, 5000, 'explicit'), (6, 6000, 'explicit'), (7, 7000, 'explicit'), (8, 8000, 'explicit'), (9, 9000, 'explicit'), (10, 10000, 'explicit'), (11, 11000, 'explicit'), (12, 12000, 'explicit'), (13, 13000, 'explicit'), (14, 14000, 'explicit'), (15, 15000, 'explicit'), (16, 16000, 'explicit'), (17, 17000, 'explicit'), (18, 18000, 'explicit'), (19, 19000, 'explicit'), (20, 20000, 'explicit'), (21, 21000, 'explicit'), (22, 22000, 'explicit'), (23, 23000, 'explicit'), (24, 24000, 'explicit')]; auto-seeded with consumers []; duplicate seed values []; unresolved maps []; out of range []
+  PASS  RA-2  every clock module on a physical RNG without non-clock consumers
+  INFO  RA-3  physical RNGs drawn by modules of >= 2 UEs: none; consumers of physical RNG 0: ['direct'] (2 modules)
+  map (as configured):
+    (direct getRNG(0)).scheduler-tiebreak                ->   0  [direct caller]  MAXCI equal-score coin flip / QoS-PF and PF score jitter (gNB, every scheduled TTI with candidates)
+    (direct getRNG(0)).bler-table                        ->   0  [direct caller]  PhyPisaData constructor (once, at start-up; independent of N)
+    gnb1.cellularNic.mac                                 ->   0  [default (local 0 -> physical 0)]  scheduler module (its own draws: none found; tie-breaks are direct)
+    gnb1.cellularNic.phy                                 ->   0  [default (local 0 -> physical 0)]  PhyEnb randomChannelIndex_ (initialisation)
+    gnb1.cellularNic.channelModel[0]                     ->   0  [default (local 0 -> physical 0)]  UL reception / fading / shadowing of EVERY UE (one module)
+    listener.clock.oscillator                            ->   1  [**.clock.oscillator.rng-0 = 1]  GM clock oscillator (draws only with a random-drift oscillator); oscillator typename "ConstantDriftOscillator"
+    listener.app[0].source                               ->   0  [default (local 0 -> physical 0)]  constant production interval and length: no draw
+    listener.app[1].source                               ->   0  [default (local 0 -> physical 0)]  constant production interval and length: no draw
+    listener.app[2].source                               ->   0  [default (local 0 -> physical 0)]  constant production interval and length: no draw
+    listener.app[3].source                               ->   0  [default (local 0 -> physical 0)]  constant production interval and length: no draw
+    listener.app[4].source                               ->   0  [default (local 0 -> physical 0)]  constant production interval and length: no draw
+    ue[0].cellularNic.nrMac                              ->   0  [default (local 0 -> physical 0)]  random access (checkRAC): preamble, back-off
+    ue[0].cellularNic.mac                                ->   0  [default (local 0 -> physical 0)]  LTE-leg MAC random access (if the LTE leg is active)
+    ue[0].cellularNic.nrPhy                              ->   0  [default (local 0 -> physical 0)]  PHY (draws only through its channel model)
+    ue[0].cellularNic.nrChannelModel[0]                  ->   0  [default (local 0 -> physical 0)]  DL reception success, Jakes fading, shadowing of UE k's own frames
+    ue[0].cellularNic.channelModel[0]                    ->   0  [default (local 0 -> physical 0)]  LTE-leg channel model
+    talker[0].clock.oscillator                           ->   1  [**.clock.oscillator.rng-0 = 1]  slave 0 clock oscillator; oscillator typename "ConstantDriftOscillator"
+    talker[0].app[0].source                              ->   0  [default (local 0 -> physical 0)]  constant production interval and length: no draw
+    ue[1].cellularNic.nrMac                              ->   0  [default (local 0 -> physical 0)]  random access (checkRAC): preamble, back-off
+    ue[1].cellularNic.mac                                ->   0  [default (local 0 -> physical 0)]  LTE-leg MAC random access (if the LTE leg is active)
+    ue[1].cellularNic.nrPhy                              ->   0  [default (local 0 -> physical 0)]  PHY (draws only through its channel model)
+    ue[1].cellularNic.nrChannelModel[0]                  ->   0  [default (local 0 -> physical 0)]  DL reception success, Jakes fading, shadowing of UE k's own frames
+    ue[1].cellularNic.channelModel[0]                    ->   0  [default (local 0 -> physical 0)]  LTE-leg channel model
+    talker[1].clock.oscillator                           ->   2  [*.talker[1].clock.oscillator.rng-0 = 2]  slave 1 clock oscillator; oscillator typename "ConstantDriftOscillator"
+    talker[1].app[0].source                              ->   0  [default (local 0 -> physical 0)]  constant production interval and length: no draw
+== M2S72-E0vN-qdu-sym-n8-f1 (N = 8), as configured
+  PASS  RA-1  num-rngs 16; seeds [(0, 0, 'explicit'), (1, 1000, 'explicit'), (2, 2000, 'explicit'), (3, 3000, 'explicit'), (4, 4000, 'explicit'), (5, 5000, 'explicit'), (6, 6000, 'explicit'), (7, 7000, 'explicit'), (8, 8000, 'explicit'), (9, 9000, 'explicit'), (10, 10000, 'explicit'), (11, 11000, 'explicit'), (12, 12000, 'explicit'), (13, 13000, 'explicit'), (14, 14000, 'explicit'), (15, 15000, 'explicit')]; auto-seeded with consumers []; duplicate seed values []; unresolved maps []; out of range []
+  PASS  RA-2  every clock module on a physical RNG without non-clock consumers
+  INFO  RA-3  physical RNGs drawn by modules of >= 2 UEs: {0: [0, 1, 2, 3, 4, 5, 6, 7]}; consumers of physical RNG 0: ['direct', 'gnb', 'gnb-shared', 'ue0', 'ue1', 'ue2', 'ue3', 'ue4', 'ue5', 'ue6', 'ue7'] (45 modules)
+== M2S72-E0vN-qdu-sym-n8-f1 (N = 8), with the proposed isolation mixin
+  PASS  RA-1  num-rngs 25; seeds [(0, 0, 'explicit'), (1, 1000, 'explicit'), (2, 2000, 'explicit'), (3, 3000, 'explicit'), (4, 4000, 'explicit'), (5, 5000, 'explicit'), (6, 6000, 'explicit'), (7, 7000, 'explicit'), (8, 8000, 'explicit'), (9, 9000, 'explicit'), (10, 10000, 'explicit'), (11, 11000, 'explicit'), (12, 12000, 'explicit'), (13, 13000, 'explicit'), (14, 14000, 'explicit'), (15, 15000, 'explicit'), (16, 16000, 'explicit'), (17, 17000, 'explicit'), (18, 18000, 'explicit'), (19, 19000, 'explicit'), (20, 20000, 'explicit'), (21, 21000, 'explicit'), (22, 22000, 'explicit'), (23, 23000, 'explicit'), (24, 24000, 'explicit')]; auto-seeded with consumers []; duplicate seed values []; unresolved maps []; out of range []
+  PASS  RA-2  every clock module on a physical RNG without non-clock consumers
+  INFO  RA-3  physical RNGs drawn by modules of >= 2 UEs: none; consumers of physical RNG 0: ['direct'] (2 modules)
+  map (as configured):
+    (direct getRNG(0)).scheduler-tiebreak                ->   0  [direct caller]  MAXCI equal-score coin flip / QoS-PF and PF score jitter (gNB, every scheduled TTI with candidates)
+    (direct getRNG(0)).bler-table                        ->   0  [direct caller]  PhyPisaData constructor (once, at start-up; independent of N)
+    gnb1.cellularNic.mac                                 ->   0  [default (local 0 -> physical 0)]  scheduler module (its own draws: none found; tie-breaks are direct)
+    gnb1.cellularNic.phy                                 ->   0  [default (local 0 -> physical 0)]  PhyEnb randomChannelIndex_ (initialisation)
+    gnb1.cellularNic.channelModel[0]                     ->   0  [default (local 0 -> physical 0)]  UL reception / fading / shadowing of EVERY UE (one module)
+    listener.clock.oscillator                            ->   1  [**.clock.oscillator.rng-0 = 1]  GM clock oscillator (draws only with a random-drift oscillator); oscillator typename "ConstantDriftOscillator"
+    listener.app[0].source                               ->   0  [default (local 0 -> physical 0)]  constant production interval and length: no draw
+    listener.app[1].source                               ->   0  [default (local 0 -> physical 0)]  constant production interval and length: no draw
+    listener.app[2].source                               ->   0  [default (local 0 -> physical 0)]  constant production interval and length: no draw
+    listener.app[3].source                               ->   0  [default (local 0 -> physical 0)]  constant production interval and length: no draw
+    listener.app[4].source                               ->   0  [default (local 0 -> physical 0)]  constant production interval and length: no draw
+    listener.app[5].source                               ->   0  [default (local 0 -> physical 0)]  constant production interval and length: no draw
+    listener.app[6].source                               ->   0  [default (local 0 -> physical 0)]  constant production interval and length: no draw
+    listener.app[7].source                               ->   0  [default (local 0 -> physical 0)]  constant production interval and length: no draw
+    listener.app[8].source                               ->   0  [default (local 0 -> physical 0)]  constant production interval and length: no draw
+    listener.app[9].source                               ->   0  [default (local 0 -> physical 0)]  constant production interval and length: no draw
+    listener.app[10].source                              ->   0  [default (local 0 -> physical 0)]  constant production interval and length: no draw
+    listener.app[11].source                              ->   0  [default (local 0 -> physical 0)]  constant production interval and length: no draw
+    listener.app[12].source                              ->   0  [default (local 0 -> physical 0)]  constant production interval and length: no draw
+    listener.app[13].source                              ->   0  [default (local 0 -> physical 0)]  constant production interval and length: no draw
+    listener.app[14].source                              ->   0  [default (local 0 -> physical 0)]  constant production interval and length: no draw
+    listener.app[15].source                              ->   0  [default (local 0 -> physical 0)]  constant production interval and length: no draw
+    listener.app[16].source                              ->   0  [default (local 0 -> physical 0)]  constant production interval and length: no draw
+    ue[0].cellularNic.nrMac                              ->   0  [default (local 0 -> physical 0)]  random access (checkRAC): preamble, back-off
+    ue[0].cellularNic.mac                                ->   0  [default (local 0 -> physical 0)]  LTE-leg MAC random access (if the LTE leg is active)
+    ue[0].cellularNic.nrPhy                              ->   0  [default (local 0 -> physical 0)]  PHY (draws only through its channel model)
+    ue[0].cellularNic.nrChannelModel[0]                  ->   0  [default (local 0 -> physical 0)]  DL reception success, Jakes fading, shadowing of UE k's own frames
+    ue[0].cellularNic.channelModel[0]                    ->   0  [default (local 0 -> physical 0)]  LTE-leg channel model
+    talker[0].clock.oscillator                           ->   1  [**.clock.oscillator.rng-0 = 1]  slave 0 clock oscillator; oscillator typename "ConstantDriftOscillator"
+    talker[0].app[0].source                              ->   0  [default (local 0 -> physical 0)]  constant production interval and length: no draw
+    ue[1].cellularNic.nrMac                              ->   0  [default (local 0 -> physical 0)]  random access (checkRAC): preamble, back-off
+    ue[1].cellularNic.mac                                ->   0  [default (local 0 -> physical 0)]  LTE-leg MAC random access (if the LTE leg is active)
+    ue[1].cellularNic.nrPhy                              ->   0  [default (local 0 -> physical 0)]  PHY (draws only through its channel model)
+    ue[1].cellularNic.nrChannelModel[0]                  ->   0  [default (local 0 -> physical 0)]  DL reception success, Jakes fading, shadowing of UE k's own frames
+    ue[1].cellularNic.channelModel[0]                    ->   0  [default (local 0 -> physical 0)]  LTE-leg channel model
+    talker[1].clock.oscillator                           ->   2  [*.talker[1].clock.oscillator.rng-0 = 2]  slave 1 clock oscillator; oscillator typename "ConstantDriftOscillator"
+    talker[1].app[0].source                              ->   0  [default (local 0 -> physical 0)]  constant production interval and length: no draw
+    ue[2].cellularNic.nrMac                              ->   0  [default (local 0 -> physical 0)]  random access (checkRAC): preamble, back-off
+    ue[2].cellularNic.mac                                ->   0  [default (local 0 -> physical 0)]  LTE-leg MAC random access (if the LTE leg is active)
+    ue[2].cellularNic.nrPhy                              ->   0  [default (local 0 -> physical 0)]  PHY (draws only through its channel model)
+    ue[2].cellularNic.nrChannelModel[0]                  ->   0  [default (local 0 -> physical 0)]  DL reception success, Jakes fading, shadowing of UE k's own frames
+    ue[2].cellularNic.channelModel[0]                    ->   0  [default (local 0 -> physical 0)]  LTE-leg channel model
+    talker[2].clock.oscillator                           ->   4  [*.talker[2].clock.oscillator.rng-0 = 4]  slave 2 clock oscillator; oscillator typename "ConstantDriftOscillator"
+    talker[2].app[0].source                              ->   0  [default (local 0 -> physical 0)]  constant production interval and length: no draw
+    ue[3].cellularNic.nrMac                              ->   0  [default (local 0 -> physical 0)]  random access (checkRAC): preamble, back-off
+    ue[3].cellularNic.mac                                ->   0  [default (local 0 -> physical 0)]  LTE-leg MAC random access (if the LTE leg is active)
+    ue[3].cellularNic.nrPhy                              ->   0  [default (local 0 -> physical 0)]  PHY (draws only through its channel model)
+    ue[3].cellularNic.nrChannelModel[0]                  ->   0  [default (local 0 -> physical 0)]  DL reception success, Jakes fading, shadowing of UE k's own frames
+    ue[3].cellularNic.channelModel[0]                    ->   0  [default (local 0 -> physical 0)]  LTE-leg channel model
+    talker[3].clock.oscillator                           ->   6  [*.talker[3].clock.oscillator.rng-0 = 6]  slave 3 clock oscillator; oscillator typename "ConstantDriftOscillator"
+    talker[3].app[0].source                              ->   0  [default (local 0 -> physical 0)]  constant production interval and length: no draw
+    ue[4].cellularNic.nrMac                              ->   0  [default (local 0 -> physical 0)]  random access (checkRAC): preamble, back-off
+    ue[4].cellularNic.mac                                ->   0  [default (local 0 -> physical 0)]  LTE-leg MAC random access (if the LTE leg is active)
+    ue[4].cellularNic.nrPhy                              ->   0  [default (local 0 -> physical 0)]  PHY (draws only through its channel model)
+    ue[4].cellularNic.nrChannelModel[0]                  ->   0  [default (local 0 -> physical 0)]  DL reception success, Jakes fading, shadowing of UE k's own frames
+    ue[4].cellularNic.channelModel[0]                    ->   0  [default (local 0 -> physical 0)]  LTE-leg channel model
+    talker[4].clock.oscillator                           ->   8  [*.talker[4].clock.oscillator.rng-0 = 8]  slave 4 clock oscillator; oscillator typename "ConstantDriftOscillator"
+    talker[4].app[0].source                              ->   0  [default (local 0 -> physical 0)]  constant production interval and length: no draw
+    ue[5].cellularNic.nrMac                              ->   0  [default (local 0 -> physical 0)]  random access (checkRAC): preamble, back-off
+    ue[5].cellularNic.mac                                ->   0  [default (local 0 -> physical 0)]  LTE-leg MAC random access (if the LTE leg is active)
+    ue[5].cellularNic.nrPhy                              ->   0  [default (local 0 -> physical 0)]  PHY (draws only through its channel model)
+    ue[5].cellularNic.nrChannelModel[0]                  ->   0  [default (local 0 -> physical 0)]  DL reception success, Jakes fading, shadowing of UE k's own frames
+    ue[5].cellularNic.channelModel[0]                    ->   0  [default (local 0 -> physical 0)]  LTE-leg channel model
+    talker[5].clock.oscillator                           ->  10  [*.talker[5].clock.oscillator.rng-0 = 10]  slave 5 clock oscillator; oscillator typename "ConstantDriftOscillator"
+    talker[5].app[0].source                              ->   0  [default (local 0 -> physical 0)]  constant production interval and length: no draw
+    ue[6].cellularNic.nrMac                              ->   0  [default (local 0 -> physical 0)]  random access (checkRAC): preamble, back-off
+    ue[6].cellularNic.mac                                ->   0  [default (local 0 -> physical 0)]  LTE-leg MAC random access (if the LTE leg is active)
+    ue[6].cellularNic.nrPhy                              ->   0  [default (local 0 -> physical 0)]  PHY (draws only through its channel model)
+    ue[6].cellularNic.nrChannelModel[0]                  ->   0  [default (local 0 -> physical 0)]  DL reception success, Jakes fading, shadowing of UE k's own frames
+    ue[6].cellularNic.channelModel[0]                    ->   0  [default (local 0 -> physical 0)]  LTE-leg channel model
+    talker[6].clock.oscillator                           ->  12  [*.talker[6].clock.oscillator.rng-0 = 12]  slave 6 clock oscillator; oscillator typename "ConstantDriftOscillator"
+    talker[6].app[0].source                              ->   0  [default (local 0 -> physical 0)]  constant production interval and length: no draw
+    ue[7].cellularNic.nrMac                              ->   0  [default (local 0 -> physical 0)]  random access (checkRAC): preamble, back-off
+    ue[7].cellularNic.mac                                ->   0  [default (local 0 -> physical 0)]  LTE-leg MAC random access (if the LTE leg is active)
+    ue[7].cellularNic.nrPhy                              ->   0  [default (local 0 -> physical 0)]  PHY (draws only through its channel model)
+    ue[7].cellularNic.nrChannelModel[0]                  ->   0  [default (local 0 -> physical 0)]  DL reception success, Jakes fading, shadowing of UE k's own frames
+    ue[7].cellularNic.channelModel[0]                    ->   0  [default (local 0 -> physical 0)]  LTE-leg channel model
+    talker[7].clock.oscillator                           ->  14  [*.talker[7].clock.oscillator.rng-0 = 14]  slave 7 clock oscillator; oscillator typename "ConstantDriftOscillator"
+    talker[7].app[0].source                              ->   0  [default (local 0 -> physical 0)]  constant production interval and length: no draw
+rc 0
+== M2S72-B-q0-Eall-n4 (N = 4), as configured
+  PASS  RA-1  num-rngs 8; seeds [(0, 0, 'explicit'), (1, 1000, 'explicit'), (2, 2000, 'explicit'), (3, 3000, 'explicit'), (4, 4000, 'explicit'), (5, 5000, 'explicit'), (6, 6000, 'explicit'), (7, 7000, 'explicit')]; auto-seeded with consumers []; duplicate seed values []; unresolved maps []; out of range []
+  PASS  RA-2  every clock module on a physical RNG without non-clock consumers
+  INFO  RA-3  physical RNGs drawn by modules of >= 2 UEs: {0: [0, 1, 2, 3]}; consumers of physical RNG 0: ['direct', 'gnb', 'gnb-shared', 'ue0', 'ue1', 'ue2', 'ue3'] (25 modules)
+== M2S72-B-q0-Eall-n4 (N = 4), with the proposed isolation mixin
+  PASS  RA-1  num-rngs 25; seeds [(0, 0, 'explicit'), (1, 1000, 'explicit'), (2, 2000, 'explicit'), (3, 3000, 'explicit'), (4, 4000, 'explicit'), (5, 5000, 'explicit'), (6, 6000, 'explicit'), (7, 7000, 'explicit'), (8, 8000, 'explicit'), (9, 9000, 'explicit'), (10, 10000, 'explicit'), (11, 11000, 'explicit'), (12, 12000, 'explicit'), (13, 13000, 'explicit'), (14, 14000, 'explicit'), (15, 15000, 'explicit'), (16, 16000, 'explicit'), (17, 17000, 'explicit'), (18, 18000, 'explicit'), (19, 19000, 'explicit'), (20, 20000, 'explicit'), (21, 21000, 'explicit'), (22, 22000, 'explicit'), (23, 23000, 'explicit'), (24, 24000, 'explicit')]; auto-seeded with consumers []; duplicate seed values []; unresolved maps []; out of range []
+  PASS  RA-2  every clock module on a physical RNG without non-clock consumers
+  INFO  RA-3  physical RNGs drawn by modules of >= 2 UEs: none; consumers of physical RNG 0: ['direct'] (2 modules)
+  map (as configured):
+    (direct getRNG(0)).scheduler-tiebreak                ->   0  [direct caller]  MAXCI equal-score coin flip / QoS-PF and PF score jitter (gNB, every scheduled TTI with candidates)
+    (direct getRNG(0)).bler-table                        ->   0  [direct caller]  PhyPisaData constructor (once, at start-up; independent of N)
+    gnb1.cellularNic.mac                                 ->   0  [default (local 0 -> physical 0)]  scheduler module (its own draws: none found; tie-breaks are direct)
+    gnb1.cellularNic.phy                                 ->   0  [default (local 0 -> physical 0)]  PhyEnb randomChannelIndex_ (initialisation)
+    gnb1.cellularNic.channelModel[0]                     ->   0  [default (local 0 -> physical 0)]  UL reception / fading / shadowing of EVERY UE (one module)
+    listener.clock.oscillator                            ->   1  [**.clock.oscillator.rng-0 = 1]  GM clock oscillator (draws only with a random-drift oscillator); oscillator typename "ConstantDriftOscillator"
+    nwTt.eth[1].trafficConditionerLayer.ttClock          ->   1  [**.trafficConditionerLayer.ttClock.rng-0 = 1]  NW-TT TT clock (draws only with a noisy TT clock)
+    listener.app[0].source                               ->   0  [default (local 0 -> physical 0)]  constant production interval and length: no draw
+    listener.app[1].source                               ->   0  [default (local 0 -> physical 0)]  constant production interval and length: no draw
+    listener.app[2].source                               ->   0  [default (local 0 -> physical 0)]  constant production interval and length: no draw
+    listener.app[3].source                               ->   0  [default (local 0 -> physical 0)]  constant production interval and length: no draw
+    listener.app[4].source                               ->   0  [default (local 0 -> physical 0)]  constant production interval and length: no draw
+    listener.app[5].source                               ->   0  [default (local 0 -> physical 0)]  constant production interval and length: no draw
+    listener.app[6].source                               ->   0  [default (local 0 -> physical 0)]  constant production interval and length: no draw
+    listener.app[7].source                               ->   0  [default (local 0 -> physical 0)]  constant production interval and length: no draw
+    listener.app[8].source                               ->   0  [default (local 0 -> physical 0)]  constant production interval and length: no draw
+    ue[0].cellularNic.nrMac                              ->   0  [default (local 0 -> physical 0)]  random access (checkRAC): preamble, back-off
+    ue[0].cellularNic.mac                                ->   0  [default (local 0 -> physical 0)]  LTE-leg MAC random access (if the LTE leg is active)
+    ue[0].cellularNic.nrPhy                              ->   0  [default (local 0 -> physical 0)]  PHY (draws only through its channel model)
+    ue[0].cellularNic.nrChannelModel[0]                  ->   0  [default (local 0 -> physical 0)]  DL reception success, Jakes fading, shadowing of UE k's own frames
+    ue[0].cellularNic.channelModel[0]                    ->   0  [default (local 0 -> physical 0)]  LTE-leg channel model
+    talker[0].clock.oscillator                           ->   1  [**.clock.oscillator.rng-0 = 1]  slave 0 clock oscillator; oscillator typename "ConstantDriftOscillator"
+    dsTt[0].eth[1].trafficConditionerLayer.ttClock       ->   1  [**.trafficConditionerLayer.ttClock.rng-0 = 1]  DS-TT 0 TT clock
+    talker[0].app[0].source                              ->   0  [default (local 0 -> physical 0)]  constant production interval and length: no draw
+    ue[1].cellularNic.nrMac                              ->   0  [default (local 0 -> physical 0)]  random access (checkRAC): preamble, back-off
+    ue[1].cellularNic.mac                                ->   0  [default (local 0 -> physical 0)]  LTE-leg MAC random access (if the LTE leg is active)
+    ue[1].cellularNic.nrPhy                              ->   0  [default (local 0 -> physical 0)]  PHY (draws only through its channel model)
+    ue[1].cellularNic.nrChannelModel[0]                  ->   0  [default (local 0 -> physical 0)]  DL reception success, Jakes fading, shadowing of UE k's own frames
+    ue[1].cellularNic.channelModel[0]                    ->   0  [default (local 0 -> physical 0)]  LTE-leg channel model
+    talker[1].clock.oscillator                           ->   2  [*.talker[1].clock.oscillator.rng-0 = 2]  slave 1 clock oscillator; oscillator typename "ConstantDriftOscillator"
+    dsTt[1].eth[1].trafficConditionerLayer.ttClock       ->   3  [*.dsTt[1].eth[1].trafficConditionerLayer.ttClock.rng-0 = 3]  DS-TT 1 TT clock
+    talker[1].app[0].source                              ->   0  [default (local 0 -> physical 0)]  constant production interval and length: no draw
+    ue[2].cellularNic.nrMac                              ->   0  [default (local 0 -> physical 0)]  random access (checkRAC): preamble, back-off
+    ue[2].cellularNic.mac                                ->   0  [default (local 0 -> physical 0)]  LTE-leg MAC random access (if the LTE leg is active)
+    ue[2].cellularNic.nrPhy                              ->   0  [default (local 0 -> physical 0)]  PHY (draws only through its channel model)
+    ue[2].cellularNic.nrChannelModel[0]                  ->   0  [default (local 0 -> physical 0)]  DL reception success, Jakes fading, shadowing of UE k's own frames
+    ue[2].cellularNic.channelModel[0]                    ->   0  [default (local 0 -> physical 0)]  LTE-leg channel model
+    talker[2].clock.oscillator                           ->   4  [*.talker[2].clock.oscillator.rng-0 = 4]  slave 2 clock oscillator; oscillator typename "ConstantDriftOscillator"
+    dsTt[2].eth[1].trafficConditionerLayer.ttClock       ->   5  [*.dsTt[2].eth[1].trafficConditionerLayer.ttClock.rng-0 = 5]  DS-TT 2 TT clock
+    talker[2].app[0].source                              ->   0  [default (local 0 -> physical 0)]  constant production interval and length: no draw
+    ue[3].cellularNic.nrMac                              ->   0  [default (local 0 -> physical 0)]  random access (checkRAC): preamble, back-off
+    ue[3].cellularNic.mac                                ->   0  [default (local 0 -> physical 0)]  LTE-leg MAC random access (if the LTE leg is active)
+    ue[3].cellularNic.nrPhy                              ->   0  [default (local 0 -> physical 0)]  PHY (draws only through its channel model)
+    ue[3].cellularNic.nrChannelModel[0]                  ->   0  [default (local 0 -> physical 0)]  DL reception success, Jakes fading, shadowing of UE k's own frames
+    ue[3].cellularNic.channelModel[0]                    ->   0  [default (local 0 -> physical 0)]  LTE-leg channel model
+    talker[3].clock.oscillator                           ->   6  [*.talker[3].clock.oscillator.rng-0 = 6]  slave 3 clock oscillator; oscillator typename "ConstantDriftOscillator"
+    dsTt[3].eth[1].trafficConditionerLayer.ttClock       ->   7  [*.dsTt[3].eth[1].trafficConditionerLayer.ttClock.rng-0 = 7]  DS-TT 3 TT clock
+    talker[3].app[0].source                              ->   0  [default (local 0 -> physical 0)]  constant production interval and length: no draw
+rc 0
+
+######## pairs (RA-4)
+== RA-4 M2S72-E0v-q0-f1 (N = 1) -> M2S72-E0vN-q0-one0-n2-f1 (N = 2), as configured: 2 INVARIANT, 6 COUPLED, 4 MULTI-UE, 4 NO DRAWS, 0 ABSENT IN B
+  COUPLED   (direct getRNG(0)).bler-table                        RNG 0 -> 0; new consumers ['ue[1].cellularNic.channelModel[0]', 'ue[1].cellularNic.mac', 'ue[1].cellularNic.nrChannelModel[0]', 'ue[1].cellularNic.nrMac', 'ue[1].cellularNic.nrPhy']
+  MULTI-UE  (direct getRNG(0)).scheduler-tiebreak                RNG 0 -> 0
+  MULTI-UE  gnb1.cellularNic.channelModel[0]                     RNG 0 -> 0
+  MULTI-UE  gnb1.cellularNic.mac                                 RNG 0 -> 0
+  MULTI-UE  gnb1.cellularNic.phy                                 RNG 0 -> 0
+  NO DRAWS  listener.app[0].source                               RNG 0 -> 0
+  NO DRAWS  listener.app[1].source                               RNG 0 -> 0
+  NO DRAWS  listener.app[2].source                               RNG 0 -> 0
+  INVARIANT listener.clock.oscillator                            RNG 1 -> 1
+  NO DRAWS  talker[0].app[0].source                              RNG 0 -> 0
+  INVARIANT talker[0].clock.oscillator                           RNG 1 -> 1
+  COUPLED   ue[0].cellularNic.channelModel[0]                    RNG 0 -> 0; new consumers ['ue[1].cellularNic.channelModel[0]', 'ue[1].cellularNic.mac', 'ue[1].cellularNic.nrChannelModel[0]', 'ue[1].cellularNic.nrMac', 'ue[1].cellularNic.nrPhy']
+  COUPLED   ue[0].cellularNic.mac                                RNG 0 -> 0; new consumers ['ue[1].cellularNic.channelModel[0]', 'ue[1].cellularNic.mac', 'ue[1].cellularNic.nrChannelModel[0]', 'ue[1].cellularNic.nrMac', 'ue[1].cellularNic.nrPhy']
+  COUPLED   ue[0].cellularNic.nrChannelModel[0]                  RNG 0 -> 0; new consumers ['ue[1].cellularNic.channelModel[0]', 'ue[1].cellularNic.mac', 'ue[1].cellularNic.nrChannelModel[0]', 'ue[1].cellularNic.nrMac', 'ue[1].cellularNic.nrPhy']
+  COUPLED   ue[0].cellularNic.nrMac                              RNG 0 -> 0; new consumers ['ue[1].cellularNic.channelModel[0]', 'ue[1].cellularNic.mac', 'ue[1].cellularNic.nrChannelModel[0]', 'ue[1].cellularNic.nrMac', 'ue[1].cellularNic.nrPhy']
+  COUPLED   ue[0].cellularNic.nrPhy                              RNG 0 -> 0; new consumers ['ue[1].cellularNic.channelModel[0]', 'ue[1].cellularNic.mac', 'ue[1].cellularNic.nrChannelModel[0]', 'ue[1].cellularNic.nrMac', 'ue[1].cellularNic.nrPhy']
+== RA-4 M2S72-E0v-q0-f1 (N = 1) -> M2S72-E0vN-q0-one0-n2-f1 (N = 2), with the proposed isolation mixin: 8 INVARIANT, 0 COUPLED, 4 MULTI-UE, 4 NO DRAWS, 0 ABSENT IN B
+  INVARIANT (direct getRNG(0)).bler-table                        RNG 0 -> 0
+  MULTI-UE  (direct getRNG(0)).scheduler-tiebreak                RNG 0 -> 0
+  MULTI-UE  gnb1.cellularNic.channelModel[0]                     RNG 24 -> 24
+  MULTI-UE  gnb1.cellularNic.mac                                 RNG 24 -> 24
+  MULTI-UE  gnb1.cellularNic.phy                                 RNG 24 -> 24
+  NO DRAWS  listener.app[0].source                               RNG 0 -> 0
+  NO DRAWS  listener.app[1].source                               RNG 0 -> 0
+  NO DRAWS  listener.app[2].source                               RNG 0 -> 0
+  INVARIANT listener.clock.oscillator                            RNG 1 -> 1
+  NO DRAWS  talker[0].app[0].source                              RNG 0 -> 0
+  INVARIANT talker[0].clock.oscillator                           RNG 1 -> 1
+  INVARIANT ue[0].cellularNic.channelModel[0]                    RNG 16 -> 16
+  INVARIANT ue[0].cellularNic.mac                                RNG 16 -> 16
+  INVARIANT ue[0].cellularNic.nrChannelModel[0]                  RNG 16 -> 16
+  INVARIANT ue[0].cellularNic.nrMac                              RNG 16 -> 16
+  INVARIANT ue[0].cellularNic.nrPhy                              RNG 16 -> 16
+rc 0
+== RA-4 M2S72-E0v-q0-f1 (N = 1) -> M2S72-E0vN-q0-sym-n4-f1 (N = 4), as configured: 2 INVARIANT, 6 COUPLED, 4 MULTI-UE, 4 NO DRAWS, 0 ABSENT IN B
+  COUPLED   (direct getRNG(0)).bler-table                        RNG 0 -> 0; new consumers ['ue[1].cellularNic.channelModel[0]', 'ue[1].cellularNic.mac', 'ue[1].cellularNic.nrChannelModel[0]', 'ue[1].cellularNic.nrMac', 'ue[1].cellularNic.nrPhy', '...']
+  MULTI-UE  (direct getRNG(0)).scheduler-tiebreak                RNG 0 -> 0
+  MULTI-UE  gnb1.cellularNic.channelModel[0]                     RNG 0 -> 0
+  MULTI-UE  gnb1.cellularNic.mac                                 RNG 0 -> 0
+  MULTI-UE  gnb1.cellularNic.phy                                 RNG 0 -> 0
+  NO DRAWS  listener.app[0].source                               RNG 0 -> 0
+  NO DRAWS  listener.app[1].source                               RNG 0 -> 0
+  NO DRAWS  listener.app[2].source                               RNG 0 -> 0
+  INVARIANT listener.clock.oscillator                            RNG 1 -> 1
+  NO DRAWS  talker[0].app[0].source                              RNG 0 -> 0
+  INVARIANT talker[0].clock.oscillator                           RNG 1 -> 1
+  COUPLED   ue[0].cellularNic.channelModel[0]                    RNG 0 -> 0; new consumers ['ue[1].cellularNic.channelModel[0]', 'ue[1].cellularNic.mac', 'ue[1].cellularNic.nrChannelModel[0]', 'ue[1].cellularNic.nrMac', 'ue[1].cellularNic.nrPhy', '...']
+  COUPLED   ue[0].cellularNic.mac                                RNG 0 -> 0; new consumers ['ue[1].cellularNic.channelModel[0]', 'ue[1].cellularNic.mac', 'ue[1].cellularNic.nrChannelModel[0]', 'ue[1].cellularNic.nrMac', 'ue[1].cellularNic.nrPhy', '...']
+  COUPLED   ue[0].cellularNic.nrChannelModel[0]                  RNG 0 -> 0; new consumers ['ue[1].cellularNic.channelModel[0]', 'ue[1].cellularNic.mac', 'ue[1].cellularNic.nrChannelModel[0]', 'ue[1].cellularNic.nrMac', 'ue[1].cellularNic.nrPhy', '...']
+  COUPLED   ue[0].cellularNic.nrMac                              RNG 0 -> 0; new consumers ['ue[1].cellularNic.channelModel[0]', 'ue[1].cellularNic.mac', 'ue[1].cellularNic.nrChannelModel[0]', 'ue[1].cellularNic.nrMac', 'ue[1].cellularNic.nrPhy', '...']
+  COUPLED   ue[0].cellularNic.nrPhy                              RNG 0 -> 0; new consumers ['ue[1].cellularNic.channelModel[0]', 'ue[1].cellularNic.mac', 'ue[1].cellularNic.nrChannelModel[0]', 'ue[1].cellularNic.nrMac', 'ue[1].cellularNic.nrPhy', '...']
+== RA-4 M2S72-E0v-q0-f1 (N = 1) -> M2S72-E0vN-q0-sym-n4-f1 (N = 4), with the proposed isolation mixin: 8 INVARIANT, 0 COUPLED, 4 MULTI-UE, 4 NO DRAWS, 0 ABSENT IN B
+  INVARIANT (direct getRNG(0)).bler-table                        RNG 0 -> 0
+  MULTI-UE  (direct getRNG(0)).scheduler-tiebreak                RNG 0 -> 0
+  MULTI-UE  gnb1.cellularNic.channelModel[0]                     RNG 24 -> 24
+  MULTI-UE  gnb1.cellularNic.mac                                 RNG 24 -> 24
+  MULTI-UE  gnb1.cellularNic.phy                                 RNG 24 -> 24
+  NO DRAWS  listener.app[0].source                               RNG 0 -> 0
+  NO DRAWS  listener.app[1].source                               RNG 0 -> 0
+  NO DRAWS  listener.app[2].source                               RNG 0 -> 0
+  INVARIANT listener.clock.oscillator                            RNG 1 -> 1
+  NO DRAWS  talker[0].app[0].source                              RNG 0 -> 0
+  INVARIANT talker[0].clock.oscillator                           RNG 1 -> 1
+  INVARIANT ue[0].cellularNic.channelModel[0]                    RNG 16 -> 16
+  INVARIANT ue[0].cellularNic.mac                                RNG 16 -> 16
+  INVARIANT ue[0].cellularNic.nrChannelModel[0]                  RNG 16 -> 16
+  INVARIANT ue[0].cellularNic.nrMac                              RNG 16 -> 16
+  INVARIANT ue[0].cellularNic.nrPhy                              RNG 16 -> 16
+rc 0
+== RA-4 M2S72-E0vN-q0-sym-n4-f1 (N = 4) -> M2S72-E0vN-q0-sym-n8-f1 (N = 8), as configured: 5 INVARIANT, 21 COUPLED, 4 MULTI-UE, 13 NO DRAWS, 0 ABSENT IN B
+  COUPLED   (direct getRNG(0)).bler-table                        RNG 0 -> 0; new consumers ['ue[4].cellularNic.channelModel[0]', 'ue[4].cellularNic.mac', 'ue[4].cellularNic.nrChannelModel[0]', 'ue[4].cellularNic.nrMac', 'ue[4].cellularNic.nrPhy', '...']
+  MULTI-UE  (direct getRNG(0)).scheduler-tiebreak                RNG 0 -> 0
+  MULTI-UE  gnb1.cellularNic.channelModel[0]                     RNG 0 -> 0
+  MULTI-UE  gnb1.cellularNic.mac                                 RNG 0 -> 0
+  MULTI-UE  gnb1.cellularNic.phy                                 RNG 0 -> 0
+  NO DRAWS  listener.app[0].source                               RNG 0 -> 0
+  NO DRAWS  listener.app[1].source                               RNG 0 -> 0
+  NO DRAWS  listener.app[2].source                               RNG 0 -> 0
+  NO DRAWS  listener.app[3].source                               RNG 0 -> 0
+  NO DRAWS  listener.app[4].source                               RNG 0 -> 0
+  NO DRAWS  listener.app[5].source                               RNG 0 -> 0
+  NO DRAWS  listener.app[6].source                               RNG 0 -> 0
+  NO DRAWS  listener.app[7].source                               RNG 0 -> 0
+  NO DRAWS  listener.app[8].source                               RNG 0 -> 0
+  INVARIANT listener.clock.oscillator                            RNG 1 -> 1
+  NO DRAWS  talker[0].app[0].source                              RNG 0 -> 0
+  INVARIANT talker[0].clock.oscillator                           RNG 1 -> 1
+  NO DRAWS  talker[1].app[0].source                              RNG 0 -> 0
+  INVARIANT talker[1].clock.oscillator                           RNG 2 -> 2
+  NO DRAWS  talker[2].app[0].source                              RNG 0 -> 0
+  INVARIANT talker[2].clock.oscillator                           RNG 4 -> 4
+  NO DRAWS  talker[3].app[0].source                              RNG 0 -> 0
+  INVARIANT talker[3].clock.oscillator                           RNG 6 -> 6
+  COUPLED   ue[0].cellularNic.channelModel[0]                    RNG 0 -> 0; new consumers ['ue[4].cellularNic.channelModel[0]', 'ue[4].cellularNic.mac', 'ue[4].cellularNic.nrChannelModel[0]', 'ue[4].cellularNic.nrMac', 'ue[4].cellularNic.nrPhy', '...']
+  COUPLED   ue[0].cellularNic.mac                                RNG 0 -> 0; new consumers ['ue[4].cellularNic.channelModel[0]', 'ue[4].cellularNic.mac', 'ue[4].cellularNic.nrChannelModel[0]', 'ue[4].cellularNic.nrMac', 'ue[4].cellularNic.nrPhy', '...']
+  COUPLED   ue[0].cellularNic.nrChannelModel[0]                  RNG 0 -> 0; new consumers ['ue[4].cellularNic.channelModel[0]', 'ue[4].cellularNic.mac', 'ue[4].cellularNic.nrChannelModel[0]', 'ue[4].cellularNic.nrMac', 'ue[4].cellularNic.nrPhy', '...']
+  COUPLED   ue[0].cellularNic.nrMac                              RNG 0 -> 0; new consumers ['ue[4].cellularNic.channelModel[0]', 'ue[4].cellularNic.mac', 'ue[4].cellularNic.nrChannelModel[0]', 'ue[4].cellularNic.nrMac', 'ue[4].cellularNic.nrPhy', '...']
+  COUPLED   ue[0].cellularNic.nrPhy                              RNG 0 -> 0; new consumers ['ue[4].cellularNic.channelModel[0]', 'ue[4].cellularNic.mac', 'ue[4].cellularNic.nrChannelModel[0]', 'ue[4].cellularNic.nrMac', 'ue[4].cellularNic.nrPhy', '...']
+  COUPLED   ue[1].cellularNic.channelModel[0]                    RNG 0 -> 0; new consumers ['ue[4].cellularNic.channelModel[0]', 'ue[4].cellularNic.mac', 'ue[4].cellularNic.nrChannelModel[0]', 'ue[4].cellularNic.nrMac', 'ue[4].cellularNic.nrPhy', '...']
+  COUPLED   ue[1].cellularNic.mac                                RNG 0 -> 0; new consumers ['ue[4].cellularNic.channelModel[0]', 'ue[4].cellularNic.mac', 'ue[4].cellularNic.nrChannelModel[0]', 'ue[4].cellularNic.nrMac', 'ue[4].cellularNic.nrPhy', '...']
+  COUPLED   ue[1].cellularNic.nrChannelModel[0]                  RNG 0 -> 0; new consumers ['ue[4].cellularNic.channelModel[0]', 'ue[4].cellularNic.mac', 'ue[4].cellularNic.nrChannelModel[0]', 'ue[4].cellularNic.nrMac', 'ue[4].cellularNic.nrPhy', '...']
+  COUPLED   ue[1].cellularNic.nrMac                              RNG 0 -> 0; new consumers ['ue[4].cellularNic.channelModel[0]', 'ue[4].cellularNic.mac', 'ue[4].cellularNic.nrChannelModel[0]', 'ue[4].cellularNic.nrMac', 'ue[4].cellularNic.nrPhy', '...']
+  COUPLED   ue[1].cellularNic.nrPhy                              RNG 0 -> 0; new consumers ['ue[4].cellularNic.channelModel[0]', 'ue[4].cellularNic.mac', 'ue[4].cellularNic.nrChannelModel[0]', 'ue[4].cellularNic.nrMac', 'ue[4].cellularNic.nrPhy', '...']
+  COUPLED   ue[2].cellularNic.channelModel[0]                    RNG 0 -> 0; new consumers ['ue[4].cellularNic.channelModel[0]', 'ue[4].cellularNic.mac', 'ue[4].cellularNic.nrChannelModel[0]', 'ue[4].cellularNic.nrMac', 'ue[4].cellularNic.nrPhy', '...']
+  COUPLED   ue[2].cellularNic.mac                                RNG 0 -> 0; new consumers ['ue[4].cellularNic.channelModel[0]', 'ue[4].cellularNic.mac', 'ue[4].cellularNic.nrChannelModel[0]', 'ue[4].cellularNic.nrMac', 'ue[4].cellularNic.nrPhy', '...']
+  COUPLED   ue[2].cellularNic.nrChannelModel[0]                  RNG 0 -> 0; new consumers ['ue[4].cellularNic.channelModel[0]', 'ue[4].cellularNic.mac', 'ue[4].cellularNic.nrChannelModel[0]', 'ue[4].cellularNic.nrMac', 'ue[4].cellularNic.nrPhy', '...']
+  COUPLED   ue[2].cellularNic.nrMac                              RNG 0 -> 0; new consumers ['ue[4].cellularNic.channelModel[0]', 'ue[4].cellularNic.mac', 'ue[4].cellularNic.nrChannelModel[0]', 'ue[4].cellularNic.nrMac', 'ue[4].cellularNic.nrPhy', '...']
+  COUPLED   ue[2].cellularNic.nrPhy                              RNG 0 -> 0; new consumers ['ue[4].cellularNic.channelModel[0]', 'ue[4].cellularNic.mac', 'ue[4].cellularNic.nrChannelModel[0]', 'ue[4].cellularNic.nrMac', 'ue[4].cellularNic.nrPhy', '...']
+  COUPLED   ue[3].cellularNic.channelModel[0]                    RNG 0 -> 0; new consumers ['ue[4].cellularNic.channelModel[0]', 'ue[4].cellularNic.mac', 'ue[4].cellularNic.nrChannelModel[0]', 'ue[4].cellularNic.nrMac', 'ue[4].cellularNic.nrPhy', '...']
+  COUPLED   ue[3].cellularNic.mac                                RNG 0 -> 0; new consumers ['ue[4].cellularNic.channelModel[0]', 'ue[4].cellularNic.mac', 'ue[4].cellularNic.nrChannelModel[0]', 'ue[4].cellularNic.nrMac', 'ue[4].cellularNic.nrPhy', '...']
+  COUPLED   ue[3].cellularNic.nrChannelModel[0]                  RNG 0 -> 0; new consumers ['ue[4].cellularNic.channelModel[0]', 'ue[4].cellularNic.mac', 'ue[4].cellularNic.nrChannelModel[0]', 'ue[4].cellularNic.nrMac', 'ue[4].cellularNic.nrPhy', '...']
+  COUPLED   ue[3].cellularNic.nrMac                              RNG 0 -> 0; new consumers ['ue[4].cellularNic.channelModel[0]', 'ue[4].cellularNic.mac', 'ue[4].cellularNic.nrChannelModel[0]', 'ue[4].cellularNic.nrMac', 'ue[4].cellularNic.nrPhy', '...']
+  COUPLED   ue[3].cellularNic.nrPhy                              RNG 0 -> 0; new consumers ['ue[4].cellularNic.channelModel[0]', 'ue[4].cellularNic.mac', 'ue[4].cellularNic.nrChannelModel[0]', 'ue[4].cellularNic.nrMac', 'ue[4].cellularNic.nrPhy', '...']
+== RA-4 M2S72-E0vN-q0-sym-n4-f1 (N = 4) -> M2S72-E0vN-q0-sym-n8-f1 (N = 8), with the proposed isolation mixin: 26 INVARIANT, 0 COUPLED, 4 MULTI-UE, 13 NO DRAWS, 0 ABSENT IN B
+  INVARIANT (direct getRNG(0)).bler-table                        RNG 0 -> 0
+  MULTI-UE  (direct getRNG(0)).scheduler-tiebreak                RNG 0 -> 0
+  MULTI-UE  gnb1.cellularNic.channelModel[0]                     RNG 24 -> 24
+  MULTI-UE  gnb1.cellularNic.mac                                 RNG 24 -> 24
+  MULTI-UE  gnb1.cellularNic.phy                                 RNG 24 -> 24
+  NO DRAWS  listener.app[0].source                               RNG 0 -> 0
+  NO DRAWS  listener.app[1].source                               RNG 0 -> 0
+  NO DRAWS  listener.app[2].source                               RNG 0 -> 0
+  NO DRAWS  listener.app[3].source                               RNG 0 -> 0
+  NO DRAWS  listener.app[4].source                               RNG 0 -> 0
+  NO DRAWS  listener.app[5].source                               RNG 0 -> 0
+  NO DRAWS  listener.app[6].source                               RNG 0 -> 0
+  NO DRAWS  listener.app[7].source                               RNG 0 -> 0
+  NO DRAWS  listener.app[8].source                               RNG 0 -> 0
+  INVARIANT listener.clock.oscillator                            RNG 1 -> 1
+  NO DRAWS  talker[0].app[0].source                              RNG 0 -> 0
+  INVARIANT talker[0].clock.oscillator                           RNG 1 -> 1
+  NO DRAWS  talker[1].app[0].source                              RNG 0 -> 0
+  INVARIANT talker[1].clock.oscillator                           RNG 2 -> 2
+  NO DRAWS  talker[2].app[0].source                              RNG 0 -> 0
+  INVARIANT talker[2].clock.oscillator                           RNG 4 -> 4
+  NO DRAWS  talker[3].app[0].source                              RNG 0 -> 0
+  INVARIANT talker[3].clock.oscillator                           RNG 6 -> 6
+  INVARIANT ue[0].cellularNic.channelModel[0]                    RNG 16 -> 16
+  INVARIANT ue[0].cellularNic.mac                                RNG 16 -> 16
+  INVARIANT ue[0].cellularNic.nrChannelModel[0]                  RNG 16 -> 16
+  INVARIANT ue[0].cellularNic.nrMac                              RNG 16 -> 16
+  INVARIANT ue[0].cellularNic.nrPhy                              RNG 16 -> 16
+  INVARIANT ue[1].cellularNic.channelModel[0]                    RNG 17 -> 17
+  INVARIANT ue[1].cellularNic.mac                                RNG 17 -> 17
+  INVARIANT ue[1].cellularNic.nrChannelModel[0]                  RNG 17 -> 17
+  INVARIANT ue[1].cellularNic.nrMac                              RNG 17 -> 17
+  INVARIANT ue[1].cellularNic.nrPhy                              RNG 17 -> 17
+  INVARIANT ue[2].cellularNic.channelModel[0]                    RNG 18 -> 18
+  INVARIANT ue[2].cellularNic.mac                                RNG 18 -> 18
+  INVARIANT ue[2].cellularNic.nrChannelModel[0]                  RNG 18 -> 18
+  INVARIANT ue[2].cellularNic.nrMac                              RNG 18 -> 18
+  INVARIANT ue[2].cellularNic.nrPhy                              RNG 18 -> 18
+  INVARIANT ue[3].cellularNic.channelModel[0]                    RNG 19 -> 19
+  INVARIANT ue[3].cellularNic.mac                                RNG 19 -> 19
+  INVARIANT ue[3].cellularNic.nrChannelModel[0]                  RNG 19 -> 19
+  INVARIANT ue[3].cellularNic.nrMac                              RNG 19 -> 19
+  INVARIANT ue[3].cellularNic.nrPhy                              RNG 19 -> 19
+rc 0
+== RA-4 M2S72-E0v-qdu-f1 (N = 1) -> M2S72-E0vN-qdu-one0-n8-f1 (N = 8), as configured: 2 INVARIANT, 6 COUPLED, 4 MULTI-UE, 4 NO DRAWS, 0 ABSENT IN B
+  COUPLED   (direct getRNG(0)).bler-table                        RNG 0 -> 0; new consumers ['ue[1].cellularNic.channelModel[0]', 'ue[1].cellularNic.mac', 'ue[1].cellularNic.nrChannelModel[0]', 'ue[1].cellularNic.nrMac', 'ue[1].cellularNic.nrPhy', '...']
+  MULTI-UE  (direct getRNG(0)).scheduler-tiebreak                RNG 0 -> 0
+  MULTI-UE  gnb1.cellularNic.channelModel[0]                     RNG 0 -> 0
+  MULTI-UE  gnb1.cellularNic.mac                                 RNG 0 -> 0
+  MULTI-UE  gnb1.cellularNic.phy                                 RNG 0 -> 0
+  NO DRAWS  listener.app[0].source                               RNG 0 -> 0
+  NO DRAWS  listener.app[1].source                               RNG 0 -> 0
+  NO DRAWS  listener.app[2].source                               RNG 0 -> 0
+  INVARIANT listener.clock.oscillator                            RNG 1 -> 1
+  NO DRAWS  talker[0].app[0].source                              RNG 0 -> 0
+  INVARIANT talker[0].clock.oscillator                           RNG 1 -> 1
+  COUPLED   ue[0].cellularNic.channelModel[0]                    RNG 0 -> 0; new consumers ['ue[1].cellularNic.channelModel[0]', 'ue[1].cellularNic.mac', 'ue[1].cellularNic.nrChannelModel[0]', 'ue[1].cellularNic.nrMac', 'ue[1].cellularNic.nrPhy', '...']
+  COUPLED   ue[0].cellularNic.mac                                RNG 0 -> 0; new consumers ['ue[1].cellularNic.channelModel[0]', 'ue[1].cellularNic.mac', 'ue[1].cellularNic.nrChannelModel[0]', 'ue[1].cellularNic.nrMac', 'ue[1].cellularNic.nrPhy', '...']
+  COUPLED   ue[0].cellularNic.nrChannelModel[0]                  RNG 0 -> 0; new consumers ['ue[1].cellularNic.channelModel[0]', 'ue[1].cellularNic.mac', 'ue[1].cellularNic.nrChannelModel[0]', 'ue[1].cellularNic.nrMac', 'ue[1].cellularNic.nrPhy', '...']
+  COUPLED   ue[0].cellularNic.nrMac                              RNG 0 -> 0; new consumers ['ue[1].cellularNic.channelModel[0]', 'ue[1].cellularNic.mac', 'ue[1].cellularNic.nrChannelModel[0]', 'ue[1].cellularNic.nrMac', 'ue[1].cellularNic.nrPhy', '...']
+  COUPLED   ue[0].cellularNic.nrPhy                              RNG 0 -> 0; new consumers ['ue[1].cellularNic.channelModel[0]', 'ue[1].cellularNic.mac', 'ue[1].cellularNic.nrChannelModel[0]', 'ue[1].cellularNic.nrMac', 'ue[1].cellularNic.nrPhy', '...']
+== RA-4 M2S72-E0v-qdu-f1 (N = 1) -> M2S72-E0vN-qdu-one0-n8-f1 (N = 8), with the proposed isolation mixin: 8 INVARIANT, 0 COUPLED, 4 MULTI-UE, 4 NO DRAWS, 0 ABSENT IN B
+  INVARIANT (direct getRNG(0)).bler-table                        RNG 0 -> 0
+  MULTI-UE  (direct getRNG(0)).scheduler-tiebreak                RNG 0 -> 0
+  MULTI-UE  gnb1.cellularNic.channelModel[0]                     RNG 24 -> 24
+  MULTI-UE  gnb1.cellularNic.mac                                 RNG 24 -> 24
+  MULTI-UE  gnb1.cellularNic.phy                                 RNG 24 -> 24
+  NO DRAWS  listener.app[0].source                               RNG 0 -> 0
+  NO DRAWS  listener.app[1].source                               RNG 0 -> 0
+  NO DRAWS  listener.app[2].source                               RNG 0 -> 0
+  INVARIANT listener.clock.oscillator                            RNG 1 -> 1
+  NO DRAWS  talker[0].app[0].source                              RNG 0 -> 0
+  INVARIANT talker[0].clock.oscillator                           RNG 1 -> 1
+  INVARIANT ue[0].cellularNic.channelModel[0]                    RNG 16 -> 16
+  INVARIANT ue[0].cellularNic.mac                                RNG 16 -> 16
+  INVARIANT ue[0].cellularNic.nrChannelModel[0]                  RNG 16 -> 16
+  INVARIANT ue[0].cellularNic.nrMac                              RNG 16 -> 16
+  INVARIANT ue[0].cellularNic.nrPhy                              RNG 16 -> 16
+rc 0
+== RA-4 M2S72-B-q0-Eall-n2 (N = 2) -> M2S72-B-q0-Eall-n4 (N = 4), as configured: 6 INVARIANT, 11 COUPLED, 4 MULTI-UE, 7 NO DRAWS, 0 ABSENT IN B
+  COUPLED   (direct getRNG(0)).bler-table                        RNG 0 -> 0; new consumers ['ue[2].cellularNic.channelModel[0]', 'ue[2].cellularNic.mac', 'ue[2].cellularNic.nrChannelModel[0]', 'ue[2].cellularNic.nrMac', 'ue[2].cellularNic.nrPhy', '...']
+  MULTI-UE  (direct getRNG(0)).scheduler-tiebreak                RNG 0 -> 0
+  INVARIANT dsTt[0].eth[1].trafficConditionerLayer.ttClock       RNG 1 -> 1
+  INVARIANT dsTt[1].eth[1].trafficConditionerLayer.ttClock       RNG 3 -> 3
+  MULTI-UE  gnb1.cellularNic.channelModel[0]                     RNG 0 -> 0
+  MULTI-UE  gnb1.cellularNic.mac                                 RNG 0 -> 0
+  MULTI-UE  gnb1.cellularNic.phy                                 RNG 0 -> 0
+  NO DRAWS  listener.app[0].source                               RNG 0 -> 0
+  NO DRAWS  listener.app[1].source                               RNG 0 -> 0
+  NO DRAWS  listener.app[2].source                               RNG 0 -> 0
+  NO DRAWS  listener.app[3].source                               RNG 0 -> 0
+  NO DRAWS  listener.app[4].source                               RNG 0 -> 0
+  INVARIANT listener.clock.oscillator                            RNG 1 -> 1
+  INVARIANT nwTt.eth[1].trafficConditionerLayer.ttClock          RNG 1 -> 1
+  NO DRAWS  talker[0].app[0].source                              RNG 0 -> 0
+  INVARIANT talker[0].clock.oscillator                           RNG 1 -> 1
+  NO DRAWS  talker[1].app[0].source                              RNG 0 -> 0
+  INVARIANT talker[1].clock.oscillator                           RNG 2 -> 2
+  COUPLED   ue[0].cellularNic.channelModel[0]                    RNG 0 -> 0; new consumers ['ue[2].cellularNic.channelModel[0]', 'ue[2].cellularNic.mac', 'ue[2].cellularNic.nrChannelModel[0]', 'ue[2].cellularNic.nrMac', 'ue[2].cellularNic.nrPhy', '...']
+  COUPLED   ue[0].cellularNic.mac                                RNG 0 -> 0; new consumers ['ue[2].cellularNic.channelModel[0]', 'ue[2].cellularNic.mac', 'ue[2].cellularNic.nrChannelModel[0]', 'ue[2].cellularNic.nrMac', 'ue[2].cellularNic.nrPhy', '...']
+  COUPLED   ue[0].cellularNic.nrChannelModel[0]                  RNG 0 -> 0; new consumers ['ue[2].cellularNic.channelModel[0]', 'ue[2].cellularNic.mac', 'ue[2].cellularNic.nrChannelModel[0]', 'ue[2].cellularNic.nrMac', 'ue[2].cellularNic.nrPhy', '...']
+  COUPLED   ue[0].cellularNic.nrMac                              RNG 0 -> 0; new consumers ['ue[2].cellularNic.channelModel[0]', 'ue[2].cellularNic.mac', 'ue[2].cellularNic.nrChannelModel[0]', 'ue[2].cellularNic.nrMac', 'ue[2].cellularNic.nrPhy', '...']
+  COUPLED   ue[0].cellularNic.nrPhy                              RNG 0 -> 0; new consumers ['ue[2].cellularNic.channelModel[0]', 'ue[2].cellularNic.mac', 'ue[2].cellularNic.nrChannelModel[0]', 'ue[2].cellularNic.nrMac', 'ue[2].cellularNic.nrPhy', '...']
+  COUPLED   ue[1].cellularNic.channelModel[0]                    RNG 0 -> 0; new consumers ['ue[2].cellularNic.channelModel[0]', 'ue[2].cellularNic.mac', 'ue[2].cellularNic.nrChannelModel[0]', 'ue[2].cellularNic.nrMac', 'ue[2].cellularNic.nrPhy', '...']
+  COUPLED   ue[1].cellularNic.mac                                RNG 0 -> 0; new consumers ['ue[2].cellularNic.channelModel[0]', 'ue[2].cellularNic.mac', 'ue[2].cellularNic.nrChannelModel[0]', 'ue[2].cellularNic.nrMac', 'ue[2].cellularNic.nrPhy', '...']
+  COUPLED   ue[1].cellularNic.nrChannelModel[0]                  RNG 0 -> 0; new consumers ['ue[2].cellularNic.channelModel[0]', 'ue[2].cellularNic.mac', 'ue[2].cellularNic.nrChannelModel[0]', 'ue[2].cellularNic.nrMac', 'ue[2].cellularNic.nrPhy', '...']
+  COUPLED   ue[1].cellularNic.nrMac                              RNG 0 -> 0; new consumers ['ue[2].cellularNic.channelModel[0]', 'ue[2].cellularNic.mac', 'ue[2].cellularNic.nrChannelModel[0]', 'ue[2].cellularNic.nrMac', 'ue[2].cellularNic.nrPhy', '...']
+  COUPLED   ue[1].cellularNic.nrPhy                              RNG 0 -> 0; new consumers ['ue[2].cellularNic.channelModel[0]', 'ue[2].cellularNic.mac', 'ue[2].cellularNic.nrChannelModel[0]', 'ue[2].cellularNic.nrMac', 'ue[2].cellularNic.nrPhy', '...']
+== RA-4 M2S72-B-q0-Eall-n2 (N = 2) -> M2S72-B-q0-Eall-n4 (N = 4), with the proposed isolation mixin: 17 INVARIANT, 0 COUPLED, 4 MULTI-UE, 7 NO DRAWS, 0 ABSENT IN B
+  INVARIANT (direct getRNG(0)).bler-table                        RNG 0 -> 0
+  MULTI-UE  (direct getRNG(0)).scheduler-tiebreak                RNG 0 -> 0
+  INVARIANT dsTt[0].eth[1].trafficConditionerLayer.ttClock       RNG 1 -> 1
+  INVARIANT dsTt[1].eth[1].trafficConditionerLayer.ttClock       RNG 3 -> 3
+  MULTI-UE  gnb1.cellularNic.channelModel[0]                     RNG 24 -> 24
+  MULTI-UE  gnb1.cellularNic.mac                                 RNG 24 -> 24
+  MULTI-UE  gnb1.cellularNic.phy                                 RNG 24 -> 24
+  NO DRAWS  listener.app[0].source                               RNG 0 -> 0
+  NO DRAWS  listener.app[1].source                               RNG 0 -> 0
+  NO DRAWS  listener.app[2].source                               RNG 0 -> 0
+  NO DRAWS  listener.app[3].source                               RNG 0 -> 0
+  NO DRAWS  listener.app[4].source                               RNG 0 -> 0
+  INVARIANT listener.clock.oscillator                            RNG 1 -> 1
+  INVARIANT nwTt.eth[1].trafficConditionerLayer.ttClock          RNG 1 -> 1
+  NO DRAWS  talker[0].app[0].source                              RNG 0 -> 0
+  INVARIANT talker[0].clock.oscillator                           RNG 1 -> 1
+  NO DRAWS  talker[1].app[0].source                              RNG 0 -> 0
+  INVARIANT talker[1].clock.oscillator                           RNG 2 -> 2
+  INVARIANT ue[0].cellularNic.channelModel[0]                    RNG 16 -> 16
+  INVARIANT ue[0].cellularNic.mac                                RNG 16 -> 16
+  INVARIANT ue[0].cellularNic.nrChannelModel[0]                  RNG 16 -> 16
+  INVARIANT ue[0].cellularNic.nrMac                              RNG 16 -> 16
+  INVARIANT ue[0].cellularNic.nrPhy                              RNG 16 -> 16
+  INVARIANT ue[1].cellularNic.channelModel[0]                    RNG 17 -> 17
+  INVARIANT ue[1].cellularNic.mac                                RNG 17 -> 17
+  INVARIANT ue[1].cellularNic.nrChannelModel[0]                  RNG 17 -> 17
+  INVARIANT ue[1].cellularNic.nrMac                              RNG 17 -> 17
+  INVARIANT ue[1].cellularNic.nrPhy                              RNG 17 -> 17
+rc 0
+
+######## proposed isolation mixin (decision S5-2-D1; not generated into any configuration)
+num-rngs = 25
+seed-2-mt = 200${repetition}
+seed-3-mt = 300${repetition}
+seed-4-mt = 400${repetition}
+seed-5-mt = 500${repetition}
+seed-6-mt = 600${repetition}
+seed-7-mt = 700${repetition}
+seed-8-mt = 800${repetition}
+seed-9-mt = 900${repetition}
+seed-10-mt = 1000${repetition}
+seed-11-mt = 1100${repetition}
+seed-12-mt = 1200${repetition}
+seed-13-mt = 1300${repetition}
+seed-14-mt = 1400${repetition}
+seed-15-mt = 1500${repetition}
+seed-16-mt = 1600${repetition}
+seed-17-mt = 1700${repetition}
+seed-18-mt = 1800${repetition}
+seed-19-mt = 1900${repetition}
+seed-20-mt = 2000${repetition}
+seed-21-mt = 2100${repetition}
+seed-22-mt = 2200${repetition}
+seed-23-mt = 2300${repetition}
+seed-24-mt = 2400${repetition}
+*.ue[0].cellularNic.**.rng-0 = 16
+*.ue[1].cellularNic.**.rng-0 = 17
+*.ue[2].cellularNic.**.rng-0 = 18
+*.ue[3].cellularNic.**.rng-0 = 19
+*.ue[4].cellularNic.**.rng-0 = 20
+*.ue[5].cellularNic.**.rng-0 = 21
+*.ue[6].cellularNic.**.rng-0 = 22
+*.ue[7].cellularNic.**.rng-0 = 23
+*.gnb1.cellularNic.**.rng-0 = 24

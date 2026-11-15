@@ -1,0 +1,117 @@
+M2-S7.2a S5-2 test and regression record (no simulation), 2026-11-15T14:25:11Z
+branch m2/s72a-s5-2 from 86d7599; generated on the working tree committed with this record (new files only)
+omnetpp: Version: 6.5.0, build: 261029-ccd51e11a4, edition: Academic Public License -- NOT FOR COMMERCIAL USE   python: Python 3.13.18
+m2s72.ini sha256 dfc8a7f7bb7cd1632c335c169cdbd3535e4e90a14b0d04882bb07b406aaf5505; m2s72s5.ini sha256 e563c489852db4cac7ad8562c97373e2379c8bd4029c7f1ebb9d2ace2ff96903
+
+== python3 -B check/test_m2s72s5_2.py
+PASS | per_ue: exact rates, service ratio, TTI share and gPTP figures on a synthetic loaded UE
+PASS | per_ue: undelivered Syncs rank as +inf (never dropped) and count against the deadlines
+PASS | starvation: NC a 1 s DL window with load but no delivery is ST-dl; PC full service is none
+PASS | starvation: NC an unloaded UE whose Syncs are all censored in a 1 s window is ST-gptp
+PASS | starvation: NC service ratio below 0.5 is US-dl
+PASS | overload per UE: growth AND achieved < offered (accepted rule); growth alone with full service is not; an unloaded UE is never overloaded; missing backlog is not evaluable
+PASS | across: per-UE distribution (worst UE, spread with +inf), Jain index, classes; the aggregate is beside it
+PASS | jain: equal shares 1, one of N served 1/N, undefined for no or zero values
+PASS | PU rows: PC a consistent 3-UE record set passes PU-1..5
+PASS | PU rows: NC missing UE, duplicate node, UNEXPLAINED fate, duplicate fate, destroyed SDU, ambiguous feedback, grant total mismatch: each fails its row
+PASS | A-1a: feedback of a process open in one UE only is attributed to it; per-UE counts and delays exact
+PASS | A-1b: the same process id open in two UEs is resolved by the run's single A-1a delay d*
+PASS | NC A-1: both candidates exactly d* old -> AMBIGUOUS, per-UE occupancy withheld (NOT EVALUATED, never guessed)
+PASS | NC A-1: a feedback without an open process is ORPHAN; an insert into an open process is RE-INSERT
+PASS | occupancy: log order (insert then feedback in one TTI peaks above the start count) and carried through TTIs without events; all-busy TTIs counted at the configured process number
+PASS | adapter: harq_events reads the gNB MAC lines in log order, exact ps, other modules ignored
+PASS | bracket: ascending from 1.0 -> 1.25 ok, 1.6 overloaded, confirmation 2.0 -> (1.25, 1.6); 4 runs
+PASS | bracket: descending from an overloaded start, confirmation above f_hi already run; bottom and top edges
+PASS | bracket: NC a confirmation run that is ok above an overloaded factor is NON-MONOTONE (no f_lo); an invalid run stops the bracket
+PASS | bracket: out-of-order or repeated factors are refused; HARQ5 economy start at the HARQ16 f_lo
+PASS | select: f_E1 = largest ladder factor <= (1 - m) x min f_lo; binding combination; sensitivity; STOP when a combination has no f_lo or no factor fits
+PASS | classify and verify: outcome classes from across(); V-1..V-4 each detect their failure
+PASS | RNG audit: the Python matcher equals OMNeT++ 6.5.0's PatternMatcher on every row of the committed fixture
+PASS | RNG audit: seeds (explicit / auto = seed-set x num-rngs + j); first matching rng entry wins; unmapped -> 0
+PASS | RNG audit: NC an auto-seeded or duplicate-seeded RNG with consumers fails RA-1; NC a non-clock module on a clock RNG fails RA-2; a TT clock without typename does not exist
+PASS | RNG audit RA-4: as configured, UE 0's NIC streams are COUPLED when UEs are added; with the isolation mixin they are INVARIANT; gNB modules are MULTI-UE; clocks INVARIANT
+PASS | RNG audit: NC a source with a random parameter value is a drawing consumer (never assumed inert)
+PASS | fail-closed: check_m2s72_s5n.py run refuses without S5N_ADAPTER_VALIDATED (before reading anything); check_m2s72_s5v.py still refuses E0v-N
+S5-2 tests: 28 / 28 PASS
+rc 0
+
+== python3 -B check/test_m2s72s5.py
+PASS | classify: gNB 'no free H-ARQ process' with rc != 0 -> SIM-ABORT
+PASS | classify: UE UL 'no free H-ARQ process' -> SIM-ABORT
+PASS | classify: 'marked inactive with N bytes' -> SIM-ABORT
+PASS | classify: an abort text with rc 0 -> ERROR (fail closed, never OK)
+PASS | classify: rc 124 -> TIMEOUT
+PASS | classify: the UE info line 'no free H-ARQ process for the grant ... not used' alone, rc 1 -> ERROR, not SIM-ABORT
+PASS | classify: other runtime error -> ERROR, not SIM-ABORT
+PASS | classify: rc 0 with an error line -> ERROR
+PASS | classify: normal log incl. the UE 'grant is not used' info line -> OK
+PASS | space rule: free >= 1.5 x run + twin + 1 GB + 2 GB
+PASS | manifest: every file listed; verify passes; a changed byte and a missing file fail
+PASS | retain (tier B): gzip -n in place, originals removed, manifest still verifies; a corrupted .gz fails
+PASS | committed: HEAD blob equal -> ok; local differs -> fail; path not in HEAD -> fail
+PASS | RD-4 classifier: q0->q0p scheduler ISOLATED; q0p->qde mapping ISOLATED; qde->qdu priority ISOLATED
+PASS | RD-4 classifier: q0p->qdu is NOT mapping-only (the gPTP DRB has another profile)
+PASS | RD-4 classifier mutations: a load / traffic difference, an RLC-mode change, a scheduler change are not allowed
+PASS | name parser: E0v / twins / H5 / E0 (1.8.0) / E0v-N; unknown names refused
+PASS | Q-0p analysis mapping: m2s71_lib OPTIONS q0p = q0 in DRBs / RLC mode / split; scheduler differs
+PASS | generator: m2s72s5.ini regenerates byte for byte; m2s72.ini unchanged; every matrix config present
+PASS | Q-de (D-1): each per-N mixin is Q-d's accepted section with only the gPTP DRB profile changed; base / D-4 extend Q-d's
+PASS | Q-de refusal: a gPTP-profile substitution outside DRB 4 or with the wrong count is refused
+PASS | generator refusal: a factor whose interval is not an exact ns (0.75 at one loaded UE)
+PASS | generator refusal: a config name already defined in m2s72.ini
+PASS | generator refusal: m2s72.ini not regenerated byte for byte by the accepted generator
+PASS | grammar: H-ARQ occupancy in LOG order (feedback logged after the insert of the same TTI keeps the process busy)
+PASS | grammar: UE 'grant is not used' counted (not a loss); a UE loss-like line and a 1.8.0-only text fail MG-1
+PASS | manifest: a missing result directory is skipped (early abort); a manifest of nothing is refused
+PASS | runner guard: no S5_ENV_DECISION -> refused before anything is created (RD-7)
+PASS | runner guard: Simu5G Version other than 1.8.1 -> refused
+PASS | runner guard: no NASCTIME_RESULTS_ROOT (legacy mode) -> refused; a root inside simulations/m2/results -> refused
+PASS | runner lifecycle (records repo): runs OK -> check -> manifest -> records committed and verified -> raw deleted
+PASS | runner lifecycle (no records repo): raw outputs kept, pending release; 'release' later commits then deletes
+PASS | runner: SIM-ABORT -> batch stops (exit 5), outcome recorded, raw kept as tier B (gzip, verified), nothing deleted
+PASS | runner: a failed per-run check -> batch stops (exit 6), raw kept as tier B
+PASS | runner smoke: one run E0v-q0-f1, check, quick, controls-q8, manifest; raw held uncompressed and read-only; nothing committed or deleted even with S5_RECORDS_REPO; release of the smoke stage refused
+PASS | runner smoke: a failed per-run check -> exit 6, every later step still recorded, raw held uncompressed
+PASS | runner: an existing stage directory is never overwritten
+PASS | runner e0v (stub): factors 1, 2, 4, 8, controls on q0-f1 and qdu-f2, twin of the top factor, every hold released
+S5-1 tests: 38 / 38 PASS
+rc 0
+
+== python3 -B tools/m2s72_gen.py check
+M2S71-q0-idle: 202 entries; rules {'anyTt': 18, 'appSel': 11, 'bearerGlobal': 1, 'dsTt': 6, 'dsTtClockId': 1, 'dsTtTtId': 3, 'general': 8, 'hasPassThroughTts': 1, 'listener': 20, 'listenerNumApps': 1, 'listenerRemote': 1, 'meta': 34, 'modulesShared': 26, 'network': 2, 'oscRng': 1, 'perUeList': 2, 'sinkAddress': 1, 'starstar': 38, 'talker': 23, 'ue0': 4}
+M2S71-qdu-idle: 207 entries; rules {'anyTt': 18, 'appSel': 11, 'bearerGlobal': 3, 'dsTt': 6, 'dsTtClockId': 1, 'dsTtTtId': 3, 'general': 8, 'hasPassThroughTts': 1, 'listener': 20, 'listenerNumApps': 1, 'listenerRemote': 1, 'meta': 34, 'modulesShared': 28, 'network': 2, 'oscRng': 1, 'perUeList': 3, 'sinkAddress': 1, 'starstar': 38, 'talker': 23, 'ue0': 4}
+M2S71-q0-load: 219 entries; rules {'anyTt': 18, 'app3': 12, 'appSel': 12, 'bearerGlobal': 1, 'dsTt': 6, 'dsTtClockId': 1, 'dsTtTtId': 3, 'general': 8, 'hasPassThroughTts': 1, 'listener': 20, 'listenerNumApps': 2, 'listenerRemote': 1, 'meta': 36, 'modulesShared': 26, 'network': 2, 'oscRng': 1, 'perUeList': 2, 'sinkAddress': 1, 'starstar': 38, 'talker': 24, 'ue0': 4}
+M2S6-C-a: 210 entries; rules {'anyTt': 18, 'appSel': 11, 'bearerGlobal': 1, 'dsTt': 3, 'dsTtClockId': 1, 'dsTtTtId': 3, 'general': 7, 'hasPassThroughTts': 1, 'listener': 23, 'listenerNumApps': 1, 'listenerRemote': 1, 'meta': 37, 'modulesShared': 32, 'network': 2, 'oscRng': 1, 'perUeList': 2, 'sinkAddress': 1, 'starstar': 35, 'talker': 26, 'ue0': 4}
+M2S6-E-all: 224 entries; rules {'anyTt': 21, 'appSel': 11, 'bearerGlobal': 1, 'dsTt': 3, 'dsTtClockId': 1, 'dsTtTtId': 3, 'dsTtTtParam': 3, 'general': 7, 'hasPassThroughTts': 1, 'listener': 23, 'listenerNumApps': 1, 'listenerRemote': 1, 'meta': 40, 'modulesShared': 35, 'network': 2, 'oscRng': 1, 'perUeList': 2, 'sinkAddress': 1, 'starstar': 36, 'talker': 26, 'ttRng': 1, 'ue0': 4}
+M2S71-q0-Ca: 220 entries; rules {'anyTt': 18, 'appSel': 11, 'bearerGlobal': 1, 'dsTt': 6, 'dsTtClockId': 1, 'dsTtTtId': 3, 'general': 8, 'hasPassThroughTts': 1, 'listener': 23, 'listenerNumApps': 1, 'listenerRemote': 1, 'meta': 40, 'modulesShared': 32, 'network': 2, 'oscRng': 1, 'perUeList': 2, 'sinkAddress': 1, 'starstar': 38, 'talker': 26, 'ue0': 4}
+M2S71-qdu-Ca: 225 entries; rules {'anyTt': 18, 'appSel': 11, 'bearerGlobal': 3, 'dsTt': 6, 'dsTtClockId': 1, 'dsTtTtId': 3, 'general': 8, 'hasPassThroughTts': 1, 'listener': 23, 'listenerNumApps': 1, 'listenerRemote': 1, 'meta': 40, 'modulesShared': 34, 'network': 2, 'oscRng': 1, 'perUeList': 3, 'sinkAddress': 1, 'starstar': 38, 'talker': 26, 'ue0': 4}
+M2S71-q0-Ca-sus: 241 entries; rules {'anyTt': 18, 'app3': 13, 'appSel': 13, 'bearerGlobal': 1, 'dsTt': 6, 'dsTtClockId': 1, 'dsTtTtId': 3, 'general': 8, 'hasPassThroughTts': 1, 'listener': 23, 'listenerNumApps': 2, 'listenerRemote': 1, 'meta': 44, 'modulesShared': 32, 'network': 2, 'oscRng': 1, 'perUeList': 2, 'sinkAddress': 1, 'starstar': 38, 'talker': 27, 'ue0': 4}
+M2S71-qdu-Ca-sus: 246 entries; rules {'anyTt': 18, 'app3': 13, 'appSel': 13, 'bearerGlobal': 3, 'dsTt': 6, 'dsTtClockId': 1, 'dsTtTtId': 3, 'general': 8, 'hasPassThroughTts': 1, 'listener': 23, 'listenerNumApps': 2, 'listenerRemote': 1, 'meta': 44, 'modulesShared': 34, 'network': 2, 'oscRng': 1, 'perUeList': 3, 'sinkAddress': 1, 'starstar': 38, 'talker': 27, 'ue0': 4}
+M2S71-q0-Ca-sus@L: 241 entries; rules {'anyTt': 18, 'app3': 13, 'appSel': 13, 'bearerGlobal': 1, 'dsTt': 6, 'dsTtClockId': 1, 'dsTtTtId': 3, 'general': 8, 'hasPassThroughTts': 1, 'listener': 23, 'listenerNumApps': 2, 'listenerRemote': 1, 'meta': 44, 'modulesShared': 32, 'network': 2, 'oscRng': 1, 'perUeList': 2, 'sinkAddress': 1, 'starstar': 38, 'talker': 27, 'ue0': 4}
+M2S71-qdu-Ca-sus@L: 246 entries; rules {'anyTt': 18, 'app3': 13, 'appSel': 13, 'bearerGlobal': 3, 'dsTt': 6, 'dsTtClockId': 1, 'dsTtTtId': 3, 'general': 8, 'hasPassThroughTts': 1, 'listener': 23, 'listenerNumApps': 2, 'listenerRemote': 1, 'meta': 44, 'modulesShared': 34, 'network': 2, 'oscRng': 1, 'perUeList': 3, 'sinkAddress': 1, 'starstar': 38, 'talker': 27, 'ue0': 4}
+regenerated sha256 dfc8a7f7bb7cd1632c335c169cdbd3535e4e90a14b0d04882bb07b406aaf5505; committed dfc8a7f7bb7cd1632c335c169cdbd3535e4e90a14b0d04882bb07b406aaf5505: IDENTICAL
+rc 0
+
+== python3 -B tools/m2s72s5_gen.py check
+M2S71-q0p-Ca-sus@L: rules {'anyTt': 18, 'app3': 13, 'appSel': 13, 'bearerGlobal': 2, 'dsTt': 6, 'dsTtClockId': 1, 'dsTtTtId': 3, 'general': 8, 'hasPassThroughTts': 1, 'listener': 23, 'listenerNumApps': 2, 'listenerRemote': 1, 'meta': 44, 'modulesShared': 34, 'network': 2, 'oscRng': 1, 'perUeList': 3, 'sinkAddress': 1, 'starstar': 38, 'talker': 27, 'ue0': 4}
+regenerated sha256 e563c489852db4cac7ad8562c97373e2379c8bd4029c7f1ebb9d2ace2ff96903; committed e563c489852db4cac7ad8562c97373e2379c8bd4029c7f1ebb9d2ace2ff96903: IDENTICAL
+rc 0
+
+== python3 -B ../tools/g0_env_equivalence.py selftest --ref ../results/simu5g-1.8.1
+PASS | identity: reference vs itself holds, all byte-identical
+PASS | canary: one PASS -> FAIL in M2-S6 check.txt is VERDICT-DIFFERENT
+PASS | canary: gate OPEN -> CLOSED is VERDICT-DIFFERENT
+PASS | canary: one changed number is listed (G0-N) without a verdict change
+PASS | canary: one CP2 row PASS -> FAIL is VERDICT-DIFFERENT
+PASS | G0-R1: 6.5.0-form regen.txt with matching verify-eff is ATTRIBUTED, not counted as different
+PASS | G0-R1 canary: one other changed line defeats the attribution
+PASS | G0-R1 canary: a runconfig count other than the effective count defeats the attribution
+PASS | format: single-file r2 check and batch evaluations give the same row keys (2411) and controls (13)
+G0 tool selftest: 9 / 9 PASS
+rc 0
+
+== git -C .. diff --name-status 86d7599 -- . ':!m2/check/check_m2s72_s5n.py' ':!m2/check/m2s72_peru.py' ':!m2/check/m2s72_peru_adapter.py' ':!m2/check/m2s72_e1sel.py' ':!m2/check/m2s72_rngaudit.py' ':!m2/check/test_m2s72s5_2.py' ':!m2/check/fixtures'
+rc 0
+
+== OMNeT++ PatternMatcher cross-check fixture: rows / matches / disagreements with m2s72_rngaudit.match
+4230 282 0
