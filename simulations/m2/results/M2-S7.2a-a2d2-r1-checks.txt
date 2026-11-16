@@ -1,0 +1,42 @@
+M2-S7.2a A2-V1 protocol r1: development check record (no simulation), 2026-11-16T17:11:50Z
+branch m2/s72a-a2d2, parent 39a64348701fe14bb838964a113a278ecaf747e9 (39a6434 = the reviewed A2-D2 commit); Python 3.13.18
+
+== the experiment is unchanged: git diff --stat 39a6434 on the experiment files (empty = unchanged)
+(end)
+
+== pins and the real runconfig diff (OMNeT++ 6.5.0 core)
+pins OK: m2s72a2v.ini d55d57a8cf9f, m2s72s5.ini e563c489852d, m2s72.ini dfc8a7f7bb7c
+config diff = the declared set exactly (13 added, 3 removed)
+wrapper: fingerprint occurrences outside the env record: 0
+
+== tests
+  check/test_m2s72a2v1_wrapper.py: A2-V1 wrapper tests: 20 / 20 PASS
+    PASS  T-g-config-diff: the real runconfig diff of the reviewed configuration is accepted; one extra line, one missing declared line, or a truncated dump each fail (rc 1 / 2)
+    PASS  T-g-baseline-size: the baseline raw size is the manifest's sum and must equal the files on disk; a changed size, a missing or an unlisted file, or a missing manifest fail
+    PASS  T-g-pins: the reviewed configuration files match their pins in this tree; any byte change fails
+    PASS  T-g-nc-baseline: NC-V-baseline holds only with rc 4 AND V-0 FAIL AND V-1 FAIL in the evaluator's record
+    PASS  T-w-gate-pass: gate mode with every check holding passes (rc 0), runs NO simulation, records every G-0 row, and NC-V-baseline is rc 4 on the no-NACK baseline
+    PASS  T-w-commit: a commit other than the authorised one, a non-full id, or a dirty worktree stop at G0-commit (rc 10)
+    PASS  T-w-config-altered: a COMMITTED change of the A2-V1 configuration stops at G0-frozen (pin), before any runconfig
+    PASS  T-w-evidence: a preserved evidence file that no longer verifies, or a missing one, stops at G0-evidence
+    PASS  T-w-stack-source: a Simu5G binary other than the baseline's stops at G0-stack; a Simu5G tree without A-2's texts stops at G0-source
+    PASS  T-w-suites: a failing test suite stops at G0-suites
+    PASS  T-w-baseline: a baseline file whose size no longer matches its manifest stops at G0-baseline; a baseline that is not the no-NACK Tr38901 run (Ideal records) fails NC-V-baseline (G0-ncbase)
+    PASS  T-w-space: free space below max(10 GiB, storage limit + 4 GiB) stops at G0-space
+    PASS  T-w-env: a missing variable or results root writes nothing and stops (rc 10); an existing output root (an earlier attempt) is never reused or written: rc 10, its content unchanged
+    PASS  T-w-build: a failing build is a hard stop (rc 11): no simulation, build log and records kept
+    PASS  T-w-simfail: a failed simulation (rc 1, error line) -> rc 20, L-1 FAIL, ONE simulation, log / manifest kept read-only, no evaluation, no retry
+    PASS  T-w-timeout: the wall-time limit ends the run (rc 124, TIMEOUT) -> rc 20, L-1 / L-2 FAIL, one simulation
+    PASS  T-w-storage: raw output beyond 2 x the baseline is detected while the run is going, the simulation is terminated (STORAGE-LIMIT) -> rc 20, L-3 FAIL, one simulation, every byte written kept
+    PASS  T-w-complete: a completed stub run passes L-1..L-4, is evaluated read-only (records of a2, a2-controls, a2v1), and the preserved evidence is checked after; exactly one simulation; rc 0 or 21 (a stub has no scientific output)
+    PASS  T-w-integrity-after: preserved evidence changed during the run -> rc 30 after the evaluation; the change is recorded
+    PASS  T-w-config-unchanged: this increment does not alter the experiment: m2s72a2v.ini, the evaluator, its tests and A-2 are byte-identical to the reviewed commit 39a6434; the simulation command is the runner's without the fingerprint
+  check/test_m2s72_a2v1.py: 10 / 10 PASS
+  check/test_m2s72_a2.py: A-2 tests: 18 / 18 PASS
+  check/test_m2s72_a2probe.py: A-2 probe tests: 11 / 11 PASS
+  check/test_m2s72s5_n2.py: S5 N = 2 tests: 19 / 19 PASS
+  check/test_m2s72s5_2.py: S5-2 tests: 28 / 28 PASS
+  check/test_m2s72s5.py: S5-1 tests: 38 / 38 PASS
+  check/test_m2s72s5_smoke.py: S5 smoke contract tests: 9 / 9 PASS
+  generator: regenerated sha256 e563c489852db4cac7ad8562c97373e2379c8bd4029c7f1ebb9d2ace2ff96903; committed e563c489852db4cac7ad8562c97373e2379c8bd4029c7f1ebb9d2ace2ff96903: IDENTICAL
+  bash -n m2s72a2v1.sh: OK
