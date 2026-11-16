@@ -1,0 +1,127 @@
+M2-S7.2a A-2.1 local checks (branch m2/s72a-a21, parent 13b0fb4); no simulation, no seed, no sealed data read
+python Python 3.13.18
+
+=== test_m2s72_a21.py
+PASS  T-frozen-untouched: the frozen A-2 sources and its generator are byte-identical to fbee202 (A-2.1 adds files only)
+PASS  T-ackonly-identity: on ACK-only input (frozen generator; N 1-4; process counts 5 / 16; feedback before / after the main loop; with / without UE lines and a .sca) every frozen row except A2-4 is byte-identical (status and detail), the per-UE outputs are identical, A2-4 NOT EXERCISED <=> A2-4a/b/c NOT EXERCISED, A2-9 PASS
+PASS  T-ackonly-identity-gen21: ACK-only input in the corrected model (main-loop markers, feedback after the main loop) is also row-identical between the frozen A-2 and A-2.1 (markers never change an ACK-only row)
+PASS  T-ackonly-mutations: on the frozen controls' ACK-only mutations (shift, dupack, dropfb, dropunit, extract, dupins, cert, grant), A-2.1 gives the same status as the frozen A-2 for every frozen row except A2-4
+PASS  T-gen21-faithful: unit lines print handles disjoint from the MAC ids; no scheduler text under the MAC (only under mac.schedulerDl, and only with sched_log); 'selected for retransmission' under the MAC; retransmission one TTI after its NACK; main-loop markers present
+PASS  T-frozen-fails-on-corrected (RC-1 documented): the frozen A-2 on corrected-model NACK input fails A2-1 with 'NACK (PDU <handle>) not among the candidates' (namespace defect), while A-2.1 is VALID under F1-d (i)
+PASS  T-recon-first-chain (SYNTHETIC reconstruction of the VM-reported chain): group 366 'resolved-by-rtx' (NACK -> node 2050 / PDU 145933, ACK -> node 2049), handle 54326 bound at 366, used at 372 / 378 ('bound'), retired at the 384 ACK; transmissions 361 / 367 / 373 / 379; the other unit closed at its 366 line; A2-0..A2-4b, A2-6, A2-7, A2-9 PASS, A2-4c NOT EVALUATED; verdict full INCOMPLETE, f1d-i VALID; the frozen A-2 reproduces 'NACK (PDU 54326) not among the candidates'
+PENDING  T-real-first-chain: the REAL sealed-log prefix (fixtures/a2v1-first-chain.log.gz, sha256-pinned) gives the same resolution; PENDING (never PASS) until the fixture is extracted read-only on the VM
+PASS  T-sweep21 / T-defer-equiv: random NACK patterns (ue[1] only; both UEs; 3 UEs), chains to a discard, 5 seeds x 3 layouts: A-2.1 VALID (f1d-i); every line and every PDU history (feedback sequence, transmissions, end, close time) equals the truth, so deferred resolution reproduces the original events; A2-7 (XA, incl. per-UE occupancy) PASS
+PASS  T-multinack: two lifecycles NACKed in one group -> both lines 'exchangeable-nack', the handles AMBIGUOUS (no unique assignment), per-UE NACK counts exact; when both are ACKed later the handles stay ambiguous (never claimed); a later mixed group binds one handle by its retransmission and the other by elimination
+PASS  T-multinack-discard: both lifecycles NACKed three times together, then one discarded and one ACKed in the same group: discard / ACK cannot be separated (both eligible, handles ambiguous) -> A2-1 FAIL 'UNRESOLVED discard'; both discarded together -> exchangeable discards, VALID
+PASS  T-handle-lifecycle: a new lifecycle on a reused key starts unbound (B-6): consecutive NACKed PDUs on the same unit key get distinct handles, each bound to its own lifecycle and retired at its end
+PASS  T-a24: A2-4a PASS with selection lines, FAIL when one is removed; A2-4b PASS, FAIL when the retransmission's reception is relabelled to the other UE, NOT EVALUATED when the UE log is absent, independent of any fixed delay (UE feedback delay 2 or 3); A2-4c NOT EVALUATED without scheduler lines (never PASS), PASS with scheduler logging on (lines under mac.schedulerDl), FAIL when its User[...] names the other UE
+PASS  T-end: a log ending right after a NACK (no complete main loop after it) censors it structurally (A2-9 PASS); with a complete main loop after it -> UNRESOLVED (A2-9 NOT EVALUATED, INCOMPLETE); without any main-loop marker -> UNRESOLVED (fail-closed); a pending mixed group at the end: censored (structural) with A2-7 / A2-8 NOT EVALUATED for its nodes, or UNRESOLVED when a main loop followed
+PASS  T-controls: every declared A-2.1 control on corrected-model input with a .sca is AS DECLARED: ACK-only mutations and the F1 controls (rtxmove, doublertx, nortx, select, rtxnode, handle, handle-foreign, retired, endcensor, endfake, xa, scalar); each negative control's declared row was PASS before and the failure names the mutated element where a token is declared; no control is NOT BUILDABLE on this input
+PASS  T-controls-baseline-guard: a negative control whose declared row already fails before the mutation is NOT BUILDABLE (never counted as a pass); on ACK-only real-like input without NACKs the F1 controls run on one injected chain in the corrected model (labelled synthetic) and are AS DECLARED
+PASS  T-contract: any FAIL -> NOT VALID (rc 1) under both contracts; A2-4c NOT EVALUATED -> full INCOMPLETE (rc 4), f1d-i VALID; A2-4c NOT EXERCISED (no retransmission) -> VALID under both; A2-4c never PASS by absence; any other required row NOT EVALUATED -> INCOMPLETE under both
+PASS  T-cli: 'a21' and 'a21-controls' on a runs directory laid out as the runner writes it: records written, exit codes = verdict (contract full: 4 INCOMPLETE without scheduler lines; f1d-i: 0); unknown contract -> rc 2
+A-2.1 tests: 17 / 18 PASS, 1 PENDING, 0 FAIL
+
+=== test_m2s72_a2.py
+A-2 tests: 18 / 18 PASS
+
+=== test_m2s72_a2probe.py
+A-2 probe tests: 11 / 11 PASS
+
+=== test_m2s72_a2v1.py
+10 / 10 PASS
+
+=== test_m2s72a2v1_wrapper.py
+A2-V1 wrapper tests: 21 / 21 PASS
+
+=== test_m2s72_gen.py
+generator negative tests: 67 PASS, 0 FAIL
+
+=== test_m2s72s5.py
+S5-1 tests: 38 / 38 PASS
+
+=== test_m2s72s5_2.py
+S5-2 tests: 28 / 28 PASS
+
+=== test_m2s72s5_n2.py
+S5 N = 2 tests: 19 / 19 PASS
+
+=== test_m2s72s5_smoke.py
+S5 smoke contract tests: 9 / 9 PASS
+
+=== test_m2s72_compare.py: not run (requires a census run directory)
+
+=== controls
+
+### C-1 corrected-model fixture (gen21, 2 UEs, chains 1/2/3/4(discard)/1/1/2 NACKs, with .sca)
+baseline {'A2-0': 'PASS', 'A2-0s': 'PASS', 'A2-1': 'PASS', 'A2-2': 'PASS', 'A2-3': 'PASS', 'A2-4a': 'PASS', 'A2-4b': 'PASS', 'A2-4c': 'NOT EVALUATED', 'A2-5': 'PASS', 'A2-6': 'PASS', 'A2-7': 'PASS', 'A2-8': 'PASS', 'A2-9': 'PASS'}
+AS DECLARED      | PC-A21-unmodified | observed {'A2-0': 'PASS', 'A2-0s': 'PASS', 'A2-1': 'PASS', 'A2-2': 'PASS', 'A2-3': 'PASS', 'A2-4a': 'PASS', 'A2-4b': 'PASS', 'A2-4c': 'NOT EVALUATED', 'A2-5': 'PASS', 'A2-6': 'PASS', 'A2-7': 'PASS', 'A2-8': 'PASS', 'A2-9': 'PASS'} | declared every row status reproduced
+AS DECLARED      | NC-A21-shift: one single ACK's feedback event one TTI late | observed A2-3 FAIL | declared A2-3 FAIL
+AS DECLARED      | NC-A21-dupack: one ACK feedback event duplicated | observed A2-1 FAIL | declared A2-1 FAIL
+AS DECLARED      | NC-A21-dropfb: one ACK feedback event removed | observed A2-2 FAIL | declared A2-2 FAIL
+AS DECLARED      | NC-A21-dropunit: the unit ACK line of one feedback event removed | observed A2-0 FAIL | declared A2-0 FAIL
+AS DECLARED      | NC-A21-extract: the transmission line of one PDU removed | observed A2-2 FAIL; token 806 named by ['A2-2'] | declared A2-2 FAIL naming 806
+AS DECLARED      | NC-A21-dupins: one insert line duplicated | observed A2-2 FAIL; token 806 named by ['A2-2'] | declared A2-2 FAIL naming 806
+AS DECLARED      | NC-A21-xa: one UE reception relabelled to another UE (reference evidence corrupted) | observed A2-7 FAIL | declared A2-7 FAIL
+AS DECLARED      | NC-A21-grant: one UE's DL grants removed in one insert TTI | observed A2-6 FAIL; token 2050 named by ['A2-6'] | declared A2-6 FAIL naming 2050
+AS DECLARED      | NC-A21-cert: a candidate node's new transmission logged inside an exchangeable group | observed A2-5 FAIL | declared A2-5 FAIL
+AS DECLARED      | NC-A21-scalar: Simu5G harqErrorRateDl:mean of one compared UE perturbed | observed A2-8 FAIL; token 2049 named by ['A2-8'] | declared A2-8 FAIL naming 2049
+AS DECLARED      | NC-F1-rtxmove: the retransmission names the other candidate's PDU | observed A2-1 FAIL, A2-2 FAIL, A2-7 FAIL | declared A2-1 or A2-2 or A2-7 FAIL
+AS DECLARED      | NC-F1-doublertx: the other candidate retransmitted too | observed A2-1 PASS, A2-2 FAIL | declared A2-1 or A2-2 FAIL
+AS DECLARED      | NC-F1-nortx: the retransmission after the NACK removed | observed verdict A-2.1 NOT VALID; A2-1 FAIL, A2-2 FAIL, A2-9 PASS | declared A-2.1 not VALID (FAIL or INCOMPLETE)
+AS DECLARED      | NC-F1-select: the 'selected for retransmission' line of the retransmission removed | observed A2-4a FAIL; token 940 named by ['A2-4a'] | declared A2-4a FAIL naming 940
+AS DECLARED      | NC-F1-rtxnode: the UE-side reception of the retransmission relabelled to the other UE | observed A2-4b FAIL; token 940 named by ['A2-4b'] | declared A2-4b FAIL naming 940
+AS DECLARED      | NC-F1-handle: a later NACK of the same lifecycle prints another handle | observed A2-1 FAIL; token 7050276 named by ['A2-1'] | declared A2-1 FAIL naming 7050276
+AS DECLARED      | NC-F1-handle-foreign: a later NACK prints another lifecycle's handle | observed A2-1 FAIL; token 50014 named by ['A2-1'] | declared A2-1 FAIL naming 50014
+AS DECLARED      | NC-F1-retired: a retired handle reappears on a later NACK | observed A2-1 FAIL; token 50014 named by ['A2-1'] | declared A2-1 FAIL naming 50014
+AS DECLARED      | PC-F1-endcensor: log ends right after the NACK (no complete main loop after it) -> structural censoring | observed A2-9 PASS, A2-2 PASS | declared A2-9 PASS (censored)
+AS DECLARED      | NC-F1-endfake: a complete main loop follows the NACK, no retransmission -> UNRESOLVED (INCOMPLETE), never censored | observed A2-9 NOT EVALUATED; A-2.1 INCOMPLETE | declared A2-9 NOT EVALUATED, verdict INCOMPLETE
+AS DECLARED      | NC-F1-xa: one UE-side NACK of the chosen lifecycle written as ACK | observed A2-7 FAIL | declared A2-7 FAIL
+
+### C-2 synthetic reconstruction of the first real chain (ids 145933 / 54326, with .sca)
+baseline {'A2-0': 'PASS', 'A2-0s': 'PASS', 'A2-1': 'PASS', 'A2-2': 'PASS', 'A2-3': 'PASS', 'A2-4a': 'PASS', 'A2-4b': 'PASS', 'A2-4c': 'NOT EVALUATED', 'A2-5': 'PASS', 'A2-6': 'PASS', 'A2-7': 'PASS', 'A2-8': 'PASS', 'A2-9': 'PASS'}
+AS DECLARED      | PC-A21-unmodified | observed {'A2-0': 'PASS', 'A2-0s': 'PASS', 'A2-1': 'PASS', 'A2-2': 'PASS', 'A2-3': 'PASS', 'A2-4a': 'PASS', 'A2-4b': 'PASS', 'A2-4c': 'NOT EVALUATED', 'A2-5': 'PASS', 'A2-6': 'PASS', 'A2-7': 'PASS', 'A2-8': 'PASS', 'A2-9': 'PASS'} | declared every row status reproduced
+AS DECLARED      | NC-A21-shift: one single ACK's feedback event one TTI late | observed A2-3 FAIL | declared A2-3 FAIL
+AS DECLARED      | NC-A21-dupack: one ACK feedback event duplicated | observed A2-1 FAIL | declared A2-1 FAIL
+AS DECLARED      | NC-A21-dropfb: one ACK feedback event removed | observed A2-2 FAIL | declared A2-2 FAIL
+AS DECLARED      | NC-A21-dropunit: the unit ACK line of one feedback event removed | observed A2-0 FAIL | declared A2-0 FAIL
+AS DECLARED      | NC-A21-extract: the transmission line of one PDU removed | observed A2-2 FAIL; token 803 named by ['A2-2'] | declared A2-2 FAIL naming 803
+AS DECLARED      | NC-A21-dupins: one insert line duplicated | observed A2-2 FAIL; token 803 named by ['A2-2'] | declared A2-2 FAIL naming 803
+AS DECLARED      | NC-A21-xa: one UE reception relabelled to another UE (reference evidence corrupted) | observed A2-7 FAIL | declared A2-7 FAIL
+AS DECLARED      | NC-A21-grant: one UE's DL grants removed in one insert TTI | observed A2-6 FAIL; token 2049 named by ['A2-6'] | declared A2-6 FAIL naming 2049
+AS DECLARED      | NC-A21-cert: a candidate node's new transmission logged inside an exchangeable group | observed A2-5 FAIL | declared A2-5 FAIL
+AS DECLARED      | NC-A21-scalar: Simu5G harqErrorRateDl:mean of one compared UE perturbed | observed A2-8 FAIL; token 2049 named by ['A2-8'] | declared A2-8 FAIL naming 2049
+AS DECLARED      | NC-F1-rtxmove: the retransmission names the other candidate's PDU | observed A2-1 FAIL, A2-2 FAIL, A2-7 FAIL | declared A2-1 or A2-2 or A2-7 FAIL
+AS DECLARED      | NC-F1-doublertx: the other candidate retransmitted too | observed A2-1 PASS, A2-2 FAIL | declared A2-1 or A2-2 FAIL
+AS DECLARED      | NC-F1-nortx: the retransmission after the NACK removed | observed verdict A-2.1 NOT VALID; A2-1 FAIL, A2-2 PASS, A2-9 PASS | declared A-2.1 not VALID (FAIL or INCOMPLETE)
+AS DECLARED      | NC-F1-select: the 'selected for retransmission' line of the retransmission removed | observed A2-4a FAIL; token 145933 named by ['A2-4a'] | declared A2-4a FAIL naming 145933
+AS DECLARED      | NC-F1-rtxnode: the UE-side reception of the retransmission relabelled to the other UE | observed A2-4b FAIL; token 145933 named by ['A2-4b'] | declared A2-4b FAIL naming 145933
+AS DECLARED      | NC-F1-handle: a later NACK of the same lifecycle prints another handle | observed A2-1 FAIL; token 7145934 named by ['A2-1'] | declared A2-1 FAIL naming 7145934
+NOT BUILDABLE    | NC-F1-handle-foreign | observed no other bound / retired handle in this input | declared A2-1 FAIL
+NOT BUILDABLE    | NC-F1-retired | observed no retired handle followed by a later NACK of another lifecycle | declared A2-1 FAIL
+AS DECLARED      | PC-F1-endcensor: log ends right after the NACK (no complete main loop after it) -> structural censoring | observed A2-9 PASS, A2-2 PASS | declared A2-9 PASS (censored)
+AS DECLARED      | NC-F1-endfake: a complete main loop follows the NACK, no retransmission -> UNRESOLVED (INCOMPLETE), never censored | observed A2-9 NOT EVALUATED; A-2.1 INCOMPLETE | declared A2-9 NOT EVALUATED, verdict INCOMPLETE
+AS DECLARED      | NC-F1-xa: one UE-side NACK of the chosen lifecycle written as ACK | observed A2-7 FAIL | declared A2-7 FAIL
+
+### C-3 ACK-only frozen-generator fixture (no NACK: F1 controls on one injected corrected-model chain, labelled)
+baseline {'A2-0': 'PASS', 'A2-0s': 'PASS', 'A2-1': 'PASS', 'A2-2': 'PASS', 'A2-3': 'PASS', 'A2-4a': 'NOT EXERCISED', 'A2-4b': 'NOT EXERCISED', 'A2-4c': 'NOT EXERCISED', 'A2-5': 'PASS', 'A2-6': 'PASS', 'A2-7': 'PASS', 'A2-8': 'NOT EVALUATED', 'A2-9': 'PASS'}
+AS DECLARED      | PC-A21-unmodified | observed {'A2-0': 'PASS', 'A2-0s': 'PASS', 'A2-1': 'PASS', 'A2-2': 'PASS', 'A2-3': 'PASS', 'A2-4a': 'NOT EXERCISED', 'A2-4b': 'NOT EXERCISED', 'A2-4c': 'NOT EXERCISED', 'A2-5': 'PASS', 'A2-6': 'PASS', 'A2-7': 'PASS', 'A2-8': 'NOT EVALUATED', 'A2-9': 'PASS'} | declared every row status reproduced
+AS DECLARED      | NC-A21-shift: one single ACK's feedback event one TTI late | observed A2-3 FAIL | declared A2-3 FAIL
+AS DECLARED      | NC-A21-dupack: one ACK feedback event duplicated | observed A2-1 FAIL | declared A2-1 FAIL
+AS DECLARED      | NC-A21-dropfb: one ACK feedback event removed | observed A2-2 FAIL | declared A2-2 FAIL
+AS DECLARED      | NC-A21-dropunit: the unit ACK line of one feedback event removed | observed A2-0 FAIL | declared A2-0 FAIL
+AS DECLARED      | NC-A21-extract: the transmission line of one PDU removed | observed A2-2 FAIL; token 820 named by ['A2-2'] | declared A2-2 FAIL naming 820
+AS DECLARED      | NC-A21-dupins: one insert line duplicated | observed A2-2 FAIL; token 820 named by ['A2-2'] | declared A2-2 FAIL naming 820
+AS DECLARED      | NC-A21-xa: one UE reception relabelled to another UE (reference evidence corrupted) | observed A2-7 FAIL | declared A2-7 FAIL
+AS DECLARED      | NC-A21-grant: one UE's DL grants removed in one insert TTI | observed A2-6 FAIL; token 2050 named by ['A2-6'] | declared A2-6 FAIL naming 2050
+AS DECLARED      | NC-A21-cert: a candidate node's new transmission logged inside an exchangeable group | observed A2-5 FAIL | declared A2-5 FAIL
+NOT BUILDABLE    | NC-A21-scalar | observed A2-8 is NOT EVALUATED on the unmodified run | declared A2-8 FAIL
+AS DECLARED      | PC-F1-inject: NACK -> retransmission -> ACK of PDU 820 (handle 1001234, node 2050) | observed rows {'A2-0': 'PASS', 'A2-0s': 'PASS', 'A2-1': 'PASS', 'A2-2': 'PASS', 'A2-3': 'PASS', 'A2-4a': 'PASS', 'A2-4b': 'PASS', 'A2-4c': 'NOT EVALUATED', 'A2-5': 'PASS', 'A2-6': 'PASS', 'A2-7': 'PASS', 'A2-8': 'NOT EVALUATED', 'A2-9': 'PASS'} | declared A2-1..A2-3, A2-4a, A2-4b, A2-6, A2-7, A2-9 PASS
+NOT BUILDABLE    | NC-F1-rtxmove / doublertx | observed the chosen NACK's group has no other candidate (no mixed group) | declared A2-1 / A2-2 FAIL
+AS DECLARED      | NC-F1-nortx: the retransmission after the NACK removed | observed verdict A-2.1 NOT VALID; A2-1 FAIL, A2-2 FAIL, A2-9 PASS | declared A-2.1 not VALID (FAIL or INCOMPLETE)
+AS DECLARED      | NC-F1-select: the 'selected for retransmission' line of the retransmission removed | observed A2-4a FAIL; token 820 named by ['A2-4a'] | declared A2-4a FAIL naming 820
+AS DECLARED      | NC-F1-rtxnode: the UE-side reception of the retransmission relabelled to the other UE | observed A2-4b FAIL; token 820 named by ['A2-4b'] | declared A2-4b FAIL naming 820
+NOT BUILDABLE    | NC-F1-handle / handle-foreign | observed no lifecycle with two NACKs in this input | declared A2-1 FAIL
+NOT BUILDABLE    | NC-F1-retired | observed no retired handle followed by a later NACK of another lifecycle | declared A2-1 FAIL
+NOT BUILDABLE    | PC-F1-endcensor / NC-F1-endfake | observed no main-loop markers in this log | declared -
+AS DECLARED      | NC-F1-xa: one UE-side NACK of the chosen lifecycle written as ACK | observed A2-7 FAIL | declared A2-7 FAIL
