@@ -1,0 +1,69 @@
+M2-S7.2a A2-D2-F3 local checks (branch m2/s72a-a21, parent 2a7b96e); synthetic only: no sealed data read, no extraction run, no simulation
+python Python 3.13.18
+01884f94c6a0c1aa58c2bd9dc76197fb2c03066bad807d16d0d8cb0bc1bd700b  m2s72_a21_fixture.py
+191712a49fb0876d9c369bb94344f2db8cd9e07e0690dfe44c1d913830cb4400  m2s72_a21_realchain.py
+
+=== test_m2s72_a21_fixture.py
+PASS  X-1 extraction on a faithful sealed tree: rc 0; the fixture is the byte-identical source prefix through the complete TTI of the first gNB main loop after 384 ms (385 ms), incl. banner and other modules' lines; the next source line is later; pin = sha256 of the fixture; SHA256SUMS verifies; metadata records sources, boundary and the declared facts; the sealed tree is bit-identical afterwards; a second extraction gives the same fixture sha256
+PASS  X-2 Phase 2 on the X-1 output (SYNTHETIC reconstruction, labelled): m2s72_a21_realchain.validate gives R-1..R-10 PASS: frozen A-2 'NACK (PDU 54326) not among the candidates'; A-2.1 rows as declared (A2-4a/b PASS, A2-4c and A2-8 NOT EVALUATED); full INCOMPLETE, f1d-i VALID; 366 group resolved; 3 NACK -> rtx transitions; ACK 384; handle bound and retired; XA confirms every chain line; controls AS DECLARED or permitted NOT BUILDABLE. The CLI writes a fresh record (rc 0) and refuses an existing record dir and a tampered fixture (rc 3)
+PASS  X-3 the command line exactly as given to the VM (python3 -I -B, a separate process, cwd outside the tree): rc 0
+PASS  X-4 E-1: a seal sha256 other than the declared one -> exit 11, nothing extracted
+PASS  X-5 E-2: a sealed record changed after sealing -> 11; an unsealed file added under records -> 11; a seal path with '..' -> 11
+PASS  X-6 E-3: the log changed (one byte) -> 11; the manifest lists the log twice or not at all -> 11; a manifest path outside the run's runs/ -> 11; the log a symlink -> 11; another configuration's manifest -> 11
+PASS  X-7 E-4: a UE MAC node id other than the declared one -> 11
+PASS  X-8 E-0: an existing output directory -> 10 and it is left untouched; an output inside the results root -> 10 and nothing is created there; a malformed --seal-sha256 -> 10
+PASS  X-9 E-5: no gNB main-loop markers -> 12; the log ends before the boundary TTI (cut at 380 ms) -> 12; a time stamp going backwards -> 12; --max-bytes below the prefix -> 12; the boundary loop without its end marker -> 12; in every case no final fixture, the copied bytes keep the .partial name
+PASS  X-10 E-6: declared facts absent -> 13: the unit lines print another handle; one retransmission missing; the chain's PDU on another process; no 'selected for retransmission' line
+PASS  X-11 E-7: a sealed record or the log changed while the extraction ran -> 14; the fixture keeps its .partial name, no pin, no metadata, FAILED.txt says exit 14
+PASS  X-13 Phase 2 fails closed: a fixture whose 'selected for retransmission' lines are removed (re-pinned) gives R-2 FAIL (A2-4a) and exit 1, never adjusted; T-real-first-chain on the fixture directory: all three files -> PASS, none -> PENDING (not PASS), two of three -> FAIL
+PASS  X-14 boundary rationale (reconstruction): a cut right after the boundary loop's END marker drops that TTI's feedback events and makes A-2.1 fail spuriously (A2-2 'OPEN at the end in state WAIT'); the extractor's TTI-complete cut gives the declared rows
+PASS  X-12 audit: the extractor imports only the Python standard library (nothing from the repository), never opens a file for writing outside its output directory (every write uses the output dir), and has no retry loop
+A-2.1 fixture-extractor tests: 14 / 14 PASS, 0 FAIL
+
+=== test_m2s72_a21.py
+PASS  T-frozen-untouched: the frozen A-2 sources and its generator are byte-identical to fbee202 (A-2.1 adds files only)
+PASS  T-ackonly-identity: on ACK-only input (frozen generator; N 1-4; process counts 5 / 16; feedback before / after the main loop; with / without UE lines and a .sca) every frozen row except A2-4 is byte-identical (status and detail), the per-UE outputs are identical, A2-4 NOT EXERCISED <=> A2-4a/b/c NOT EXERCISED, A2-9 PASS
+PASS  T-ackonly-identity-gen21: ACK-only input in the corrected model (main-loop markers, feedback after the main loop) is also row-identical between the frozen A-2 and A-2.1 (markers never change an ACK-only row)
+PASS  T-ackonly-mutations: on the frozen controls' ACK-only mutations (shift, dupack, dropfb, dropunit, extract, dupins, cert, grant), A-2.1 gives the same status as the frozen A-2 for every frozen row except A2-4
+PASS  T-gen21-faithful: unit lines print handles disjoint from the MAC ids; no scheduler text under the MAC (only under mac.schedulerDl, and only with sched_log); 'selected for retransmission' under the MAC; retransmission one TTI after its NACK; main-loop markers present
+PASS  T-frozen-fails-on-corrected (RC-1 documented): the frozen A-2 on corrected-model NACK input fails A2-1 with 'NACK (PDU <handle>) not among the candidates' (namespace defect), while A-2.1 is VALID under F1-d (i)
+PASS  T-recon-first-chain (SYNTHETIC reconstruction of the VM-reported chain): group 366 'resolved-by-rtx' (NACK -> node 2050 / PDU 145933, ACK -> node 2049), handle 54326 bound at 366, used at 372 / 378 ('bound'), retired at the 384 ACK; transmissions 361 / 367 / 373 / 379; the other unit closed at its 366 line; A2-0..A2-4b, A2-6, A2-7, A2-9 PASS, A2-4c NOT EVALUATED; verdict full INCOMPLETE, f1d-i VALID; the frozen A-2 reproduces 'NACK (PDU 54326) not among the candidates'
+PENDING  T-real-first-chain: the REAL sealed-log prefix (fixtures/a2v1-first-chain.log.gz, its .sha256 pin and a2v1-first-chain.meta.json, written by m2s72_a21_fixture.py on the VM) meets every declared expectation R-1..R-10 of m2s72_a21_realchain.py; PENDING (never PASS) while the three files are absent; FAIL if only some are present
+PASS  T-sweep21 / T-defer-equiv: random NACK patterns (ue[1] only; both UEs; 3 UEs), chains to a discard, 5 seeds x 3 layouts: A-2.1 VALID (f1d-i); every line and every PDU history (feedback sequence, transmissions, end, close time) equals the truth, so deferred resolution reproduces the original events; A2-7 (XA, incl. per-UE occupancy) PASS
+PASS  T-multinack: two lifecycles NACKed in one group -> both lines 'exchangeable-nack', the handles AMBIGUOUS (no unique assignment), per-UE NACK counts exact; when both are ACKed later the handles stay ambiguous (never claimed); a later mixed group binds one handle by its retransmission and the other by elimination
+PASS  T-multinack-discard: both lifecycles NACKed three times together, then one discarded and one ACKed in the same group: discard / ACK cannot be separated (both eligible, handles ambiguous) -> A2-1 FAIL 'UNRESOLVED discard'; both discarded together -> exchangeable discards, VALID
+PASS  T-handle-lifecycle: a new lifecycle on a reused key starts unbound (B-6): consecutive NACKed PDUs on the same unit key get distinct handles, each bound to its own lifecycle and retired at its end
+PASS  T-a24: A2-4a PASS with selection lines, FAIL when one is removed; A2-4b PASS, FAIL when the retransmission's reception is relabelled to the other UE, NOT EVALUATED when the UE log is absent, independent of any fixed delay (UE feedback delay 2 or 3); A2-4c NOT EVALUATED without scheduler lines (never PASS), PASS with scheduler logging on (lines under mac.schedulerDl), FAIL when its User[...] names the other UE
+PASS  T-end: a log ending right after a NACK (no complete main loop after it) censors it structurally (A2-9 PASS); with a complete main loop after it -> UNRESOLVED (A2-9 NOT EVALUATED, INCOMPLETE); without any main-loop marker -> UNRESOLVED (fail-closed); a pending mixed group at the end: censored (structural) with A2-7 / A2-8 NOT EVALUATED for its nodes, or UNRESOLVED when a main loop followed
+PASS  T-controls: every declared A-2.1 control on corrected-model input with a .sca is AS DECLARED: ACK-only mutations and the F1 controls (rtxmove, doublertx, nortx, select, rtxnode, handle, handle-foreign, retired, endcensor, endfake, xa, scalar); each negative control's declared row was PASS before and the failure names the mutated element where a token is declared; no control is NOT BUILDABLE on this input
+PASS  T-controls-baseline-guard: a negative control whose declared row already fails before the mutation is NOT BUILDABLE (never counted as a pass); on ACK-only real-like input without NACKs the F1 controls run on one injected chain in the corrected model (labelled synthetic) and are AS DECLARED
+PASS  T-contract: any FAIL -> NOT VALID (rc 1) under both contracts; A2-4c NOT EVALUATED -> full INCOMPLETE (rc 4), f1d-i VALID; A2-4c NOT EXERCISED (no retransmission) -> VALID under both; A2-4c never PASS by absence; any other required row NOT EVALUATED -> INCOMPLETE under both
+PASS  T-cli: 'a21' and 'a21-controls' on a runs directory laid out as the runner writes it: records written, exit codes = verdict (contract full: 4 INCOMPLETE without scheduler lines; f1d-i: 0); unknown contract -> rc 2
+A-2.1 tests: 17 / 18 PASS, 1 PENDING, 0 FAIL
+
+=== test_m2s72_a2.py
+A-2 tests: 18 / 18 PASS
+
+=== test_m2s72_a2probe.py
+A-2 probe tests: 11 / 11 PASS
+
+=== test_m2s72_a2v1.py
+10 / 10 PASS
+
+=== test_m2s72a2v1_wrapper.py
+A2-V1 wrapper tests: 21 / 21 PASS
+
+=== test_m2s72_gen.py
+generator negative tests: 67 PASS, 0 FAIL
+
+=== test_m2s72s5.py
+S5-1 tests: 38 / 38 PASS
+
+=== test_m2s72s5_2.py
+S5-2 tests: 28 / 28 PASS
+
+=== test_m2s72s5_n2.py
+S5 N = 2 tests: 19 / 19 PASS
+
+=== test_m2s72s5_smoke.py
+S5 smoke contract tests: 9 / 9 PASS

@@ -4,7 +4,6 @@ Truth: the corrected generator m2s72_harqfix21.make() (synthetic, labelled) and 
 The REAL first-chain fixture (fixtures/a2v1-first-chain.log.gz, extracted read-only from the sealed A2-V1 output) is
 not in this repository yet: its test reports PENDING (never PASS) until the fixture and its pinned sha256 are added."""
 import gzip
-import hashlib
 import os
 import random
 import shutil
@@ -136,7 +135,7 @@ def _():
                     for fb_first in (True, False):
                         lines, node, truth = F.make(n, 250, sch, nproc=nproc, fb_first=fb_first, ue_log=(si != 3))
                         lines = lines + [A2.sentinel(A2.t_end_of(lines))]
-                        sca = TV.sca(d, node, truth) if (si == 1 and n == 2) else None
+                        sca = sca2(d, node, truth) if (si == 1 and n == 2) else None
                         diff, peq, a4, a9, f, nn = identity(lines, node, nproc, sca)
                         assert not diff and peq and a4 and a9 == "PASS", (n, si, nproc, fb_first, diff[:2], peq, a4, a9)
                         n_cases += 1
@@ -214,6 +213,12 @@ def _():
 
 
 # ---------------------------------------------------------------------------------------- first chain ------------
+def sca2(d, node, truth):
+    """the scalar helper of test_m2s72_a2v1 writes the two-UE layout only: never called for another N"""
+    assert len(node) == 2, f"scalar helper called for N = {len(node)}"
+    return TV.sca(d, node, truth)
+
+
 def chain_checks(lines, node, real=False):
     res, rows, per, cov, extra, window = ev21(lines, node, t0=300 * MS)
     s = st(rows)
@@ -247,18 +252,23 @@ def _():
     chain_checks(lines, node)
 
 
-@test("T-real-first-chain: the REAL sealed-log prefix (fixtures/a2v1-first-chain.log.gz, sha256-pinned) gives the same "
-      "resolution; PENDING (never PASS) until the fixture is extracted read-only on the VM")
+@test("T-real-first-chain: the REAL sealed-log prefix (fixtures/a2v1-first-chain.log.gz, its .sha256 pin and "
+      "a2v1-first-chain.meta.json, written by m2s72_a21_fixture.py on the VM) meets every declared expectation R-1..R-10 of "
+      "m2s72_a21_realchain.py; PENDING (never PASS) while the three files are absent; FAIL if only some are present")
 def _():
-    pin = FIX + ".sha256"
-    if not os.path.exists(FIX) or not os.path.exists(pin):
-        PENDING.append("T-real-first-chain: fixture not yet extracted from the sealed A2-V1 output (separately authorised stage)")
+    import m2s72_a21_realchain as RC
+    d = os.path.dirname(FIX)
+    files = [os.path.join(d, x) for x in (RC.FIX, RC.FIX + ".sha256", RC.META)]
+    have = [os.path.exists(x) for x in files]
+    if not any(have):
+        PENDING.append("T-real-first-chain: fixture not yet extracted from the sealed A2-V1 output (A2-D2-F3 Phase 1)")
         return "PENDING"
-    want = open(pin).read().split()[0]
-    got = hashlib.sha256(open(FIX, "rb").read()).hexdigest()
-    assert got == want, f"fixture sha256 {got} != pinned {want}"
-    lines = A.load(FIX)
-    chain_checks(lines, {0: 2049, 1: 2050}, real=True)
+    assert all(have), f"incomplete fixture set: {[f for f, h in zip(files, have) if not h]} missing"
+    assert TA.root(), "SIMU5G_ROOT (Simu5G 1.8.1 sources) is needed for A2-0s: the real-chain test cannot be evaluated"
+    fx = RC.load_fixture(d)
+    out, ctx = RC.validate(fx, TA.root())
+    bad = [r for r in out if r[1] != "PASS"]
+    assert not bad, bad
 
 
 # ------------------------------------------------------------------------------------- sweep against truth --------
@@ -439,7 +449,7 @@ def _():
     d = tempfile.mkdtemp()
     try:
         lines, node, truth = build({3: 1, 10: 2, 20: 3, 30: 4, 40: 1, 50: 1, 60: 2})
-        sca = TV.sca(d, node, truth)
+        sca = sca2(d, node, truth)
         out, st0 = CC.controls(lines, 16, 1000 * MS, node, TA.grants_of(lines), sca, TA.root())
         bad = [o for o in out if o[2] != "AS DECLARED"]
         assert not bad, bad
@@ -508,7 +518,7 @@ def _():
         os.makedirs(os.path.join(runs, cfg, cfg))
         with gzip.open(os.path.join(runs, f"run-{cfg}.log.gz"), "wt") as fh:
             fh.writelines(x for x in lines if A.SENTINEL_MOD not in x)
-        TV.sca(os.path.join(runs, cfg, cfg), node, truth)
+        sca2(os.path.join(runs, cfg, cfg), node, truth)
         C._node_ids = lambda r, c: dict(node)
         os.environ["SIMU5G_ROOT"] = TA.root()
         assert CC.main(["x", "a21", runs, cfg, os.path.join(d, "r1"), "--t0", "0.3"]) == 4
