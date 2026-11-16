@@ -1,0 +1,257 @@
+M2-S7.2a A-2 control fix: development check record (no simulation), 2026-11-16T15:53:14Z
+branch m2/s72a-a2, change on top of 2a1032e; generated on the working tree committed with this record; python Python 3.13.18
+
+== §2: OMNeT++ 6.5.0 '%t' = stream << getSimTime() (src/envir/logformatter.cc:191-192); compiled demonstration
+                break;
+
+            case SIMULATION_TIME:
+                stream << simulation->getSimTime();
+                break;
+#include <omnetpp.h>
+#include <iostream>
+#include <sstream>
+using namespace omnetpp;
+int main(){ SimTime::setScaleExp(-12);
+  for (const char*s: {"1.004","12","0.3005","1.000000000001","2"}) { std::ostringstream o; o << SimTime::parse(s); std::cout << s << " -> '" << o.str() << "'\n"; } }
+1.004 -> '1.004'
+12 -> '12'
+0.3005 -> '0.3005'
+1.000000000001 -> '1.000000000001'
+2 -> '2'
+
+== §2/§3: reproduction on the 2a1032e code (git show 2a1032e:check_m2s72_a2.py), real-format prefix, realistic .sca
+  ORIGINAL feedback event lines:
+    1.013|M2S72Bridge.gnb1.cellularNic.mac|LteHarqBufferTx::receiveHarqFeedback - start
+    1.013|M2S72Bridge.gnb1.cellularNic.mac|LteHarqUnitTx::pduFeedback - Welcome!
+    1.013|M2S72Bridge.gnb1.cellularNic.mac|	 pdu_ has been sent and received correctly
+    1.013|M2S72Bridge.gnb1.cellularNic.mac|H-ARQ TX: feedback received for process 0 codeword 0 result is ACK
+  search string _ts(t) = '1.013000000000' | in any prefix: False | lines changed: 0
+  line perturbed by the 2a1032e control: scalar M2S72Bridge.gnb1.cellularNic.mac harqErrorRateDl:mean nan -> written: nan | module compared by A2-8: False
+  2a1032e: NOT AS DECLARED | NC-A2-shift: one single ACK's feedback event  | A2-3 PASS
+  2a1032e: NOT AS DECLARED | NC-A2-scalar: Simu5G harqErrorRateDl:mean of  | A2-8 PASS
+
+== the new tests run against the 2a1032e code (test file of this change copied into a 2a1032e worktree)
+PASS | T-contract: A-2 reads the contract-tested patterns (probe = adapter for insert / feedback); every text A-2 relies on is present verba
+PASS | T-load: load() keeps exactly the lines A-2 / XA / P0 read plus an end-of-log sentinel; P0 on the loaded lines equals P0 on the full l
+PASS | T-sweep (synthetic): A-2 equals the generator truth in all 48 scenarios (N 2..4, HARQ 5 / 16, both event orders, NACK 0..5 % with dis
+PASS | T-proto (synthetic): two implementations of one specification agree - A-2 (from the spec) and the design prototype (proto_m2s72_a2) g
+PASS | T-nack (synthetic): a discard chain, single NACKs and a NACK inside a same-TTI group - rows A2-0..A2-7 PASS, A2-4 PASS (each retransm
+PASS | T-discard (synthetic): a discard after fewer than maxHarqRtx + 1 transmissions fails A2-2; the text's own maxHarqRtx value is used
+PASS | T-censor (synthetic): end-of-run censoring - a log cut right after a NACK (awaiting retransmission), right after an insert line (inse
+PASS | T-cert (synthetic, N = 3): the exchangeability certificate is exact in both directions - a new transmission of a NON-candidate UE log
+PASS | T-xa (synthetic): A2-7 compares with the independent UE-side reference - PASS on NACK / discard fixtures; FAIL when A-2's owner of on
+PASS | T-scalars: A2-8 against Simu5G's own per-UE statistics - PASS when harqErrorRateDl:mean = NACK / feedback and harqTxAttemptsDl:mean =
+PASS | T-controls (synthetic stand-in for the real output): every buildable control of a2-controls is AS DECLARED, including the NACK-path c
+PASS | T-verdict / coverage: A-2 VALID only when every required row is PASS or NOT EXERCISED; any FAIL -> NOT VALID; a required NOT EVALUATE
+FAIL | T-cli: a2 and a2-controls end to end on a synthetic run tree (gzip log, .sca with macNodeId and the Simu5G per-UE scalars): exit 0; r
+FAIL | T-rc-controls (regression for the 2a1032e VM failures): on a log whose prefix is OMNeT++'s real '%t' format and a .sca whose first ha
+FAIL | T-rc-noop: a negative control whose checker input equals the unmodified input is NOT AS DECLARED ('MUTATION NOT APPLIED'), never AS D
+FAIL | T-a23 (mutation sensitivity of A2-3): one feedback event retimed one TTI late or early makes A2-3 FAIL (two feedback ages) on a real-
+PASS | T-a28 (mutation sensitivity of A2-8): a perturbation of either compared value (harqErrorRateDl:mean, harqTxAttemptsDl:mean) of either
+PASS | T-scope: vs 07b09b9 this increment only adds files; A-1 (m2s72_peru), the adapter, XA, the s5v / s5n / s5n2 checkers, the runner, con
+A-2 tests: 14 / 18 PASS
+
+== §3 after the fix: the same inputs
+  AS DECLARED     | PC-A2-unmodified                                             | {'A2-0': 'PASS', 'A2-0s': 'PASS', 'A2-1': 'PASS', 'A2-2': 'PASS', 'A2-3': 'PASS', 'A2-4': 'NOT EXERCISED', 'A2-5': 'NOT EXERCISED', 'A2-6': 'PASS', 'A2-7': 'PASS', 'A2-8': 'PASS'}
+  AS DECLARED     | NC-A2-shift: one single ACK's feedback event one TTI late    | A2-3 FAIL; mutation: 4 lines retimed '1.013' -> '1.014' (feedback age 5 -> 6 ms)
+  AS DECLARED     | NC-A2-dupack: one ACK feedback event duplicated              | A2-1 FAIL
+  AS DECLARED     | NC-A2-dropfb: one ACK feedback event removed                 | A2-2 FAIL, A2-6 FAIL
+  AS DECLARED     | NC-A2-dropunit: the unit ACK line of one feedback event remo | A2-1 FAIL, A2-0 FAIL
+  AS DECLARED     | NC-A2-extract: the transmission line of one PDU removed      | A2-1 FAIL, A2-2 FAIL
+  AS DECLARED     | NC-A2-dupins: one insert line duplicated                     | A2-2 FAIL
+  AS DECLARED     | NC-A2-swap: one PDU's insert and transmission logged for the | A2-7 FAIL, A2-6 FAIL, A2-1 FAIL
+  AS DECLARED     | NC-A2-xa: one UE reception relabelled to another UE (referen | A2-7 FAIL
+  AS DECLARED     | NC-A2-grant: one UE's DL grants removed in one insert TTI    | A2-6 FAIL
+  NOT BUILDABLE   | NC-A2-cert                                                   | no exchangeable group in this run
+  AS DECLARED     | NC-A2-scalar: Simu5G harqErrorRateDl:mean of one compared UE | A2-8 FAIL; mutation: M2S72Bridge.ue[0].cellularNic.nrMac (node 2049) harqErrorRateDl:mean 0 -> 0.001, A2-8 reads 0.001
+  AS DECLARED     | PC-A2-censor: log and grants truncated at a TTI boundary mid | rows {'A2-0': 'PASS', 'A2-0s': 'PASS', 'A2-1': 'PASS', 'A2-2': 'PASS', 'A2-3': 'PASS', 'A2-4': 'NOT EXERCISED', 'A2-5': 'NOT EXERCISED', 'A2-6': 'PASS', 'A2-7': 'PASS', 'A2-8': 'NOT EVALUATED'}; end s
+  AS DECLARED     | PC-A2-inject: NACK -> retransmission -> ACK of PDU 810 (node | rows {'A2-0': 'PASS', 'A2-0s': 'PASS', 'A2-1': 'PASS', 'A2-2': 'PASS', 'A2-3': 'PASS', 'A2-4': 'PASS', 'A2-5': 'NOT EXERCISED', 'A2-6': 'PASS', 'A2-7': 'PASS', 'A2-8': 'NOT EVALUATED'}; retransmission
+  AS DECLARED     | NC-A2-nackid: the injected NACK's unit line removed          | A2-1 FAIL
+  AS DECLARED     | NC-A2-nackswap: the injected NACK names another PDU          | A2-1 FAIL
+  AS DECLARED     | NC-A2-rtxacid: the scheduler names the other UE for the retr | A2-4 FAIL
+  AS DECLARED     | NC-A2-rtxextract: the retransmission line removed            | A2-1 FAIL, A2-2 FAIL
+  AS DECLARED     | NC-A2-discard: the injected NACK turned into a discard after | A2-2 FAIL
+
+== python3 -B check/test_m2s72_a2.py
+PASS | T-contract: A-2 reads the contract-tested patterns (probe = adapter for insert / feedback); every text A-2 relies on is present verbatim in the Simu5G 1.8.1 tree ($SIMU5G_ROOT on the VM) - A2-0s PASS; NOT EVALUATED without a tree
+PASS | T-load: load() keeps exactly the lines A-2 / XA / P0 read plus an end-of-log sentinel; P0 on the loaded lines equals P0 on the full log (the preserved-output V-B / V-C results stay comparable)
+PASS | T-sweep (synthetic): A-2 equals the generator truth in all 48 scenarios (N 2..4, HARQ 5 / 16, both event orders, NACK 0..5 % with discard chains and mixed groups): every id / single line names the true UE and PDU, every exchangeable 
+PASS | T-proto (synthetic): two implementations of one specification agree - A-2 (from the spec) and the design prototype (proto_m2s72_a2) give the same owner per id / single line and the same group node sets, on the sweep's NACK scenarios
+PASS | T-nack (synthetic): a discard chain, single NACKs and a NACK inside a same-TTI group - rows A2-0..A2-7 PASS, A2-4 PASS (each retransmission named by the scheduler), the NACKed unit stays busy until its final ACK, coverage reports the
+PASS | T-discard (synthetic): a discard after fewer than maxHarqRtx + 1 transmissions fails A2-2; the text's own maxHarqRtx value is used
+PASS | T-censor (synthetic): end-of-run censoring - a log cut right after a NACK (awaiting retransmission), right after an insert line (inserted in the last TTI) and at a TTI boundary (awaiting feedback): no row FAILS and each unit gets its
+PASS | T-cert (synthetic, N = 3): the exchangeability certificate is exact in both directions - a new transmission of a NON-candidate UE logged inside a two-candidate ACK group is admissible (A2-5 does not fail: no false alarm), the same ev
+PASS | T-xa (synthetic): A2-7 compares with the independent UE-side reference - PASS on NACK / discard fixtures; FAIL when A-2's owner of one line is wrong (a deliberately broken A-2) and when the reference's own evidence is broken; NOT EVA
+PASS | T-scalars: A2-8 against Simu5G's own per-UE statistics - PASS when harqErrorRateDl:mean = NACK / feedback and harqTxAttemptsDl:mean = mean transmissions per ACKed PDU for each UE node (from the .sca macNodeId parameters); FAIL on a p
+PASS | T-controls (synthetic stand-in for the real output): every buildable control of a2-controls is AS DECLARED, including the NACK-path controls on an injected chain; a run whose UE reuses its process too soon reports the injection NOT B
+PASS | T-verdict / coverage: A-2 VALID only when every required row is PASS or NOT EXERCISED; any FAIL -> NOT VALID; a required NOT EVALUATED -> INCOMPLETE. On an ACK-only run every NACK feature is reported NOT EXERCISED with where it is va
+PASS | T-cli: a2 and a2-controls end to end on a synthetic run tree (gzip log, .sca with macNodeId and the Simu5G per-UE scalars): exit 0; records a2-<cfg>.txt / .json and a2-controls-<cfg>.txt / .json written, with the PU-4 note and the co
+PASS | T-rc-controls (regression for the 2a1032e VM failures): on a log whose prefix is OMNeT++'s real '%t' format and a .sca whose first harqErrorRateDl:mean line is the gNB MAC's, NC-A2-shift and NC-A2-scalar are AS DECLARED, each with it
+PASS | T-rc-noop: a negative control whose checker input equals the unmodified input is NOT AS DECLARED ('MUTATION NOT APPLIED'), never AS DECLARED - shown by forcing the shift construction to reproduce the original lines
+PASS | T-a23 (mutation sensitivity of A2-3): one feedback event retimed one TTI late or early makes A2-3 FAIL (two feedback ages) on a real-format log; the 2a1032e construction (text replace of the 12-digit time) changes no line of a real-f
+PASS | T-a28 (mutation sensitivity of A2-8): a perturbation of either compared value (harqErrorRateDl:mean, harqTxAttemptsDl:mean) of either UE NR MAC makes A2-8 FAIL, down to 1e-6; values within 1e-12 PASS; a perturbation of a module A2-8 
+PASS | T-scope: vs 07b09b9 this increment only adds files; A-1 (m2s72_peru), the adapter, XA, the s5v / s5n / s5n2 checkers, the runner, configurations and every record are byte-identical
+A-2 tests: 18 / 18 PASS
+
+== python3 -B check/test_m2s72_a2probe.py
+PASS | contract: the probe's patterns match the exact Simu5G 1.8.1 texts (LteHarqUnitTx.cc:117/:126/:141 with two spaces after 'process'; LteSchedulerEnbDl.cc:108/:245/:246/:270; LteHarqBufferTx.cc:109/:175/:220/:242) and the accepted gNB p
+PASS | contract (source, when the Simu5G 1.8.1 tree is available as SIMU5G_ROOT or the scratch clone): every text the probe and the generator use occurs verbatim in the 1.8.1 sources; skipped (reported) when no tree is present
+PASS | fixture without NACK (the situation of every preserved run): P0-1..P0-3 and P0-6 HOLD, P0-4 NOT EXERCISED, P0-5 holds for all-ACK groups only, each qualifier stated
+PASS | fixture with NACK chains (a 4-transmission discard and two single NACKs, one inside a same-TTI group): every precondition HOLDS, the mixed group is seen, retransmissions are node-identified, nothing open at the end
+PASS | generality: N = 3 with three-way same-TTI groups, HARQ 5, and feedback events after the main loop of the TTI (the other admissible order): every exercised precondition HOLDS
+PASS | the UE-side reference XA on the faithful generator WITH retransmissions: its per-line truth equals the generator's own truth on every feedback line (retransmitted ids, repeated UE receptions, a discard chain); XA-0/1/2/5 PASS. Findin
+PASS | mutations: each precondition fails on the corruption it exists to detect - unit NACK line removed (P0-1), first extract removed (P0-2), one feedback line one TTI late (P0-3), rtxAcid line removed (P0-4), a candidate node's new transm
+PASS | design evidence: the A-2 prototype (gNB-only unit-state attribution, proto_m2s72_a2.py) is exact against the generator truth in all 48 sweep scenarios (N 2..4, HARQ 5 / 16, both event orders, NACK rate 0..5 %, discard chains): NACK /
+PASS | helpers: Simu5G per-UE H-ARQ scalars read from a .sca; eventlog coverage counted; both None when absent
+PASS | CLI end to end on a synthetic run tree (gzip log): exit 0, a2probe-<cfg>.txt / .json written; exit 1 when a precondition fails
+PASS | scope: vs 06fba26 this increment only adds files (A-1, PU-4, the adapter, XA, the runner and every record unchanged)
+A-2 probe tests: 11 / 11 PASS
+
+== python3 -B check/test_m2s72s5_n2.py
+PASS | contract: XA's gNB regexes are the accepted parser's; the UE-side regexes match the exact Simu5G 1.8.1 texts (LteHarqBufferRx.cc:63, :78 - note the two spaces after 'Codeword'), and nothing else
+PASS | contract: the XA reader's gNB event list is exactly m2s72_peru_adapter.harq_events() on the same log file
+PASS | identity: attribute_feedback with and without trace returns exactly what the bc77a6f version returns, on 300 random multi-UE event lists (A-1a, A-1b, ambiguous, orphan, re-insert all occurring) and on the fixtures
+PASS | identity: the only change to an S5-2 / accepted checker file is the optional trace of attribute_feedback (git diff bc77a6f limited to m2s72_peru.py, additions only inside attribute_feedback)
+PASS | contract: the per-UE controls (controls-n2 part 2, real output only) call the accepted / S5-2 functions with the signatures and attributes they have (s5n evaluation, adapter observe / validate, Q8 with mut / k / attr, q8_rows, the NC
+PASS | fixture N = 1 (every TTI): A-1 exact, all A-1a; XA-0..XA-6 PASS; delta = 1 slot; truth = A-1 per UE
+PASS | fixture N = 2, cross-TTI overlaps only: A-1b is exercised and every A-1b attribution agrees with the UE side; A-1 exact -> XA-6 PASS; PU-4 PASS
+PASS | fixture N = 2 with same-TTI same-process overlaps (the lowest-free rule makes them likely): A-1 AMBIGUOUS, classified irreducible by XA-4 (PASS); A-1a / A-1b agree (XA-3 PASS); PU-4 FAIL; XA-6 NOT EVALUATED
+PASS | fixture N = 1 with a NACK: A-1 closes the process on the NACK, so the retransmission's feedback is ORPHAN (the declared A-1 limitation L-A1-NACK); XA-4 classifies it as a retransmission chain; XA-5 excepts the retransmission TTI; XA-
+PASS | fixture: a retransmission TTI that also carries a grant line is still excepted by XA-5
+PASS | mutations (the controls-n2 H-ARQ set, on the N = 2 fixtures): cross-UE swap, orphan, duplicate insert, inconsistent totals, UE feedback removed, UE reception relabelled, feedback shifted, grant removed - each as declared; PU-5 provab
+PASS | mutation sensitivity of the controls themselves: a control whose mutation is undone must report 'not as declared' (the swap control with XA blind)
+PASS | mutation: an A-1 defect is caught by XA-3 (a deliberately wrong A-1 that swaps the pick of every 10th A-1a attribution) while PU-4 and PU-5 still PASS
+PASS | mutation: XA-0 fails when the run's node ids disagree with the PDU-id map; XA-2 fails on a codeword 1 line (NOT EVALUATED) and when there is no UE side at all
+PASS | end censoring: a PDU inserted in the last TTI before the log ends (no UE reception, no feedback) is end-censored, not a failure; the same PDU earlier in the log is a failure
+PASS | verdict: VALIDATED (rc 0); VALIDATED WITH A-1 LIMITATION when PU-4 FAILs and XA-4 explains it (rc 3); NOT VALIDATED on any REJECT (rc 1): an XA-3 disagreement, a gate failure other than PU-4, a control not as declared, adapter / XA A
+PASS | runner smoke-n2: one run M2S72-E0vN-q0-one0-n2-f1 (seed 0); manifest; adapter-validate q0 0 0; xa; controls-n2; the E0v-N per-run rows with the labelled diagnostic value; verdict; raw held uncompressed and read-only; nothing committe
+PASS | runner smoke-n2: an evaluation error (rc 2) of any tool -> exit 6, every later step still done and recorded; an acceptance FAIL (rc 1) is recorded, not a lifecycle failure; no S5_ENV_DECISION -> refused, nothing created
+PASS | runner: the accepted modes are unchanged (diff vs bc77a6f touches only the usage line, the test-hook line, the smoke-n2 stage name, the smoke-n2 branch and its release refusal)
+S5 N = 2 tests: 19 / 19 PASS
+
+== python3 -B check/test_m2s72s5.py
+PASS | classify: gNB 'no free H-ARQ process' with rc != 0 -> SIM-ABORT
+PASS | classify: UE UL 'no free H-ARQ process' -> SIM-ABORT
+PASS | classify: 'marked inactive with N bytes' -> SIM-ABORT
+PASS | classify: an abort text with rc 0 -> ERROR (fail closed, never OK)
+PASS | classify: rc 124 -> TIMEOUT
+PASS | classify: the UE info line 'no free H-ARQ process for the grant ... not used' alone, rc 1 -> ERROR, not SIM-ABORT
+PASS | classify: other runtime error -> ERROR, not SIM-ABORT
+PASS | classify: rc 0 with an error line -> ERROR
+PASS | classify: normal log incl. the UE 'grant is not used' info line -> OK
+PASS | space rule: free >= 1.5 x run + twin + 1 GB + 2 GB
+PASS | manifest: every file listed; verify passes; a changed byte and a missing file fail
+PASS | retain (tier B): gzip -n in place, originals removed, manifest still verifies; a corrupted .gz fails
+PASS | committed: HEAD blob equal -> ok; local differs -> fail; path not in HEAD -> fail
+PASS | RD-4 classifier: q0->q0p scheduler ISOLATED; q0p->qde mapping ISOLATED; qde->qdu priority ISOLATED
+PASS | RD-4 classifier: q0p->qdu is NOT mapping-only (the gPTP DRB has another profile)
+PASS | RD-4 classifier mutations: a load / traffic difference, an RLC-mode change, a scheduler change are not allowed
+PASS | name parser: E0v / twins / H5 / E0 (1.8.0) / E0v-N; unknown names refused
+PASS | Q-0p analysis mapping: m2s71_lib OPTIONS q0p = q0 in DRBs / RLC mode / split; scheduler differs
+PASS | generator: m2s72s5.ini regenerates byte for byte; m2s72.ini unchanged; every matrix config present
+PASS | Q-de (D-1): each per-N mixin is Q-d's accepted section with only the gPTP DRB profile changed; base / D-4 extend Q-d's
+PASS | Q-de refusal: a gPTP-profile substitution outside DRB 4 or with the wrong count is refused
+PASS | generator refusal: a factor whose interval is not an exact ns (0.75 at one loaded UE)
+PASS | generator refusal: a config name already defined in m2s72.ini
+PASS | generator refusal: m2s72.ini not regenerated byte for byte by the accepted generator
+PASS | grammar: H-ARQ occupancy in LOG order (feedback logged after the insert of the same TTI keeps the process busy)
+PASS | grammar: UE 'grant is not used' counted (not a loss); a UE loss-like line and a 1.8.0-only text fail MG-1
+PASS | manifest: a missing result directory is skipped (early abort); a manifest of nothing is refused
+PASS | runner guard: no S5_ENV_DECISION -> refused before anything is created (RD-7)
+PASS | runner guard: Simu5G Version other than 1.8.1 -> refused
+PASS | runner guard: no NASCTIME_RESULTS_ROOT (legacy mode) -> refused; a root inside simulations/m2/results -> refused
+PASS | runner lifecycle (records repo): runs OK -> check -> manifest -> records committed and verified -> raw deleted
+PASS | runner lifecycle (no records repo): raw outputs kept, pending release; 'release' later commits then deletes
+PASS | runner: SIM-ABORT -> batch stops (exit 5), outcome recorded, raw kept as tier B (gzip, verified), nothing deleted
+PASS | runner: a failed per-run check -> batch stops (exit 6), raw kept as tier B
+PASS | runner smoke: one run E0v-q0-f1, check, quick, controls-q8, manifest; raw held uncompressed and read-only; nothing committed or deleted even with S5_RECORDS_REPO; release of the smoke stage refused
+PASS | runner smoke: a failed per-run check -> exit 6, every later step still recorded, raw held uncompressed
+PASS | runner: an existing stage directory is never overwritten
+PASS | runner e0v (stub): factors 1, 2, 4, 8, controls on q0-f1 and qdu-f2, twin of the top factor, every hold released
+S5-1 tests: 38 / 38 PASS
+
+== python3 -B check/test_m2s72s5_2.py
+PASS | per_ue: exact rates, service ratio, TTI share and gPTP figures on a synthetic loaded UE
+PASS | per_ue: undelivered Syncs rank as +inf (never dropped) and count against the deadlines
+PASS | starvation: NC a 1 s DL window with load but no delivery is ST-dl; PC full service is none
+PASS | starvation: NC an unloaded UE whose Syncs are all censored in a 1 s window is ST-gptp
+PASS | starvation: NC service ratio below 0.5 is US-dl
+PASS | overload per UE: growth AND achieved < offered (accepted rule); growth alone with full service is not; an unloaded UE is never overloaded; missing backlog is not evaluable
+PASS | across: per-UE distribution (worst UE, spread with +inf), Jain index, classes; the aggregate is beside it
+PASS | jain: equal shares 1, one of N served 1/N, undefined for no or zero values
+PASS | PU rows: PC a consistent 3-UE record set passes PU-1..5
+PASS | PU rows: NC missing UE, duplicate node, UNEXPLAINED fate, duplicate fate, destroyed SDU, ambiguous feedback, grant total mismatch: each fails its row
+PASS | A-1a: feedback of a process open in one UE only is attributed to it; per-UE counts and delays exact
+PASS | A-1b: the same process id open in two UEs is resolved by the run's single A-1a delay d*
+PASS | NC A-1: both candidates exactly d* old -> AMBIGUOUS, per-UE occupancy withheld (NOT EVALUATED, never guessed)
+PASS | NC A-1: a feedback without an open process is ORPHAN; an insert into an open process is RE-INSERT
+PASS | occupancy: log order (insert then feedback in one TTI peaks above the start count) and carried through TTIs without events; all-busy TTIs counted at the configured process number
+PASS | adapter: harq_events reads the gNB MAC lines in log order, exact ps, other modules ignored
+PASS | bracket: ascending from 1.0 -> 1.25 ok, 1.6 overloaded, confirmation 2.0 -> (1.25, 1.6); 4 runs
+PASS | bracket: descending from an overloaded start, confirmation above f_hi already run; bottom and top edges
+PASS | bracket: NC a confirmation run that is ok above an overloaded factor is NON-MONOTONE (no f_lo); an invalid run stops the bracket
+PASS | bracket: out-of-order or repeated factors are refused; HARQ5 economy start at the HARQ16 f_lo
+PASS | select: f_E1 = largest ladder factor <= (1 - m) x min f_lo; binding combination; sensitivity; STOP when a combination has no f_lo or no factor fits
+PASS | classify and verify: outcome classes from across(); V-1..V-4 each detect their failure
+PASS | RNG audit: the Python matcher equals OMNeT++ 6.5.0's PatternMatcher on every row of the committed fixture
+PASS | RNG audit: seeds (explicit / auto = seed-set x num-rngs + j); first matching rng entry wins; unmapped -> 0
+PASS | RNG audit: NC an auto-seeded or duplicate-seeded RNG with consumers fails RA-1; NC a non-clock module on a clock RNG fails RA-2; a TT clock without typename does not exist
+PASS | RNG audit RA-4: as configured, UE 0's NIC streams are COUPLED when UEs are added; with the isolation mixin they are INVARIANT; gNB modules are MULTI-UE; clocks INVARIANT
+PASS | RNG audit: NC a source with a random parameter value is a drawing consumer (never assumed inert)
+PASS | fail-closed: check_m2s72_s5n.py run refuses without S5N_ADAPTER_VALIDATED (before reading anything); check_m2s72_s5v.py still refuses E0v-N
+S5-2 tests: 28 / 28 PASS
+
+== python3 -B check/test_m2s72s5_smoke.py
+PASS | contract: Run72 provides cfg, n, node_id (the adapter's UE identity), with the duplicate-node guard
+PASS | contract: Block B evaluation object exposes run, T, vec, E (per-slave evaluation) as the adapter reads them
+PASS | contract: E0 helpers used by the adapter exist with the expected signatures and return shapes
+PASS | contract: Q8 exposes st / ds_tx / ds_rx / n3_bad / map_bad / model_err; the strict 'exclusion' attribution applies only at N > 1, so at N = 1 the adapter's Q8 is exactly the E0 rule
+PASS | contract: the adapter's DL load sources are DrbReplay's, with UE k in place of UE 0 (same vectors, same rule)
+PASS | contract: the adapter's clock metrics are E0's (same fields and the same steady-state rule)
+PASS | contract: the adapter's H-ARQ regexes are the accepted parser's, and both match the exact Simu5G 1.8.1 texts (LteHarqBufferTx.cc:131 and :220, as printed with the runner's '%t|%M|' prefix)
+PASS | contract: the adapter's line split and module test are the accepted MacLog's ('<t>|<module>|<msg>', exact gNB MAC module path)
+PASS | decision record: S5_ENV_DECISION names the G0 closing commit 04657b4, and the G0 record is CLOSED
+S5 smoke contract tests: 9 / 9 PASS
+
+== mutation controls on the code (12 earlier + M13..M17 for this change)
+DETECTED | M1 NACK resolved anonymously (PDU id ignored) | failing tests 5: ['T-sweep (synthetic): A-2 equals the generator truth in all 48 scenarios (', 'T-proto (synthetic): two implementations of one specification agree - A-2',
+DETECTED | M2 feedback groups finalised line by line | failing tests 8: ['T-sweep (synthetic): A-2 equals the generator truth in all 48 scenarios (', 'T-proto (synthetic): two implementations of one specification agree - A-2', 'T-
+DETECTED | M3 a NACKed unit counted idle (occupancy closes on NACK) | failing tests 7: ['T-sweep (synthetic): A-2 equals the generator truth in all 48 scenarios (', 'T-nack (synthetic): a discard chain, single NACKs and a NACK ins
+DETECTED | M4 end-of-run censoring of awaiting units removed | failing tests 4: ['T-censor (synthetic): end-of-run censoring - a log cut right after a NACK', 'T-controls (synthetic stand-in for the real output): every buildable co
+DETECTED | M5 retransmission accepted without scheduler evidence | failing tests 3: ['T-controls (synthetic stand-in for the real output): every buildable cont', 'T-cli: a2 and a2-controls end to end on a synthetic run tree (gzip 
+DETECTED | M6 group split by a main-loop event not detected | failing tests 1: ['T-cert (synthetic, N = 3): the exchangeability certificate is exact in bo']
+DETECTED | M7 discard accepted at any transmission count | failing tests 1: ['T-discard (synthetic): a discard after fewer than maxHarqRtx + 1 transmis']
+DETECTED | M8 A2-7 ignores per-line disagreements | failing tests 1: ['T-xa (synthetic): A2-7 compares with the independent UE-side reference - ']
+DETECTED | M9 A2-8 accepts any Simu5G value | failing tests 4: ["T-scalars: A2-8 against Simu5G's own per-UE statistics - PASS when harqEr", 'T-cli: a2 and a2-controls end to end on a synthetic run tree (gzip log, .', 'T-rc-contro
+DETECTED | M11 certificate ignores inserts of candidate nodes inside a group | failing tests 2: ['T-cert (synthetic, N = 3): the exchangeability certificate is exact in bo', 'T-controls (synthetic stand-in for the real output): ev
+DETECTED | M12 every main-loop event ends every open group (false certificate alarms) | failing tests 1: ['T-cert (synthetic, N = 3): the exchangeability certificate is exact in bo']
+DETECTED | M13 shift control rebuilt as the 2a1032e text replace | failing tests 2: ['T-cli: a2 and a2-controls end to end on a synthetic run tree (gzip log, .', 'T-rc-controls (regression for the 2a1032e VM failures): on a log wh
+DETECTED | M14 scalar control perturbs the first line of that name (2a1032e) | failing tests 2: ['T-cli: a2 and a2-controls end to end on a synthetic run tree (gzip log, .', 'T-rc-controls (regression for the 2a1032e VM failures):
+DETECTED | M15 no-op guard removed | failing tests 1: ['T-rc-noop: a negative control whose checker input equals the unmodified i']
+DETECTED | M16 A2-3 tolerates several feedback ages | failing tests 4: ['T-controls (synthetic stand-in for the real output): every buildable cont', 'T-cli: a2 and a2-controls end to end on a synthetic run tree (gzip log, .', 'T-r
+DETECTED | M17 A2-8 compares harqErrorRateDl:mean only | failing tests 1: ['T-a28 (mutation sensitivity of A2-8): a perturbation of either compared v']
+DETECTED | M10 verdict ignores FAIL of non-required rows (A2-8) | failing tests 1: ['T-verdict / coverage: A-2 VALID only when every required row is PASS or N']
+mutation controls: 17 / 17 detected by the intended test
+
+== §4 review: every remaining time-stamp helper / text replace in the controls
+134:def _ts(t):
+140:    return _ts(t).rstrip("0").rstrip(".")
+198:    out[s1] = out[s1].replace("result is ACK", "result is NACK")
+210:    out[sent[0]] = sent[1].replace("result: ACK", "result: NACK")
+222:    out = _put(out, tr, [f"{_ts(tr)}|{g}|{m}\n" for m in rtx], at_start=False)
+223:    out = _put(out, tr + d_rx, [f"{_ts(tr + d_rx)}|{ue_mod}|H-ARQ RX: new PDU (id {pid} ) inserted into process {p}\n"], at_start=False)
+224:    out = _put(out, t2 - d_fb, [f"{_ts(t2 - d_fb)}|{ue_mod}|H-ARQ RX: feedback sent to TX process {p} Codeword  {cw} of node with id 1 result: ACK\n"],
+228:    out = _put(out, t2, [f"{_ts(t2)}|{g}|{m}\n" for m in blk], at_start=True)
+311:        ls = [y.replace(f"for node with id {ub['node']}", f"for node with id {other}") if f"(id {ub['pid']} )" in y and y.split("|")[1] == A2.GNB else y
+326:            ls[rxi] = ls[rxi].replace(m0, m1)
+344:        tg = _ts(grp["t"])
+409:    ls[ri] = ls[ri].replace(f"PDU {info['pid']} set", "PDU 999998 set")
+415:    ls[ai] = ls[ai].replace(f"User[{info['node']}]", f"User[{other}]")
+423:    ls[ri] = ls[ri].replace("set for RTX ", "discarded (max retransmissions reached) : 3")
+
+== git scope vs 2a1032e (working tree; new files untracked until the commit)
+ M simulations/m2/check/check_m2s72_a2.py
+ M simulations/m2/check/test_m2s72_a2.py
+ simulations/m2/check/check_m2s72_a2.py |  54 ++++++++++++--
+ simulations/m2/check/test_m2s72_a2.py  | 131 +++++++++++++++++++++++++++++++--
+ 2 files changed, 172 insertions(+), 13 deletions(-)

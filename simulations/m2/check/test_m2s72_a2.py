@@ -368,6 +368,7 @@ def _():
       "note and the coverage table")
 def _():
     lines, node, truth = F.make(2, 500, lambda t: [0] + ([1] if t % 15 == 3 else []), d_ue=3)
+    lines = omnet(lines)                                                       # the prefix as OMNeT++ writes it
     res = A2.replay(lines + [A2.sentinel(A2.t_end_of(lines))])
     d = tempfile.mkdtemp()
     try:
@@ -376,11 +377,7 @@ def _():
         os.makedirs(os.path.join(runs, cfg, cfg))
         with gzip.open(os.path.join(runs, f"run-{cfg}.log.gz"), "wt") as fh:
             fh.writelines(lines)
-        rows = ["version 3\n"]
-        for k, n in node.items():
-            mod = f"M2S72Bridge.ue[{k}].cellularNic.nrMac"
-            rows += [f"par {mod} macNodeId {n}\n", f"scalar {mod} harqErrorRateDl:mean 0\n", f"scalar {mod} harqTxAttemptsDl:mean 1\n"]
-        open(os.path.join(runs, cfg, cfg, "0.sca"), "w").writelines(rows)
+        shutil.move(real_sca(d, node), os.path.join(runs, cfg, cfg, "0.sca"))     # gNB / LTE-leg MAC lines first, as recorded
         env = dict(os.environ)
         if root():
             env["SIMU5G_ROOT"] = root()
@@ -394,6 +391,130 @@ def _():
         assert "PASS            | A2-8" in txt, txt[:3000]
         ctl = open(os.path.join(d, "rec", f"a2-controls-{cfg}.txt")).read()
         assert "NC-A2-scalar" in ctl and "PC-A2-inject" in ctl
+        for nm in ("NC-A2-shift", "NC-A2-scalar"):
+            line = next(y for y in ctl.splitlines() if nm in y)
+            assert line.startswith("AS DECLARED"), line
+    finally:
+        shutil.rmtree(d)
+
+
+# ------------------------------------------- regression: control construction on real-format inputs (2a1032e) ------
+def omnet(lines):
+    """the log prefix exactly as OMNeT++ 6.5.0 writes "%t" (operator<< of SimTime: shortest decimal, '1.004', '12');
+    the generator writes 12 fixed decimals, which hid the NC-A2-shift defect"""
+    return [C._now(PR.t_ps(x.split("|", 1)[0])) + "|" + x.split("|", 1)[1] for x in lines]
+
+
+def real_sca(d, node, gnb_first=True, err=None):
+    """a .sca laid out as Simu5G records it: the statistic is declared by every MAC (LteMacBase.ned), so the gNB MAC
+    and the UE's LTE-leg MAC carry harqErrorRateDl:mean (nan without samples) besides the UE NR MAC lines A2-8 compares"""
+    sca = os.path.join(d, "0.sca")
+    rows = ["version 3\n"]
+    if gnb_first:
+        rows += ["scalar M2S72Bridge.gnb1.cellularNic.mac harqErrorRateDl:mean nan\n",
+                 "scalar M2S72Bridge.ue[0].cellularNic.mac harqErrorRateDl:mean nan\n"]
+    for k, n in node.items():
+        m = f"M2S72Bridge.ue[{k}].cellularNic.nrMac"
+        rows += [f"par {m} macNodeId {n}\n", f"scalar {m} harqErrorRateDl:mean {(err or {}).get(k, 0)}\n",
+                 f"scalar {m} harqTxAttemptsDl:mean 1\n"]
+    open(sca, "w").writelines(rows)
+    return sca
+
+
+def real_fixture():
+    lines, node, truth = F.make(2, 600, lambda t: [0] + ([1] if t % 15 == 3 else []), d_ue=3)
+    lines = omnet(lines)
+    return lines + [A2.sentinel(A2.t_end_of(lines))], node, truth
+
+
+@test("T-rc-controls (regression for the 2a1032e VM failures): on a log whose prefix is OMNeT++'s real '%t' format and "
+      "a .sca whose first harqErrorRateDl:mean line is the gNB MAC's, NC-A2-shift and NC-A2-scalar are AS DECLARED, "
+      "each with its mutation evidence (retimed prefix, feedback age 5 -> 6 ms; the compared UE NR MAC value 0 -> 0.001), "
+      "and every other buildable control stays AS DECLARED")
+def _():
+    lines, node, truth = real_fixture()
+    assert lines[0].split("|")[0].count(".") <= 1 and not lines[0].split("|")[0].endswith("0"), lines[0]
+    d = tempfile.mkdtemp()
+    try:
+        sca = real_sca(d, node)
+        out, st0 = C.controls(lines, 16, 1000 * MS, node, grants_of(lines), sca, root())
+    finally:
+        shutil.rmtree(d)
+    by = {x[0].split(":")[0]: x for x in out}
+    sh, sc = by["NC-A2-shift"], by["NC-A2-scalar"]
+    assert sh[2] == "AS DECLARED" and "-> '" in sh[3] and "5 -> 6 ms" in sh[3], sh
+    assert sc[2] == "AS DECLARED" and "ue[0].cellularNic.nrMac" in sc[3] and "0 -> 0.001" in sc[3] and "A2-8 reads 0.001" in sc[3], sc
+    bad = [x for x in out if x[2] == "NOT AS DECLARED"]
+    assert not bad, bad
+
+
+@test("T-rc-noop: a negative control whose checker input equals the unmodified input is NOT AS DECLARED ('MUTATION NOT "
+      "APPLIED'), never AS DECLARED - shown by forcing the shift construction to reproduce the original lines")
+def _():
+    lines, node, truth = real_fixture()
+    real_put, real_retime = C._put, C._retime
+    try:
+        calls = []
+
+        def put(ls, t, new, at_start):                                     # the shift's own call hands back the input
+            calls.append(t)
+            return list(lines) if len(calls) == 1 else real_put(ls, t, new, at_start)
+        C._retime = lambda line, t: line
+        C._put = put
+        out, st0 = C.controls(lines, 16, 1000 * MS, node, grants_of(lines), None, root())
+    finally:
+        C._put, C._retime = real_put, real_retime
+    sh = next(x for x in out if x[0].startswith("NC-A2-shift"))
+    assert sh[2] == "NOT AS DECLARED" and "MUTATION NOT APPLIED" in sh[3], sh
+
+
+@test("T-a23 (mutation sensitivity of A2-3): one feedback event retimed one TTI late or early makes A2-3 FAIL (two "
+      "feedback ages) on a real-format log; the 2a1032e construction (text replace of the 12-digit time) changes no "
+      "line of a real-format log, so A2-3 stays PASS - the defect was the mutation, not the rule")
+def _():
+    lines, node, truth = real_fixture()
+    res = A2.replay(lines)
+    x, u = C.clean_single(res, lines, need_free=0)
+    pos = C.gnb_positions(lines)
+    s0, s1 = C.block_span(lines, pos[x["gi"]])
+    for dt in (MS, -MS):
+        moved = [C._retime(y, x["t"] + dt) for y in lines[s0:s1 + 1]]
+        ls = C._put(lines[:s0] + lines[s1 + 1:], x["t"] + dt, moved, at_start=True)
+        r = A2.replay(ls)
+        assert r["viol"].get("A2-3") and len(r["ages"]) == 2, (dt, r["ages"], r["viol"].keys())
+    old = [y.replace(C._ts(x["t"]), C._ts(x["t"] + MS), 1) for y in lines[s0:s1 + 1]]
+    assert old == lines[s0:s1 + 1]
+    r = A2.replay(C._put(lines[:s0] + lines[s1 + 1:], x["t"] + MS, old, at_start=True))
+    assert not r["viol"].get("A2-3")
+
+
+@test("T-a28 (mutation sensitivity of A2-8): a perturbation of either compared value (harqErrorRateDl:mean, "
+      "harqTxAttemptsDl:mean) of either UE NR MAC makes A2-8 FAIL, down to 1e-6; values within 1e-12 PASS; a "
+      "perturbation of a module A2-8 does not compare (gNB MAC, UE LTE-leg MAC) leaves A2-8 PASS - which is why "
+      "the 2a1032e control, perturbing the first line of that name, was a no-op")
+def _():
+    lines, node, truth = real_fixture()
+    res = A2.replay(lines)
+    d = tempfile.mkdtemp()
+    try:
+        sca = real_sca(d, node)
+        assert A2.scalar_row(res, sca)[0][2] == "PASS"
+        base = open(sca).read().splitlines(True)
+
+        def with_line(pred, newval):
+            txt = list(base)
+            j = next(i for i, y in enumerate(txt) if pred(y))
+            p_ = txt[j].split()
+            txt[j] = f"scalar {p_[1]} {p_[2]} {newval(p_[3])}\n"
+            open(sca, "w").writelines(txt)
+            return A2.scalar_row(res, sca)[0][2]
+        for k in node:
+            for name in ("harqErrorRateDl:mean", "harqTxAttemptsDl:mean"):
+                pred = (lambda y, k=k, name=name: f"ue[{k}].cellularNic.nrMac {name} " in y)
+                assert with_line(pred, lambda v: repr(float(v) + 1e-6)) == "FAIL", (k, name)
+                assert with_line(pred, lambda v: repr(float(v) + 1e-12)) == "PASS", (k, name)
+        assert with_line(lambda y: "gnb1.cellularNic.mac harqErrorRateDl:mean" in y, lambda v: "0.001") == "PASS"
+        assert with_line(lambda y: "ue[0].cellularNic.mac harqErrorRateDl:mean" in y, lambda v: "0.001") == "PASS"
     finally:
         shutil.rmtree(d)
 

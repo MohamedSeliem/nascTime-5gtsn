@@ -136,7 +136,14 @@ def _ts(t):
 
 
 def _now(t):
+    """a time as OMNeT++ 6.5.0 writes the "%t" log prefix: the shortest decimal SimTime ('1.004', '12')"""
     return _ts(t).rstrip("0").rstrip(".")
+
+
+def _retime(line, t):
+    """the same log line with its time-stamp field (before the first '|') set to t; independent of how the original
+    prefix was written (root cause of the NC-A2-shift no-op, report M2-S7.2a-a2-control-fix.md)"""
+    return _now(t) + "|" + line.split("|", 1)[1]
 
 
 def block_span(lines, fb_index):
@@ -234,11 +241,24 @@ def controls(lines, nproc, t0, node_id=None, grants=None, sca=None, root=None):
     _, rows0, _, _, _, _ = evaluate(lines, nproc, t0, node_id, grants, sca, root)
     st0 = {r[0]: r[2] for r in rows0}
 
+    state = {"same": False}
+
+    def same_file(a, b):
+        if a == b:
+            return True
+        if not a or not b or not os.path.exists(a) or not os.path.exists(b):
+            return False
+        return open(a, "rb").read() == open(b, "rb").read()
+
     def run(ls, gr=grants, sc=sca):
+        # what the checker receives; a negative control whose input equals the unmodified input is a no-op
+        state["same"] = ls == lines and gr == grants and same_file(sc, sca)
         _, rows, per, cov, extra, _ = evaluate(ls, nproc, t0, node_id, gr, sc, root)
         return {r[0]: r[2] for r in rows}, extra
 
     def rec(name, kind, ok, observed, declared):
+        if name.startswith("NC-") and state["same"]:
+            ok, observed = False, f"{observed} | MUTATION NOT APPLIED: the checker input is identical to the unmodified run"
         out.append((name, kind, "AS DECLARED" if ok else "NOT AS DECLARED", observed, declared))
 
     def nb(name, kind, why, declared):
@@ -255,10 +275,14 @@ def controls(lines, nproc, t0, node_id=None, grants=None, sca=None, root=None):
     fbi = pos[x["gi"]]
     s0, s1 = block_span(lines, fbi)
     # timing: the whole feedback event of one single ACK one TTI late
+    moved = [_retime(y, x["t"] + MS) for y in lines[s0:s1 + 1]]
     ls = lines[:s0] + lines[s1 + 1:]
-    ls = _put(ls, x["t"] + MS, [y.replace(_ts(x["t"]), _ts(x["t"] + MS), 1) for y in lines[s0:s1 + 1]], at_start=True)
+    ls = _put(ls, x["t"] + MS, moved, at_start=True)
     st, _ = run(ls)
-    rec("NC-A2-shift: one single ACK's feedback event one TTI late", R, st["A2-3"] == "FAIL", f"A2-3 {st['A2-3']}", "A2-3 FAIL")
+    ok = all(_t(y) == x["t"] + MS for y in moved)
+    rec("NC-A2-shift: one single ACK's feedback event one TTI late", R, ok and st["A2-3"] == "FAIL",
+        f"A2-3 {st['A2-3']}; mutation: {len(moved)} lines retimed '{lines[s1].split('|', 1)[0]}' -> '{moved[-1].split('|', 1)[0]}' "
+        f"(feedback age {(x['t'] - u['txs'][0]) // MS} -> {(x['t'] + MS - u['txs'][0]) // MS} ms)", "A2-3 FAIL")
     # duplicate feedback event
     st, _ = run(lines[:s1 + 1] + lines[s0:s1 + 1] + lines[s1 + 1:])
     rec("NC-A2-dupack: one ACK feedback event duplicated", R, st["A2-1"] == "FAIL", f"A2-1 {st['A2-1']}", "A2-1 FAIL")
@@ -331,14 +355,28 @@ def controls(lines, nproc, t0, node_id=None, grants=None, sca=None, root=None):
         try:
             s2 = os.path.join(d, "0.sca")
             txt = open(sca).read().splitlines(True)
-            j = next(i for i, y in enumerate(txt) if y.startswith("scalar ") and " harqErrorRateDl:mean " in y)
-            p_ = txt[j].split()
-            txt[j] = f"scalar {p_[1]} {p_[2]} {float(p_[3]) + 0.001}\n"
-            open(s2, "w").writelines(txt)
-            st, _ = run(lines, sc=s2)
+            # the line A2-8 actually compares: a UE NR MAC module with a macNodeId (not the first line of that name: the
+            # gNB and LTE-leg MACs declare the same statistic; root cause of the NC-A2-scalar no-op)
+            compared = A2.sca_nodes(sca)
+            j = next((i for i, y in enumerate(txt) if y.startswith("scalar ") and len(y.split()) >= 4
+                      and y.split()[2] == "harqErrorRateDl:mean" and y.split()[1] in compared and y.split()[3] != "nan"), None)
+            if j is None:
+                st, before, after = None, None, None
+            else:
+                p_ = txt[j].split()
+                before, after = p_[3], repr(float(p_[3]) + 0.001)
+                txt[j] = f"scalar {p_[1]} {p_[2]} {after}\n"
+                open(s2, "w").writelines(txt)
+                seen = (PR.scalars(s2) or {}).get(p_[1], {}).get(p_[2])          # what A2-8 reads from the mutated file
+                st, _ = run(lines, sc=s2)
         finally:
             shutil.rmtree(d)
-        rec("NC-A2-scalar: Simu5G harqErrorRateDl:mean of one UE perturbed", R, st["A2-8"] == "FAIL", f"A2-8 {st['A2-8']}", "A2-8 FAIL")
+        if st is None:
+            nb("NC-A2-scalar", R, "no compared UE NR MAC harqErrorRateDl:mean line", "A2-8 FAIL")
+        else:
+            rec("NC-A2-scalar: Simu5G harqErrorRateDl:mean of one compared UE perturbed", R, seen == after and st["A2-8"] == "FAIL",
+                f"A2-8 {st['A2-8']}; mutation: {p_[1]} (node {compared[p_[1]]}) harqErrorRateDl:mean {before} -> {after}, A2-8 reads {seen}",
+                "A2-8 FAIL")
     else:
         nb("NC-A2-scalar", R, f"A2-8 not PASS on the unmodified run ({st0.get('A2-8')})", "A2-8 FAIL")
     # end-of-run censoring: the log truncated at a TTI boundary in the middle of the run
