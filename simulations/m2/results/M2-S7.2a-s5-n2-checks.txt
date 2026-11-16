@@ -1,0 +1,278 @@
+M2-S7.2a Stage 5 N = 2 increment: development check record (no simulation), 2026-11-16T11:06:28Z
+branch m2/s72a-s5-n2 from bc77a6f; generated on the working tree committed with this record
+omnetpp: Version: 6.5.0, build: 261029-ccd51e11a4, edition: Academic Public License -- NOT FOR COMMERCIAL USE   python: Python 3.13.18
+m2s72.ini sha256 dfc8a7f7bb7cd1632c335c169cdbd3535e4e90a14b0d04882bb07b406aaf5505; m2s72s5.ini sha256 e563c489852db4cac7ad8562c97373e2379c8bd4029c7f1ebb9d2ace2ff96903
+INET and Simu5G are not built here: runconfig (OMNeT++ core) only; Simu5G 1.8.1 sources read at 7477d26
+
+== python3 -B check/test_m2s72s5_n2.py
+S5 N = 2 tests: 19 / 19 PASS
+
+== python3 -B check/test_m2s72s5.py
+S5-1 tests: 38 / 38 PASS
+
+== python3 -B check/test_m2s72s5_2.py
+S5-2 tests: 28 / 28 PASS
+
+== python3 -B check/test_m2s72s5_smoke.py
+S5 smoke contract tests: 9 / 9 PASS
+
+== python3 -B check/test_m2s72_gen.py
+generator negative tests: 67 PASS, 0 FAIL
+
+== python3 -B check/test_m2s72s5_n2.py (test names)
+PASS | contract: XA's gNB regexes are the accepted parser's; the UE-side regexes match the exact Simu5G 1.8.1 texts (LteHarqBufferRx.cc:63, :78 - note the two spaces after 'Codeword'), and nothing els
+PASS | contract: the XA reader's gNB event list is exactly m2s72_peru_adapter.harq_events() on the same log file
+PASS | identity: attribute_feedback with and without trace returns exactly what the bc77a6f version returns, on 300 random multi-UE event lists (A-1a, A-1b, ambiguous, orphan, re-insert all occurring)
+PASS | identity: the only change to an S5-2 / accepted checker file is the optional trace of attribute_feedback (git diff bc77a6f limited to m2s72_peru.py, additions only inside attribute_feedback)
+PASS | contract: the per-UE controls (controls-n2 part 2, real output only) call the accepted / S5-2 functions with the signatures and attributes they have (s5n evaluation, adapter observe / validate,
+PASS | fixture N = 1 (every TTI): A-1 exact, all A-1a; XA-0..XA-6 PASS; delta = 1 slot; truth = A-1 per UE
+PASS | fixture N = 2, cross-TTI overlaps only: A-1b is exercised and every A-1b attribution agrees with the UE side; A-1 exact -> XA-6 PASS; PU-4 PASS
+PASS | fixture N = 2 with same-TTI same-process overlaps (the lowest-free rule makes them likely): A-1 AMBIGUOUS, classified irreducible by XA-4 (PASS); A-1a / A-1b agree (XA-3 PASS); PU-4 FAIL; XA-6 
+PASS | fixture N = 1 with a NACK: A-1 closes the process on the NACK, so the retransmission's feedback is ORPHAN (the declared A-1 limitation L-A1-NACK); XA-4 classifies it as a retransmission chain; 
+PASS | fixture: a retransmission TTI that also carries a grant line is still excepted by XA-5
+PASS | mutations (the controls-n2 H-ARQ set, on the N = 2 fixtures): cross-UE swap, orphan, duplicate insert, inconsistent totals, UE feedback removed, UE reception relabelled, feedback shifted, grant
+PASS | mutation sensitivity of the controls themselves: a control whose mutation is undone must report 'not as declared' (the swap control with XA blind)
+PASS | mutation: an A-1 defect is caught by XA-3 (a deliberately wrong A-1 that swaps the pick of every 10th A-1a attribution) while PU-4 and PU-5 still PASS
+PASS | mutation: XA-0 fails when the run's node ids disagree with the PDU-id map; XA-2 fails on a codeword 1 line (NOT EVALUATED) and when there is no UE side at all
+PASS | end censoring: a PDU inserted in the last TTI before the log ends (no UE reception, no feedback) is end-censored, not a failure; the same PDU earlier in the log is a failure
+PASS | verdict: VALIDATED (rc 0); VALIDATED WITH A-1 LIMITATION when PU-4 FAILs and XA-4 explains it (rc 3); NOT VALIDATED on any REJECT (rc 1): an XA-3 disagreement, a gate failure other than PU-4, a
+PASS | runner smoke-n2: one run M2S72-E0vN-q0-one0-n2-f1 (seed 0); manifest; adapter-validate q0 0 0; xa; controls-n2; the E0v-N per-run rows with the labelled diagnostic value; verdict; raw held unco
+PASS | runner smoke-n2: an evaluation error (rc 2) of any tool -> exit 6, every later step still done and recorded; an acceptance FAIL (rc 1) is recorded, not a lifecycle failure; no S5_ENV_DECISION -
+PASS | runner: the accepted modes are unchanged (diff vs bc77a6f touches only the usage line, the test-hook line, the smoke-n2 stage name, the smoke-n2 branch and its release refusal)
+S5 N = 2 tests: 19 / 19 PASS
+
+== python3 -B tools/m2s72_gen.py check
+regenerated sha256 dfc8a7f7bb7cd1632c335c169cdbd3535e4e90a14b0d04882bb07b406aaf5505; committed dfc8a7f7bb7cd1632c335c169cdbd3535e4e90a14b0d04882bb07b406aaf5505: IDENTICAL
+
+== python3 -B tools/m2s72s5_gen.py check
+regenerated sha256 e563c489852db4cac7ad8562c97373e2379c8bd4029c7f1ebb9d2ace2ff96903; committed e563c489852db4cac7ad8562c97373e2379c8bd4029c7f1ebb9d2ace2ff96903: IDENTICAL
+
+== N = 2 pre-check (protocol §8 B): anchored runconfig grep of M2S72-E0vN-q0-one0-n2-f1, expected 11
+11
+
+== output paths with an isolated --result-dir
+	eventlog-file = /ROOT/runs/M2S72-E0vN-q0-one0-n2-f1/M2S72-E0vN-q0-one0-n2-f1/0.elog
+	output-scalar-file = /ROOT/runs/M2S72-E0vN-q0-one0-n2-f1/M2S72-E0vN-q0-one0-n2-f1/0.sca
+	output-vector-file = /ROOT/runs/M2S72-E0vN-q0-one0-n2-f1/M2S72-E0vN-q0-one0-n2-f1/0.vec
+
+== static RNG audit (m2s72_rngaudit.py audit, OMNeT++ 6.5.0 resolution): both N = 2 configurations
+== M2S72-E0vN-q0-one0-n2-f1 (N = 2), as configured
+  PASS  RA-1  num-rngs 4; seeds [(0, 0, 'explicit'), (1, 1000, 'explicit'), (2, 2000, 'explicit'), (3, 3000, 'explicit')]; auto-seeded with consumers []; duplicate seed values []; unresolved maps []; out of range []
+  PASS  RA-2  every clock module on a physical RNG without non-clock consumers
+  INFO  RA-3  physical RNGs drawn by modules of >= 2 UEs: {0: [0, 1]}; consumers of physical RNG 0: ['direct', 'gnb', 'gnb-shared', 'ue0', 'ue1'] (15 modules)
+== M2S72-E0vN-q0-one0-n2-f1 (N = 2), with the proposed isolation mixin
+  PASS  RA-1  num-rngs 25; seeds [(0, 0, 'explicit'), (1, 1000, 'explicit'), (2, 2000, 'explicit'), (3, 3000, 'explicit'), (4, 4000, 'explicit'), (5, 5000, 'explicit'), (6, 6000, 'explicit'), (7, 7000, 'explicit'), (8, 8000, 'explicit'), (9, 9000, 'explicit'), (10, 10000, 'explicit'), (11, 11000, 'explicit'), (12, 12000, 'explicit'), (13, 13000, 'explicit'), (14, 14000, 'explicit'), (15, 15000, 'explicit'), (16, 16000, 'explicit'), (17, 17000, 'explicit'), (18, 18000, 'explicit'), (19, 19000, 'explicit'), (20, 20000, 'explicit'), (21, 21000, 'explicit'), (22, 22000, 'explicit'), (23, 23000, 'explicit'), (24, 24000, 'explicit')]; auto-seeded with consumers []; duplicate seed values []; unresolved maps []; out of range []
+  PASS  RA-2  every clock module on a physical RNG without non-clock consumers
+  INFO  RA-3  physical RNGs drawn by modules of >= 2 UEs: none; consumers of physical RNG 0: ['direct'] (2 modules)
+  map (as configured):
+    (direct getRNG(0)).scheduler-tiebreak                ->   0  [direct caller]  MAXCI equal-score coin flip / QoS-PF and PF score jitter (gNB, every scheduled TTI with candidates)
+    (direct getRNG(0)).bler-table                        ->   0  [direct caller]  PhyPisaData constructor (once, at start-up; independent of N)
+    gnb1.cellularNic.mac                                 ->   0  [default (local 0 -> physical 0)]  scheduler module (its own draws: none found; tie-breaks are direct)
+    gnb1.cellularNic.phy                                 ->   0  [default (local 0 -> physical 0)]  PhyEnb randomChannelIndex_ (initialisation)
+    gnb1.cellularNic.channelModel[0]                     ->   0  [default (local 0 -> physical 0)]  UL reception / fading / shadowing of EVERY UE (one module)
+    listener.clock.oscillator                            ->   1  [**.clock.oscillator.rng-0 = 1]  GM clock oscillator (draws only with a random-drift oscillator); oscillator typename "ConstantDriftOscillator"
+    listener.app[0].source                               ->   0  [default (local 0 -> physical 0)]  constant production interval and length: no draw
+    listener.app[1].source                               ->   0  [default (local 0 -> physical 0)]  constant production interval and length: no draw
+    listener.app[2].source                               ->   0  [default (local 0 -> physical 0)]  constant production interval and length: no draw
+    listener.app[3].source                               ->   0  [default (local 0 -> physical 0)]  constant production interval and length: no draw
+    listener.app[4].source                               ->   0  [default (local 0 -> physical 0)]  constant production interval and length: no draw
+    ue[0].cellularNic.nrMac                              ->   0  [default (local 0 -> physical 0)]  random access (checkRAC): preamble, back-off
+    ue[0].cellularNic.mac                                ->   0  [default (local 0 -> physical 0)]  LTE-leg MAC random access (if the LTE leg is active)
+    ue[0].cellularNic.nrPhy                              ->   0  [default (local 0 -> physical 0)]  PHY (draws only through its channel model)
+    ue[0].cellularNic.nrChannelModel[0]                  ->   0  [default (local 0 -> physical 0)]  DL reception success, Jakes fading, shadowing of UE k's own frames
+    ue[0].cellularNic.channelModel[0]                    ->   0  [default (local 0 -> physical 0)]  LTE-leg channel model
+    talker[0].clock.oscillator                           ->   1  [**.clock.oscillator.rng-0 = 1]  slave 0 clock oscillator; oscillator typename "ConstantDriftOscillator"
+    talker[0].app[0].source                              ->   0  [default (local 0 -> physical 0)]  constant production interval and length: no draw
+    ue[1].cellularNic.nrMac                              ->   0  [default (local 0 -> physical 0)]  random access (checkRAC): preamble, back-off
+    ue[1].cellularNic.mac                                ->   0  [default (local 0 -> physical 0)]  LTE-leg MAC random access (if the LTE leg is active)
+    ue[1].cellularNic.nrPhy                              ->   0  [default (local 0 -> physical 0)]  PHY (draws only through its channel model)
+    ue[1].cellularNic.nrChannelModel[0]                  ->   0  [default (local 0 -> physical 0)]  DL reception success, Jakes fading, shadowing of UE k's own frames
+    ue[1].cellularNic.channelModel[0]                    ->   0  [default (local 0 -> physical 0)]  LTE-leg channel model
+    talker[1].clock.oscillator                           ->   2  [*.talker[1].clock.oscillator.rng-0 = 2]  slave 1 clock oscillator; oscillator typename "ConstantDriftOscillator"
+    talker[1].app[0].source                              ->   0  [default (local 0 -> physical 0)]  constant production interval and length: no draw
+== M2S72-E0vN-q0-sym-n2-f1 (N = 2), as configured
+  PASS  RA-1  num-rngs 4; seeds [(0, 0, 'explicit'), (1, 1000, 'explicit'), (2, 2000, 'explicit'), (3, 3000, 'explicit')]; auto-seeded with consumers []; duplicate seed values []; unresolved maps []; out of range []
+  PASS  RA-2  every clock module on a physical RNG without non-clock consumers
+  INFO  RA-3  physical RNGs drawn by modules of >= 2 UEs: {0: [0, 1]}; consumers of physical RNG 0: ['direct', 'gnb', 'gnb-shared', 'ue0', 'ue1'] (15 modules)
+== M2S72-E0vN-q0-sym-n2-f1 (N = 2), with the proposed isolation mixin
+  PASS  RA-1  num-rngs 25; seeds [(0, 0, 'explicit'), (1, 1000, 'explicit'), (2, 2000, 'explicit'), (3, 3000, 'explicit'), (4, 4000, 'explicit'), (5, 5000, 'explicit'), (6, 6000, 'explicit'), (7, 7000, 'explicit'), (8, 8000, 'explicit'), (9, 9000, 'explicit'), (10, 10000, 'explicit'), (11, 11000, 'explicit'), (12, 12000, 'explicit'), (13, 13000, 'explicit'), (14, 14000, 'explicit'), (15, 15000, 'explicit'), (16, 16000, 'explicit'), (17, 17000, 'explicit'), (18, 18000, 'explicit'), (19, 19000, 'explicit'), (20, 20000, 'explicit'), (21, 21000, 'explicit'), (22, 22000, 'explicit'), (23, 23000, 'explicit'), (24, 24000, 'explicit')]; auto-seeded with consumers []; duplicate seed values []; unresolved maps []; out of range []
+  PASS  RA-2  every clock module on a physical RNG without non-clock consumers
+  INFO  RA-3  physical RNGs drawn by modules of >= 2 UEs: none; consumers of physical RNG 0: ['direct'] (2 modules)
+  map (as configured):
+    (direct getRNG(0)).scheduler-tiebreak                ->   0  [direct caller]  MAXCI equal-score coin flip / QoS-PF and PF score jitter (gNB, every scheduled TTI with candidates)
+    (direct getRNG(0)).bler-table                        ->   0  [direct caller]  PhyPisaData constructor (once, at start-up; independent of N)
+    gnb1.cellularNic.mac                                 ->   0  [default (local 0 -> physical 0)]  scheduler module (its own draws: none found; tie-breaks are direct)
+    gnb1.cellularNic.phy                                 ->   0  [default (local 0 -> physical 0)]  PhyEnb randomChannelIndex_ (initialisation)
+    gnb1.cellularNic.channelModel[0]                     ->   0  [default (local 0 -> physical 0)]  UL reception / fading / shadowing of EVERY UE (one module)
+    listener.clock.oscillator                            ->   1  [**.clock.oscillator.rng-0 = 1]  GM clock oscillator (draws only with a random-drift oscillator); oscillator typename "ConstantDriftOscillator"
+    listener.app[0].source                               ->   0  [default (local 0 -> physical 0)]  constant production interval and length: no draw
+    listener.app[1].source                               ->   0  [default (local 0 -> physical 0)]  constant production interval and length: no draw
+    listener.app[2].source                               ->   0  [default (local 0 -> physical 0)]  constant production interval and length: no draw
+    listener.app[3].source                               ->   0  [default (local 0 -> physical 0)]  constant production interval and length: no draw
+    listener.app[4].source                               ->   0  [default (local 0 -> physical 0)]  constant production interval and length: no draw
+    ue[0].cellularNic.nrMac                              ->   0  [default (local 0 -> physical 0)]  random access (checkRAC): preamble, back-off
+    ue[0].cellularNic.mac                                ->   0  [default (local 0 -> physical 0)]  LTE-leg MAC random access (if the LTE leg is active)
+    ue[0].cellularNic.nrPhy                              ->   0  [default (local 0 -> physical 0)]  PHY (draws only through its channel model)
+    ue[0].cellularNic.nrChannelModel[0]                  ->   0  [default (local 0 -> physical 0)]  DL reception success, Jakes fading, shadowing of UE k's own frames
+    ue[0].cellularNic.channelModel[0]                    ->   0  [default (local 0 -> physical 0)]  LTE-leg channel model
+    talker[0].clock.oscillator                           ->   1  [**.clock.oscillator.rng-0 = 1]  slave 0 clock oscillator; oscillator typename "ConstantDriftOscillator"
+    talker[0].app[0].source                              ->   0  [default (local 0 -> physical 0)]  constant production interval and length: no draw
+    ue[1].cellularNic.nrMac                              ->   0  [default (local 0 -> physical 0)]  random access (checkRAC): preamble, back-off
+    ue[1].cellularNic.mac                                ->   0  [default (local 0 -> physical 0)]  LTE-leg MAC random access (if the LTE leg is active)
+    ue[1].cellularNic.nrPhy                              ->   0  [default (local 0 -> physical 0)]  PHY (draws only through its channel model)
+    ue[1].cellularNic.nrChannelModel[0]                  ->   0  [default (local 0 -> physical 0)]  DL reception success, Jakes fading, shadowing of UE k's own frames
+    ue[1].cellularNic.channelModel[0]                    ->   0  [default (local 0 -> physical 0)]  LTE-leg channel model
+    talker[1].clock.oscillator                           ->   2  [*.talker[1].clock.oscillator.rng-0 = 2]  slave 1 clock oscillator; oscillator typename "ConstantDriftOscillator"
+    talker[1].app[0].source                              ->   0  [default (local 0 -> physical 0)]  constant production interval and length: no draw
+rc 0
+
+== RA-4 pair N = 1 -> N = 2 (one0)
+== RA-4 M2S72-E0v-q0-f1 (N = 1) -> M2S72-E0vN-q0-one0-n2-f1 (N = 2), as configured: 2 INVARIANT, 6 COUPLED, 4 MULTI-UE, 4 NO DRAWS, 0 ABSENT IN B
+  COUPLED   (direct getRNG(0)).bler-table                        RNG 0 -> 0; new consumers ['ue[1].cellularNic.channelModel[0]', 'ue[1].cellularNic.mac', 'ue[1].cellularNic.nrChannelModel[0]', 'ue[1].cellularNic.nrMac', 'ue[1].cellularNic.nrPhy']
+  MULTI-UE  (direct getRNG(0)).scheduler-tiebreak                RNG 0 -> 0
+  MULTI-UE  gnb1.cellularNic.channelModel[0]                     RNG 0 -> 0
+  MULTI-UE  gnb1.cellularNic.mac                                 RNG 0 -> 0
+  MULTI-UE  gnb1.cellularNic.phy                                 RNG 0 -> 0
+  NO DRAWS  listener.app[0].source                               RNG 0 -> 0
+  NO DRAWS  listener.app[1].source                               RNG 0 -> 0
+  NO DRAWS  listener.app[2].source                               RNG 0 -> 0
+  INVARIANT listener.clock.oscillator                            RNG 1 -> 1
+  NO DRAWS  talker[0].app[0].source                              RNG 0 -> 0
+  INVARIANT talker[0].clock.oscillator                           RNG 1 -> 1
+  COUPLED   ue[0].cellularNic.channelModel[0]                    RNG 0 -> 0; new consumers ['ue[1].cellularNic.channelModel[0]', 'ue[1].cellularNic.mac', 'ue[1].cellularNic.nrChannelModel[0]', 'ue[1].cellularNic.nrMac', 'ue[1].cellularNic.nrPhy']
+  COUPLED   ue[0].cellularNic.mac                                RNG 0 -> 0; new consumers ['ue[1].cellularNic.channelModel[0]', 'ue[1].cellularNic.mac', 'ue[1].cellularNic.nrChannelModel[0]', 'ue[1].cellularNic.nrMac', 'ue[1].cellularNic.nrPhy']
+  COUPLED   ue[0].cellularNic.nrChannelModel[0]                  RNG 0 -> 0; new consumers ['ue[1].cellularNic.channelModel[0]', 'ue[1].cellularNic.mac', 'ue[1].cellularNic.nrChannelModel[0]', 'ue[1].cellularNic.nrMac', 'ue[1].cellularNic.nrPhy']
+  COUPLED   ue[0].cellularNic.nrMac                              RNG 0 -> 0; new consumers ['ue[1].cellularNic.channelModel[0]', 'ue[1].cellularNic.mac', 'ue[1].cellularNic.nrChannelModel[0]', 'ue[1].cellularNic.nrMac', 'ue[1].cellularNic.nrPhy']
+  COUPLED   ue[0].cellularNic.nrPhy                              RNG 0 -> 0; new consumers ['ue[1].cellularNic.channelModel[0]', 'ue[1].cellularNic.mac', 'ue[1].cellularNic.nrChannelModel[0]', 'ue[1].cellularNic.nrMac', 'ue[1].cellularNic.nrPhy']
+== RA-4 M2S72-E0v-q0-f1 (N = 1) -> M2S72-E0vN-q0-one0-n2-f1 (N = 2), with the proposed isolation mixin: 8 INVARIANT, 0 COUPLED, 4 MULTI-UE, 4 NO DRAWS, 0 ABSENT IN B
+  INVARIANT (direct getRNG(0)).bler-table                        RNG 0 -> 0
+  MULTI-UE  (direct getRNG(0)).scheduler-tiebreak                RNG 0 -> 0
+  MULTI-UE  gnb1.cellularNic.channelModel[0]                     RNG 24 -> 24
+  MULTI-UE  gnb1.cellularNic.mac                                 RNG 24 -> 24
+  MULTI-UE  gnb1.cellularNic.phy                                 RNG 24 -> 24
+  NO DRAWS  listener.app[0].source                               RNG 0 -> 0
+  NO DRAWS  listener.app[1].source                               RNG 0 -> 0
+  NO DRAWS  listener.app[2].source                               RNG 0 -> 0
+  INVARIANT listener.clock.oscillator                            RNG 1 -> 1
+  NO DRAWS  talker[0].app[0].source                              RNG 0 -> 0
+  INVARIANT talker[0].clock.oscillator                           RNG 1 -> 1
+  INVARIANT ue[0].cellularNic.channelModel[0]                    RNG 16 -> 16
+  INVARIANT ue[0].cellularNic.mac                                RNG 16 -> 16
+  INVARIANT ue[0].cellularNic.nrChannelModel[0]                  RNG 16 -> 16
+  INVARIANT ue[0].cellularNic.nrMac                              RNG 16 -> 16
+  INVARIANT ue[0].cellularNic.nrPhy                              RNG 16 -> 16
+rc 0
+
+== M2S72-E0vN-q0-one0-n2-f1, resolved map WITH the proposed isolation mixin (static; not generated)
+    (direct getRNG(0)).scheduler-tiebreak                ->   0  [direct caller]
+    (direct getRNG(0)).bler-table                        ->   0  [direct caller]
+    gnb1.cellularNic.mac                                 ->  24  [*.gnb1.cellularNic.**.rng-0 = 24]
+    gnb1.cellularNic.phy                                 ->  24  [*.gnb1.cellularNic.**.rng-0 = 24]
+    gnb1.cellularNic.channelModel[0]                     ->  24  [*.gnb1.cellularNic.**.rng-0 = 24]
+    listener.clock.oscillator                            ->   1  [**.clock.oscillator.rng-0 = 1]
+    listener.app[0].source                               ->   0  [default (local 0 -> physical 0)]
+    listener.app[1].source                               ->   0  [default (local 0 -> physical 0)]
+    listener.app[2].source                               ->   0  [default (local 0 -> physical 0)]
+    listener.app[3].source                               ->   0  [default (local 0 -> physical 0)]
+    listener.app[4].source                               ->   0  [default (local 0 -> physical 0)]
+    ue[0].cellularNic.nrMac                              ->  16  [*.ue[0].cellularNic.**.rng-0 = 16]
+    ue[0].cellularNic.mac                                ->  16  [*.ue[0].cellularNic.**.rng-0 = 16]
+    ue[0].cellularNic.nrPhy                              ->  16  [*.ue[0].cellularNic.**.rng-0 = 16]
+    ue[0].cellularNic.nrChannelModel[0]                  ->  16  [*.ue[0].cellularNic.**.rng-0 = 16]
+    ue[0].cellularNic.channelModel[0]                    ->  16  [*.ue[0].cellularNic.**.rng-0 = 16]
+    talker[0].clock.oscillator                           ->   1  [**.clock.oscillator.rng-0 = 1]
+    talker[0].app[0].source                              ->   0  [default (local 0 -> physical 0)]
+    ue[1].cellularNic.nrMac                              ->  17  [*.ue[1].cellularNic.**.rng-0 = 17]
+    ue[1].cellularNic.mac                                ->  17  [*.ue[1].cellularNic.**.rng-0 = 17]
+    ue[1].cellularNic.nrPhy                              ->  17  [*.ue[1].cellularNic.**.rng-0 = 17]
+    ue[1].cellularNic.nrChannelModel[0]                  ->  17  [*.ue[1].cellularNic.**.rng-0 = 17]
+    ue[1].cellularNic.channelModel[0]                    ->  17  [*.ue[1].cellularNic.**.rng-0 = 17]
+    talker[1].clock.oscillator                           ->   2  [*.talker[1].clock.oscillator.rng-0 = 2]
+    talker[1].app[0].source                              ->   0  [default (local 0 -> physical 0)]
+== seeds with the mixin
+    (25, {0: (0, 'explicit'), 1: (1000, 'explicit'), 2: (2000, 'explicit'), 3: (3000, 'explicit'), 4: (4000, 'explicit'), 5: (5000, 'explicit'), 6: (6000, 'explicit'), 7: (7000, 'explicit'), 8: (8000, 'explicit'), 9: (9000, 'explicit'), 10: (10000, 'explicit'), 11: (11000, 'explicit'), 12: (12000, 'explicit'), 13: (13000, 'explicit'), 14: (14000, 'explicit'), 15: (15000, 'explicit'), 16: (16000, 'explicit'), 17: (17000, 'explicit'), 18: (18000, 'explicit'), 19: (19000, 'explicit'), 20: (20000, 'explicit'), 21: (21000, 'explicit'), 22: (22000, 'explicit'), 23: (23000, 'explicit'), 24: (24000, 'explicit')})
+
+== Simu5G 1.8.1 source facts behind the gap analysis (file:line, read-only)
+36:typedef std::map<MacNodeId, LteHarqBufferTx *> HarqTxBuffers;
+137:UnitList LteHarqBufferTx::firstAvailable()
+145:            if (processes_[i]->isEmpty()) {
+109:    EV << "H-ARQ TX: process " << (int)selectedAcid_ << " has been selected for retransmission" << endl;
+131:    EV << "H-ARQ TX: new pdu (id " << pdu->getId() << " ) inserted into process " << (int)acid << " "
+220:    EV << "H-ARQ TX: feedback received for process " << (int)acid << " codeword " << (int)cw << ""
+242:        EV << "\t H-ARQ TX: pdu (id " << pduToSend->getId() << " ) extracted from process " << (int)selectedAcid_ << " "
+118:        resetUnit();
+134:            resetUnit();
+140:            status_ = TXHARQ_PDU_BUFFERED;
+142:               << pdu_->getId() << " set for RTX " << endl;
+63:    EV << "H-ARQ RX: new PDU (id " << pdu->getId()
+78:                EV << "H-ARQ RX: feedback sent to TX process "
+79:                   << (int)hfb->getAcid() << " Codeword  " << (int)cw
+46:    int64_t macPduId_ = getChunkId();
+134:    long getId() const { return macPduId_; }
+143:    macPduId_ = other.macPduId_;
+120:    frame->setDuration(slotDuration);
+214:    sendDirect(frame, 0, frame->getDuration(), receiver, getReceiverGateIndex(receiver, dest));
+37:        int maxHarqRtx = default(3);
+38:        int harqFbEvaluationTimer = default(4);              // Number of slots for sending back HARQ FB
+40:        int numerologyIndex = default(0);
+125:        EV << NOW << " Mac::fromPhy: node " << nodeId_ << " Received HARQ Feedback pkt" << endl;
+
+== mutation controls on the new code (scratch worktrees at HEAD + the working files; each must be caught by the test meant for it)
+DETECTED | M1 harqx: UE feedback regex with one space after 'Codeword' | failing tests 8: ["contract: XA's gNB regexes are the accepted parser's; the UE-side regexes match the exact Simu5G 1.8.1 ", 'fixture N = 1 (every TTI): A-1 exact, all A-1a; XA-0..XA-6 PA
+DETECTED | M2 harqx: XA-4 no longer fails on UNEXPLAINED orphans / re-inserts | failing tests 1: ['mutations (the controls-n2 H-ARQ set, on the N = 2 fixtures): cross-UE swap, orphan, duplicate insert, ']
+DETECTED | M3 harqx: XA-5 forgets the retransmission exception | failing tests 1: ['fixture: a retransmission TTI that also carries a grant line is still excepted by XA-5: AssertionError:']
+DETECTED | M4 peru: trace records the A-1b class as a1a | failing tests 1: ['fixture N = 2, cross-TTI overlaps only: A-1b is exercised and every A-1b attribution agrees with the UE']
+DETECTED | M5 peru: trace changes the result (pick dropped when traced) | failing tests 3: ['identity: attribute_feedback with and without trace returns exactly what the bc77a6f version returns, o', 'fixture N = 1 (every TTI): A-1 exact, all A-1a; XA-0..XA-6 P
+DETECTED | M6 runner: smoke-n2 raw not made read-only | failing tests 1: ['runner smoke-n2: one run M2S72-E0vN-q0-one0-n2-f1 (seed 0); manifest; adapter-validate q0 0 0; xa; cont']
+DETECTED | M7 runner: smoke-n2 forgets the labelled diagnostic value (s5n run refused) | failing tests 1: ['runner smoke-n2: one run M2S72-E0vN-q0-one0-n2-f1 (seed 0); manifest; adapter-validate q0 0 0; xa; cont']
+DETECTED | M8 verdict: PU-4 FAIL accepted as plain VALIDATED | failing tests 1: ['verdict: VALIDATED (rc 0); VALIDATED WITH A-1 LIMITATION when PU-4 FAILs and XA-4 explains it (rc 3); N']
+mutation controls: 8 / 8 detected by the intended test
+note: a first round used another M2 (XA-4 label of an irreducible pair inserted in different TTIs): MISSED. That branch is
+      unreachable under Simu5G's constant HARQ timing and only changes an informational label of a PASSing class, so it was
+      replaced by the mutation above (XA-4 ignoring UNEXPLAINED orphans / re-inserts), and controls NC-n2-orphan / NC-n2-dup
+      were tightened to require XA-4 FAIL.
+
+== scale check: synthetic N = 2 log of 12,000 TTIs (156,600 lines, 13,400 PDUs; UE 1: 1,400 PDUs), timings and XA result
+read + XA 0.8 s; H-ARQ controls 4.9 s (9 / 9 as declared)
+  PASS          | XA-0 | UE -> node from PDU ids {0: 2049, 1: 2050}; run node ids {0: 2049, 1: 2050}
+  PASS          | XA-1 | gNB inserts 13400, received by a UE 13400, end-censored 0, retransmitted PDU ids 0, max insert -> UE rx 1000000000 ps
+  PASS          | XA-2 | delta 1000000000 ps; gNB feedback lines 13400, UE-sent feedbacks 13400, end-censored 0, chain violations 0
+  PASS          | XA-3 | A-1a 8665 agree / 0 disagree; A-1b 3999 agree / 0 disagree
+  PASS          | XA-4 | A-1 ambiguous 736 {'irreducible: identical feedback, same insert TTI': 736}; orphan 0 {}; re-insert 734 {"stale candidate: the previous PDU's feedback line was unresolved
+  PASS          | XA-5 | node 2049: grant TTIs 12000, insert TTIs 12000, rtx TTIs 0, grant w/o insert 0 [], insert w/o grant 0 []; node 2050: grant TTIs 1400, insert TTIs 1400, rtx TTIs 0, grant 
+  NOT EVALUATED | XA-6 | A-1 not exact (ambiguous / orphan / re-insert > 0): its per-UE aggregates are incomplete by definition (addendum §4.1); the truth aggregates are in the report
+  census {'1 holder(s)': 10968, '2 holders, different insert TTIs': 2064, '2 holders, same insert TTI': 368}
+
+== git: ancestry and change impact
+bc77a6f is an ancestor of HEAD
+04657b4 is an ancestor of HEAD
+-- working tree vs bc77a6f (name-status; new files untracked until the commit):
+ M check/m2s72_peru.py
+ M m2s72s5.sh
+?? check/check_m2s72_s5n2.py
+?? check/m2s72_harqx.py
+?? check/test_m2s72s5_n2.py
+-- diff -U0 bc77a6f -- check/m2s72_peru.py
+diff --git a/simulations/m2/check/m2s72_peru.py b/simulations/m2/check/m2s72_peru.py
+index 02e80f1..9898d86 100644
+--- a/simulations/m2/check/m2s72_peru.py
++++ b/simulations/m2/check/m2s72_peru.py
+@@ -89 +89 @@ def jain(xs):
+-def attribute_feedback(events, nproc, window=None):
++def attribute_feedback(events, nproc, window=None, trace=None):
+@@ -101 +101,4 @@ def attribute_feedback(events, nproc, window=None):
+-    returns {node: {...}} with the per-UE occupancy and delays, and a summary {ambiguous, orphan, a1a, a1b, d_star}"""
++    returns {node: {...}} with the per-UE occupancy and delays, and a summary {ambiguous, orphan, a1a, a1b, d_star}
++    trace: optional list (N = 2 increment, observation only): one (event index, picked node or None, class) is
++    appended per feedback line of pass 2, class a1a / a1b / ambiguous / orphan. It changes nothing else: the returned
++    values are identical with and without it (test_m2s72s5_n2.py compares them with the bc77a6f version)"""
+@@ -147,0 +151,2 @@ def attribute_feedback(events, nproc, window=None):
++            if trace is not None:
++                trace.append((i, None, "ambiguous" if cands else "orphan"))
+@@ -148,0 +154,2 @@ def attribute_feedback(events, nproc, window=None):
++        if trace is not None:
++            trace.append((i, pick[0], "a1a" if len(cands) == 1 else "a1b"))
+-- removed lines of m2s72s5.sh vs bc77a6f (everything else is added):
+-[ -n "$MODE" ] || die "usage: m2s72s5.sh regen | smoke | e0v | e0vp | e0vh5 | release <stage>"
+-TEST=""; [ -n "${S5_TEST_SKIP_BUILD:-}${S5_TEST_CHECKER:-}" ] && TEST="TEST HOOKS ACTIVE (skip build: ${S5_TEST_SKIP_BUILD:-no}; checker: $CHECKER)"
+-- accepted / frozen paths untouched (expected empty):

@@ -10,6 +10,10 @@
 #   m2s72s5.sh smoke              the single E0v-q0-f1 smoke run (protocol §9): run, per-run check, E0 quick proxy,
 #                                 controls-q8, manifest; raw outputs held uncompressed and read-only (never deleted,
 #                                 never released); not an E0v result
+#   m2s72s5.sh smoke-n2           the single N = 2 multi-UE smoke run M2S72-E0vN-q0-one0-n2-f1 (protocol
+#                                 results/M2-S7.2a-s5-n2-protocol.md): run, manifest, adapter-validate, the UE-side
+#                                 H-ARQ reference (xa), controls-n2, the E0v-N per-run rows as a labelled diagnostic,
+#                                 verdict; raw outputs held uncompressed and read-only; not an E0v-N result
 #   m2s72s5.sh e0v                E0v core [A -> 1.8.1]: E0's ascending factors and escalation stop, the MAC-log twin
 #   m2s72s5.sh e0vp               E0v-p: Q-0p and Q-de (D-1) at DL factor 1, 2
 #   m2s72s5.sh e0vh5              E0v-H5: 5 H-ARQ processes at DL factor 1, 2 and the H5 twin
@@ -34,7 +38,7 @@ HERE=$(cd "$(dirname "$0")" && pwd)
 NASCTIME=$(cd "$HERE/../.." && pwd)
 MODE=${1:-}
 die() { echo "ERROR: $*" >&2; exit 1; }
-[ -n "$MODE" ] || die "usage: m2s72s5.sh regen | smoke | e0v | e0vp | e0vh5 | release <stage>"
+[ -n "$MODE" ] || die "usage: m2s72s5.sh regen | smoke | smoke-n2 | e0v | e0vp | e0vh5 | release <stage>"
 for v in OMNETPP_ROOT INET_ROOT SIMU5G_ROOT NASCTIME_RESULTS_ROOT; do
   [ -n "${!v:-}" ] || die "$v must be set explicitly (Stage 5 never assumes machine paths)"
 done
@@ -46,7 +50,10 @@ nt_results_init m2 nobaseline
 CHK=$HERE/check
 LIB=(python3 "$CHK/m2s72s5_lib.py")
 CHECKER=${S5_TEST_CHECKER:-$CHK/check_m2s72_s5v.py}
-TEST=""; [ -n "${S5_TEST_SKIP_BUILD:-}${S5_TEST_CHECKER:-}" ] && TEST="TEST HOOKS ACTIVE (skip build: ${S5_TEST_SKIP_BUILD:-no}; checker: $CHECKER)"
+N2CHK=${S5_TEST_N2_CHECKER:-}                                    # tests only: one stub for both N = 2 tools
+S5N=${N2CHK:-$CHK/check_m2s72_s5n.py}
+S5N2=${N2CHK:-$CHK/check_m2s72_s5n2.py}
+TEST=""; [ -n "${S5_TEST_SKIP_BUILD:-}${S5_TEST_CHECKER:-}${N2CHK}" ] && TEST="TEST HOOKS ACTIVE (skip build: ${S5_TEST_SKIP_BUILD:-no}; checker: $CHECKER; N = 2 tools: ${N2CHK:-no})"
 GB=$((1 << 30))
 declare -A EST_MIN=([1]=4 [2]=6 [4]=10 [8]=18)                  # E0 [A] run-time estimate (min); limit 3 x
 declare -A EST_B=([1]=$((9 * GB / 10)) [2]=$((6 * GB / 5)) [4]=$((17 * GB / 10)) [8]=$((27 * GB / 10)))   # E0 sizes x 1.2 + logs
@@ -54,6 +61,7 @@ declare -A EST_B=([1]=$((9 * GB / 10)) [2]=$((6 * GB / 5)) [4]=$((17 * GB / 10))
 case "$MODE" in
   regen) STAGE=M2-S7.2a-s5regen ;;
   smoke) STAGE=M2-S7.2a-s5smoke ;;
+  smoke-n2) STAGE=M2-S7.2a-s5smoke-n2 ;;
   e0v) STAGE=M2-S7.2a-e0v ;;
   e0vp) STAGE=M2-S7.2a-e0vp ;;
   e0vh5) STAGE=M2-S7.2a-e0vh5 ;;
@@ -293,8 +301,42 @@ case "$MODE" in
     for x in "$REC"/*; do "${LIB[@]}" durable "$x"; done
     if [ "$crc$qrc$ctrc$vrc" != 0000 ]; then note "smoke end: NOT CLEAN (check $crc, quick $qrc, controls $ctrc, manifest $vrc)"; exit 6; fi
     note "smoke end: clean (check PASS, quick, controls-q8 as declared, manifest re-verified)" ;;
+  smoke-n2)
+    # N = 2 protocol (results/M2-S7.2a-s5-n2-protocol.md §4): one run, everything held, nothing released or deleted.
+    # It validates the multi-UE instrumentation; it is not an E0v-N result. The E0v-N per-run rows (check_m2s72_s5n.py
+    # run) are evaluated as a LABELLED DIAGNOSTIC of this held smoke run only: decision S5-2-D2 stays open (§4.3).
+    # Space estimate: the factor-2 entry (1.2 GB); limit 60 min.
+    cfg=M2S72-E0vN-q0-one0-n2-f1
+    note "smoke-n2 start (S5_ENV_DECISION ${S5_ENV_DECISION}); raw outputs are held, never released or deleted"
+    s5_run "$cfg" 2 0 3600 || exit $?
+    s5_manifest "$cfg" || exit 5
+    chmod -R a-w "$OUT/runs/$cfg" "$OUT/runs/run-$cfg.log.gz"
+    python3 "$S5N" adapter-validate "$OUT/runs" "$cfg" q0 0 0 "$REC" > "$REC/adapter-validate.console.txt" 2>&1; arc=$?
+    note "$cfg: adapter-validate rc $arc: $(tail -1 "$REC/adapter-validate.console.txt")"
+    python3 "$S5N2" xa "$OUT/runs" "$cfg" "$REC" > "$REC/xa.console.txt" 2>&1; xrc=$?
+    note "$cfg: xa rc $xrc: $(tail -1 "$REC/xa.console.txt")"
+    python3 "$S5N2" controls-n2 "$OUT/runs" "$cfg" q0 0 0 "$REC" > "$REC/controls-n2.console.txt" 2>&1; nrc=$?
+    note "$cfg: controls-n2 rc $nrc: $(tail -1 "$REC/controls-n2.console.txt")"
+    S5N_ADAPTER_VALIDATED="smoke-n2 labelled diagnostic of the held run $cfg (decision S5-2-D2 open; not an E0v-N result)" \
+      python3 "$S5N" run "$OUT/runs" "$cfg" "$REC" > "$REC/$cfg.console.txt" 2>&1; crc=$?
+    note "$cfg: E0v-N per-run rows (diagnostic) rc $crc: $(tail -1 "$REC/$cfg.console.txt")"
+    "${LIB[@]}" verify-manifest "$REC/$cfg.manifest.sha256" | tee -a "$REC/steps.txt"; vrc=${PIPESTATUS[0]}
+    ledger "$cfg	held (smoke-n2 review; uncompressed, read-only, never released by this runner)"
+    printf "%s\t%s\t%s\theld\tsmoke-n2 review; adapter rc %s, xa rc %s, controls-n2 rc %s, manifest re-verified rc %s\n" \
+      "$S5_LAST" "rc $crc" "$S5_MAN" "$arc" "$xrc" "$nrc" "$vrc" >> "$REC/runs.tsv"
+    python3 "$S5N2" verdict "$REC" "$cfg" > "$REC/verdict.console.txt" 2>&1; drc=$?
+    note "$cfg: smoke-n2 verdict rc $drc: $(tail -1 "$REC/verdict.console.txt")"
+    du -sb "$OUT/runs/$cfg" "$OUT/runs/run-$cfg.log.gz" | tee -a "$REC/steps.txt"
+    for x in "$REC"/*; do "${LIB[@]}" durable "$x"; done
+    # exit 6 only for an incomplete lifecycle (an evaluation error rc 2 or a manifest failure); acceptance is the
+    # verdict's (protocol §6), recorded above and in smoke-n2-verdict-<cfg>.txt
+    if [ "$vrc" != 0 ] || [ "$arc" = 2 ] || [ "$xrc" = 2 ] || [ "$nrc" = 2 ] || [ "$crc" = 2 ] || [ "$drc" = 2 ]; then
+      note "smoke-n2 end: INCOMPLETE LIFECYCLE (adapter $arc, xa $xrc, controls $nrc, check $crc, verdict $drc, manifest $vrc)"; exit 6
+    fi
+    note "smoke-n2 end: lifecycle complete (adapter $arc, xa $xrc, controls $nrc, check $crc, verdict $drc, manifest $vrc)" ;;
   release)
     [ "$STAGE" = M2-S7.2a-s5smoke ] && die "the smoke stage is never released by this runner (protocol §9)"
+    [ "$STAGE" = M2-S7.2a-s5smoke-n2 ] && die "the smoke-n2 stage is never released by this runner (N = 2 protocol §4)"
     [ -d "$REC" ] || die "$REC does not exist"
     s5_release ;;
 esac

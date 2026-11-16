@@ -86,7 +86,7 @@ def jain(xs):
 
 
 # ------------------------------------------------------------------------------------ H-ARQ feedback attribution ---
-def attribute_feedback(events, nproc, window=None):
+def attribute_feedback(events, nproc, window=None, trace=None):
     """attribution rule A-1 (addendum §4.1). The gNB MAC log names the UE on every H-ARQ insert line ("for node with
     id <n>") but not on the feedback line ("feedback received for process <p> codeword <c>"). Process ids are per UE
     (one H-ARQ entity per UE), so a feedback line is attributed to UE u when u is the ONLY UE whose process p is open
@@ -98,7 +98,10 @@ def attribute_feedback(events, nproc, window=None):
     events: the gNB MAC log in LOG order: ("ins", t, node, proc, cw) and ("fb", t, proc, cw, result)
     window: (t_from, t_to) in ps: the TTIs over which the per-UE occupancy histograms are taken (default: the TTIs
     from the first to the last event of the log)
-    returns {node: {...}} with the per-UE occupancy and delays, and a summary {ambiguous, orphan, a1a, a1b, d_star}"""
+    returns {node: {...}} with the per-UE occupancy and delays, and a summary {ambiguous, orphan, a1a, a1b, d_star}
+    trace: optional list (N = 2 increment, observation only): one (event index, picked node or None, class) is
+    appended per feedback line of pass 2, class a1a / a1b / ambiguous / orphan. It changes nothing else: the returned
+    values are identical with and without it (test_m2s72s5_n2.py compares them with the bc77a6f version)"""
     # pass 1: A-1a only, to learn d*
     open_ = {}                                        # (node, proc, cw) -> insert time
     delays = Counter()
@@ -145,7 +148,11 @@ def attribute_feedback(events, nproc, window=None):
                 summ["a1b"] += 1
         if pick is None:
             summ["ambiguous" if cands else "orphan"] += 1
+            if trace is not None:
+                trace.append((i, None, "ambiguous" if cands else "orphan"))
             continue
+        if trace is not None:
+            trace.append((i, pick[0], "a1a" if len(cands) == 1 else "a1b"))
         node = pick[0]
         per[node]["feedback"] += 1
         per[node]["nack"] += res == "NACK"
