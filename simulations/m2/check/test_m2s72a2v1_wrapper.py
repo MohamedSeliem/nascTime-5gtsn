@@ -418,6 +418,29 @@ def _():
     with_env(f)
 
 
+@test("T-w-storage-monitor (regression, r1 review): the storage measurement FAILS during the run (after three good "
+      "readings) or returns a non-number -> the single simulation is terminated at once, outcome STORAGE-MONITOR-ERROR, "
+      "rc 20, L-1 and L-3 FAIL, log / raw files / manifest / diagnostics kept read-only, no evaluation, no retry")
+def _():
+    for name, cmd in (("fails mid-run", 'n=$(cat "$A2V1_T_CNT" 2>/dev/null || echo 0); echo $((n + 1)) > "$A2V1_T_CNT"; '
+                                        '[ "$n" -lt 3 ] && echo 0 || { echo "du: cannot read" >&2; exit 7; }'),
+                      ("non-numeric", "echo 12abc")):
+        def f(e):
+            cnt = os.path.join(e.t, "size-calls.txt")
+            p = e.run(stub="hang", A2V1_TEST_SIZE_CMD=cmd, A2V1_T_CNT=cnt)
+            lifecycle_failure(e, p, "L-3")
+            lc, steps = e.rec("lifecycle.txt"), e.rec("steps.txt")
+            assert "L-1 " in lc and "): FAIL" in next(x for x in lc.splitlines() if x.startswith("L-1 ")), lc
+            assert "outcome STORAGE-MONITOR-ERROR" in steps and "STORAGE-MONITOR-ERROR:" in lc, (name, steps[-1500:])
+            assert e.elapsed < 50, f"{name}: the simulation was not terminated ({e.elapsed:.0f} s; the stub sleeps 60 s)"
+            mon = e.rec("storage-monitor.txt")
+            assert ("rc 7" in mon and "du: cannot read" in mon) if name == "fails mid-run" else "not numeric: '12abc'" in mon, mon
+            if name == "fails mid-run":
+                assert int(open(cnt).read()) >= 4, "the failure did not happen during the run"
+            assert not e.rec("storage-limit.txt")
+        with_env(f)
+
+
 @test("T-w-complete: a completed stub run passes L-1..L-4, is evaluated read-only (records of a2, a2-controls, a2v1), "
       "and the preserved evidence is checked after; exactly one simulation; rc 0 or 21 (a stub has no scientific output)")
 def _():

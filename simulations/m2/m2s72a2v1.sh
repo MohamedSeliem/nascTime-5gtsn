@@ -16,7 +16,7 @@
 #       evaluation); 21 an evaluation tool errored (rc 2); 30 preserved evidence changed during the run; 2 usage.
 # Test hooks (tests only; honoured only with A2V1_TEST_HOOKS=1, and then recorded as TEST in every record):
 #   A2V1_TEST_SKIP_SUITES=1, A2V1_TEST_SUITE_CMD, A2V1_TEST_BUILD_CMD, A2V1_TEST_FREE_BYTES, A2V1_TEST_WALL_S,
-#   A2V1_TEST_POLL_S.
+#   A2V1_TEST_POLL_S, A2V1_TEST_SIZE_CMD (replaces the storage measurement command, to test its failure).
 set -o pipefail
 HERE=$(cd "$(dirname "$0")" && pwd)
 NASCTIME=$(cd "$HERE/../.." && pwd)
@@ -33,6 +33,7 @@ case "$MODE" in gate|run) ;; *) usage ;; esac
 TEST=""
 if [ "${A2V1_TEST_HOOKS:-}" = 1 ]; then
   TEST="TEST HOOKS ACTIVE: skip suites ${A2V1_TEST_SKIP_SUITES:-no}; suite cmd ${A2V1_TEST_SUITE_CMD:-default}; build cmd ${A2V1_TEST_BUILD_CMD:-default}; free ${A2V1_TEST_FREE_BYTES:-measured}; wall ${A2V1_TEST_WALL_S:-$WALL_S}; poll ${A2V1_TEST_POLL_S:-$POLL_S}"
+  TEST="$TEST; size cmd ${A2V1_TEST_SIZE_CMD:-default}"
   WALL_S=${A2V1_TEST_WALL_S:-$WALL_S}; POLL_S=${A2V1_TEST_POLL_S:-$POLL_S}
 fi
 
@@ -176,9 +177,21 @@ t0=$(date +%s)
     -n "$NASCTIME/simulations:$NASCTIME/src:$SIMU5G_ROOT/src:$INET_ROOT/src" -x nasctime.nodes -u Cmdenv \
     -f m2s72a2v.ini -c "$CFG" --repeat=1 -r 0 --result-dir="$RUNS/$CFG" --cmdenv-express-mode=false ) > "$FIFO" 2>&1 &
 simpid=$!
-breach=""
+# storage measurement, fail-closed: a failed or non-numeric measurement is never read as a size
+measure() {
+  local v
+  if [ "${A2V1_TEST_HOOKS:-}" = 1 ] && [ -n "${A2V1_TEST_SIZE_CMD:-}" ]; then v=$(bash -c "$A2V1_TEST_SIZE_CMD" 2>>"$REC/storage-monitor.txt")
+  else v=$("${GATE[@]}" size "$RUNS" 2>>"$REC/storage-monitor.txt"); fi || { echo "measurement failed (rc $?, output '${v:0:80}')"; return 1; }
+  [[ "$v" =~ ^[0-9]+$ ]] || { echo "measurement not numeric: '${v:0:80}'"; return 1; }
+  echo "$v"
+}
+breach=""; monerr=""
 while kill -0 "$simpid" 2>/dev/null; do
-  sz=$("${GATE[@]}" size "$RUNS" 2>/dev/null || echo 0)
+  if ! sz=$(measure); then
+    monerr="$sz at $(( $(date +%s) - t0 )) s"
+    echo "$monerr" >> "$REC/storage-monitor.txt"; note "STORAGE-MONITOR-ERROR: $monerr; terminating the simulation (no retry)"
+    kill -TERM "$simpid" 2>/dev/null; break
+  fi
   if [ "$sz" -gt "$LIMIT_B" ]; then
     breach="raw $sz B > limit $LIMIT_B B at $(( $(date +%s) - t0 )) s"
     echo "$breach" > "$REC/storage-limit.txt"; note "STORAGE LIMIT: $breach; terminating the simulation (no retry)"
@@ -189,9 +202,12 @@ done
 wait "$simpid"; rc=$?
 wait "$gzpid"; rm -f "$FIFO"
 wall=$(( $(date +%s) - t0 ))
-raw=$("${GATE[@]}" size "$RUNS")
+if ! raw=$(measure); then
+  monerr="${monerr:+$monerr; }after the run: $raw"; echo "after the run: $raw" >> "$REC/storage-monitor.txt"; raw=unmeasured
+fi
 cls=$("${LIB[@]}" classify "$rc" "$LOG" 2>&1); outcome=${cls%%$'\t'*}
 [ -n "$breach" ] && outcome=STORAGE-LIMIT
+[ -n "$monerr" ] && outcome=STORAGE-MONITOR-ERROR
 note "simulation end: rc $rc, wall $wall s, raw $raw B, outcome $outcome ($cls)"
 
 # L-4 first (always, on any outcome): manifest, verification, read-only
@@ -200,10 +216,10 @@ note "simulation end: rc $rc, wall $wall s, raw $raw B, outcome $outcome ($cls)"
 chmod -R a-w "$RUNS"; crc=$?
 L1=$([ "$outcome" = OK ] && [ "$rc" = 0 ] && echo PASS || echo FAIL)
 L2=$([ "$wall" -le "$WALL_S" ] && [ "$rc" != 124 ] && echo PASS || echo FAIL)
-L3=$([ -z "$breach" ] && [ "$raw" -le "$LIMIT_B" ] && echo PASS || echo FAIL)
+L3=$([ -z "$breach" ] && [ -z "$monerr" ] && [[ "$raw" =~ ^[0-9]+$ ]] && [ "$raw" -le "$LIMIT_B" ] && echo PASS || echo FAIL)
 L4=$([ "$mrc" = 0 ] && [ "$vrc" = 0 ] && [ "$crc" = 0 ] && echo PASS || echo FAIL)
 printf "L-1 outcome OK (rc 0, classifier OK): %s (rc %s, %s)\nL-2 wall <= %s s: %s (%s s)\nL-3 raw <= %s B: %s (%s B%s)\nL-4 manifest written, verified, raw read-only: %s (manifest rc %s, verify rc %s, chmod rc %s)\n" \
-  "$L1" "$rc" "$cls" "$WALL_S" "$L2" "$wall" "$LIMIT_B" "$L3" "$raw" "${breach:+; $breach}" "$L4" "$mrc" "$vrc" "$crc" | tee "$REC/lifecycle.txt"
+  "$L1" "$rc" "$cls" "$WALL_S" "$L2" "$wall" "$LIMIT_B" "$L3" "$raw" "${breach:+; $breach}${monerr:+; STORAGE-MONITOR-ERROR: $monerr}" "$L4" "$mrc" "$vrc" "$crc" | tee "$REC/lifecycle.txt"
 
 integrity_after() {
   local ok=0
