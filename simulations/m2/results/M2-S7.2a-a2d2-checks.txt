@@ -1,0 +1,205 @@
+M2-S7.2a A2-D2 design review: development check record (no simulation), 2026-11-16T16:53:52Z
+branch m2/s72a-a2d2, parent fbee2028b9c6ba5a992c0f14f85ef3729e2db107; Python 3.13.18
+Simu5G source: /tmp/claude-0/-home-claude/f08b3521-4dd6-5494-b405-fc45c61f17fc/scratchpad/src/simu5g-1.8.1 (git 7477d26, Version 1.8.1)
+
+== §2 source: the DL decoding decision and why the baseline cannot NACK
+48:        bool shadowing = default(true);
+70:        double targetBler = default(0.01);
+72:        double harqReduction = default(0.2);
+77:        double antennGainEnB @unit(dBi) = default(18dBi);
+81:        double thermalNoise @unit(dBm) = default(-104.5dBm);
+83:        double ueNoiseFigure @unit(dBm) = default(7dBm);
+87:        double cableLoss @unit(dB) = default(2dB);
+90:        bool dynamicLos = default(false);
+92:        bool fixedLos = default(false);
+94:        bool fading = default(true);
+1177:    double blockErrorRate = 0.0;
+1203:            if (snr < binder_->phyPisaData.minSnr())
+1205:            else if (snr > binder_->phyPisaData.maxSnr())
+1206:                blockErrorRate = 0.0;
+1229:    double effectiveErrorRateWithHarq = packetErrorRate * pow(harqReduction_, transmissionAttempt - 1);
+1242:    bool receptionFailed = (randomSample <= effectiveErrorRateWithHarq);
+1274:        losMap_[nodeId] = fixedLos_;
+45:    int minSnr() { return -14 - blerShift_; }//SINR_15_CQI_TU [0] [0];}
+46:    int maxSnr() { return 40 - blerShift_; }//SINR_15_CQI_TU [14] [15];}
+common/binder/Binder.ned:33:        int blerShift = default(0);
+common/binder/Binder.cc:327:        phyPisaData.setBlerShift(par("blerShift"));
+87:    if (newsnr > phyPisaData_->maxSnr())
+88-        return 15;
+88:        string pilotMode @enum(IN_CQI,MAX_CQI,AVG_CQI,MEDIAN_CQI,ROBUST_CQI) = default("ROBUST_CQI");
+stack/NrNicUe.ned:45:        string nrChannelModelType = default("Tr38901ChannelModel");
+stack/NrNicEnb.ned:39:        channelModelType = default("Tr38901ChannelModel");
+408:	**.ueTxPower = 26dBm
+409:	**.eNodeBTxPower = 40dBm
+410:	**.targetBler = 0.01
+411:	**.blerShift = 5
+413:	*.gnb1.mobility.initialX = 450m
+414:	*.gnb1.mobility.initialY = 300m
+417:	*.ue[*].mobility.initialX = 450m + 30m * ancestorIndex(1)
+418:	*.ue[*].mobility.initialY = 350m
+  per-band mean SNR before shadowing (sigma 6 dB NLOS) and fading: DL = 40 dBm + 18 dBi - 2 dB - PL - (-104.5 + 7) dBm; UL = 26 dBm + 18 dBi - 2 dB - PL - (-104.5 + 5) dBm; BLER table usable range (blerShift 5): -19 .. 35 dB
+  d2D   50.00 m: PL  87.65 dB, DL SNR  65.8 dB, UL SNR  53.8 dB
+  d2D   58.31 m: PL  89.84 dB, DL SNR  63.7 dB, UL SNR  51.7 dB
+  d2D  200.00 m: PL 109.60 dB, DL SNR  43.9 dB, UL SNR  31.9 dB
+  d2D  340.00 m: PL 118.53 dB, DL SNR  35.0 dB, UL SNR  23.0 dB
+  d2D  500.00 m: PL 125.06 dB, DL SNR  28.4 dB, UL SNR  16.4 dB
+  d2D  600.00 m: PL 128.14 dB, DL SNR  25.4 dB, UL SNR  13.4 dB
+  d2D  823.00 m: PL 133.50 dB, DL SNR  20.0 dB, UL SNR   8.0 dB
+
+== §2 source: the only producers of a DL NACK
+273:    bool result = channelModel->isReceptionSuccessful(frame, lteInfo);
+293:    pkt->addTagIfAbsent<PhyReceptionInd>()->setDeciderResult(result);
+60:    result_.at(cw) = pkt->getTag<PhyReceptionInd>()->getDeciderResult();
+77:                const char *r = hfb->getResult() ? "ACK" : "NACK";
+  callers of selfNack() (the only other NACK path of a TX unit):
+    (none)
+
+== §3 source: the proposed mechanism (IdealChannelModel, upstream) and the H-ARQ limits
+24:static const double FAKE_SINR_DB = 10000;
+51:    return per->doubleValue() * pow(harqReduction_, txNumber - 1);
+90:    bool success = uniform(0.0, 1.0) > per;
+51:        double per = default(0.1);
+56:        volatile double perDl = default(this.per);
+57:        volatile double perUl = default(this.per);
+62:        double harqReduction = default(0.3);
+37:        int maxHarqRtx = default(3);
+38:        int harqFbEvaluationTimer = default(4);              // Number of slots for sending back HARQ FB
+28:simsignal_t LteHarqUnitTx::harqTxAttemptsSignal_[2] = { cComponent::registerSignal("harqTxAttemptsDl"), cComponent::registerSignal("harqTxAttemptsUl") };
+124:        if (transmissions_ == (maxHarqRtx_ + 1)) {
+142:               << pdu_->getId() << " set for RTX " << endl;
+146:                check_and_cast<LteMacEnb *>(macOwner_.get())->signalProcessForRtx(lteInfo->getDestId(), lteInfo->getCarrierFrequency(), lteInfo->getDirection());
+191:        ue->emit(harqTxAttemptsSignal_[dir_], ntx);
+194:        ue->emit(macPacketLossSignal_[dir_], sample);
+100:    // optimization: do not call rtxschedule if no process is ready for rtx for this carrier
+9:#  - the channel is ~IdealChannelModel~, which does not model propagation at
+12:#    received is a coin flip at a configured error rate. With harqReduction = 1
+81:*.gnb.cellularNic.channelModelType = "IdealChannelModel"
+82:*.ue[*].cellularNic.nrChannelModelType = "IdealChannelModel"
+85:**.harqReduction = 1
+89:**.perUl = 0
+95:**.channelModel[*].rng-0 = 1
+96:**.nrChannelModel[*].rng-0 = 1
+
+== §5 effective configuration: opp_run -q runconfig (OMNeT++ 6.5.0 core; no simulation), baseline vs proposal
+baseline runconfig rc 0
+proposal runconfig rc 0
+baseline dump sha256 972735a6d03db37a9d08042f8534ef55ad38fb5389e7c1190d80664b858403e8
+  7c7
+  < Config: M2S72-E0vN-q0-one0-n2-f1
+  ---
+  > Config: M2S72-E0vN-q0-one0-n2-f1_A2V1
+  12,13c12,24
+  < 	description = "E0v-N bracket: M2S71-q0-Ca-sus, one0, numUe = 2, DL factor 1, UL factor 1, HARQ16 (experimental control), MAC logs"
+  < 	extends = M2S72-MACLOG, M2S72S5-MACLOG-UE, M2S72LD-q0-Ca-L-one0-n2-f1, M2S72-HARQ16, M2S72-SL, M2S72-L, M2S72-ev, M2S72D4N2-q0-Ca-L, M2S72N2-q0-Ca-L, M2S72B-q0-Ca-L
+  ---
+  > 	description = "A2-V1 (A2-D2 proposal, not authorised): M2S72-E0vN-q0-one0-n2-f1 unchanged + M2S72A2V-ideal-nack-ue1; single run, seed 0"
+  > 	extends = M2S72A2V-ideal-nack-ue1, M2S72-E0vN-q0-one0-n2-f1
+  > 	*.gnb1.cellularNic.channelModelType = "IdealChannelModel"
+  > 	*.ue[*].cellularNic.nrChannelModelType = "IdealChannelModel"
+  > 	*.ue[1].cellularNic.nrChannelModel[*].perDl = 0.1
+  > 	*.ue[1].cellularNic.nrChannelModel[*].harqReduction = 1
+  > 	**.perDl = 0
+  > 	**.perUl = 0
+  > 	**.perD2D = 0
+  > 	num-rngs = 5
+  > 	seed-4-mt = 4000
+  > 	**.channelModel[*].rng-0 = 4
+  > 	**.nrChannelModel[*].rng-0 = 4
+  54c65
+  < 	eventlog-file = results/M2S72-E0vN-q0-one0-n2-f1/0.elog
+  ---
+  > 	eventlog-file = results/M2S72-E0vN-q0-one0-n2-f1_A2V1/0.elog
+  63d73
+  < 	num-rngs = 4
+  104c114
+  < 	*.dsTt[*].eth[1].trafficConditionerLayer.monitor.logFile = "results/m2log/M2S72-E0vN-q0-one0-n2-f1-0/" + fullPath()
+  ---
+  > 	*.dsTt[*].eth[1].trafficConditionerLayer.monitor.logFile = "results/m2log/M2S72-E0vN-q0-one0-n2-f1_A2V1-0/" + fullPath()
+  138,139c148,149
+  < 	**.trafficConditionerLayer.syncIn.logFile = "results/m2log/M2S72-E0vN-q0-one0-n2-f1-0/" + fullPath()
+  < 	**.trafficConditionerLayer.syncOut.logFile = "results/m2log/M2S72-E0vN-q0-one0-n2-f1-0/" + fullPath()
+  ---
+  > 	**.trafficConditionerLayer.syncIn.logFile = "results/m2log/M2S72-E0vN-q0-one0-n2-f1_A2V1-0/" + fullPath()
+  > 	**.trafficConditionerLayer.syncOut.logFile = "results/m2log/M2S72-E0vN-q0-one0-n2-f1_A2V1-0/" + fullPath()
+  159c169
+  < 	**.trafficConditionerLayer.engine.logFile = "results/m2log/M2S72-E0vN-q0-one0-n2-f1-0/" + fullPath()
+  ---
+  > 	**.trafficConditionerLayer.engine.logFile = "results/m2log/M2S72-E0vN-q0-one0-n2-f1_A2V1-0/" + fullPath()
+  208c218
+  < 	**.pcapRecorder[*].pcapFile = "results/pcap/M2S72-E0vN-q0-one0-n2-f1-0/" + fullPath() + ".pcapng"
+  ---
+  > 	**.pcapRecorder[*].pcapFile = "results/pcap/M2S72-E0vN-q0-one0-n2-f1_A2V1-0/" + fullPath() + ".pcapng"
+  212c222
+  < 	**.measurementLayer.logFile = "results/m2log/M2S72-E0vN-q0-one0-n2-f1-0/" + fullPath()
+  ---
+  > 	**.measurementLayer.logFile = "results/m2log/M2S72-E0vN-q0-one0-n2-f1_A2V1-0/" + fullPath()
+  397,398c407,408
+  < 	output-scalar-file = results/M2S72-E0vN-q0-one0-n2-f1/0.sca
+  < 	output-vector-file = results/M2S72-E0vN-q0-one0-n2-f1/0.vec
+  ---
+  > 	output-scalar-file = results/M2S72-E0vN-q0-one0-n2-f1_A2V1/0.sca
+  > 	output-vector-file = results/M2S72-E0vN-q0-one0-n2-f1_A2V1/0.vec
+  changed lines other than the config name / result paths / the mixin:
+    (end)
+
+== the frozen A-2 CLI accepts the proposed name (nproc from the name: HARQ16)
+   M2S72-E0vN-q0-one0-n2-f1_A2V1 ('E0vN', 'q0', True, '1_A2V1', 2) nproc 16
+   M2S72-E0vN-q0-one0-n2-f1 ('E0vN', 'q0', True, '1', 2) nproc 16
+
+== A-2 frozen: byte-identical to fbee202
+  m2s72_a2.py 2065409f7e89eb0ef938207e8eb226122ac1d99db36a9b7f6262618ac03bd07f = fbee202
+  check_m2s72_a2.py 7db48cff5fb31e44c14d685584d6592132bf701d7997659e4255df03e718663d = fbee202
+  m2s72_harqx.py b57af3383ac16ebe92fd0cec25c27f6094bd101d72de1eb625b6117f96b68877 = fbee202
+  m2s72_a2probe.py 90430afbc669cf5dd89f08cafaa29cbf888fa1255cc3b1246a0f06f8cc18236d = fbee202
+  m2s72_peru.py 04f8820dd3e1b90679e2e52bef85f49f585bed41be5bdd5a39f62024348928d5 = fbee202
+  m2s72_harqfix.py eaa60a8101f3db6ac813009ad0a926212e3e00b1f410057dcdd3e05f8ae61060 = fbee202
+
+== tests
+  check/test_m2s72_a2v1.py: 10 / 10 PASS
+    PASS  T-v1-accept: NACK chains on the nack UE only (single NACKs, 2- and 3-NACK chains, one discard) -> every required row PASS, D-1..D-3 PASS, S-1/S-2 PASS, verdict ACCEPTED (rc 0), every control AS DECLARED
+    PASS  T-v1-stop-nonack: the same configuration records but no NACK at all -> V-1 FAIL, verdict STOP: NO NACK (rc 3); the NACK-dependent rows are NOT EXERCISED, never PASS
+    PASS  T-v1-stop-baseline: records of the baseline channel model (no IdealChannelModel parameters) and no NACK, as the preserved N = 2 smoke -> V-0 FAIL, V-1 FAIL, verdict STOP (rc 4)
+    PASS  T-v1-specificity: a NACK on the clean UE (A-2 still attributes it correctly) -> V-2 FAIL, verdict STOP: DESIGN NOT REALISED (rc 4); a UL NACK alone (full-log count) does the same
+    PASS  T-v1-floor: fewer NACK lines than the declared floor (30 in the design) -> V-1 FAIL (STOP), even though A-2 is valid
+    PASS  T-v1-scalars: Simu5G statistics that disagree with the log -> V-8 FAIL (harqErrorRateDl) and S-1 FAIL (per attempt); a discard-free run leaves D-1 NOT EXERCISED and S-2 PASS (0 losses)
+    PASS  T-v1-noop: a control whose mutation changes nothing is MUTATION NOT APPLIED, never AS DECLARED (here: the rtxAcid control when the clean and the nack UE are the same node); a control without evidence is NOT BUILDABLE
+    PASS  T-v1-frozen: the evaluator calls the frozen A-2 unchanged: its in-process A-2 rows equal check_m2s72_a2.py's own evaluate() on the same input, and the A-2 sources are byte-identical to fbee202
+    PASS  T-v1-cli: the command line on a runs directory laid out as the runner writes it (run-<cfg>.log.gz, <cfg>/<cfg>/0.sca) writes a2v1-<cfg>.txt / .json and exits with the verdict's code; an evaluation error is rc 2
+    PASS  T-v1-risk-R1 (declared before the run, design review §5.3): a log that ends between a NACK and its retransmission makes the FROZEN A-2's A2-0 FAIL (probe P0-3 'open at the end in state BUF') although A-2's own replay censors the unit ('censored: awaiting retransmission'); the evaluator then reports V-3 FAIL and NOT ACCEPTED, and is not adjusted
+  check/test_m2s72_a2.py: A-2 tests: 18 / 18 PASS
+  check/test_m2s72_a2probe.py: A-2 probe tests: 11 / 11 PASS
+  check/test_m2s72s5_n2.py: S5 N = 2 tests: 19 / 19 PASS
+  check/test_m2s72s5_2.py: S5-2 tests: 28 / 28 PASS
+  check/test_m2s72s5.py: S5-1 tests: 38 / 38 PASS
+  check/test_m2s72s5_smoke.py: S5 smoke contract tests: 9 / 9 PASS
+  generator: regenerated sha256 e563c489852db4cac7ad8562c97373e2379c8bd4029c7f1ebb9d2ace2ff96903; committed e563c489852db4cac7ad8562c97373e2379c8bd4029c7f1ebb9d2ace2ff96903: IDENTICAL
+
+== evaluator controls on the synthetic accept fixture (labelled synthetic)
+   PASS           V-0 IdealChannelModel parameters as declared: ue[1].nrChannelModel[0] perDl 0.1, ue[1].nrChannelModel[0] harqReduction 1, ue[0].nrChannelModel[0] perDl 0.0, ue[1].nrChannelMo
+   PASS           V-1 gNB NACK feedback lines 21 (floor 5), unit 'set for RTX' lines 20
+   PASS           V-2 clean ue[0] (node 2049): NACK 0, retransmissions 0; UE-side DL NACK ue[0] 0; UL NACK 0 (gNB RX 0 ACK, UE TX 0 ACK)
+   PASS           V-3 A-2 VALID; A2-0 PASS, A2-0s PASS, A2-1 PASS, A2-2 PASS, A2-3 PASS, A2-4 PASS, A2-6 PASS, A2-7 PASS, A2-8 PASS; A2-5 PASS
+   PASS           V-4 PDU ids extracted twice or more: 14 (A-2: 14 PDUs with >= 2 transmissions); owned by another node than ue[1] []; extracted ids never inserted []; extract counts = A-2 tra
+   PASS           V-5 ue[1] (node 2050): NACKs 21 = retransmissions 20 + discards 1 + awaiting retransmission 0; ACKed PDUs by transmissions {1: 284, 2: 10, 3: 2, 4: 1}
+   PASS           V-6 A2-7 PASS; ue[1] UE-side NACK lines 21, A-2 NACKs 21 (UE-side lines in the last d* 0 may be unanswered at the end)
+   PASS           V-7 A2-7 PASS; ue[1] ACKed PDUs busy longer than d* 5000000000 ps (across >= 1 NACK): 13; max busy 20000000000 ps; occupancy max peak 3
+   PASS           V-8 A2-8 PASS; Simu5G harqErrorRateDl:mean ue[1] 0.0660377358490566, ue[0] 0.0
+   PASS           D-1 real discard after maxHarqRtx + 1 = 4 transmissions: 1 (A2-2 PASS); not required (design review §6.3)
+   PASS           D-2 mixed ACK / NACK groups (same TTI and process, both UEs): 6
+   PASS           D-3 ACKed PDUs with >= 3 transmissions: 3
+   PASS           S-1 per-attempt DL error rates of ue[1]: equal ['attempt 1: Simu5G 0.04697986577181208, A-2 0.0469798657718', 'attempt 2: Simu5G 0.2857142857142857, A-2 0.285714285714', 'att
+   PASS           S-2 macPacketLossDl:mean of ue[1]: Simu5G 0.003355704697986577, A-2 discards / (ACKed + discards) 0.003355704697986577
+   PASS           S-3 first-attempt NACK fraction 0.0470 over 298 first transmissions vs declared perDl 0.1: |z| 3.05 (bound 3.29, two-sided 0.1 %)
+   AS DECLARED    NC-V-unitline: one real gNB 'set for RTX' unit line removed | observed A2-1 FAIL
+   AS DECLARED    NC-V-rtxacid: one real DL rtxAcid line names the clean UE | observed A2-4 FAIL
+   AS DECLARED    NC-V-reextract: one real retransmission extracts another PDU id | observed V-4 FAIL
+   AS DECLARED    NC-V-uenack: one real UE-side NACK of the nack UE rewritten as ACK | observed A2-7 FAIL, V-6 FAIL
+   AS DECLARED    NC-V-cleannack: one UE-side ACK of the clean UE rewritten as NACK | observed V-2 FAIL
+   AS DECLARED    NC-V-config: the run's recorded perDl of the nack UE changed to 0.2 | observed V-0 FAIL
+   AS DECLARED    NC-V-scalar: Simu5G harqErrorRateDl:mean of the nack UE perturbed | observed V-8 FAIL
+
+== §6 predictions (binomial / Poisson; perDl p = 0.1 per attempt, independent attempts, maxHarqRtx 3), N1 = ue[1] first transmissions
+  N1 1000: NACK lines 111 (+-21, 2 sd); retransmissions 111; PDUs with >= 2 tx 100; >= 3 tx 10.0; 4 tx 1.00; discards 0.100 (P >= 1: 0.10); P(NACK < 30) < 1e-19
+  N1 1250: NACK lines 139 (+-24, 2 sd); retransmissions 139; PDUs with >= 2 tx 125; >= 3 tx 12.5; 4 tx 1.25; discards 0.125 (P >= 1: 0.12); P(NACK < 30) < 1e-29
+  N1 1500: NACK lines 167 (+-26, 2 sd); retransmissions 167; PDUs with >= 2 tx 150; >= 3 tx 15.0; 4 tx 1.50; discards 0.150 (P >= 1: 0.14); P(NACK < 30) < 1e-38
+  harqErrorRateDl:mean ue[1] -> 0.1 (each feedback is Bernoulli(p)); harqTxAttemptsDl:mean ue[1] -> 1.1107
