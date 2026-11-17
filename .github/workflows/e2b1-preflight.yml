@@ -1,0 +1,852 @@
+# WP-E2 / E2b.1 - bounded hosted preflight. EXPERIMENTAL: lives only on wp-e2/e2b1-preflight, never merged.
+#
+# Does:   measure runner capacity; install Nix 2.34.4 (verified installer, multi-user); install opp_env
+#         0.36.2.261110 (verified wheel); initialise an opp_env workspace; install the approved 26.05 flake.lock;
+#         realise the pinned development shell with `opp_env install --no-build` (download + standard recipe
+#         adaptations of the three upstream trees); verify lock, toolchain and tree identity; measure time,
+#         installed size, peak disk use and minimum available memory.
+# Does NOT: compile OMNeT++, INET, Simu5G or nascTime; run any simulation; use caches, secrets or the private
+#         repository; publish binaries. Tier-0 CI (tier0-python.yml) is not touched.
+# Level: infrastructure measurement only. No scientific evidence, no VM byte-equivalence or source-provenance claim.
+
+name: e2b1-preflight
+
+on:
+  push:
+    branches: [wp-e2/e2b1-preflight]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: e2b1-preflight
+  cancel-in-progress: false
+
+jobs:
+  preflight:
+    name: E2b.1 preflight (no compilation, no simulation)
+    if: github.repository == 'MohamedSeliem/nascTime-5gtsn'
+    runs-on: ubuntu-22.04
+    timeout-minutes: 60
+
+    defaults:
+      run:
+        shell: bash --noprofile --norc -euo pipefail {0}
+
+    env:
+      # Single-run rule: the experiment commit must sit directly on the approved base.
+      EXPECTED_PARENT: c4fb6c874b43c2cf1550f344464af1d695cdf93f
+      # Nix: installer pinned by sha256 (independently confirmed by the maintainer); the installer verifies the
+      # tarball against its embedded hash, which must equal the published x86_64-linux tarball hash.
+      NIX_VERSION: '2.34.4'
+      NIX_INSTALLER_URL: https://releases.nixos.org/nix/nix-2.34.4/install
+      NIX_INSTALLER_SHA256: de490f61fcbaf9a5cabf2fa621ddb9ef93ad35d9a23a04e7d51b26e092b63691
+      NIX_TARBALL_SHA256: 595669eb6db6117135ca8ba6667b273eaf980a47523a92e61ed963556cd547b8
+      # opp_env: the PyPI wheel (no dependencies) pinned by sha256, plus the main module's sha256.
+      OPP_ENV_PIN: '0.36.2.261110'
+      OPP_ENV_WHEEL_URL: https://files.pythonhosted.org/packages/44/9a/c9643e77326634b92e14d2268ca8d82f4fd1da00166a5c99c5de5e2244d6/opp_env-0.36.2.261110-py3-none-any.whl
+      OPP_ENV_WHEEL_SHA256: 7a962e2a58f56367a71322de8b65d007c8f31a917b5bdc4e6a9f032b6b6d4e73
+      OPP_ENV_MAIN_SHA256: 233658171942a731a62ee8b77d86dc5845daaf964ee9675508d405db1bb4cfb9
+      # Approved 26.05 lock (M-2) and the 22.11 helper lock of the opp_env 0.36.2.261110 workspace template
+      # (both independently confirmed by the maintainer).
+      LOCK_FILE: ci/e2b1/flake.lock
+      LOCK_SHA256: 9ead146500c1f8b54f2a611e0a753e705e35682639307c3ea7bd104f5109f60a
+      LOCK_SIZE: '1462'
+      HELPER_LOCK_SHA256: 0fc40c96aefff3032f7ef727d4d498f7ceddf065503bcda81520c8624245618c
+      PROJECTS: omnetpp-6.5.0 inet-4.7.0 simu5g-1.8.1
+      # Reference toolchain (F-7).
+      EXPECT_CLANG: '21.1.8'
+      EXPECT_GCC: '15.2.0'
+      EXPECT_MAKE: '4.2.1'
+      EXPECT_PYTHON: '3.13.13'
+      # Disk limits and guard timing.
+      START_MIN_FREE_GIB: '10'
+      STOP_FREE_GIB: '4'
+      GUARD_INTERVAL_S: '5'
+      GUARD_STALE_S: '30'
+      NIX_X: --extra-experimental-features nix-command --extra-experimental-features flakes
+
+    steps:
+      - name: Single-run rule and work directories
+        id: setup
+        run: |
+          if [[ "$GITHUB_RUN_ATTEMPT" != 1 ]]; then
+            echo "::error::E2b.1 allows exactly one attempt; a re-run needs maintainer approval"; exit 1
+          fi
+          B="$RUNNER_TEMP/e2b1"
+          mkdir -p "$B/evidence" "$B/dl" "$B/unpublished"
+          {
+            echo "E2B=$B"; echo "EV=$B/evidence"; echo "DL=$B/dl"; echo "WS=$B/ws"; echo "VENV=$B/venv"
+          } >> "$GITHUB_ENV"
+          printf 'step\tseconds\texit\n' > "$B/evidence/timings.tsv"
+
+      - name: Checkout (experiment commit and its parent)
+        id: checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+          fetch-depth: 2
+
+      - name: Verify the experiment commit
+        id: commit
+        run: |
+          parent=$(git rev-parse HEAD^)
+          [[ "$parent" == "$EXPECTED_PARENT" ]] || { echo "::error::HEAD^ is $parent, expected $EXPECTED_PARENT"; exit 1; }
+          changed=$(git diff --name-status HEAD^ HEAD | sort | tr '\t\n' ' ;')
+          [[ "$changed" == "A .github/workflows/e2b1-preflight.yml;A ci/e2b1/flake.lock;" ]] \
+            || { echo "::error::unexpected changes in the experiment commit: $changed"; exit 1; }
+          echo "experiment commit $(git rev-parse HEAD) on $parent; changes: $changed"
+
+      - name: Record runner capacity (measured) and apply the start gate
+        id: capacity
+        run: |
+          {
+            echo "date_utc: $(date -u +%FT%TZ)"
+            echo "nascTime_commit: $GITHUB_SHA"
+            echo "workflow_sha256: $(sha256sum .github/workflows/e2b1-preflight.yml | cut -c1-64)"
+            echo "run: $GITHUB_RUN_ID attempt $GITHUB_RUN_ATTEMPT"
+            echo "image_os: ${ImageOS:-unknown}"
+            echo "image_version: ${ImageVersion:-unknown}"
+            echo "os_release: $(. /etc/os-release && echo "$PRETTY_NAME")"
+            echo "kernel: $(uname -srm)"
+            echo "nproc: $(nproc)"
+            echo "cpu_model: $(lscpu | sed -n 's/^Model name:[[:space:]]*//p' | head -1)"
+            echo "mem_total_kib: $(awk '/^MemTotal:/ {print $2}' /proc/meminfo)"
+            echo "mem_available_start_kib: $(awk '/^MemAvailable:/ {print $2}' /proc/meminfo)"
+            echo "swap_total_kib: $(awk '/^SwapTotal:/ {print $2}' /proc/meminfo)"
+            echo "host_python: $(/usr/bin/python3 -V 2>&1)"
+            echo "runner_temp_mount: $(df -B1 --output=target "$RUNNER_TEMP" | tail -1)"
+            echo "root_avail_start_B: $(df -B1 --output=avail / | tail -1 | tr -d ' ')"
+            echo "root_size_B: $(df -B1 --output=size / | tail -1 | tr -d ' ')"
+          } | tee "$EV/runner.txt"
+          df -B1 -T | tee "$EV/df-start.txt"
+          lsblk -b -o NAME,SIZE,TYPE,MOUNTPOINT | tee "$EV/lsblk.txt"
+          avail=$(df -B1 --output=avail / | tail -1 | tr -d ' ')
+          if (( avail < START_MIN_FREE_GIB * 1073741824 )); then
+            echo "start gate: root free $avail B < $START_MIN_FREE_GIB GiB" > "$EV/STOP"
+            echo "::error::STOP: $(cat "$EV/STOP")"; exit 1
+          fi
+
+      - name: Install helper scripts and start the disk guard
+        id: guard
+        run: |
+          cat > "$E2B/guard.sh" <<'GUARD'
+          #!/usr/bin/env bash
+          # Disk guard. Samples free space on / and on $RUNNER_TEMP's filesystem, plus MemAvailable, every
+          # GUARD_INTERVAL_S seconds and writes a heartbeat. On a breach it declares STOP (atomically) and stops
+          # the Nix daemon. While STOP exists it kills any registered guarded process group on every iteration,
+          # which also covers a group registered after STOP was declared. Exits when guard.off appears.
+          set -u
+          echo "$$" > "$EV/guard.pid"
+          limit=$(( STOP_FREE_GIB * 1073741824 ))
+          printf 'utc\tpath\tavail_B\tused_B\tmem_avail_kib\n' > "$EV/disk.tsv"
+          kill_target() {
+            local pg
+            pg=$(cat "$EV/guard.target" 2>/dev/null)
+            [[ -n "$pg" ]] || return 0
+            kill -TERM -- "-$pg" 2>/dev/null || return 0
+            echo "$(date -u +%FT%TZ) TERM sent to process group $pg" >> "$EV/guard-actions.txt"
+            sleep 5
+            kill -KILL -- "-$pg" 2>/dev/null && echo "$(date -u +%FT%TZ) KILL sent to process group $pg" >> "$EV/guard-actions.txt"
+            return 0
+          }
+          while [[ ! -e "$EV/guard.off" ]]; do
+            date +%s > "$EV/guard.heartbeat.tmp" && mv -f "$EV/guard.heartbeat.tmp" "$EV/guard.heartbeat"
+            mem=$(awk '/^MemAvailable:/ {print $2}' /proc/meminfo)
+            for p in / "$RUNNER_TEMP"; do
+              read -r avail used < <(df -B1 --output=avail,used "$p" | tail -1)
+              printf '%s\t%s\t%s\t%s\t%s\n' "$(date -u +%FT%TZ)" "$p" "$avail" "$used" "$mem" >> "$EV/disk.tsv"
+              if (( avail < limit )) && [[ ! -e "$EV/STOP" ]]; then
+                echo "disk guard: free $avail B on $p < $STOP_FREE_GIB GiB" > "$EV/STOP.tmp" && mv -f "$EV/STOP.tmp" "$EV/STOP"
+                echo "$(date -u +%FT%TZ) STOP declared" >> "$EV/guard-actions.txt"
+                sudo systemctl stop nix-daemon.socket nix-daemon.service 2>/dev/null || true
+              fi
+            done
+            [[ -e "$EV/STOP" ]] && kill_target
+            sleep "$GUARD_INTERVAL_S"
+          done
+          date -u +%FT%TZ > "$EV/guard.exited"
+          GUARD
+          cat > "$E2B/guard-alive.sh" <<'ALIVE'
+          #!/usr/bin/env bash
+          # usage: guard-alive.sh <checkpoint>. Exit 91 (infrastructure failure) unless the guard process exists
+          # and its heartbeat is fresh.
+          set -u
+          cp=$1
+          now=$(date +%s)
+          pid=$(cat "$EV/guard.pid" 2>/dev/null || true)
+          hb=$(cat "$EV/guard.heartbeat" 2>/dev/null || echo 0)
+          age=$(( now - hb ))
+          state=$(ps -o stat= -p "${pid:-0}" 2>/dev/null | tr -d ' ')
+          if [[ -n "$pid" && -n "$state" && "$state" != Z* ]] && (( age <= GUARD_STALE_S )); then
+            echo "$(date -u +%FT%TZ) ok [$cp] pid=$pid heartbeat_age_s=$age" >> "$EV/guard-checks.txt"
+            exit 0
+          fi
+          echo "$(date -u +%FT%TZ) FAIL [$cp] pid=${pid:-none} heartbeat_age_s=$age" >> "$EV/guard-checks.txt"
+          echo "disk guard not alive at checkpoint: $cp" > "$EV/GUARD_FAILURE"
+          echo "::error::INFRASTRUCTURE FAILURE: disk guard not alive at checkpoint: $cp"
+          exit 91
+          ALIVE
+          cat > "$E2B/guarded.sh" <<'RUN'
+          #!/usr/bin/env bash
+          # usage: guarded.sh <label> <command...>
+          # Checks guard liveness, runs the command in its own session / process group (killable by the guard),
+          # logs to $EV/<label>.log (not streamed to the public console), records the wall time, re-checks the
+          # guard, and fails closed on STOP (90) or guard failure (91). On a command failure it prints a screened
+          # log tail, or a suppression notice.
+          set -uo pipefail
+          label=$1; shift
+          "$E2B/guard-alive.sh" "before $label" || exit 91
+          [[ ! -e "$EV/STOP" ]] || { echo "::error::STOP already declared: $(cat "$EV/STOP")"; exit 90; }
+          t0=$(date +%s)
+          setsid "$@" > "$EV/$label.log" 2>&1 < /dev/null &
+          pid=$!
+          echo "$pid" > "$EV/guard.target"
+          pg=""
+          for _ in $(seq 1 50); do
+            pg=$(ps -o pgid= -p "$pid" 2>/dev/null | tr -d ' ')
+            [[ -z "$pg" || "$pg" == "$pid" ]] && break
+            sleep 0.1
+          done
+          if [[ -n "$pg" && "$pg" != "$pid" ]]; then
+            kill -KILL "$pid" 2>/dev/null
+            echo "guarded process $pid is not its own process group" > "$EV/GUARD_FAILURE"
+            echo "::error::INFRASTRUCTURE FAILURE: guarded process is not killable as a group"; exit 91
+          fi
+          # Race: STOP may have been declared just before registration. Kill here too; the guard also re-kills.
+          if [[ -e "$EV/STOP" ]]; then kill -TERM -- "-$pid" 2>/dev/null; sleep 2; kill -KILL -- "-$pid" 2>/dev/null; fi
+          wait "$pid"; rc=$?
+          : > "$EV/guard.target"
+          printf '%s\t%s\t%s\n' "$label" "$(( $(date +%s) - t0 ))" "$rc" >> "$EV/timings.tsv"
+          echo "$label: exit $rc after $(( $(date +%s) - t0 )) s"
+          if [[ "$rc" != 0 ]]; then
+            tail -n 40 "$EV/$label.log" | sed 's/\x1b\[[0-9;?]*[A-Za-z]//g; s/\r/\n/g' > "$E2B/tail.tmp"
+            if /usr/bin/python3 -I "$E2B/screen.py" "$E2B/tail.tmp" > /dev/null; then
+              echo "::group::$label log tail (screened)"; cat "$E2B/tail.tmp"; echo "::endgroup::"
+            else
+              echo "$label log tail suppressed: screening matched a sensitive-content pattern"
+            fi
+          fi
+          "$E2B/guard-alive.sh" "after $label" || exit 91
+          if [[ -e "$EV/STOP" ]]; then echo "::error::STOP: $(cat "$EV/STOP")"; exit 90; fi
+          exit "$rc"
+          RUN
+          cat > "$E2B/lockcheck.sh" <<'LOCK'
+          #!/usr/bin/env bash
+          # usage: lockcheck.sh <phase> [log...]. Gate: both locks must equal their approved sha256, and no
+          # Nix lock-update message may appear in the given logs. Exit 1 on any failure.
+          set -uo pipefail
+          phase=$1; shift
+          A="$WS/.opp_env_workspace"; ok=1
+          a=$(sha256sum "$A/26.05/flake.lock" 2>/dev/null | cut -c1-64)
+          h=$(sha256sum "$A/22.11/flake.lock" 2>/dev/null | cut -c1-64)
+          echo "$phase approved_26.05: ${a:-missing}" >> "$EV/lock.txt"
+          echo "$phase helper_22.11: ${h:-missing}" >> "$EV/lock.txt"
+          [[ "$a" == "$LOCK_SHA256" ]] || ok=0
+          [[ "$h" == "$HELPER_LOCK_SHA256" ]] || ok=0
+          for log in "$@"; do
+            if grep -qiE 'updating lock file|creating lock file|not writing (modified )?lock file|requires lock file changes' "$log"; then
+              echo "$phase lock_update_message_in: $(basename "$log")" >> "$EV/lock.txt"; ok=0
+            fi
+          done
+          if (( ok == 1 )); then echo "$phase result: PASS" >> "$EV/lock.txt"; exit 0; fi
+          echo "$phase result: FAIL" >> "$EV/lock.txt"
+          echo "::error::lock gate failed at $phase"; exit 1
+          LOCK
+          cat > "$E2B/screen.py" <<'SCREEN'
+          # usage: screen.py FILE...  Exit 1 if any file matches a sensitive-content pattern.
+          # Prints only "<file>: <pattern name>" for matches, never the matching content.
+          import os, re, sys
+          PATTERNS = {
+              "github-token": r"gh[pousr]_[A-Za-z0-9]{20,}|github_pat_[A-Za-z0-9_]{20,}",
+              "aws-access-key": r"AKIA[0-9A-Z]{16}",
+              "private-key": r"-----BEGIN [A-Z ]*PRIVATE KEY-----",
+              "auth-header": r"(?i)authorization:\s*(bearer|basic|token)\s+\S",
+              "credential-assignment": r"(?i)\b(password|passwd|secret|api[_-]?key|access[_-]?tokens?)\s*[=:]\s*\S{6,}",
+              "actions-runtime-token": r"ACTIONS_(RUNTIME|ID_TOKEN_REQUEST)_(TOKEN|URL)",
+              "url-with-credentials": r"https?://[^/\s:@]+:[^/\s@]+@",
+              "email-address": r"\b[A-Za-z0-9._%+-]+@[A-Za-z0-9-]+(\.[A-Za-z0-9-]+)*\.(com|org|net|edu|gov|io|de|it|uk|eu|fr|nl|ch|at|se|fi|dk|no|es|pl|cz|hu|cn|jp|kr|in|us|ca|au|info)\b",
+              "private-path": r"(?<![\w/.-])(/root/|/Users/|/var/root/|/home/(?!runner/))",
+          }
+          bad = 0
+          for f in sys.argv[1:]:
+              try:
+                  text = open(f, encoding="utf-8", errors="strict").read()
+              except (OSError, UnicodeDecodeError) as e:
+                  print(f"{os.path.basename(f)}: unreadable-or-not-utf8"); bad = 1; continue
+              for name, rx in PATTERNS.items():
+                  if re.search(rx, text):
+                      print(f"{os.path.basename(f)}: {name}"); bad = 1
+          sys.exit(bad)
+          SCREEN
+          chmod +x "$E2B/guard.sh" "$E2B/guard-alive.sh" "$E2B/guarded.sh" "$E2B/lockcheck.sh"
+          nohup setsid "$E2B/guard.sh" > "$EV/guard-stderr.log" 2>&1 < /dev/null &
+          for _ in $(seq 1 20); do [[ -s "$EV/guard.heartbeat" ]] && break; sleep 0.5; done
+          "$E2B/guard-alive.sh" "guard start"
+          echo "disk guard running, pid $(cat "$EV/guard.pid")"
+
+      - name: Verify the approved 26.05 lock file in the repository
+        id: lockfile
+        run: |
+          "$E2B/guard-alive.sh" "lockfile"
+          size=$(stat -c %s "$LOCK_FILE"); sum=$(sha256sum "$LOCK_FILE" | cut -c1-64)
+          echo "lock_size: $size"; echo "lock_sha256: $sum"
+          [[ "$size" == "$LOCK_SIZE" && "$sum" == "$LOCK_SHA256" ]] || { echo "::error::approved lock mismatch"; exit 1; }
+          /usr/bin/python3 -I - "$LOCK_FILE" <<'PY'
+          import json, sys
+          n = json.load(open(sys.argv[1]))["nodes"]
+          want = {
+              "nixpkgs": ("NixOS", "nixpkgs", "8c50a710ddca43d7a530fb805ad55bde8d0141c5",
+                          "sha256-md0zn0RnwNvPyASas1yG5YUuwQ4ALA6ucL50l0DvqCo="),
+              "flake-utils": ("numtide", "flake-utils", "b7a79d3fea1e214f6d668d521cecec0c01e26544",
+                              "sha256-Zf/xfQEAasnwnmEfHqW/4hjDE/s44yn2hD4RuVIZRjA="),
+              "systems": ("nix-systems", "default", "da67096a3b9bf56a91d16901293e51ba5b49a27e",
+                          "sha256-Vy1rq5AaRuLzOxct8nz4T6wlgyUR7zLU309k9mBC768="),
+          }
+          for k, (owner, repo, rev, nar) in want.items():
+              l = n[k]["locked"]
+              assert (l["owner"], l["repo"], l["rev"], l["narHash"]) == (owner, repo, rev, nar), k
+          assert n["nixpkgs"]["original"] == {"id": "nixpkgs", "ref": "26.05", "type": "indirect"}
+          print("lock content: nixpkgs, flake-utils and systems as approved")
+          PY
+          echo "repository approved_26.05: $sum" > "$EV/lock.txt"
+
+      - name: Install Nix 2.34.4 (verified installer, multi-user)
+        id: nix
+        timeout-minutes: 8
+        run: |
+          curl --fail -sSL --proto '=https' --tlsv1.2 -o "$DL/nix-install" "$NIX_INSTALLER_URL"
+          echo "$NIX_INSTALLER_SHA256  $DL/nix-install" | sha256sum -c -
+          # The installer checks the tarball against its embedded hash; require that hash for x86_64-linux.
+          grep -A2 -F "hash=$NIX_TARBALL_SHA256" "$DL/nix-install" | grep -qx '[[:space:]]*system=x86_64-linux'
+          "$E2B/guarded.sh" nix-install sh "$DL/nix-install" --daemon --yes --no-channel-add --no-modify-profile
+          echo "/nix/var/nix/profiles/default/bin" >> "$GITHUB_PATH"
+          export PATH="/nix/var/nix/profiles/default/bin:$PATH"
+          v=$(nix --version)
+          echo "nix_version: $v" | tee "$EV/nix.txt"
+          [[ "$v" == "nix (Nix) $NIX_VERSION" ]] || { echo "::error::unexpected Nix version: $v"; exit 1; }
+          nix $NIX_X config show > "$E2B/unpublished/nix-config.txt"
+          grep -E '^(substituters|trusted-public-keys|require-sigs|sandbox|max-jobs|cores|experimental-features|accept-flake-config) ' \
+            "$E2B/unpublished/nix-config.txt" | tee -a "$EV/nix.txt"
+          grep -qx 'require-sigs = true' "$E2B/unpublished/nix-config.txt" || { echo "::error::require-sigs is not true"; exit 1; }
+          echo "nix_store_mount: $(df -B1 --output=target /nix | tail -1)" | tee -a "$EV/nix.txt"
+          echo "nix_store_bytes_after_nix_install: $(du -sb /nix/store | cut -f1)" | tee -a "$EV/nix.txt"
+          echo "root_avail_after_nix_install_B: $(df -B1 --output=avail / | tail -1 | tr -d ' ')" | tee -a "$EV/nix.txt"
+
+      - name: Install opp_env 0.36.2.261110 (verified wheel, no dependency resolution)
+        id: oppenv
+        timeout-minutes: 3
+        run: |
+          "$E2B/guard-alive.sh" "oppenv"
+          W="$DL/opp_env-${OPP_ENV_PIN}-py3-none-any.whl"
+          curl --fail -sSL --proto '=https' --tlsv1.2 -o "$W" "$OPP_ENV_WHEEL_URL"
+          echo "$OPP_ENV_WHEEL_SHA256  $W" | sha256sum -c -
+          # The pinned wheel declares no dependencies; fail closed if it does.
+          if /usr/bin/python3 -I -c 'import sys, zipfile
+          z = zipfile.ZipFile(sys.argv[1])
+          m = [n for n in z.namelist() if n.endswith(".dist-info/METADATA")][0]
+          print(z.read(m).decode())' "$W" | grep -q '^Requires-Dist:'; then
+            echo "::error::wheel declares dependencies"; exit 1
+          fi
+          /usr/bin/python3 -m venv "$VENV"
+          "$VENV/bin/python" -m pip install --no-index --no-deps --only-binary :all: "$W" > "$E2B/unpublished/pip.log" 2>&1
+          OE="$VENV/bin/opp_env"
+          [[ "$("$OE" --version)" == "$OPP_ENV_PIN" ]] || { echo "::error::opp_env version mismatch"; exit 1; }
+          mod=$("$VENV/bin/python" -I -c 'import opp_env, os; print(os.path.dirname(os.path.realpath(opp_env.__file__)))')
+          [[ "$mod" == "$(realpath "$VENV")"/* ]] || { echo "::error::opp_env module outside the venv"; exit 1; }
+          echo "$OPP_ENV_MAIN_SHA256  $mod/opp_env.py" | sha256sum -c -
+          {
+            echo "opp_env_exe: $OE"
+            echo "opp_env_version: $("$OE" --version)"
+            echo "opp_env_module: $mod"
+            echo "opp_env_main_sha256: $(sha256sum "$mod/opp_env.py" | cut -c1-64)"
+            echo "opp_env_on_PATH: $(type -P opp_env || echo none)"
+            echo "venv_python: $("$VENV/bin/python" -V 2>&1)"
+          } | tee "$EV/opp_env.txt"
+          echo "OE=$OE" >> "$GITHUB_ENV"
+
+      - name: Initialise the workspace, install the approved lock, write-protect both locks
+        id: init
+        run: |
+          "$E2B/guard-alive.sh" "init"
+          "$OE" init -w "$WS"
+          A="$WS/.opp_env_workspace"
+          [[ ! -e "$A/26.05" ]] || { echo "::error::$A/26.05 already exists"; exit 1; }
+          echo "$HELPER_LOCK_SHA256  $A/22.11/flake.lock" | sha256sum -c -
+          mkdir "$A/26.05"
+          install -m 0444 "$LOCK_FILE" "$A/26.05/flake.lock"
+          echo "$LOCK_SHA256  $A/26.05/flake.lock" | sha256sum -c -
+          # opp_env runs `nix develop` without --no-update-lock-file, and Nix 2.34.4 has no setting that forbids
+          # lock updates. Mitigation: the immutable attribute makes any attempted lock write fail; detection by the
+          # lock gates (hashes + Nix lock-update messages) remains the authoritative control.
+          sudo chattr +i "$A/26.05/flake.lock" "$A/22.11/flake.lock"
+          {
+            for f in "$A/26.05/flake.lock" "$A/22.11/flake.lock"; do
+              attrs=$(lsattr "$f" | cut -d' ' -f1)
+              [[ "$attrs" == *i* ]] || { echo "::error::immutable attribute not set on $(basename "$(dirname "$f")")"; exit 1; }
+              echo "write_protection $(basename "$(dirname "$f")"): immutable ($attrs)"
+            done
+            echo "limitation: opp_env's nix develop invocation cannot be given --no-update-lock-file; an in-process lock update is detected and its write is blocked, but is not proven impossible"
+          } | tee "$EV/lock-enforcement.txt"
+          (cd "$A" && find . -type f -print0 | sort -z | xargs -0 sha256sum) | tee "$EV/workspace-admin-before.sha256"
+          "$E2B/lockcheck.sh" before-realisation
+
+      - name: Record release-asset checksums (separate streamed fetch; not proof of what opp_env consumed)
+        id: assets
+        timeout-minutes: 6
+        run: |
+          "$E2B/guard-alive.sh" "assets"
+          "$OE" info --raw $PROJECTS > "$E2B/unpublished/opp_env-info.json" 2>&1
+          {
+            echo "# Checksums of release assets retrieved by this separate, streamed operation (not stored)."
+            echo "# LIMITATION: they do not prove that opp_env consumed identical archive bytes (opp_env streams"
+            echo "# curl into tar without a checksum), and they do not establish VM source equivalence."
+            for u in \
+              https://github.com/omnetpp/omnetpp/releases/download/omnetpp-6.5.0/omnetpp-6.5.0-linux-x86_64.tgz \
+              https://github.com/inet-framework/inet/releases/download/v4.7.0/inet-4.7.0-src.tgz \
+              https://github.com/Unipisa/Simu5G/releases/download/v1.8.1/simu5g-1.8.1-src.tgz; do
+              grep -qF "$u" "$E2B/unpublished/opp_env-info.json" || { echo "::error::opp_env does not use $u" >&2; exit 1; }
+              printf '%s  %s\n' "$(curl --fail -sSL --proto '=https' "$u" | sha256sum | cut -c1-64)" "$u"
+            done
+          } | tee "$EV/release-assets.sha256"
+
+      - name: Realise the pinned development shell (opp_env install --no-build)
+        id: realise
+        timeout-minutes: 30
+        run: |
+          # Downloads the three trees and applies the pinned opp_env recipe adaptations (M-3); the patch sessions
+          # realise the 26.05 development shell. --no-build suppresses build_all: nothing is configured or compiled.
+          "$E2B/guarded.sh" realise "$OE" install -w "$WS" --no-pause --no-build $PROJECTS
+          echo "root_avail_after_realise_B: $(df -B1 --output=avail / | tail -1 | tr -d ' ')" | tee -a "$EV/sizes.txt"
+
+      - name: Lock gate after realisation (hashes, lock-update messages, locked metadata check)
+        id: lockpost
+        timeout-minutes: 4
+        run: |
+          "$E2B/guard-alive.sh" "lockpost"
+          "$E2B/lockcheck.sh" after-realisation "$EV/realise.log"
+          A="$WS/.opp_env_workspace"
+          nix $NIX_X flake metadata --json --no-update-lock-file --no-write-lock-file "path:$A/26.05" \
+            > "$E2B/unpublished/flake-metadata-26.05.json"
+          /usr/bin/python3 -I - "$E2B/unpublished/flake-metadata-26.05.json" "$EV/flake-lock-check.txt" <<'PY'
+          import json, sys
+          nodes = json.load(open(sys.argv[1]))["locks"]["nodes"]
+          got = {k: nodes[k]["locked"]["rev"] for k in ("nixpkgs", "flake-utils", "systems")}
+          want = {"nixpkgs": "8c50a710ddca43d7a530fb805ad55bde8d0141c5",
+                  "flake-utils": "b7a79d3fea1e214f6d668d521cecec0c01e26544",
+                  "systems": "da67096a3b9bf56a91d16901293e51ba5b49a27e"}
+          with open(sys.argv[2], "w") as f:
+              for k in want:
+                  f.write(f"locked_rev {k}: {got[k]}\n")
+              f.write(f"flake_metadata_no_update_check: {'PASS' if got == want else 'FAIL'}\n")
+          assert got == want, got
+          print("flake metadata (lock update forbidden): locked revisions equal the approved lock")
+          PY
+          echo "generated_flake_26.05_sha256: $(sha256sum "$A/26.05/flake.nix" | cut -c1-64)" | tee -a "$EV/flake-lock-check.txt"
+          echo "generated_flake_22.11_sha256: $(sha256sum "$A/22.11/flake.nix" | cut -c1-64)" | tee -a "$EV/flake-lock-check.txt"
+          grep -E '^\s*(nixpkgs|flake-utils)\.url' "$A/26.05/flake.nix" | sed 's/^ */generated_flake_26.05_input: /' | tee -a "$EV/flake-lock-check.txt"
+          (cd "$A" && find . -type f -print0 | sort -z | xargs -0 sha256sum) > "$EV/workspace-admin-after.sha256"
+          /usr/bin/python3 -I - "$EV/workspace-admin-before.sha256" "$EV/workspace-admin-after.sha256" <<'PY'
+          import sys
+          def load(p):
+              return {l.split(maxsplit=1)[1].strip(): l.split()[0] for l in open(p) if l.strip()}
+          before, after = load(sys.argv[1]), load(sys.argv[2])
+          changed = sorted(p for p in before if p in after and before[p] != after[p])
+          removed = sorted(p for p in before if p not in after)
+          added = sorted(p for p in after if p not in before)
+          print("admin files added:", added, "changed:", changed, "removed:", removed)
+          assert not changed and not removed, "workspace admin files changed or removed"
+          assert set(added) <= {"./22.11/flake.nix", "./26.05/flake.nix"}, "unexpected admin files added"
+          PY
+
+      - name: Toolchain and configuration probe inside the opp_env shell (no build, no simulation)
+        id: probe
+        timeout-minutes: 6
+        run: |
+          cat > "$E2B/probe.sh" <<'PROBE'
+          # usage: bash probe.sh <output file>. Required probes fail the step; optional ones report NOT AVAILABLE.
+          out=$1; fail=0
+          {
+            echo "opp_env_version_in_shell: ${OPP_ENV_VERSION:-<unset>}"
+            echo "omnetpp_root: $OMNETPP_ROOT"
+            echo "inet_root: $INET_ROOT"
+            echo "simu5g_root: $SIMU5G_ROOT"
+            echo "build_modes_session: ${BUILD_MODES:-<unset>}"
+            for t in clang++ g++ make python3; do
+              if ! p=$(command -v "$t"); then echo "required $t: MISSING"; fail=1; continue; fi
+              if v=$("$t" --version 2>&1); then echo "tool $t: $p | $(head -1 <<< "$v")"; else echo "required $t: VERSION COMMAND FAILED"; fail=1; fi
+            done
+            for t in cc c++ clang gcc ld ld.lld bison flex perl pkg-config ccache lldb patchelf qmake z3; do
+              if p=$(command -v "$t") && v=$("$t" --version 2>&1); then echo "tool $t: $p | $(head -1 <<< "$v")"
+              else echo "tool $t: NOT AVAILABLE"; fi
+            done
+            python3 -c 'import numpy, scipy, pandas, matplotlib; print("python_modules:", numpy.__version__, scipy.__version__, pandas.__version__, matplotlib.__version__)' 2>/dev/null \
+              || echo "python_modules: NOT AVAILABLE"
+            if v=$(cat "$OMNETPP_ROOT/Version"); then echo "omnetpp_version_file: $v"; else echo "required omnetpp Version: FAILED"; fail=1; fi
+            if v=$(cat "$SIMU5G_ROOT/Version"); then echo "simu5g_version_file: $v"; else echo "required simu5g Version: FAILED"; fail=1; fi
+            if c=$(grep -E '^(WITH_|PREFER_|USE_)' "$OMNETPP_ROOT/configure.user"); then
+              sed 's/^/configure.user /; s/=/: /' <<< "$c"
+            else
+              echo "required configure.user: FAILED"; fail=1
+            fi
+            echo "probe_result: $([ "$fail" = 0 ] && echo PASS || echo FAIL)"
+          } > "$out" 2>&1
+          exit "$fail"
+          PROBE
+          "$E2B/guarded.sh" probe "$OE" run -w "$WS" $PROJECTS -c "bash $E2B/probe.sh $EV/probe.txt"
+          cat "$EV/probe.txt"
+
+      - name: Lock gate after the final opp_env probe
+        id: lockfinal
+        run: |
+          "$E2B/guard-alive.sh" "lockfinal"
+          "$E2B/lockcheck.sh" after-probe "$EV/realise.log" "$EV/probe.log"
+
+      - name: Adaptation screening (recipe consistency, not transformation equivalence) and build-output check
+        id: adapt
+        timeout-minutes: 3
+        run: |
+          "$E2B/guard-alive.sh" "adapt"
+          /usr/bin/python3 -I - <<'PY'
+          import os, re
+          EV = os.environ["EV"]
+          roots = {}
+          for line in open(os.path.join(EV, "probe.txt")):
+              m = re.match(r"(omnetpp|inet|simu5g)_root: (\S+)$", line.strip())
+              if m:
+                  roots[m.group(1)] = m.group(2)
+          assert set(roots) == {"omnetpp", "inet", "simu5g"}, "project roots not found in probe output"
+
+          def manifest(root, name):
+              d = {}
+              for line in open(os.path.join(root, ".opp_env", name + ".sha")):
+                  h, p = line.rstrip("\n").split(maxsplit=1)
+                  d[p] = h
+              return d
+
+          def contains(root, rel, s):
+              try:
+                  return s in open(os.path.join(root, rel), errors="replace").read()
+              except OSError:
+                  return False
+
+          # Pattern-based attribution to the pinned opp_env 0.36.2.261110 recipes (database/omnetpp.py, inet.py,
+          # simu5g.py). This establishes RECIPE CONSISTENCY ONLY: a string-presence check does not prove that a file
+          # received exactly the recipe's transformation and nothing else.
+          OMNETPP = {"./src/envir/evmain.cc", "./src/utils/opp_ide", "./Makefile.inc.in", "./configure.user", "./Version"}
+          def attributable(proj, root, p, kind):
+              if proj == "omnetpp":
+                  return p in OMNETPP
+              if proj == "inet":
+                  if p in ("./.oppfeaturestate", "./.nedexclusions"):
+                      return True
+                  if kind == "removed" and p.startswith("./examples/voipstream/osudp/"):
+                      return True
+                  return kind == "changed" and contains(root, p, "defined(__linux__)")
+              if proj == "simu5g":
+                  if p == "./Makefile":
+                      return kind == "changed" and contains(root, p, "-KINET_PROJ=$(INET_ROOT)")
+                  return kind == "changed" and os.path.basename(p) == "omnetpp.ini" and contains(root, p, "#image-path")
+              return False
+
+          unexpected = outputs = 0
+          with open(os.path.join(EV, "adaptations.tsv"), "w") as out:
+              out.write("project\tkind\tpath\tattribution\n")
+              for proj, root in sorted(roots.items()):
+                  pre, post = manifest(root, "prepatch"), manifest(root, "postdownload")
+                  changes = [(p, "changed") for p in post if p in pre and pre[p] != post[p]]
+                  changes += [(p, "added") for p in post if p not in pre]
+                  changes += [(p, "removed") for p in pre if p not in post]
+                  for p, kind in sorted(changes):
+                      ok = attributable(proj, root, p, kind)
+                      unexpected += not ok
+                      out.write(f"{proj}\t{kind}\t{p}\t{'recipe-consistent' if ok else 'UNEXPECTED'}\n")
+                  for d, dirs, files in os.walk(root):
+                      rel_d = os.path.relpath(d, root)
+                      if rel_d.split(os.sep)[0] in ("ide", ".opp_env"):
+                          continue
+                      for f in files:
+                          rp = "./" + os.path.normpath(os.path.join(rel_d, f))
+                          if re.search(r"\.(o|so|a)$", f) and rp not in post:
+                              outputs += 1
+                              out.write(f"{proj}\tbuild-output\t{rp}\tFRAMEWORK-BUILD-OUTPUT\n")
+          with open(os.path.join(EV, "adaptations-summary.txt"), "w") as s:
+              s.write("scope: recipe consistency (pattern-based attribution); NOT exact transformation equivalence\n")
+              s.write(f"unexpected_adaptations: {unexpected}\nframework_build_outputs_after_download: {outputs}\n")
+          print(open(os.path.join(EV, "adaptations-summary.txt")).read())
+          assert unexpected == 0, "change not attributable to the pinned opp_env recipe"
+          assert outputs == 0, "simulation-framework build outputs found"
+          PY
+          for p in omnetpp inet simu5g; do
+            r=$(sed -n "s/^${p}_root: //p" "$EV/probe.txt")
+            cp "$r/.opp_env/prepatch.sha" "$EV/$p-prepatch.sha"
+            cp "$r/.opp_env/postdownload.sha" "$EV/$p-postdownload.sha"
+          done
+
+      - name: Independent verification of the installed trees against the postdownload manifests
+        id: verify
+        timeout-minutes: 3
+        run: |
+          "$E2B/guard-alive.sh" "verify"
+          : > "$EV/postdownload-verify.txt"
+          rc=0
+          for p in omnetpp inet simu5g; do
+            r=$(sed -n "s/^${p}_root: //p" "$EV/probe.txt")
+            n=$(wc -l < "$r/.opp_env/postdownload.sha")
+            # sha1sum -c exits non-zero on any mismatched or missing file (opp_env manifests are SHA-1, shasum format).
+            if (cd "$r" && sha1sum -c --quiet --strict .opp_env/postdownload.sha) > "$E2B/unpublished/verify-$p.txt" 2>&1; then
+              echo "$p postdownload_manifest_entries: $n" >> "$EV/postdownload-verify.txt"
+              echo "$p sha1sum_check: PASS" >> "$EV/postdownload-verify.txt"
+            else
+              echo "$p sha1sum_check: FAIL ($(grep -c -E ': (FAILED|FAILED open or read)$' "$E2B/unpublished/verify-$p.txt") files)" >> "$EV/postdownload-verify.txt"
+              rc=1
+            fi
+            # Files present now but absent from the manifest (outside ide/ and .opp_env/, which opp_env excludes).
+            extra=$(cd "$r" && comm -13 <(cut -d' ' -f3- .opp_env/postdownload.sha | sort -u) \
+                      <(find . \( -path ./.opp_env -o -path ./ide \) -prune -o -type f -print | sort -u) | wc -l)
+            echo "$p files_added_after_download: $extra" >> "$EV/postdownload-verify.txt"
+            (( extra == 0 )) || rc=1
+          done
+          cat "$EV/postdownload-verify.txt"
+          exit "$rc"
+
+      - name: Measure installed size and local Nix builds
+        id: measure
+        if: always()
+        timeout-minutes: 4
+        run: |
+          set +e
+          {
+            echo "nix_store_bytes_final: $(du -sb /nix/store 2>/dev/null | cut -f1)"
+            for d in "$WS"/*/; do [[ -d "$d" ]] && echo "tree_bytes $(basename "$d"): $(du -sb "$d" | cut -f1)"; done
+            echo "workspace_bytes_total: $(du -sb "$WS" 2>/dev/null | cut -f1)"
+            echo "root_avail_final_B: $(df -B1 --output=avail / | tail -1 | tr -d ' ')"
+          } | tee -a "$EV/sizes.txt"
+          df -B1 -T | tee "$EV/df-end.txt"
+          if nix $NIX_X path-info --all --json > "$E2B/unpublished/path-info.json" 2>/dev/null; then pi=ok; else pi=failed; fi
+          /usr/bin/python3 -I - "$E2B/unpublished/path-info.json" "$EV/nix-store-summary.txt" "$pi" <<'PY'
+          import json, re, sys
+          src, dst, status = sys.argv[1:4]
+          try:
+              if status != "ok":
+                  raise RuntimeError("nix path-info failed")
+              data = json.load(open(src))
+              items = list(data.items()) if isinstance(data, dict) else [(d.get("path"), d) for d in data]
+              if not items:
+                  raise RuntimeError("empty path-info")
+          except Exception as e:
+              open(dst, "w").write(f"path_info: NOT AVAILABLE ({type(e).__name__})\n"); sys.exit(0)
+          n = nar = 0; local = []
+          for path, info in items:
+              info = info or {}
+              n += 1; nar += info.get("narSize", 0) or 0
+              if info.get("ultimate"):
+                  local.append(path)
+          with open(dst, "w") as f:
+              f.write(f"path_info: AVAILABLE\nstore_paths: {n}\nstore_nar_bytes: {nar}\nlocally_built_or_added: {len(local)}\n")
+              for p in sorted(local):
+                  name = p.split("-", 1)[1] if "-" in p else p
+                  if re.search(r"(omnetpp|inet|simu5g|nasctime)", name, re.I) and not name.endswith("-env"):
+                      tag = "FRAMEWORK-BUILD"
+                  elif name.endswith(("-source", "-env")) or name == "source":
+                      tag = "expected"
+                  else:
+                      tag = "LOCAL-PACKAGE-BUILD"
+                  f.write(f"local {tag}: {name}\n")
+          PY
+          cat "$EV/nix-store-summary.txt"
+
+      - name: Terminate the guard and evaluate acceptance criteria
+        id: evaluate
+        if: always()
+        env:
+          STEP_OUTCOMES: ${{ toJSON(steps) }}
+        run: |
+          set +e
+          [[ -x "$E2B/guard-alive.sh" ]] && "$E2B/guard-alive.sh" "evaluation"
+          touch "$EV/guard.off"
+          pid=$(cat "$EV/guard.pid" 2>/dev/null)
+          term=not-started
+          if [[ -n "$pid" ]]; then
+            term=no
+            for _ in $(seq 1 30); do
+              st=$(ps -o stat= -p "$pid" 2>/dev/null | tr -d ' ')
+              [[ -z "$st" || "$st" == Z* ]] && { term=yes; break; }   # exited (a zombie has exited)
+              sleep 1
+            done
+          fi
+          {
+            echo "guard_pid: ${pid:-none}"
+            echo "guard_terminated: $term"
+            echo "guard_exited_marker: $([[ -e "$EV/guard.exited" ]] && cat "$EV/guard.exited" || echo absent)"
+            echo "liveness_checks_ok: $(grep -c ' ok \[' "$EV/guard-checks.txt" 2>/dev/null)"
+            echo "liveness_checks_failed: $(grep -c ' FAIL \[' "$EV/guard-checks.txt" 2>/dev/null)"
+          } | tee "$EV/guard.txt"
+          /usr/bin/python3 -I - <<'PY'
+          import json, os
+          EV = os.environ["EV"]; GiB = 1073741824
+          def read(p):
+              try: return open(os.path.join(EV, p)).read()
+              except OSError: return ""
+          def kv(t):
+              d = {}
+              for line in t.splitlines():
+                  if ": " in line:
+                      k, v = line.split(": ", 1); d.setdefault(k.strip(), v.strip())
+              return d
+          runner, nix, oe, probe = kv(read("runner.txt")), kv(read("nix.txt")), kv(read("opp_env.txt")), kv(read("probe.txt"))
+          lock, adapt, guard = kv(read("lock.txt")), kv(read("adaptations-summary.txt")), kv(read("guard.txt"))
+          flk, ver, nixs, sizes = kv(read("flake-lock-check.txt")), read("postdownload-verify.txt"), read("nix-store-summary.txt"), kv(read("sizes.txt"))
+          timings = {l.split("\t")[0]: l.split("\t")[1:] for l in read("timings.tsv").splitlines()[1:] if l.count("\t") == 2}
+          outcomes = {k: v.get("outcome") for k, v in json.loads(os.environ.get("STEP_OUTCOMES") or "{}").items()}
+          MANDATORY = ["setup", "checkout", "commit", "capacity", "guard", "lockfile", "nix", "oppenv", "init", "assets",
+                       "realise", "lockpost", "probe", "lockfinal", "adapt", "verify"]
+          failed_steps = [s for s in MANDATORY if outcomes.get(s) != "success"]
+          rows = []
+          def row(i, what, ok, detail="", gating=True):
+              res = ok if isinstance(ok, str) else ("PASS" if ok else "FAIL")
+              rows.append((i, what, res, detail, gating))
+          def stepok(*ids): return all(outcomes.get(s) == "success" for s in ids)
+          row("A-1", "runner capacity measured", stepok("capacity") and all(k in runner for k in ("nproc", "mem_total_kib", "root_avail_start_B")),
+              f"nproc={runner.get('nproc')} mem_total_kib={runner.get('mem_total_kib')} root_free_start_B={runner.get('root_avail_start_B')}")
+          row("A-2", "Nix 2.34.4 from the verified installer", stepok("nix") and nix.get("nix_version") == "nix (Nix) " + os.environ["NIX_VERSION"],
+              nix.get("nix_version", "not recorded"))
+          row("A-3", "substitutes signature-checked (require-sigs = true)", stepok("nix") and "require-sigs = true" in read("nix.txt").splitlines())
+          row("A-4", "opp_env 0.36.2.261110 (wheel and module sha256) from the venv", stepok("oppenv")
+              and oe.get("opp_env_version") == os.environ["OPP_ENV_PIN"] and oe.get("opp_env_main_sha256") == os.environ["OPP_ENV_MAIN_SHA256"]
+              and oe.get("opp_env_module", "").startswith(os.path.realpath(os.environ["VENV"]) + "/"), oe.get("opp_env_version", "not recorded"))
+          phases = ("before-realisation", "after-realisation", "after-probe")
+          lock_ok = (stepok("lockfile", "init", "lockpost", "lockfinal")
+                     and all(lock.get(f"{p} result") == "PASS" for p in phases)
+                     and all(lock.get(f"{p} approved_26.05") == os.environ["LOCK_SHA256"] for p in phases)
+                     and all(lock.get(f"{p} helper_22.11") == os.environ["HELPER_LOCK_SHA256"] for p in phases)
+                     and flk.get("flake_metadata_no_update_check") == "PASS"
+                     and read("lock-enforcement.txt").count(": immutable") == 2)
+          row("A-5", "both locks unchanged at three gates; no lock-update message; write-protected; locked metadata check "
+              "(detection and write-blocking; an in-process update is not proven impossible)", lock_ok,
+              "; ".join(f"{p}={lock.get(p + ' result', 'missing')}" for p in phases))
+          row("A-6", "development shell realised without compilation (install --no-build exit 0)",
+              stepok("realise") and timings.get("realise", ["", "x"])[1] == "0", f"{timings.get('realise', ['?'])[0]} s")
+          def tool(t): return probe.get(f"tool {t}", "")
+          tc_ok = (stepok("probe") and probe.get("probe_result") == "PASS"
+                   and os.environ["EXPECT_CLANG"] in tool("clang++") and os.environ["EXPECT_GCC"] in tool("g++")
+                   and ("GNU Make " + os.environ["EXPECT_MAKE"]) in tool("make") and ("Python " + os.environ["EXPECT_PYTHON"]) in tool("python3"))
+          row("A-7", "toolchain identity (F-7: Clang 21.1.8, GCC 15.2.0, GNU Make 4.2.1, Python 3.13.13)", tc_ok,
+              " / ".join((tool(t).split("| ")[-1] or "missing") for t in ("clang++", "g++", "make", "python3")))
+          ref = dict(WITH_PYTHON="yes", WITH_QTENV="yes", WITH_OSG="no", WITH_OSGEARTH="no", WITH_NETBUILDER="yes",
+                     WITH_SCAVE_PYTHON_BINDINGS="yes", WITH_LIBXML="no", WITH_PARSIM="yes", WITH_SYSTEMC="no",
+                     WITH_BACKTRACE="yes", WITH_AKAROA="no")
+          got = {k: probe.get("configure.user " + k) for k in ref}
+          row("A-8", "OMNeT++ configure.user equals the 11 reference WITH_* values", stepok("probe") and got == ref,
+              ", ".join(f"{k}={v}" for k, v in got.items() if v != ref[k]) or "all 11 equal")
+          fw_nix = nixs.count("local FRAMEWORK-BUILD")
+          row("A-9", "adaptations recipe-consistent (pattern-based; NOT exact transformation equivalence); "
+              "no simulation-framework build outputs", stepok("adapt") and adapt.get("unexpected_adaptations") == "0"
+              and adapt.get("framework_build_outputs_after_download") == "0" and fw_nix == 0,
+              f"unexpected={adapt.get('unexpected_adaptations', 'n/a')} framework_outputs={adapt.get('framework_build_outputs_after_download', 'n/a')} nix_framework_builds={fw_nix}")
+          v_ok = (stepok("verify") and ver.count("sha1sum_check: PASS") == 3
+                  and all(f"{p} files_added_after_download: 0" in ver for p in ("omnetpp", "inet", "simu5g")))
+          row("A-10", "installed trees match postdownload manifests (sha1sum -c, non-zero on mismatch); no files added after download", v_ok)
+          if "path_info: AVAILABLE" not in nixs:
+              a11 = "NOT EVALUATED"
+          elif nixs.count("local LOCAL-PACKAGE-BUILD"):
+              a11 = "REPORTED"
+          else:
+              a11 = "PASS"
+          row("A-11", "Nix packages substituted from the binary cache, not built locally (distinct from A-9)", a11,
+              f"{nixs.count('local LOCAL-PACKAGE-BUILD')} local package build(s)", gating=False)
+          disk = [l.split("\t") for l in read("disk.tsv").splitlines()[1:] if l.count("\t") == 4]
+          root = [int(r[2]) for r in disk if r[1] == "/" and r[2].isdigit()]
+          mem = [int(r[4]) for r in disk if r[4].isdigit()]
+          start = int(runner.get("root_avail_start_B", "0") or 0)
+          peak_used = (start - min(root)) if root and start else None
+          final_free = int(sizes["root_avail_final_B"]) if sizes.get("root_avail_final_B", "").isdigit() else (root[-1] if root else None)
+          stop_b = int(os.environ["STOP_FREE_GIB"]) * GiB
+          remaining = (final_free - stop_b) if final_free is not None else None
+          row("A-12", "time, size, peak disk and minimum memory measured", peak_used is not None and bool(mem) and "nix_store_bytes_final" in sizes,
+              f"peak_used_B={peak_used} final_free_B={final_free} remaining_above_stop_B={remaining} min_mem_avail_kib={min(mem) if mem else None}")
+          stop = read("STOP").strip(); gfail = read("GUARD_FAILURE").strip()
+          guard_ok = (not gfail and guard.get("guard_terminated") == "yes" and guard.get("liveness_checks_failed") == "0"
+                      and int(guard.get("liveness_checks_ok") or 0) >= 1)
+          row("A-13", "no STOP; disk guard alive at every checkpoint and terminated cleanly", not stop and guard_ok,
+              stop or gfail or f"checks_ok={guard.get('liveness_checks_ok')} terminated={guard.get('guard_terminated')}")
+          gating_bad = [r for r in rows if r[4] and r[2] != "PASS"]
+          if stop:
+              verdict = "STOP"
+          elif gfail or not guard_ok:
+              verdict = "INFRASTRUCTURE FAILURE"
+          elif failed_steps or gating_bad:
+              verdict = "PREFLIGHT FAIL"
+          else:
+              verdict = "PREFLIGHT PASS"
+          with open(os.path.join(EV, "capacity.txt"), "w") as f:
+              f.write(f"root_free_start_B: {start}\npeak_used_B: {peak_used}\nroot_free_final_B: {final_free}\n"
+                      f"remaining_above_stop_threshold_B: {remaining}\nstop_threshold_B: {stop_b}\n"
+                      f"min_mem_available_kib: {min(mem) if mem else None}\n"
+                      f"wall_seconds_by_guarded_step: { {k: v[0] for k, v in timings.items()} }\n"
+                      "note: full-stack compilation size is NOT YET MEASURED; remaining_above_stop_threshold_B is the "
+                      "upper bound available to E2b.2 on an identical runner.\n")
+          lines = [f"# E2b.1 preflight: {verdict}", "",
+                   "Infrastructure measurement only: no compilation, no simulation. No VM byte-equivalence claim. "
+                   "Release-asset checksums come from a separate fetch and do not prove what opp_env consumed. "
+                   "A-9 is recipe consistency, not transformation equivalence. A lock update inside opp_env's own Nix "
+                   "invocation is detected and write-blocked, not proven impossible.", "",
+                   f"Mandatory steps not successful: {', '.join(f'{s}={outcomes.get(s)}' for s in failed_steps) or 'none'}", "",
+                   "| ID | Criterion | Result | Gating | Detail |", "|---|---|---|---|---|"]
+          lines += [f"| {i} | {w} | {o} | {'yes' if g else 'no'} | {d} |" for i, w, o, d, g in rows]
+          text = "\n".join(lines) + "\n"
+          open(os.path.join(EV, "verdict.md"), "w").write(text)
+          open(os.environ["GITHUB_STEP_SUMMARY"], "a").write(text)
+          print(text)
+          print(read("capacity.txt"))
+          raise SystemExit(0 if verdict == "PREFLIGHT PASS" else 1)
+          PY
+
+      - name: Prepare allow-listed, screened diagnostics
+        id: publish
+        if: always()
+        run: |
+          # Control files are removed only after guard termination was confirmed.
+          if grep -qx 'guard_terminated: yes' "$EV/guard.txt" 2>/dev/null; then
+            rm -f "$EV/guard.target" "$EV/guard.off" "$EV/guard.pid" "$EV/guard.heartbeat"
+          else
+            echo "::warning::guard termination not confirmed; control files kept, diagnostics not published"; exit 1
+          fi
+          P="$E2B/publish"; rm -rf "$P"; mkdir -p "$P"
+          ALLOW="runner.txt df-start.txt df-end.txt lsblk.txt timings.tsv disk.tsv guard.txt guard-checks.txt
+                 guard-actions.txt lock.txt lock-enforcement.txt flake-lock-check.txt nix.txt opp_env.txt
+                 release-assets.sha256 workspace-admin-before.sha256 workspace-admin-after.sha256 probe.txt
+                 adaptations.tsv adaptations-summary.txt postdownload-verify.txt
+                 omnetpp-prepatch.sha omnetpp-postdownload.sha inet-prepatch.sha inet-postdownload.sha
+                 simu5g-prepatch.sha simu5g-postdownload.sha sizes.txt nix-store-summary.txt capacity.txt verdict.md
+                 STOP GUARD_FAILURE"
+          for f in $ALLOW; do [[ -f "$EV/$f" ]] && cp "$EV/$f" "$P/$f"; done
+          # Tool logs are published only as screened tails.
+          for l in realise probe; do
+            [[ -f "$EV/$l.log" ]] && tail -n 300 "$EV/$l.log" | sed 's/\x1b\[[0-9;?]*[A-Za-z]//g; s/\r/\n/g' > "$P/$l.tail.txt"
+          done
+          bad=0
+          while IFS= read -r -d '' f; do
+            case "$(file -b --mime-type "$f")" in
+              text/*|application/json|inode/x-empty) ;;
+              *) echo "non-text diagnostic: $(basename "$f")"; bad=1 ;;
+            esac
+          done < <(find "$P" -type f -print0)
+          if ! /usr/bin/python3 -I "$E2B/screen.py" "$P"/*; then bad=1; fi
+          total=$(du -sb "$P" | cut -f1); echo "diagnostics_bytes: $total"
+          (( total <= 20 * 1024 * 1024 )) || { echo "diagnostics exceed 20 MiB"; bad=1; }
+          if (( bad )); then
+            rm -rf "$P"
+            echo "::error::diagnostic screening failed; artifact publication suppressed (reasons above name files and patterns only)"
+            exit 1
+          fi
+          ls -1 "$P"
+
+      - name: Upload screened text diagnostics (retained 7 days)
+        if: always() && steps.publish.outcome == 'success'
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: e2b1-preflight-diagnostics
+          path: ${{ runner.temp }}/e2b1/publish/
+          retention-days: 7
+          if-no-files-found: error
