@@ -31,7 +31,7 @@ jobs:
 
     env:
       # Independently recorded identities (h4-first-task.md §4). Fail closed on any mismatch.
-      EXPECTED_SIMU5G_COMMIT: 7477d2663644bbf78604267cba4fc113b4871ede
+      EXPECTED_SIMU5G_COMMIT: 7477d2663644bbf78604267cba4fc113b4871edf
       SIMU5G_TAG: v1.8.1
       SIMU5G_URL: https://github.com/Unipisa/Simu5G
       FIXTURE_PATH: simulations/m2/check/fixtures/a2v1-first-chain.log.gz
