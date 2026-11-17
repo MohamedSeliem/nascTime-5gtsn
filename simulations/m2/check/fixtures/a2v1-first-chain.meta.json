@@ -1,0 +1,239 @@
+{
+ "cfg": "M2S72-E0vN-q0-one0-n2-f1_A2V1",
+ "extraction": {
+  "boundary_loop_ms": 385,
+  "boundary_rule": "up to (excluding) the first time-stamped line later than the TTI of the first gNB main loop starting after 384 ms; that TTI holds the loop's end marker",
+  "bytes": 20178664,
+  "decompressed_sha256": "b4d609870c155c0de26689e1de65d89beb9a35ca42c2eeed7c8721183b583380",
+  "first_excluded_line": "0.3850012252|M2S72Bridge.upf.ethBridge.macTable|Updating entry, \u001b[1maddress\u001b[0m = 0A-AA-00-00-00-09, \u001b[1minterfaceId\u001b[0m = 101, \u001b[1mvid\u001b[0m = 42.",
+  "first_line": "OMNeT++ Discrete Event Simulation  (C) 1992-2026 Andras Varga, OpenSim Ltd.",
+  "last_line": "0.385|M2S72Bridge.gnb1.cellularNic.mac|H-ARQ RX: new PDU (id 163522 ) inserted into process 0",
+  "lines": 181153
+ },
+ "facts": {
+  "ack_ms": 384,
+  "codeword": 0,
+  "handle": 54326,
+  "mac_pdu": 145933,
+  "nack_ms": [
+   366,
+   372,
+   378
+  ],
+  "node": 2050,
+  "node_ids": {
+   "0": 2049,
+   "1": 2050
+  },
+  "process": 0,
+  "tx_ms": [
+   361,
+   367,
+   373,
+   379
+  ]
+ },
+ "facts_found": {
+  "F-1": [
+   [
+    361,
+    145933,
+    0,
+    0,
+    2050
+   ]
+  ],
+  "F-2": [
+   [
+    361,
+    145933,
+    0,
+    0,
+    2050
+   ],
+   [
+    367,
+    145933,
+    0,
+    0,
+    2050
+   ],
+   [
+    373,
+    145933,
+    0,
+    0,
+    2050
+   ],
+   [
+    379,
+    145933,
+    0,
+    0,
+    2050
+   ]
+  ],
+  "F-3": [
+   [
+    366,
+    0,
+    0,
+    54326
+   ],
+   [
+    372,
+    0,
+    0,
+    54326
+   ],
+   [
+    378,
+    0,
+    0,
+    54326
+   ]
+  ],
+  "F-4": [
+   [
+    366,
+    0,
+    0,
+    "ACK"
+   ],
+   [
+    366,
+    0,
+    0,
+    "NACK"
+   ],
+   [
+    372,
+    0,
+    0,
+    "ACK"
+   ],
+   [
+    372,
+    0,
+    0,
+    "NACK"
+   ],
+   [
+    378,
+    0,
+    0,
+    "ACK"
+   ],
+   [
+    378,
+    0,
+    0,
+    "NACK"
+   ],
+   [
+    384,
+    0,
+    0,
+    "ACK"
+   ],
+   [
+    384,
+    0,
+    0,
+    "ACK"
+   ]
+  ],
+  "F-5": [
+   [
+    367,
+    0
+   ],
+   [
+    373,
+    0
+   ],
+   [
+    379,
+    0
+   ]
+  ],
+  "F-6": [
+   385,
+   385
+  ],
+  "recorded, not asserted": {
+   "UE-side receptions of MAC PDU 145933": [
+    [
+     "M2S72Bridge.ue[1].cellularNic.nrMac",
+     362,
+     145933,
+     0
+    ],
+    [
+     "M2S72Bridge.ue[1].cellularNic.nrMac",
+     368,
+     145933,
+     0
+    ],
+    [
+     "M2S72Bridge.ue[1].cellularNic.nrMac",
+     374,
+     145933,
+     0
+    ],
+    [
+     "M2S72Bridge.ue[1].cellularNic.nrMac",
+     380,
+     145933,
+     0
+    ]
+   ],
+   "insert / extract lines whose MAC id equals the handle 54326": [],
+   "lines per module": {
+    "M2S72Bridge.gnb1.cellularNic.mac": 157364,
+    "M2S72Bridge.gnb1.cellularNic.rlc-um-2049-1.tx": 1779,
+    "M2S72Bridge.gnb1.cellularNic.rlc-um-2049-2.tx": 25,
+    "M2S72Bridge.gnb1.cellularNic.rlc-um-2050-1.tx": 50,
+    "M2S72Bridge.gnb1.cellularNic.rlc-um-2050-2.tx": 25,
+    "M2S72Bridge.ue[0].cellularNic.nrMac": 15927,
+    "M2S72Bridge.ue[0].cellularNic.nrRlc-um-1-1.rx": 666,
+    "M2S72Bridge.ue[0].cellularNic.nrRlc-um-1-2.rx": 10,
+    "M2S72Bridge.ue[1].cellularNic.nrMac": 4046,
+    "M2S72Bridge.ue[1].cellularNic.nrRlc-um-1-1.rx": 20,
+    "M2S72Bridge.ue[1].cellularNic.nrRlc-um-1-2.rx": 10,
+    "M2S72Bridge.upf.ethBridge.macTable": 1213
+   },
+   "rtxAcid lines": 0,
+   "scheduler-module lines (mac.schedulerDl)": 0,
+   "untimed lines": 18
+  }
+ },
+ "fixture": "a2v1-first-chain.log.gz",
+ "fixture_sha256": "cfb05ff78e63e056f512bdea9fdc568d555dba71ffd884675fc46f905bc6e65b",
+ "manifest_files": 58,
+ "node_ids": {
+  "0": 2049,
+  "1": 2050
+ },
+ "python": "3.13.13",
+ "run": "a2-nack-1",
+ "script_sha256": "01884f94c6a0c1aa58c2bd9dc76197fb2c03066bad807d16d0d8cb0bc1bd700b",
+ "sources": {
+  "cfg": "M2S72-E0vN-q0-one0-n2-f1_A2V1",
+  "log": "/mnt/nasctime-results/a2-nack-1/runs/run-M2S72-E0vN-q0-one0-n2-f1_A2V1.log.gz",
+  "log_bytes": 74075941,
+  "log_sha256": "84320fb577cdb780cee1e8f8242d383120156a3b8ce78d65575b0c3cc3c33873",
+  "manifest": "/mnt/nasctime-results/a2-nack-1/records/M2S72-E0vN-q0-one0-n2-f1_A2V1.manifest.sha256",
+  "manifest_sha256": "3e7a78f5cb7dad49c9ea81aa42407d5bf286f1a956977c03951fb053711e3f41",
+  "sca": "/mnt/nasctime-results/a2-nack-1/runs/M2S72-E0vN-q0-one0-n2-f1_A2V1/M2S72-E0vN-q0-one0-n2-f1_A2V1/0.sca",
+  "sca_sha256": "3bdcc9fc5114f9d46bc4466de3362831ba7e785ddb24a6c610404be7e9327db1",
+  "seal": "/mnt/nasctime-results/a2-nack-1-evidence.sha256",
+  "seal_files": 33,
+  "seal_sha256": "3d00ef8ebc2bd03e18e2d4a986a75771b3bcac8e54fae402d742fd19c5749ca0",
+  "wrapper_verdicts_read_only": {
+   "a2-nack-1/records/wrapper-verdict.txt": "LIFECYCLE COMPLETE (L-1..L-4 PASS); scientific verdict: a2 rc 1, a2-controls rc 1, a2v1 rc 1 (A2-V1 verdict: NOT ACCEPTED)"
+  }
+ },
+ "utc": "2026-11-17T10:54:28Z",
+ "version": "A2-D2-F3 extractor 1"
+}
