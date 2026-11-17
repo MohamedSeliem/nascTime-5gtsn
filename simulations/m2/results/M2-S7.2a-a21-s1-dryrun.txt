@@ -1,0 +1,37 @@
+A2-V1-S1 protocol §3 command dry run on a SYNTHETIC sealed tree (test_m2s72_a21_fixture.tree: the labelled reconstruction of the first chain, runner layout, synthetic .sca with harqErrorRateDl:mean 0.1 for ue[1]).
+Purpose: the commands run as written (paths, quoting, exit codes, read-only). Not evidence about A2-V1. The synthetic .sca does not match the log, so A2-8 FAILs: this shows A2-8 gates the f1d-i verdict and blocks NC-A21-scalar's baseline.
+
+I-1a seal hash OK
+I-1b sealed records OK
+I-1c raw outputs (content) OK
+1
+I-1d rc=0
+E-1 rc=1
+E-2 rc=1
+E-3 rc=0
+I-2d tree unchanged
+  PASS            | A2-0 | run | P0-1 HOLDS; P0-2 HOLDS; P0-3 HOLDS; P0-4a HOLDS; P0-4c NOT EVALUATED (no scheduler line in the log); P0-5 H
+  PASS            | A2-0s | run | Simu5G 1.8.1 at /tmp/claude-0/-home-claude/f08b3521-4dd6-5494-b405-fc45c61f17fc/scratchpad/src/simu5g-1.8.
+  PASS            | A2-1 | run | feedback lines 94: {'single': 89, 'resolved-by-rtx': 1, 'bound': 2, 'exchangeable': 2}
+  PASS            | A2-2 | run | PDUs 91; transmissions 94; end states {'ack': 91}
+  PASS            | A2-3 | run | d*_tx 5000000000 ps for every attributed line ({5000000000: 90})
+  PASS            | A2-4a | run | 3 retransmissions, each with 'selected for retransmission' of its process in its TTI; selections 3
+  PASS            | A2-4b | run | 3 retransmissions of 1 PDUs received by their node's UE, in transmission order
+  NOT EVALUATED   | A2-4c | run | no scheduler line in the log: node-identified scheduler evidence unavailable (scheduler logging disabled b
+  PASS            | A2-5 | run | 1 exchangeable groups certified (sizes {2: 1})
+  PASS            | A2-6 | run | lines 94 = attributed; inserts 91 = ACKed 91 + discarded 0 + censored 0; transmissions 94; grants: node 204
+  PASS            | A2-7 | run | reference XA (UE-side ownership, delta 1000000000 ps): lines confirmed {'single': 89, 'resolved-by-rtx': 1,
+  FAIL            | A2-8 | run | FAIL ['node 2050 harqErrorRateDl:mean: Simu5G 0.1, A-2 0.75']; equal []
+  PASS            | A2-9 | run | every feedback line and lifecycle resolved or structurally censored (end states {}; complete main loops 130
+A-2.1 verdict (full): A-2.1 NOT VALID
+A-2.1 verdict (f1d-i): A-2.1 NOT VALID
+a21-controls on M2S72-E0vN-q0-one0-n2-f1_A2V1: 19 / 19 buildable controls as declared; not buildable: ['NC-A21-scalar', 'NC-F1-handle-foreign', 'NC-F1-retired']
+0
+NOT BUILDABLE    | real output | NC-A21-scalar | observed A2-8 is FAIL on the unmodified run | decla
+NOT BUILDABLE    | real output | NC-F1-handle-foreign | observed no other bound / retired handle in 
+NOT BUILDABLE    | real output | NC-F1-retired | observed no retired handle followed by a later NACK
+handle 54326: {'lc': 145933, 'st': 'retired'}
+unresolved: []
+end states: {}
+15 <synthetic>/s1/SHA256SUMS
+a2v1-M2S72-E0vN-q0-one0-n2-f1_A2V1.txt
