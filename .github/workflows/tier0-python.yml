@@ -1,0 +1,312 @@
+# Tier-0 Python regression CI (H4 / plan work package E1).
+#
+# Specification: docs/migration/h4-first-task.md, revision 2.
+# Level 2 (regression validation) infrastructure only. No build, no simulation,
+# no secrets, no private evidence. It produces no scientific evidence.
+#
+# Every suite step passes only if all three checks hold:
+#   (a) the process exit code is 0;
+#   (b) the suite's final summary line equals the declared expected line exactly;
+#   (c) every non-success count in that line is zero.
+# Expected lines are declared in h4-first-task.md §5 and must not be edited to make CI pass.
+
+name: tier0-python
+
+on:
+  pull_request:
+    branches: [m2/continuation]
+
+permissions:
+  contents: read
+
+jobs:
+  tier0:
+    name: Tier 0 - Python regression suites
+    runs-on: ubuntu-22.04
+    timeout-minutes: 30
+
+    defaults:
+      run:
+        shell: bash --noprofile --norc -euo pipefail {0}
+
+    env:
+      # Independently recorded identities (h4-first-task.md §4). Fail closed on any mismatch.
+      EXPECTED_SIMU5G_COMMIT: 7477d2663644bbf78604267cba4fc113b4871ede
+      SIMU5G_TAG: v1.8.1
+      SIMU5G_URL: https://github.com/Unipisa/Simu5G
+      FIXTURE_PATH: simulations/m2/check/fixtures/a2v1-first-chain.log.gz
+      EXPECTED_FIXTURE_SHA256: cfb05ff78e63e056f512bdea9fdc568d555dba71ffd884675fc46f905bc6e65b
+      SUITE_DIR: simulations/m2/check
+      # Event values passed through the environment, never interpolated into scripts.
+      PR_BASE_SHA: ${{ github.event.pull_request.base.sha }}
+      PR_HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+      TESTED_SHA: ${{ github.sha }}
+
+    steps:
+      - name: Checkout (full history)
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+          # Full history: A-2.1 T-frozen-untouched compares against fbee202 and 39a6434.
+          fetch-depth: 0
+
+      - name: Set up Python 3.13
+        uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
+        with:
+          python-version: '3.13'
+
+      - name: Record environment
+        id: environment
+        run: |
+          R="$RUNNER_TEMP/tier0"
+          mkdir -p "$R"
+          : > "$R/results.tsv"
+          {
+            echo "image_os=${ImageOS:-unknown}"
+            echo "image_version=${ImageVersion:-unknown}"
+            echo "os_release=$(. /etc/os-release && echo "$PRETTY_NAME")"
+            echo "python_version=$(python3 -c 'import platform; print(platform.python_version())')"
+            echo "python_path=$(command -v python3)"
+          } | tee "$R/environment.txt"
+          echo "python3 -VV: $(python3 -VV)"
+          echo "Base SHA:   $PR_BASE_SHA"
+          echo "Head SHA:   $PR_HEAD_SHA"
+          echo "Tested SHA: $TESTED_SHA (pull_request merge ref)"
+          if git cat-file -e "${PR_BASE_SHA}^{commit}" && git cat-file -e "${PR_HEAD_SHA}^{commit}"; then
+            echo "Files changed by this pull request (base...head):"
+            git diff --name-status "$PR_BASE_SHA...$PR_HEAD_SHA"
+          fi
+
+      - name: Prepare suite runner
+        id: runner
+        run: |
+          # Written to the runner's temporary directory at run time; not a repository file.
+          cat > "$RUNNER_TEMP/tier0/run_suite.sh" <<'RUNNER'
+          #!/usr/bin/env bash
+          # usage: run_suite.sh <suite.py> <expected final line>
+          set -uo pipefail
+          suite="$1"
+          expected="$2"
+          R="$RUNNER_TEMP/tier0"
+          out="$R/$suite.stdout"
+          err="$R/$suite.stderr"
+
+          cd "$GITHUB_WORKSPACE/$SUITE_DIR"
+          echo "Suite:    $suite"
+          echo "Expected: $expected"
+          echo "SIMU5G_ROOT=${SIMU5G_ROOT:-<unset>}"
+
+          # Output goes straight to files (no pipeline), so $? is the Python process's own exit code.
+          start=$(date +%s.%N)
+          python3 -B "$suite" >"$out" 2>"$err"
+          rc=$?
+          end=$(date +%s.%N)
+          dur=$(awk -v a="$start" -v b="$end" 'BEGIN { printf "%.1f", b - a }')
+
+          echo "::group::$suite stdout"
+          cat "$out"
+          echo "::endgroup::"
+          if [[ -s "$err" ]]; then
+            echo "::group::$suite stderr"
+            cat "$err"
+            echo "::endgroup::"
+          fi
+
+          # Final summary line = last non-blank line of stdout, compared byte for byte.
+          actual=$(grep -v '^[[:space:]]*$' "$out" | tail -n 1 || true)
+
+          problems=()
+          # (a) exit code
+          [[ "$rc" -eq 0 ]] || problems+=("exit code $rc (expected 0)")
+          # (b) exact final line
+          [[ "$actual" == "$expected" ]] || problems+=("final line '$actual' differs from expected '$expected'")
+          # (c) every non-success count in the line is zero: '<k> / <n> PASS' needs k = n;
+          #     '<k> FAIL', '<k> PENDING', '<k> NOT RUN' need k = 0. '0 FAIL' / '0 PENDING' are valid.
+          if [[ "$actual" =~ ([0-9]+)\ /\ ([0-9]+)\ PASS ]]; then
+            if [[ "${BASH_REMATCH[1]}" != "${BASH_REMATCH[2]}" ]]; then
+              problems+=("only ${BASH_REMATCH[1]} of ${BASH_REMATCH[2]} PASS")
+            fi
+          fi
+          while read -r count kind; do
+            [[ -z "$count" ]] && continue
+            [[ "$count" -eq 0 ]] || problems+=("non-zero count: $count $kind")
+          done < <(grep -oE '[0-9]+ (FAIL|PENDING|NOT[ -]RUN)' <<<"$actual" || true)
+
+          if [[ ${#problems[@]} -eq 0 ]]; then
+            verdict=PASS
+            echo "PASS: $suite (exit 0, exact line, all non-success counts zero) in ${dur}s"
+          else
+            verdict=FAIL
+            for p in "${problems[@]}"; do
+              echo "::error title=$suite::$p"
+            done
+            echo "--- last 40 lines of stdout ---"; tail -n 40 "$out"
+            echo "--- last 40 lines of stderr ---"; tail -n 40 "$err"
+          fi
+          printf '%s\t%s\t%s\t%s\t%s\t%s\n' "$suite" "$rc" "$dur" "$verdict" "$actual" "$expected" >> "$R/results.tsv"
+          [[ "$verdict" == PASS ]]
+          RUNNER
+          chmod +x "$RUNNER_TEMP/tier0/run_suite.sh"
+
+      - name: Fixture gate (independent full SHA-256)
+        id: fixture_gate
+        run: |
+          R="$RUNNER_TEMP/tier0"
+          if [[ ! -f "$FIXTURE_PATH" ]]; then
+            echo "fixture_gate=FAIL (fixture missing: $FIXTURE_PATH)" >> "$R/gates.txt"
+            echo "::error title=Fixture gate::fixture missing: $FIXTURE_PATH"
+            exit 1
+          fi
+          actual=$(sha256sum "$FIXTURE_PATH" | awk '{print $1}')
+          echo "Expected sha256 (recorded in workflow): $EXPECTED_FIXTURE_SHA256"
+          echo "Actual sha256:                          $actual"
+          # 1. Independent check against the full value written into this workflow.
+          if [[ "$actual" != "$EXPECTED_FIXTURE_SHA256" ]]; then
+            echo "fixture_gate=FAIL (full SHA-256 mismatch: got $actual, expected $EXPECTED_FIXTURE_SHA256)" >> "$R/gates.txt"
+            echo "::error title=Fixture gate::full SHA-256 mismatch for $FIXTURE_PATH: got $actual, expected $EXPECTED_FIXTURE_SHA256"
+            exit 1
+          fi
+          # 2. In addition: the accompanying .sha256 file in the repository.
+          if ! (cd "$(dirname "$FIXTURE_PATH")" && sha256sum --strict -c "$(basename "$FIXTURE_PATH").sha256"); then
+            echo "fixture_gate=FAIL (accompanying .sha256 file check failed)" >> "$R/gates.txt"
+            echo "::error title=Fixture gate::accompanying $(basename "$FIXTURE_PATH").sha256 check failed"
+            exit 1
+          fi
+          echo "fixture_gate=PASS ($actual; workflow value and .sha256 file both match)" >> "$R/gates.txt"
+
+      - name: Simu5G v1.8.1 source checkout and identity gate
+        id: simu5g_gate
+        run: |
+          R="$RUNNER_TEMP/tier0"
+          dest="$RUNNER_TEMP/simu5g-1.8.1"
+          ok=0
+          for attempt in 1 2 3; do
+            rm -rf "$dest"
+            if git clone --branch "$SIMU5G_TAG" --depth 1 "$SIMU5G_URL" "$dest"; then ok=1; break; fi
+            echo "::warning::clone attempt $attempt failed (network); retrying"
+            sleep $((attempt * 10))
+          done
+          if [[ "$ok" -ne 1 ]]; then
+            echo "simu5g_gate=FAIL (clone of $SIMU5G_URL $SIMU5G_TAG failed)" >> "$R/gates.txt"
+            echo "::error title=Simu5G gate::clone of $SIMU5G_URL at $SIMU5G_TAG failed"
+            exit 1
+          fi
+          actual=$(git -C "$dest" rev-parse HEAD)
+          echo "Expected Simu5G commit: $EXPECTED_SIMU5G_COMMIT"
+          echo "Actual Simu5G commit:   $actual"
+          if [[ "$actual" != "$EXPECTED_SIMU5G_COMMIT" ]]; then
+            echo "simu5g_gate=FAIL (commit mismatch: got $actual, expected $EXPECTED_SIMU5G_COMMIT)" >> "$R/gates.txt"
+            echo "::error title=Simu5G gate::Simu5G $SIMU5G_TAG commit mismatch: got $actual, expected $EXPECTED_SIMU5G_COMMIT"
+            exit 1
+          fi
+          if [[ ! -d "$dest/src/simu5g" ]]; then
+            echo "simu5g_gate=FAIL (src/simu5g missing in checkout)" >> "$R/gates.txt"
+            echo "::error title=Simu5G gate::src/simu5g missing in $dest"
+            exit 1
+          fi
+          echo "simu5g_gate=PASS ($SIMU5G_TAG = $actual; source only, no build)" >> "$R/gates.txt"
+          echo "SIMU5G_ROOT=$dest" >> "$GITHUB_ENV"
+
+      # Suites run only if both gates passed. A failing suite does not stop the others,
+      # so one run reports every deviation; any failing suite fails the job.
+
+      - name: Suite test_m2s72_a2.py
+        if: ${{ !cancelled() && steps.runner.outcome == 'success' && steps.fixture_gate.outcome == 'success' && steps.simu5g_gate.outcome == 'success' }}
+        run: '"$RUNNER_TEMP/tier0/run_suite.sh" test_m2s72_a2.py "A-2 tests: 18 / 18 PASS"'
+
+      - name: Suite test_m2s72_a2probe.py
+        if: ${{ !cancelled() && steps.runner.outcome == 'success' && steps.fixture_gate.outcome == 'success' && steps.simu5g_gate.outcome == 'success' }}
+        run: '"$RUNNER_TEMP/tier0/run_suite.sh" test_m2s72_a2probe.py "A-2 probe tests: 11 / 11 PASS"'
+
+      - name: Suite test_m2s72_a2v1.py
+        if: ${{ !cancelled() && steps.runner.outcome == 'success' && steps.fixture_gate.outcome == 'success' && steps.simu5g_gate.outcome == 'success' }}
+        run: '"$RUNNER_TEMP/tier0/run_suite.sh" test_m2s72_a2v1.py "10 / 10 PASS"'
+
+      - name: Suite test_m2s72_gen.py
+        if: ${{ !cancelled() && steps.runner.outcome == 'success' && steps.fixture_gate.outcome == 'success' && steps.simu5g_gate.outcome == 'success' }}
+        run: '"$RUNNER_TEMP/tier0/run_suite.sh" test_m2s72_gen.py "generator negative tests: 67 PASS, 0 FAIL"'
+
+      - name: Suite test_m2s72s5.py
+        if: ${{ !cancelled() && steps.runner.outcome == 'success' && steps.fixture_gate.outcome == 'success' && steps.simu5g_gate.outcome == 'success' }}
+        run: '"$RUNNER_TEMP/tier0/run_suite.sh" test_m2s72s5.py "S5-1 tests: 38 / 38 PASS"'
+
+      - name: Suite test_m2s72s5_2.py
+        if: ${{ !cancelled() && steps.runner.outcome == 'success' && steps.fixture_gate.outcome == 'success' && steps.simu5g_gate.outcome == 'success' }}
+        run: '"$RUNNER_TEMP/tier0/run_suite.sh" test_m2s72s5_2.py "S5-2 tests: 28 / 28 PASS"'
+
+      - name: Suite test_m2s72s5_n2.py
+        if: ${{ !cancelled() && steps.runner.outcome == 'success' && steps.fixture_gate.outcome == 'success' && steps.simu5g_gate.outcome == 'success' }}
+        run: '"$RUNNER_TEMP/tier0/run_suite.sh" test_m2s72s5_n2.py "S5 N = 2 tests: 19 / 19 PASS"'
+
+      - name: Suite test_m2s72s5_smoke.py
+        if: ${{ !cancelled() && steps.runner.outcome == 'success' && steps.fixture_gate.outcome == 'success' && steps.simu5g_gate.outcome == 'success' }}
+        run: '"$RUNNER_TEMP/tier0/run_suite.sh" test_m2s72s5_smoke.py "S5 smoke contract tests: 9 / 9 PASS"'
+
+      - name: Suite test_m2s72_a21.py
+        if: ${{ !cancelled() && steps.runner.outcome == 'success' && steps.fixture_gate.outcome == 'success' && steps.simu5g_gate.outcome == 'success' }}
+        run: '"$RUNNER_TEMP/tier0/run_suite.sh" test_m2s72_a21.py "A-2.1 tests: 18 / 18 PASS, 0 PENDING, 0 FAIL"'
+
+      - name: Suite test_m2s72_a21_fixture.py
+        if: ${{ !cancelled() && steps.runner.outcome == 'success' && steps.fixture_gate.outcome == 'success' && steps.simu5g_gate.outcome == 'success' }}
+        run: '"$RUNNER_TEMP/tier0/run_suite.sh" test_m2s72_a21_fixture.py "A-2.1 fixture-extractor tests: 14 / 14 PASS, 0 FAIL"'
+
+      - name: Not run in tier 0
+        if: ${{ always() }}
+        run: |
+          echo "::notice title=NOT RUN::test_m2s72a2v1_wrapper.py - needs a real opp_run (tier 1)"
+          echo "::notice title=NOT RUN::test_m2s72_compare.py - needs a census run directory"
+
+      - name: Job summary
+        if: ${{ always() }}
+        env:
+          JOB_STATUS: ${{ job.status }}
+        run: |
+          R="$RUNNER_TEMP/tier0"
+          S="$GITHUB_STEP_SUMMARY"
+          env_val() { grep -m1 "^$1=" "$R/environment.txt" 2>/dev/null | cut -d= -f2- || true; }
+          gate_val() { grep -m1 "^$1=" "$R/gates.txt" 2>/dev/null | cut -d= -f2- || echo "NOT EVALUATED (an earlier step failed)"; }
+          esc() { sed 's/|/\\|/g' <<<"$1"; }
+          {
+            echo "## Tier 0 — Python regression suites"
+            echo
+            echo "**Tier 0 — regression validation only (level 2); not scientific evidence.**"
+            echo
+            echo "| Item | Value |"
+            echo "|---|---|"
+            echo "| Base SHA | \`$PR_BASE_SHA\` |"
+            echo "| Head SHA | \`$PR_HEAD_SHA\` |"
+            echo "| Tested SHA (merge ref) | \`$TESTED_SHA\` |"
+            echo "| Runner image | $(env_val image_os) $(env_val image_version) ($(env_val os_release)) |"
+            echo "| Python | $(env_val python_version) (\`$(env_val python_path)\`) |"
+            echo "| Simu5G commit gate | $(esc "$(gate_val simu5g_gate)") |"
+            echo "| Fixture gate | $(esc "$(gate_val fixture_gate)") |"
+            echo
+            echo "### Suites (\`$SUITE_DIR\`, \`python3 -B\`)"
+            echo
+            echo "| Suite | Verdict | Exit code | Duration (s) | Final summary line | Expected |"
+            echo "|---|---|---|---|---|---|"
+            ran=0
+            if [[ -s "$R/results.tsv" ]]; then
+              while IFS=$'\t' read -r suite rc dur verdict actual expected; do
+                ran=$((ran + 1))
+                echo "| \`$suite\` | **$verdict** | $rc | $dur | \`$(esc "$actual")\` | \`$(esc "$expected")\` |"
+              done < "$R/results.tsv"
+            fi
+            if [[ "$ran" -ne 10 ]]; then
+              echo
+              echo "**Only $ran of 10 declared suites produced a result; the rest were not run (see the gates and step logs).**"
+            fi
+            echo
+            echo "### NOT RUN in tier 0"
+            echo
+            echo "| Suite | Status | Reason |"
+            echo "|---|---|---|"
+            echo "| \`test_m2s72a2v1_wrapper.py\` | **NOT RUN** | needs a real \`opp_run\` (tier 1) |"
+            echo "| \`test_m2s72_compare.py\` | **NOT RUN** | needs a census run directory |"
+            echo
+            echo "Job status: **$JOB_STATUS**"
+          } >> "$S"
+          if [[ -n "$(git status --porcelain)" ]]; then
+            echo "::warning::the working tree was modified during the run:"
+            git status --porcelain
+          fi
