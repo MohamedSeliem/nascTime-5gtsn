@@ -1,6 +1,20 @@
 # nascTime 2.0 migration — authoritative status (handover)
 
-**Status: revision 3, approved 17 November 2026 with the maintainer's targeted corrections.** Prepared 17 November 2026; revision 2 after the handover review; revision 3 after the completed evidence collection (H1, H2) of the same day. This record changes no code, configuration, test, evidence or historical record.
+**Status: revision 4, 18 November 2026 (WP-E4 Phase 3, documentation-only; pending the maintainer's review).** Revision 3 was approved on 17 November 2026 with the maintainer's targeted corrections.
+
+Revision 4 records:
+- the integrated tier-0 and tier-1 CI;
+- the hosted functional simulation experiments E3a, E3b and E3b-R1;
+- the repository consolidation (four permanent branches, 30 annotated tags);
+- the decisions DR-14 … DR-18.
+
+Revision 4 changes are marked "(rev. 4)". Revision-3 text that is superseded is kept and labelled, not deleted.
+
+**How to read this revision.**
+- Text between *[Superseded (rev. 4)…]* and *[end of superseded text]* is retained revision-3 history. It is **not** an active instruction and **not** the current repository status.
+- The current position is given by the "(rev. 4)" text and by the decisions DR-14 … DR-18.
+- **WP-E4 (repository consolidation and travel handover) is completed by the documentation pull request that introduces revision 4.**
+- **Still open:** release documentation and M4 readiness. These are plan work package **E4** (M4 groundwork: README 2.0, compatibility table, `opp_env` entry, skills, nightly job), which is a different item from WP-E4. This record changes no code, configuration, test, evidence or historical record.
 
 **Canonical location after approval:** `docs/migration/authoritative-migration-status.md` in the repository. Repository files are cited by repository path. Documents cited by bare name (for example `migration/revised-migration-roadmap.md`) are **private planning documents** unless `docs/migration/document-index.md` lists them as published. They are cited for traceability; the maintainer provides reviewed extracts on request (DR-12).
 
@@ -40,27 +54,37 @@ Every discrepancy between these sources is listed in `migration/migration-decisi
 
 ### 0.1 Branches
 
-These commits come from the maintainer's independent audit of 17 November 2026. They are not re-verified by this record, because the authoring clone holds only the `m2/*` and `plan/*` branches.
+**Current state (rev. 4, 18 Nov 2026; DR-17).**
+- **Permanent branches.** Exactly four remain:
+  - `m2/continuation` (integration). **Reviewed pre-E4 integration baseline:** `290babba3d12942344a2153f9ea5ea54287df366`. This is not a permanent head: the live head advances when this documentation PR is merged, and with every later merge. New work starts from the current head;
+  - `master` at `9e8bc83dfdfaffd918eb304bda6b8ecb98ff0684` (frozen legacy provenance);
+  - `m1/ethernet-bridge` at `fbe41a9e9ba1befc0d68b9fd559be52b024c1ca9` (frozen M1 provenance);
+  - `wp-e3/e3b-r1-publication` at `edf3329ddf2350650fd0957ddd5a965fe3ddbb56` (frozen experimental tier-2 harness).
+- **Tags.** The other 26 branches were deleted on 18 November 2026, after 28 annotated `archive/*` tags preserved their heads. 30 tags in total, with `v1.0` and `v1.0.1` unchanged.
+- **Register.** The complete branch / tag / commit mapping, and how to resolve a historical branch name, is in `docs/migration/repository-archive-and-evidence-register.md` §2.
+- **History.** `m2/continuation` shares **no history** with `master`. Its only root is the snapshot `14d5e0f` (DR-18).
 
-| Branch (GitHub `MohamedSeliem/nascTime-5gtsn`) | Commit | Content |
-|---|---|---|
-| `master` | `9e8bc83` | Frozen legacy line (tag `v1.0.1`). **Never merged into.** |
-| `m1/ethernet-bridge` | `fbe41a9` | M1 closure (`migration/m1-plan.md` status line) |
-| `m2/architecture` | `14d5e0f` | M2-S0…S6, S7.1, S7.2a CP1/CP2 and E0 on Simu5G 1.8.0 (`migration/m2-simu5g-1.8.1-audit-and-plan.md` §0, §1.1) |
-| `m2/simu5g-1.8.1` | `2586bce` | M2-R181 / R181b / R181c, accepted (`migration/m2-r181-acceptance-record.md`) |
-| `plan/m2-s7.2a-stage5` | `57fa0c5` | Stage 5 plan rev. 1.1. **Not an ancestor** of the development line (DR-11). |
-| `m2/s72a-stage5` | `86d7599` | S5-1, G0 record rev. 1 |
-| `m2/s72a-g0` | `04657b4` | G0 record CLOSED (D-2 condition) |
-| `m2/s72a-s5-smoke` | `bc77a6f` | N = 1 smoke preparation |
-| `m2/s72a-s5-2` | `decf848` | S5-2 per-UE evaluation |
-| `m2/s72a-s5-n2` | `06fba26` | N = 2 smoke preparation, XA |
-| `m2/s72a-a2-design` | `07b09b9` | A-2 design review, probe P0 |
-| `m2/s72a-a2` | `fbee202` | A-2, frozen |
-| `m2/s72a-a2d2` | `612f353` | A2-V1 design and protocol r1.1 |
-| `m2/s72a-a21` | `115012f` | A-2.1, F3, S1, S1 closure |
-| **`m2/s72a-a21-fixture`** | **`033c3ed3fbc5b6ee21271ce24c62084283d8e79b`** | **Approved continuation baseline (DR-11):** `115012f` plus the three genuine F3 fixture files under `simulations/m2/check/fixtures/` (fixture sha256 `cfb05ff7…6e65b`). No implementation is changed. |
-| **`m2/continuation`** | E0 tip: given in the delivery note. A commit cannot contain its own hash. | **Integration branch** (DR-11), created from `033c3ed`. The E0 commit adds documentation only: the public handover set under `docs/migration/`, and the Stage 5 plan selectively imported from `57fa0c5`. |
-| `v1.5.0-migration` | `91ad643` | Stale, unrelated history (`migration/legacy-baseline-manifest.md` §1) |
+**Historical table (rev. 3, 17 Nov 2026), retained.** The column "Archived as (rev. 4)" gives the tag that now preserves each deleted branch's head; the rev-3 text is otherwise unchanged. These commits come from the maintainer's independent audit of 17 November 2026. They are not re-verified by this record, because the authoring clone holds only the `m2/*` and `plan/*` branches.
+
+| Branch (GitHub `MohamedSeliem/nascTime-5gtsn`) | Commit | Content | Archived as (rev. 4) |
+|---|---|---|---|
+| `master` | `9e8bc83` | Frozen legacy line (tag `v1.0.1`). **Never merged into.** | branch retained (frozen) |
+| `m1/ethernet-bridge` | `fbe41a9` | M1 closure (`migration/m1-plan.md` status line) | branch retained (frozen); also `archive/m1/ethernet-bridge-closed` |
+| `m2/architecture` | `14d5e0f` | M2-S0…S6, S7.1, S7.2a CP1/CP2 and E0 on Simu5G 1.8.0 (`migration/m2-simu5g-1.8.1-audit-and-plan.md` §0, §1.1) | `archive/m2/architecture-snapshot-1.8.0` |
+| `m2/simu5g-1.8.1` | `2586bce` | M2-R181 / R181b / R181c, accepted (`migration/m2-r181-acceptance-record.md`) | `archive/m2/simu5g-1.8.1-r181-accepted` |
+| `plan/m2-s7.2a-stage5` | `57fa0c5` | Stage 5 plan rev. 1.1. **Not an ancestor** of the development line (DR-11). | `archive/plan/m2-s7.2a-stage5-rev1.1` |
+| `m2/s72a-stage5` | `86d7599` | S5-1, G0 record rev. 1 | `archive/m2/s72a-stage5-s5-1` |
+| `m2/s72a-g0` | `04657b4` | G0 record CLOSED (D-2 condition) | `archive/m2/s72a-g0-closed` |
+| `m2/s72a-s5-smoke` | `bc77a6f` | N = 1 smoke preparation | `archive/m2/s72a-s5-smoke-n1-prep` |
+| `m2/s72a-s5-2` | `decf848` | S5-2 per-UE evaluation | `archive/m2/s72a-s5-2` |
+| `m2/s72a-s5-n2` | `06fba26` | N = 2 smoke preparation, XA | `archive/m2/s72a-s5-n2-prep` |
+| `m2/s72a-a2-design` | `07b09b9` | A-2 design review, probe P0 | `archive/m2/s72a-a2-design` |
+| `m2/s72a-a2` | `fbee202` | A-2, frozen | `archive/m2/s72a-a2-frozen` |
+| `m2/s72a-a2d2` | `612f353` | A2-V1 design and protocol r1.1 | `archive/m2/s72a-a2d2-a2v1-not-accepted` |
+| `m2/s72a-a21` | `115012f` | A-2.1, F3, S1, S1 closure | `archive/m2/s72a-a21-closed` |
+| **`m2/s72a-a21-fixture`** | **`033c3ed3fbc5b6ee21271ce24c62084283d8e79b`** | **Approved continuation baseline (DR-11):** `115012f` plus the three genuine F3 fixture files under `simulations/m2/check/fixtures/` (fixture sha256 `cfb05ff7…6e65b`). No implementation is changed. | `archive/m2/s72a-a21-fixture-baseline` |
+| **`m2/continuation`** | E0 tip: given in the delivery note. A commit cannot contain its own hash. | **Integration branch** (DR-11), created from `033c3ed`. The E0 commit adds documentation only: the public handover set under `docs/migration/`, and the Stage 5 plan selectively imported from `57fa0c5`. | branch retained (integration); reviewed pre-E4 integration baseline `290babb` (rev. 4; the live head advances with merges) |
+| `v1.5.0-migration` | `91ad643` | Stale, unrelated history (`migration/legacy-baseline-manifest.md` §1) | `archive/legacy/v1.5.0-migration` |
 
 The local clone also has `m2/s72a-a2f1` at `13b0fb4`, which holds F1 rev. 2. The maintainer's list does not include it. It is an ancestor of `m2/s72a-a21`, so its content is reachable there.
 
@@ -72,7 +96,7 @@ The local clone also has `m2/s72a-a2f1` at `13b0fb4`, which holds F1 rev. 2. The
 | Accepted 1.8.1 migration evidence | OMNeT++ 6.4.0 / INET 4.7.0 / Simu5G 1.8.1 | `migration/m2-r181-acceptance-record.md` §1.1 |
 | Stage 5 reference environment (decision D-2) | OMNeT++ 6.5.0 / INET 4.7.0 / Simu5G 1.8.1, unmodified | `migration/m2-s7.2a-s5-env-decision.md`; G0 record rev. 3 |
 | Release pin (M4) | **Decided (DR-01, 17 Nov):** OMNeT++ 6.5.0 / INET 4.7.0 / unmodified Simu5G 1.8.1 for the remainder of M2, M3 and M4. The roadmap text (6.4.0 / 4.7.0 / 1.8.0) is preserved; historical stack-qualified records are unchanged. | `migration/revised-migration-roadmap.md` §0 item 5 |
-| **Target environment for the remaining work** (confirmed by the maintainer, 17 Nov; adopted for M2 / M3 / M4 by DR-01) | OMNeT++ 6.5.0; INET 4.7.0 (`dfe270b21f`); Simu5G 1.8.1, unmodified; `opp_env` 0.36.2.261110; Nix 2.34.4; Clang 21.1.8; GCC 15.2.0; GNU Make 4.2.1; Python 3.13.13; Ubuntu 22.04.5 LTS, x86_64 | maintainer statement, 17 Nov. The environment configuration, generated Nix flakes and lock files are preserved in a private archive. **Remote reproducibility has not yet been demonstrated.** |
+| **Target environment for the remaining work** (confirmed by the maintainer, 17 Nov; adopted for M2 / M3 / M4 by DR-01) | OMNeT++ 6.5.0; INET 4.7.0 (`dfe270b21f`); Simu5G 1.8.1, unmodified; `opp_env` 0.36.2.261110; Nix 2.34.4; Clang 21.1.8; GCC 15.2.0; GNU Make 4.2.1; Python 3.13.13; Ubuntu 22.04.5 LTS, x86_64 | maintainer statement, 17 Nov. The environment configuration, generated Nix flakes and lock files are preserved in a private archive. ~~Remote reproducibility has not yet been demonstrated.~~ **(rev. 4) Remote *build* reproducibility is demonstrated:** tier-1 (PR #7, C-1 … C-12) builds this stack, release only, from the approved lock (`ci/tier1/flake.lock`) on GitHub-hosted `ubuntu-22.04` runners. Differences from the VM identity are recorded in the tier-1 rows. Remote *scientific* reproducibility is **not** claimed (§8). |
 | Legacy workspace (recovered, H2) | OMNeT++ 6.4.0; INET 4.6.0; nascTime `v1.0.1` (`9e8bc83dfdfaffd918eb304bda6b8ecb98ff0684`); customised Simu5G 1.5.0 at `31c38c176bd91d1bb88e883931bded825ad9cc8f` (tag `nasctime-v1.0`), whose working tree carries two further uncommitted functional corrections, preserved privately as a patch | maintainer statement, 17 Nov; private legacy-provenance archive |
 
 ### 0.3 Evidence locations
@@ -81,13 +105,14 @@ The local clone also has `m2/s72a-a2f1` at `13b0fb4`, which holds F1 rev. 2. The
 |---|---|---|
 | Records, checkers, protocols, closure reports | the branches above (`simulations/*/results/`, `simulations/*/check/`) | yes, on GitHub |
 | Planning and design documents (roadmaps, designs, protocols) | Private planning documents. Reviewed ones are published under `docs/migration/` only after a content review (`document-index.md`) | published ones: yes; private ones: no (DR-12). Reviewed extracts are provided selectively by the maintainer. |
-| Genuine F3 fixture (A2-V1 prefix, 181 153 lines) | `m2/s72a-a21-fixture:simulations/m2/check/fixtures/` | yes |
+| Genuine F3 fixture (A2-V1 prefix, 181 153 lines) | `m2/continuation:simulations/m2/check/fixtures/` (rev. 4; originally committed at `033c3ed`, now tag `archive/m2/s72a-a21-fixture-baseline`) | yes |
 | Private evidence | a private, access-controlled evidence archive maintained by the project owner (identity verified by the maintainer) | **no** for the initial remote agent (DR-12) |
 | Sealed S1 archive | private evidence archive; archive sha256 `3fa12389…f0e34` | no |
 | **N = 1 smoke, N = 2 smoke and A2-V1 raw evidence (H1, completed)** | private, checksum-manifested archives (N = 1 smoke, N = 2 smoke, A2-V1). Verified before packaging against the original manifests: N1 41 files / 720 571 149 B; N2 58 files / 748 297 469 B; A2-V1 58 files / 740 917 765 B; 157 files in total, zero integrity failures. All three archives were re-downloaded from their private storage and verified against the archive checksum manifest. | no. Path resolution after extraction: §0.4 |
 | **Supplementary pre-departure archives (H2, completed)** | private supplementary archives (environment, F3 evidence, legacy provenance, VM compatibility), each checksum-verified | no |
 | Legacy datasets: multi-endpoint, FRER, bridge and NW-TT result sets | **the VM only**. An inventory of 79 legacy experimental files and the historical migration records are in the private legacy-provenance archive. Their relationship to the published experiments is **unverified**. | **no** |
 | Other larger raw datasets (E0, CP2 campaign outputs) | the VM only; not collected | **no** |
+| **Hosted CI and experiment evidence (rev. 4)** | GitHub Actions artifacts (7-day retention; **scheduled to expire on 24–25 Nov 2026**), job logs. The 11 artifact ZIP archives were downloaded, verified against their GitHub SHA-256 digests and preserved by the maintainer in a private evidence release (the maintainer's statement). Register: `repository-archive-and-evidence-register.md` §3–§4. Job-log exports and the internal raw-manifest verification are **pending**. | identities and digests: yes (register); archives: no (DR-12) |
 
 No further VM collection is planned before departure.
 
@@ -195,7 +220,7 @@ The README also documents `tests/fingerprint/` (lines 504–509), but that direc
 | S3 | Offline correction oracle | Complete, 24/24 | `m2-s3-results.md` | — | Given |
 | S4 | Pdelay termination at the TT ports | Complete, 55/55; R2b-v PASS on 1.8.1 | `m2-s4-results.md`; R181b | — | Given |
 | S5 | DS-TT egress correction, gate V0 | Complete on 1.8.0 (71/71). On 1.8.1: C8-v PASS, 69/71 with two superseded controls (R181c) | `m2-s5-results.md`; `m2-r181c-closure-report.md` | — | Given |
-| S6 | TT clocks and rate ratio | Complete, 1863/1863 on 1.8.0 and on 1.8.1 | `m2-s6-results.md` (`m2/architecture` at `189be27` when pushed, per S7 roadmap header); R181c §1 | — | Given |
+| S6 | TT clocks and rate ratio | Complete, 1863/1863 on 1.8.0 and on 1.8.1 | `m2-s6-results.md` (`m2/architecture` at `189be27` when pushed, per S7 roadmap header; the branch is archived as `archive/m2/architecture-snapshot-1.8.0`, rev. 4); R181c §1 | — | Given |
 
 Audit §1.1 summarises S0–S6 as "complete on 1.8.0, each with a record, raw-output hashes and a fresh-clone reproduction".
 
@@ -229,7 +254,7 @@ E2 (the load sweep) is outside the plan's execution scope. It is re-declared aft
 | Component | Status | Evidence | Next |
 |---|---|---|---|
 | Environment decision D-2 | **Recorded**; conditions met | `m2-s7.2a-s5-env-decision.md`; G0 rev. 3 `04657b4` | — |
-| S5-1 (runner `m2s72s5.sh`, generator E0v section, `check_m2s72_s5v.py`) | Implemented and reviewed | `m2-s7.2a-s5-1-review.md`; branch `m2/s72a-stage5` `86d7599` | — |
+| S5-1 (runner `m2s72s5.sh`, generator E0v section, `check_m2s72_s5v.py`) | Implemented and reviewed | `m2-s7.2a-s5-1-review.md`; commit `86d7599` (former branch `m2/s72a-stage5`, now `archive/m2/s72a-stage5-s5-1`) | — |
 | S5-2 (per-UE adapter, PU / AV rows, RNG audit, E1 selection) | Implemented; synthetic tests | `m2-s7.2a-s5-2-addendum.md`; `decf848` | S5-2-D2 (adapter validation record) is **open** |
 | E0v N = 1 instrumented smoke | **Accepted 2026-11-16** (27 rows PASS, controls-q8 11/11) | quoted in `m2-s7.2a-s5-n2-protocol.md` §1. Raw evidence preserved (private archive, 41 files, verified). **No dedicated closure record yet** (DR-08). | closure record from the verified evidence |
 | E0v-N N = 2 smoke | **Accepted 2026-11-16 as "VALIDATED WITH A-1 LIMITATION"** (PU-4 FAIL retained) | quoted in `m2-s7.2a-a2-design-review.md` §1. Raw evidence preserved (private archive, 58 files, verified). **No dedicated closure record yet** (DR-08). | as above |
@@ -293,7 +318,7 @@ E2 (the load sweep) is outside the plan's execution scope. It is re-declared aft
 | Status | **Not started.** The legacy FRER implementation (`FrerReplicator`, `FrerRecovery`) exists only on the legacy line (`inventory-and-architecture.md` §3: replace with INET elements; keep recovery as an extension). |
 | Dependencies | S-PATH binding (roadmap §1). Multi-DRB and multi-UE configurations from S7.1 / S7.2a (S7 roadmap §9). Legacy F1 / F2 sweep profiles and results (Phase 0 mapping). The pinned stack: DR-01 (17 Nov) sets OMNeT++ 6.5.0 / INET 4.7.0 / unmodified Simu5G 1.8.1 for M3. The roadmap title "on vanilla 1.8.0" is preserved as historical text. |
 | Blockers | F3 (inter-PDU-session) waits for upstream multi-session support with per-session anchors (blocker B2; roadmap Phase 5). F4 (NR-DC) waits for upstream NR dual-connectivity support (blocker B1). Neither blocks M3 (F1 / F2). |
-| Remote | Design, S-PATH binding code, `FrerRecovery` extension code and unit tests: yes, once tier-1 CI is verified and enabled (plan WP-E2; `remote-execution-feasibility.md`). Until then: design and prototype only. |
+| Remote | Design, S-PATH binding code, `FrerRecovery` extension code and unit tests: *[Superseded (rev. 4); not an active instruction:]* yes, once tier-1 CI is verified and enabled (plan WP-E2; `remote-execution-feasibility.md`). Until then: design and prototype only. *[end of superseded text]*<br>**(rev. 4)** Tier-1 is integrated (PR #7, DR-14). Default-off C++ code can be CI-validated for release build and linkage. A new configuration is validated only by its own reviewed query or an individually authorised hosted functional run (§8; DR-15). |
 | Independent evidence | **Yes**: the functional, protocol and experimental rows need simulation, and the legacy comparison needs the legacy stack. |
 
 ## 5. M4 (Phase 4) — Release nascTime 2.0
@@ -303,7 +328,7 @@ E2 (the load sweep) is outside the plan's execution scope. It is re-declared aft
 | Original scope | Roadmap §2 Phase 4: README boundary statement and compatibility table; `opp_env` entry (B9); CI (a blocking pinned job plus a non-blocking nightly `simu5g@dev`); skills `nasctime-dev-environment` and `nasctime-fingerprint-testing`; claim-scoping notes. |
 | Acceptance | Clean-machine install and run of every example; the CI dev job has run at least once; the boundary statement reviewed. |
 | Release scope constraints | S7 roadmap §2.1 minimum scope: S7.1, S7.2a, S7.2b, S7.3 (detection and state; recovery experimental). §2.2: S7.4a optional. D7: BMCA not mandatory. F1: S7.4a never delays M3 or M4. |
-| Status | **Not started.** No `.github/` CI exists in the repository (checked on the authoring clone at `115012f`). |
+| Status | **Not started.** *[Superseded (rev. 4); not an active instruction:]* No `.github/` CI exists in the repository (checked on the authoring clone at `115012f`). *[end of superseded text]*<br>**(rev. 4)** CI groundwork exists: tier-0 (PR #4) and tier-1 (PR #7) are integrated on `m2/continuation` (DR-14). **M4 itself is not started, and 2.0 is not release-ready.** The release path is decided in principle by DR-18. |
 | Dependencies | The DR-01 pin; M2 (scope per DR-02) and M3. |
 | Remote | README draft, CI and documentation: yes. The clean-machine run: partly (CI). |
 | Independent evidence | The clean-machine install, by the maintainer. |
@@ -332,3 +357,32 @@ Upstream contributions are coordinated separately by the maintainer. Simu5G 1.8.
 | M3 FRER | Not started | yes (design, code) | yes |
 | M4 release | Not started | yes (CI, documentation) | clean-machine run |
 | Phase 5 | No trigger met | monitoring | — |
+| **Development CI (rev. 4)** | Tier-0 and tier-1 integrated (DR-14). Tier-2 harness frozen on `wp-e3/e3b-r1-publication` (DR-15). E3a and E3b-R1: level-2 smoke evidence. | yes | — (CI is never level 3) |
+
+## 8. Development infrastructure and hosted experiments (rev. 4)
+
+**Sources:**
+- `repository-archive-and-evidence-register.md` §3 (identities, runs, results);
+- `ci/tier1/README.md`;
+- `ci/tier2/README.md` on `wp-e3/e3b-r1-publication`.
+
+| Item | Status | Level |
+|---|---|---|
+| Tier-0 Python regression CI (H4 / WP-E1) | **Integrated** (PR #4, 17 Nov). Runs on every pull request to `m2/continuation`. Required at repository-ruleset level (DR-14). Negative controls NC-H4-fixture and NC-H4-simu5g each failed at their intended gate. | 2 |
+| Tier-1 full-stack CI (WP-E2) | **Integrated** (PR #7, 18 Nov). Pinned release build of OMNeT++ 6.5.0 / INET 4.7.0 / Simu5G 1.8.1 and `libnasctime_m2`; linkage, single C++ runtime and RUNPATH classes; **its specific reviewed configuration queries** (the two `-q runconfig` queries of the A2-V1 wrapper suite). It does **not** automatically validate every newly introduced NED or INI configuration. **Triggering:** automatic for relevant **non-draft** pull requests (complete change set, fail closed); the label `tier1:run` overrides, including for drafts. **Not mandatory** at ruleset level (DR-14). | 2 |
+| Tier-1 negative controls N-1 (lock) and N-2 (SYS_LIBS) | N-1 and N-2 failed during the **offline self-tests** of their hosted runs, so those hosted runs **never reached** the downstream gates they target. Those gates are the lock-identity gate (N-1) and the C-5 SYS_LIBS gate (N-2). Both gates **passed** in the positive hosted tier-1 runs: PR #7 and the C-1 … C-12 prerequisites of E3a, E3b and E3b-R1. Their negative (rejecting) behaviour was tested **offline** by the tier-1 self-tests. | — |
+| E2b.1 / E2b.2 / E2b.3 / E2b.3-R1 | PASS / **FAIL** / **FAIL** / PASS. The failures are preserved (`archive/exp/*`). Superseded by tier-1. | — |
+| **E3a** (`M2S4U`, run 0) | **E3a PASS.** C-1 … C-12 and E-1 … E-8 PASS; unmodified U1 oracle PASS. **Demonstrates wired timing functionality.** Seal manifest: 9 files, 24 496 082 B; the complete raw artifact has 37 files. E-9: 4/4 historical 6.4.0 engine-log / PCAP hashes reproduced. | **2** (development smoke) |
+| **E3b** (`M2S5`, run 0; original) | **E3b PUBLICATION FAILURE, preserved.** E-1 … E-7 PASS. The evidence seal passed and was verified. The raw publication failed: the N3 publication policy was too narrow, and the raw evidence was lost with the runner. | — |
+| **E3b-R1** (`M2S5`, run 0; publication correction) | **E3b PASS.** C-1 … C-12 and E-1 … E-8 PASS. Per-run M2-S5 oracle PASS: C1–C7, S1, S2 and P2 fully; C8 and P1 partially; S3 NOT EVALUATED. **Demonstrates the downlink 5G–TSN timing path.** 33/33 R181c CSV / PCAP hashes reproduced. 568 downlink and 488 uplink N3 packets passed publication validation. | **2** (development smoke) |
+| Differing `.sca` / `.vec` hashes (E3b, E3b-R1) | **Cause unverified.** Not attributed to metadata or any other cause; no whole-result equivalence claim. | — |
+| Hosted functional simulations during travel | **Permitted when individually authorised and bounded** (DR-15). There is no automatic tier-2 integration. | 2 |
+| Independent scientific execution during travel | **Permitted** for an authorised independent scientific executor, under a pre-declared protocol, the approved budget and the maintainer's acceptance (feasibility §4) | 3 candidates |
+| **WP-E4: repository consolidation and travel handover** | **Completed by the documentation PR that introduces revision 4.** That covers four permanent branches, 30 tags and the archive and evidence register. **Still open:** release documentation and M4 readiness (plan package E4, M4). | — |
+
+**Hosted development smoke tests and independent scientific execution are different things.**
+- E3a and E3b-R1 were started by the development agent, so they are **not eligible for level 3** (`remote-execution-feasibility.md` §4, X-1).
+- They do not accept the M2-S5 campaign, do not advance S7.2a (which **remains partial**), and carry no uplink claim.
+- Development CI does not replace independent scientific execution. Every scientific acceptance listed in §3.4, §4, §5 and the travel plan's acceptance queue still requires the independent executor (or the VM) under a pre-declared protocol, and the maintainer's acceptance.
+
+**Licensing (DR-16).** The maintainer has confirmed academic-use scope for current nascTime development and simulation, including hosted CI. No compiled framework binary is redistributed. Commercial use is outside the current scope.

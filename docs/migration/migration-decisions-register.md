@@ -2,6 +2,8 @@
 
 **Status: revision 3, approved 17 November 2026 with the maintainer's targeted corrections.** 17 November 2026 (revision 3: the evidence collection H1 / H2 is completed; the updates are marked "Update (rev. 3)"). Canonical location after approval: `docs/migration/migration-decisions-register.md`. Documents cited by name are located through `docs/migration/document-index.md`.
 
+**Revision 4 (18 Nov 2026, WP-E4 Phase 3; pending the maintainer's review of this documentation).** Adds the entries DR-14 … DR-18 with the maintainer's decisions of 18 November 2026 as given to the development agent. Entries DR-01 … DR-13 are unchanged.
+
 **Status (17 Nov 2026): every entry DR-01…DR-13 now has a dated Decision line.** The earlier text, including the recommendations, is preserved unchanged. Where a decision leaves a part open (for example the H5 retirement and per-paper reproduction), that part stays open.
 
 Originally, every entry was OPEN. Each entry has two recommendation lines:
@@ -25,6 +27,11 @@ A final decision is added as a new dated "Decision" line. The entry text is neve
 | DR-11 | Integration branch and document import | yes | **everything** (plan WP E0) | — |
 | DR-12 | Remote access: private evidence repository and execution environments | yes | any agent work that reads private evidence; tiers 1–3 | every remote acceptance |
 | DR-13 | Path resolution for extracted evidence archives | yes | DR-07c validations on a remote environment | the same |
+| DR-14 | Tier-0 and tier-1 CI (rev. 4) | decided | — | — (CI is level 2 only) |
+| DR-15 | Experimental tier-2 harness and hosted functional simulations (rev. 4) | decided | an unauthorised hosted run | — (level 2 only) |
+| DR-16 | Licensing scope (rev. 4) | decided | any binary redistribution; commercial use | — |
+| DR-17 | Archive policy and permanent branches (rev. 4) | decided | — | — |
+| DR-18 | Release line and default branch (rev. 4) | decided in principle | an unrelated-history merge or a default-branch change now | M4 |
 
 ---
 
@@ -379,3 +386,61 @@ The collisions are F1–F4 (FRER bindings vs S7-roadmap decisions), F3 (also A2-
 
   The method is validated before any independent evaluation. Original manifests are never rewritten, and original evidence is never modified.
 
+## DR-14 — Tier-0 and tier-1 CI (new in rev. 4)
+
+**Sources:**
+- `h4-first-task.md` and PR #4 (tier-0);
+- `ci/tier1/README.md` and PR #7 (tier-1);
+- `repository-archive-and-evidence-register.md` §3.1–§3.2.
+
+**Facts recorded with the decision:**
+- **Tier-0 negative controls.** Both failed at their intended hosted gates: the fixture gate, and the Simu5G identity gate.
+- **Tier-1 negative controls N-1 and N-2.** N-1 and N-2 failed during the **offline self-tests** of their hosted runs, so those hosted runs **never reached** the downstream gates they target. Those gates are the lock-identity gate (N-1) and the C-5 SYS_LIBS gate (N-2). Both gates **passed** in the positive hosted tier-1 runs: PR #7 and the C-1 … C-12 prerequisites of E3a, E3b and E3b-R1. Their negative (rejecting) behaviour was tested **offline** by the tier-1 self-tests.
+- **Tier-1 triggering.** Tier-1 automatically selects relevant non-draft pull requests. The label `tier1:run` is an override, including for draft pull requests.
+- **Tier-1 scope.** Tier-1 validates the release build, linkage and its specific reviewed configuration queries. It does not automatically validate every newly introduced NED or INI configuration.
+
+**Decision (18 Nov 2026, maintainer):** Tier-0 and tier-1 CI are accepted and integrated. Tier-0 remains required. Tier-1 remains non-mandatory at repository-ruleset level.
+
+## DR-15 — Experimental tier-2 harness and hosted functional simulations (new in rev. 4)
+
+**Sources:** the WP-E3 experiments E3a (PASS), E3b (PUBLICATION FAILURE, preserved) and E3b-R1 (PASS) (`repository-archive-and-evidence-register.md` §3.3); `ci/tier2/` on `wp-e3/e3b-r1-publication`.
+
+**Decision (18 Nov 2026, maintainer):**
+- The experimental tier-2 harness is retained on the frozen `wp-e3/e3b-r1-publication` branch.
+- Individually authorised, bounded hosted functional simulations are permitted during travel.
+- There is no automatic tier-2 integration.
+- Hosted functional simulations remain **level-2 development evidence**. They never replace independent scientific execution, and they are never level 3 (`remote-execution-feasibility.md` §4, X-1).
+
+## DR-16 — Licensing scope (new in rev. 4)
+
+**Sources:** `remote-execution-feasibility.md` §3 (L-1 … L-3).
+
+**Decision (18 Nov 2026, maintainer):**
+- Academic-use scope is confirmed by the maintainer for current nascTime development and simulation.
+- No compiled framework binary is redistributed.
+- Commercial use is outside the current scope.
+
+## DR-17 — Archive policy and permanent branches (new in rev. 4)
+
+**Sources:** the WP-E4 consolidation plan; `repository-archive-and-evidence-register.md` §1–§2.
+
+**Decision (18 Nov 2026, maintainer):** The archive policy is implemented.
+- **Branches:** four permanent branches are retained:
+  - `master` (frozen legacy provenance);
+  - `m2/continuation` (integration);
+  - `m1/ethernet-bridge` (frozen M1 provenance);
+  - `wp-e3/e3b-r1-publication` (frozen experimental tier-2 harness).
+- **Tags:** 30 tags are retained: `v1.0`, `v1.0.1` and 28 annotated `archive/*` tags.
+- **Deleted branches:** the 26 deleted branches remain reachable through their archive tags.
+- **External PRs:** #2 and #3 stay open.
+- **Phase 0:** additional Phase 0 tags remain deferred.
+- **Future work** uses short-lived work-package branches from `m2/continuation`.
+
+## DR-18 — Release line and default branch (new in rev. 4)
+
+**Source:** `m2/continuation` shares no history with `master` (its only root is the snapshot `14d5e0f`), and the default branch is `master`.
+
+**Decision (18 Nov 2026, maintainer):**
+- **When release-ready:** prefer a release branch cut from the 2.0 integration line, and a default-branch transition.
+- **Not now:** no unrelated-history merge into `master` and no default-branch change.
+- `master` and `m1/ethernet-bridge` are retained as frozen provenance.

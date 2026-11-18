@@ -2,7 +2,19 @@
 
 **Status: revision 2 (corrected per the maintainer's review of 17 Nov 2026).** Canonical location: `docs/migration/h4-first-task.md`.
 
-**Not started.** The maintainer implements H4 through the GitHub-based remote development workflow. This document specifies it; it does not implement it.
+~~**Not started.**~~ The maintainer implements H4 through the GitHub-based remote development workflow. This document specifies it; it does not implement it.
+
+**Status (revision 3, 18 Nov 2026): implemented and accepted (DR-14).** The specification below is unchanged and is now **historical**. Its authorisation boundary, stop conditions and "next tasks" applied to H4 only. They are **not** active restrictions or the current status: see `travel-development-plan.md` §3a and `remote-agent-handover.md`.
+
+| Criterion | Record |
+|---|---|
+| H4-1, H4-2, H4-6 | PR #4 from `ci/tier0-python` (`aa5693879957be9be198ad208c907caf257a8a54`), merged into `m2/continuation` 2026-11-17 (`c4fb6c8`). Acceptance run 44118333251 (job 134162461692): fixture gate, Simu5G identity gate, the 10 declared suites with their exact lines, and the two NOT RUN entries. |
+| H4-3 | NC-H4-fixture (`61871909cd9f7b69b699636e6a418bfce87259c9`, draft PR #5, closed unmerged). Run 44119591587 failed **at the fixture gate**; every suite and the Simu5G gate were skipped. Intended reason: **met**. |
+| H4-4 | NC-H4-simu5g (`21350bb1919cd08b07c6e517ec3c3a66293c779c`, draft PR #6, closed unmerged). Run 44119608933: the fixture gate passed; the run failed **at the Simu5G identity gate**; every suite was skipped. Intended reason: **met**. |
+| H4-5 | Both negative controls failed for their intended reason. |
+| H4-7 | Job duration 89 s (feasibility F-1) |
+| Branches | `ci/tier0-python`, `ci/nc-h4-fixture` and `ci/nc-h4-simu5g` were deleted on 18 Nov 2026 after their run records were captured. Their heads are preserved by `archive/ci/tier0-python-pr4`, `archive/nc/h4-3-fixture-byte-expected-fail` and `archive/nc/h4-4-simu5g-commit-expected-fail` (`repository-archive-and-evidence-register.md`). |
+
 
 **Terminology.** "H4" is the first implementation step after the evidence collection (H1, H2) and the E0 integration commit. It corresponds to plan work package **E1**.
 
@@ -98,6 +110,8 @@ If a suite does not produce its expected line on the hosted runner (for example 
 - Any need for secrets, private access, a full-stack build or a self-hosted runner.
 
 ## 8. Next tasks after H4 (backlog order)
+
+*[Superseded (rev. 4): this list is historical; E2 is done and A1 is next.]*
 
 1. Plan E2: tier-1 feasibility, from the preserved `opp_env` / Nix environment (publication of the configuration only after content review).
 2. A1: A-2.1 integration into E0v-N.
