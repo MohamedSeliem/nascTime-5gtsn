@@ -1,0 +1,178 @@
+# Tier-1 full-stack CI (WP-E2c). Level-2 validation infrastructure only; it produces no scientific evidence.
+#
+# Builds the pinned OMNeT++ 6.5.0 / INET 4.7.0 / Simu5G 1.8.1 stack (Nix 2.34.4, opp_env 0.36.2.261110, the approved
+# 26.05 lock; release only) and libnasctime_m2, validates binaries, linkage and the single C++ runtime, and runs the
+# existing A2-V1 wrapper regression suite with the real simulator behind a strict audit shim (real configuration
+# queries + synthetic lifecycle tests). No simulation is executed. Acceptance: C-1 .. C-15, see ci/tier1/README.md.
+#
+# Trigger policy (C3): pull_request targeting m2/continuation only; relevance from the PR's complete change set
+# (ci/tier1/py/decide.py, fail closed); collaborator label `tier1:run` as override; drafts skipped unless labelled; an
+# unrelated label never starts or cancels a run. Read-only token, no secrets, no caches, pinned actions, standard
+# ephemeral hosted runners. Not a required check. All logic lives in ci/tier1/; steps only call it.
+
+name: tier1-full-stack
+
+on:
+  pull_request:
+    branches: [m2/continuation]
+    types: [opened, synchronize, reopened, ready_for_review, labeled]
+
+permissions:
+  contents: read
+
+jobs:
+  decide:
+    name: Tier 1 - trigger selection
+    if: github.repository == 'MohamedSeliem/nascTime-5gtsn'
+    runs-on: ubuntu-22.04
+    timeout-minutes: 5
+    defaults:
+      run:
+        shell: bash --noprofile --norc -euo pipefail {0}
+    outputs:
+      run: ${{ steps.decide.outputs.run }}
+      reason: ${{ steps.decide.outputs.reason }}
+    steps:
+      - name: Checkout (complete history for the change set)
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Decide from the complete PR change set (fails closed if it cannot be determined)
+        id: decide
+        run: /usr/bin/python3 -I ci/tier1/py/decide.py "$GITHUB_EVENT_PATH" "$GITHUB_WORKSPACE" "$GITHUB_OUTPUT"
+
+  selftest:
+    name: Tier 1 - offline self-tests
+    needs: decide
+    if: needs.decide.outputs.run == 'true'
+    runs-on: ubuntu-22.04
+    timeout-minutes: 20
+    defaults:
+      run:
+        shell: bash --noprofile --norc -euo pipefail {0}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Offline self-tests of the tier-1 implementation (no Nix, no network, no simulation)
+        run: /usr/bin/python3 -I ci/tier1/tests/test_tier1.py
+
+  fullstack:
+    name: Tier 1 - full-stack build, linkage and wrapper suite (no simulation)
+    needs: [decide, selftest]
+    if: needs.decide.outputs.run == 'true'
+    runs-on: ubuntu-22.04
+    timeout-minutes: 120
+    concurrency:
+      # A unique group when no run was selected, so an unrelated event can never cancel a running full-stack job.
+      group: tier1-full-stack-pr${{ github.event.pull_request.number }}-${{ needs.decide.outputs.run == 'true' && 'run' || github.run_id }}
+      cancel-in-progress: true
+    defaults:
+      run:
+        shell: bash --noprofile --norc -euo pipefail {0}
+    env:
+      # Event values passed through the environment, never interpolated into scripts.
+      PR_NUMBER: ${{ github.event.pull_request.number }}
+      PR_HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+      PR_BASE_SHA: ${{ github.event.pull_request.base.sha }}
+      PR_BASE_REF: ${{ github.event.pull_request.base.ref }}
+    steps:
+      - name: Checkout (tested merge commit, complete history for the wrapper suite)
+        id: checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Identity, capacity, start gate, disk guard, approved lock
+        id: setup
+        timeout-minutes: 5
+        run: bash ci/tier1/steps/setup.sh
+      - name: Nix, opp_env, workspace, release assets, realisation (no build)
+        id: bootstrap
+        timeout-minutes: 45
+        run: bash ci/tier1/steps/bootstrap.sh
+      - name: Toolchain probe, manifest verification, adaptation screening
+        id: verify
+        timeout-minutes: 25
+        run: bash ci/tier1/steps/verify.sh
+      - name: Host C++ runtime (case A correction or case B clean host)
+        id: runtime
+        timeout-minutes: 25
+        run: bash ci/tier1/steps/runtime.sh
+      - name: Build OMNeT++ 6.5.0 (release) and SYS_LIBS gate
+        id: b_omnetpp
+        timeout-minutes: 25
+        run: bash ci/tier1/steps/build.sh omnetpp
+      - name: Build INET 4.7.0 (release)
+        id: b_inet
+        timeout-minutes: 50
+        run: bash ci/tier1/steps/build.sh inet
+      - name: Build Simu5G 1.8.1 (release)
+        id: b_simu5g
+        timeout-minutes: 25
+        run: bash ci/tier1/steps/build.sh simu5g
+      - name: Build libnasctime_m2 (release)
+        id: b_nasctime
+        timeout-minutes: 8
+        run: bash ci/tier1/steps/build.sh nasctime
+      - name: Validate binaries, linkage, C++ runtime, RUNPATH (static inspection plus opp_run -v)
+        id: validate
+        timeout-minutes: 8
+        run: bash ci/tier1/steps/validate.sh
+      - name: Source changes caused by configuration and compilation
+        id: srcchanges
+        if: ${{ !cancelled() && steps.b_omnetpp.outcome == 'success' && steps.b_inet.outcome == 'success' && steps.b_simu5g.outcome == 'success' && steps.b_nasctime.outcome == 'success' }}
+        timeout-minutes: 10
+        run: bash ci/tier1/steps/srcchanges.sh
+      - name: A2-V1 wrapper regression suite (real configuration queries via audit shim; stub simulation)
+        id: wrapper
+        if: ${{ !cancelled() && steps.validate.outcome == 'success' }}
+        timeout-minutes: 30
+        run: bash ci/tier1/steps/wrapper.sh
+      - name: Final lock gate
+        id: lockend
+        if: always()
+        timeout-minutes: 3
+        run: bash ci/tier1/steps/lockend.sh
+      - name: Installed sizes and local Nix builds
+        id: measure
+        if: always()
+        timeout-minutes: 8
+        run: bash ci/tier1/steps/measure.sh
+      - name: Terminate the guard and evaluate C-1 to C-14
+        id: evaluate
+        if: always()
+        timeout-minutes: 5
+        env:
+          STEP_OUTCOMES: ${{ toJSON(steps) }}
+        run: bash ci/tier1/steps/evaluate.sh
+      - name: Prepare allow-listed, screened diagnostics
+        id: publish
+        if: always()
+        timeout-minutes: 5
+        run: bash ci/tier1/steps/publish.sh
+      - name: Verdict (C-15 and overall)
+        id: final
+        if: always()
+        timeout-minutes: 3
+        env:
+          STEP_OUTCOMES: ${{ toJSON(steps) }}
+          PUBLISH_OUTCOME: ${{ steps.publish.outcome }}
+        run: bash ci/tier1/steps/final.sh
+      - name: Upload screened text diagnostics (retained 7 days)
+        id: upload
+        if: always() && steps.publish.outcome == 'success'
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: tier1-diagnostics-pr${{ github.event.pull_request.number }}-run${{ github.run_id }}-${{ github.run_attempt }}
+          path: ${{ runner.temp }}/tier1/publish/
+          retention-days: 7
+          if-no-files-found: error
+      - name: Conclusion (TIER-1 PASS and a published artifact required)
+        id: conclude
+        if: always()
+        env:
+          UPLOAD_OUTCOME: ${{ steps.upload.outcome }}
+        run: bash ci/tier1/steps/conclude.sh
