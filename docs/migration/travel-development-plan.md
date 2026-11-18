@@ -1,6 +1,14 @@
 # nascTime 2.0 — prioritised development backlog for the travel period (about 19 Nov 2026 to 19 Jan 2027)
 
-**Status: revision 3, approved 17 November 2026 with the maintainer's targeted corrections.** 17 November 2026. Canonical location after approval: `docs/migration/travel-development-plan.md`.
+**Status: revision 4, 18 November 2026 (WP-E4 Phase 3, documentation-only; pending the maintainer's review).** Revision 3 was approved on 17 November 2026 with the maintainer's targeted corrections. Canonical location: `docs/migration/travel-development-plan.md`.
+
+Revision 4 records:
+- the completion of WP E0–E3;
+- the approved travel workflow (§0a);
+- the rule for hosted functional simulations (DR-15);
+- the approved nine-week roadmap (§3a), which supersedes the rev-3 "indicative sequencing" table (kept below for traceability).
+
+Workstreams, work packages, dependencies and the held acceptance queue are otherwise unchanged.
 
 **This is a prioritised backlog, not a delivery commitment.** No item is promised by a date. Week labels give order only.
 
@@ -34,6 +42,20 @@
    - Source files declared frozen by an accepted record stay frozen. Examples: the A-2 modules frozen at `fbee202`; `check_m2s72_a2v1.py` (39a6434), the A2-V1 evaluator, pinned by the A-2.1 test T-frozen-untouched.
    - Every other source file is active. It may be changed with justification, review and regression evidence that reviewed behaviour is preserved.
 
+## 0a. Approved travel development workflow (rev. 4)
+
+| Role | Who / what | Produces |
+|---|---|---|
+| Design, implementation and development testing | **Claude Code** (development agent) | Designs, code, tests; level 1 → 2 |
+| Independent code and evidence review | **ChatGPT** | Review findings on designs, code, records and evidence |
+| Automatic Python regressions | **GitHub tier-0** (required) | Level 2 for Python work |
+| Release build, linkage and reviewed configuration checks | **GitHub tier-1**. Automatic for relevant non-draft pull requests; the label `tier1:run` overrides, including for drafts. It validates its specific reviewed configuration queries only. | Level 2 for C++ / NED / ini build work |
+| Hosted functional simulations | **Individually authorised and bounded** runs (DR-15), using the frozen tier-2 harness pattern | Level-2 development smoke evidence |
+| Experimental campaigns and qualifying scientific evidence | **Independent scientific executor** (feasibility §4) | Level-3 candidates |
+| Approvals, integration and scientific acceptance | **Maintainer** | Merges; level 3 |
+
+**Development CI never replaces independent scientific execution.** Hosted functional simulation capability is **not** suspended. Each run needs its own authorisation, bounds and pre-declared acceptance (as E3a and E3b-R1 had).
+
 ## 1. Integration architecture: linking M2-A, M2-B and M3
 
 The three lines meet at the architectural seams of `revised-migration-roadmap.md` §1. Each work package below names the seam it touches. A change to a seam's contract needs a short interface note, reviewed before the code.
@@ -60,6 +82,16 @@ The three lines meet at the architectural seams of `revised-migration-roadmap.md
 | **E2** | Tier-1 feasibility: full pinned-stack build | E0; checklist `remote-execution-feasibility.md` §2–§3 (licence, runner limits). The preserved environment description (`opp_env` 0.36.2.261110, Nix 2.34.4 flakes and lock files, in the private the private environment archive) is the reference. Publishing the flake and lock files to the public repository needs approval (DR-12; publication class). | — | Feasibility report with measured build time, cache size and runner limits. The first attempt reproduces the preserved `opp_env` / Nix environment; a from-source build is the fallback. Then, if feasible, a workflow building OMNeT++ 6.5.0 / INET 4.7.0 / Simu5G 1.8.1 (unmodified) and `libnasctime_m2`, plus `opp_run -q runconfig` checks (the A2-V1 wrapper suite; generator `verify`) | GitHub-hosted runner, or another runner after approval | Licence not cleared; limits exceeded; any upstream source modified to make it build | 2–4 d |
 | **E3** | Tier-2 functional smoke (short runs, not evidence) | E2 | — | Each NED / ini change gets one short run that must load and complete. Labelled "functional smoke: not evidence". | Same as E2 | A smoke result used as a scientific result | 1 d |
 | **E4** | M4 groundwork | E0; DR-10 | M4 acceptance: clean-machine install by the maintainer | `docs/README-2.0-draft.md`; compatibility table; `opp_env` check (B9); skill drafts `nasctime-dev-environment` and `nasctime-fingerprint-testing`; claim-scoping notes; a non-blocking nightly job against Simu5G `dev` (after E2) | GitHub | — | 3–4 d, spread over the period |
+
+**Workstream E status (rev. 4; identities in `repository-archive-and-evidence-register.md` §3):**
+
+| WP | Status |
+|---|---|
+| E0 | **Done.** `m2/continuation` created; documents imported (`db8027d`). |
+| E1 | **Done.** Tier-0 integrated (PR #4). Both negative controls failed at their intended gates. |
+| E2 | **Done.** Tier-1 integrated (PR #7) after E2b.1 PASS, E2b.2 FAIL, E2b.3 FAIL and E2b.3-R1 PASS. Tier-1 negative controls N-1 and N-2 failed in the offline self-tests; **neither exercised its intended downstream hosted gate.** |
+| E3 | **Done, as one-time experiments:**<br>• E3a PASS (`M2S4U`: wired timing functionality);<br>• E3b PUBLICATION FAILURE (preserved);<br>• E3b-R1 PASS (`M2S5`: the downlink 5G–TSN timing path).<br>All level 2. The harness is frozen on `wp-e3/e3b-r1-publication` (DR-15).<br>**The rev-3 rule "each NED / ini change gets one short run" is replaced by DR-15:** a hosted functional run happens only when individually authorised and bounded. |
+| E4 | Open (README 2.0 draft, compatibility table, `opp_env` entry B9, skills, nightly job), spread over the period |
 
 ### Workstream A — Remaining S7.2a tooling and protocols
 
@@ -114,7 +146,7 @@ The three lines meet at the architectural seams of `revised-migration-roadmap.md
 7. **D2 / D3**, **B4–B6**, **A5 / A6**.
 8. **E4**, throughout.
 
-**Indicative sequencing over eight weeks (an order, not a schedule):**
+**Indicative sequencing over eight weeks (an order, not a schedule). Rev. 3, superseded by §3a:**
 
 | Weeks | Work packages |
 |---|---|
@@ -123,6 +155,33 @@ The three lines meet at the architectural seams of `revised-migration-roadmap.md
 | 3–4 | A2–A3, C1, C3, B3 |
 | 4–6 | A4, C2, D2, B4 |
 | 6–8 | A5, C4, D3, B5, B6, E4 |
+
+## 3a. Approved nine-week roadmap (rev. 4; an order, not a schedule)
+
+**Priority:**
+1. **A1** (A-2.1 integration into E0v-N), the single blocker of every N > 1 Stage 5 result.
+2. The remaining Stage 5 generator and protocol work.
+3. The M2-B bridge architecture and the TSN AF compiler.
+4. The Stage 6 comparator.
+5. The M3 FRER architecture.
+6. S7.2b and S7.3 design and implementation preparation.
+
+**Scope and claims.**
+- **S7.2a remains partial.** No release readiness and no complete M2-S5 campaign acceptance is claimed.
+- Remote work reaches level 2 at most. Scientific acceptance stays with the independent executor and the maintainer (§4).
+
+| Week | Remote development (Claude Code; ChatGPT review; tier-0 / tier-1; level 2) | Requires independent execution, VM access or the maintainer |
+|---|---|---|
+| 1 | Consolidation documentation (WP-E4). **A1 design note:** wrapper rows PU-4h, PU-4o and per-UE A2-8, the first-genuine-occurrence flag (DR-07b / d), the module boundary, the test plan. **B1** coverage table draft. | Review and merge of the documentation; job-log exports and internal raw-manifest verification of the preserved archives |
+| 2–3 | **A1 implementation** (new module; frozen sources untouched): synthetic N = 2 / 3 / 4 tests from `m2s72_harqfix21.py`, negative controls with the baseline guard, the genuine F3 fixture through the wrapper (tier-0). **A1 validation protocol** for V-N1 / V-N2 / V-V1 with exact commands. **B7** clock-error note. **D1** M3 architecture. | DR-07c validations V-N1 / V-N2 / V-V1 (read-only, on the private evidence; DR-12, DR-13), then the S5-2-D2 decision |
+| 3–5 | **A4** generator sections for E3 / E1 / E4 (append-only; existing sections regenerate byte-identically). **A3** E0v-N batch protocol addendum. **A2** full-contract diagnostic configuration and protocol. **B2** M2-B architecture with seam interface notes. | A2 non-perturbation twin and full-contract diagnostic; E0v core / H5 / p; the E0v-N bracket |
+| 5–7 | **B3** TSN AF offline compiler: it must reproduce the generator's bearer and QoS sections byte for byte before emitting anything new. **A5** Stage 6 comparator, canaries CN-1…CN-4, rule AR. **C1** S7.2b and **C3** S7.3 designs. | Design reviews; E3, E1 + E4 when A4 is accepted |
+| 7–9 | Implementation preparation for **C2 / C4** (S7.2b network and configurations; S7.3 state machine) and the **D2 / D3** skeletons (S-PATH emission through S-CFG). Default-off, release build and linkage validated by tier-1. New configurations get reviewed queries, or an individually authorised hosted functional run (DR-15). **E4** README 2.0 draft. | CP3 (Stage 6), S7.2b / S7.3 / M3 rows; Phase 0 and legacy comparisons (VM); M4 clean-machine install |
+
+**Never in this window:**
+- any simulation presented as scientific evidence;
+- any Stage 5, M2-B or M3 campaign run by the development agent;
+- a release.
 
 ## 4. Held acceptance queue (order of independent execution)
 
@@ -146,6 +205,8 @@ The order is corrected so that evidence acquisition precedes the comparisons tha
 | 14 | E2 re-declared (plan §2.6) | 6 |
 
 Items 3–7 and 11–12 can run on any independent environment approved under `remote-execution-feasibility.md` §4. Items 8–9 and 13 need the legacy results machine.
+
+**Rev. 4 note.** E3a and E3b-R1 are not acceptance-queue items. They are level-2 development smoke evidence and close no queue item.
 
 ## 5. Out of scope
 

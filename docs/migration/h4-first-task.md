@@ -2,7 +2,19 @@
 
 **Status: revision 2 (corrected per the maintainer's review of 17 Nov 2026).** Canonical location: `docs/migration/h4-first-task.md`.
 
-**Not started.** The maintainer implements H4 through the GitHub-based remote development workflow. This document specifies it; it does not implement it.
+~~**Not started.**~~ The maintainer implements H4 through the GitHub-based remote development workflow. This document specifies it; it does not implement it.
+
+**Status (revision 3, 18 Nov 2026): implemented and accepted (DR-14).** The specification below is unchanged.
+
+| Criterion | Record |
+|---|---|
+| H4-1, H4-2, H4-6 | PR #4 from `ci/tier0-python` (`aa5693879957be9be198ad208c907caf257a8a54`), merged into `m2/continuation` 2026-11-17 (`c4fb6c8`). Acceptance run 44118333251 (job 134162461692): fixture gate, Simu5G identity gate, the 10 declared suites with their exact lines, and the two NOT RUN entries. |
+| H4-3 | NC-H4-fixture (`61871909cd9f7b69b699636e6a418bfce87259c9`, draft PR #5, closed unmerged). Run 44119591587 failed **at the fixture gate**; every suite and the Simu5G gate were skipped. Intended reason: **met**. |
+| H4-4 | NC-H4-simu5g (`21350bb1919cd08b07c6e517ec3c3a66293c779c`, draft PR #6, closed unmerged). Run 44119608933: the fixture gate passed; the run failed **at the Simu5G identity gate**; every suite was skipped. Intended reason: **met**. |
+| H4-5 | Both negative controls failed for their intended reason. |
+| H4-7 | Job duration 89 s (feasibility F-1) |
+| Branches | `ci/tier0-python`, `ci/nc-h4-fixture` and `ci/nc-h4-simu5g` were deleted on 18 Nov 2026 after their run records were captured. Their heads are preserved by `archive/ci/tier0-python-pr4`, `archive/nc/h4-3-fixture-byte-expected-fail` and `archive/nc/h4-4-simu5g-commit-expected-fail` (`repository-archive-and-evidence-register.md`). |
+
 
 **Terminology.** "H4" is the first implementation step after the evidence collection (H1, H2) and the E0 integration commit. It corresponds to plan work package **E1**.
 

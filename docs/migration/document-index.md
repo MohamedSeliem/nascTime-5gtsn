@@ -1,6 +1,6 @@
 # nascTime 2.0 migration — public document index
 
-**Status:** published with the E0 documentation-only integration commit on `m2/continuation`, 17 November 2026, after a line-by-line publication review.
+**Status:** published with the E0 documentation-only integration commit on `m2/continuation`, 17 November 2026, after a line-by-line publication review. **Revision 4 (18 Nov 2026, WP-E4 Phase 3):** adds the archive and evidence register and the CI documentation; records the archived branch of the imported plan file.
 
 ## 1. Publication classes
 
@@ -21,14 +21,17 @@ Approval of the classification framework is **not** approval to publish any R or
 | `docs/migration/travel-development-plan.md` | Prioritised backlog for remote development (not a delivery commitment) |
 | `docs/migration/remote-agent-handover.md` | Instructions and boundaries for a remote development agent |
 | `docs/migration/remote-execution-feasibility.md` | Execution tiers 0–3; requirements and open items |
-| `docs/migration/h4-first-task.md` | Specification (revision 2) of the first implementation task: tier-0 Python regression CI. **Not implemented.** |
+| `docs/migration/h4-first-task.md` | Specification (revision 2) of the first implementation task: tier-0 Python regression CI. ~~Not implemented.~~ **(rev. 4) Implemented and accepted:** PR #4, with the record in its revision-3 status section. |
+| `docs/migration/repository-archive-and-evidence-register.md` | **(rev. 4)** Permanent branches, the 30 tags, the mapping from deleted branches to archive tags, the hosted CI and experiment record (H4, E2, E3) and the 11 hosted evidence archives with their digests |
+| `ci/tier1/README.md` | **(rev. 4)** Tier-1 full-stack CI: pins, triggering, acceptance C-1 … C-15, limits (integrated with PR #7) |
+| `ci/tier2/README.md` on branch `wp-e3/e3b-r1-publication` | **(rev. 4)** The experimental tier-2 harness, E3a / E3b / E3b-R1 acceptance definitions and the N3 publication policy. Not on `m2/continuation` (DR-15). |
 | `docs/migration/document-index.md` | This index |
 
 ## 3. Imported planning file (P)
 
 | File | Provenance |
 |---|---|
-| `simulations/m2/plans/M2-S7.2a-stage5-plan-1.8.1.md` | Imported byte-identically (DR-11) from commit `57fa0c5` on branch `plan/m2-s7.2a-stage5`. Relative to the merge base `2586bce`, that branch adds only this file. SHA-256 `fc94011f4a79cf4397be04ed2353b4b6a25c08becaf5a13da8594654099f065a`, 341 lines. The branch itself is not merged. |
+| `simulations/m2/plans/M2-S7.2a-stage5-plan-1.8.1.md` | Imported byte-identically (DR-11) from commit `57fa0c5` on branch `plan/m2-s7.2a-stage5`. Relative to the merge base `2586bce`, that branch adds only this file. SHA-256 `fc94011f4a79cf4397be04ed2353b4b6a25c08becaf5a13da8594654099f065a`, 341 lines. The branch itself is not merged. **(rev. 4)** The branch was deleted on 18 Nov 2026; its history is preserved by the tag `archive/plan/m2-s7.2a-stage5-rev1.1` (`57fa0c5`). |
 
 ## 4. Documents cited by bare name
 
@@ -88,3 +91,4 @@ Cited for traceability only. They are not in this repository. A remote agent has
 - The preserved `opp_env` / Nix configuration, flakes and lock files: publication only after content review (feasibility F-11).
 - The maintainer's decision checklist and internal revision notes.
 - Legacy datasets that currently exist only on the original VM (DR-06b).
+- **(rev. 4)** The private evidence release holding the 11 hosted CI / experiment archives. Their identities and digests are public in `repository-archive-and-evidence-register.md` §4; the archives are not.
