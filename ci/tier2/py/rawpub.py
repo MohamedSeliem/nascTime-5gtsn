@@ -8,12 +8,15 @@ raw outputs or an allow-listed record, and
     parsable, and the sensitive-content screen passes on all printable strings (>= 6 characters) extracted from the file;
       Ethernet captures (link type 1, every file except the N3 capture): every source MAC a locally administered unicast
         address (simulation-assigned), every destination such an address, the gPTP multicast 01-80-C2-00-00-0E or broadcast;
-      the N3 capture of e3b (UPF ppp[0]) only: PPP link type (9, 50 or 204); every frame decoded exactly as the reviewed
-        check_m2s5.n3_inner does (one prefix byte, optional ff03 address/control, protocol 0x0021 IPv4 only); IPv4 version 4,
-        header length >= 20, total length within the frame and at most 3 trailing bytes (PPP FCS-16 and flag), source and
-        destination in 10.0.0.0/8 (the configurator's gNB/UPF range 10.x.x.x/24); fragments must reassemble completely;
-        UDP (17) with consistent length and port 2152 or 31; GTP-U version 1, PT=1, message type 0xFF (G-PDU), GTP length
-        consistent, extension-header chain within bounds; inner Ethernet frame >= 14 bytes under the MAC policy above.
+      the N3 capture of e3b (UPF ppp[0]) only (E3b-R1 policy, derived from the pinned Simu5G 1.8.1 / INET 4.7.0 sources;
+        see ci/tier2/README.md): link type 204 (PPP with direction); PPP header 7e ff 03, protocol 0x0021 (IPv4) only, a
+        2-byte FCS trailer; IPv4 0x45 (no options), consistent total length, UDP only; source an N3 PPP address
+        (10.x.x.x/24), destination an N3 PPP address or the gNB's tunnel endpoint (192.168.x.x/24, downlink leaving the UPF
+        only); at most two N3 addresses in one /24 and one gNB endpoint per file; fragments must reassemble completely; both
+        UDP ports GTP-U ports (31, 2152), consistent UDP length; GTP-U G-PDU in one of the two Simu5G serialiser forms (flags
+        0x30, or 0x34 with a single PDU-session container), consistent length; inner Ethernet frame >= 14 bytes under the
+        MAC policy above. Every frame is examined: violations are counted per class with bounded examples (never stopping
+        at the first), and any violation, an empty capture or an unsupported class fails the publication.
 Passing a text regex alone never qualifies a binary file. Any failure removes the publication directory (fail closed).
 The outputs are never rewritten.
 usage: rawpub.py <experiment e3a|e3b> <raw> <records> <e3 dir> <out dir> <screen.py> <pcapng module dir> <limit_B> <report>"""
@@ -34,8 +37,30 @@ E3A_FILES = {"effective-config.txt", "run-M2S4U.log",
              "runs/M2S4U/pcap/M2S4U-0/M2S4LinkTest.ttA.pcapRecorder[0].pcapng",
              "runs/M2S4U/pcap/M2S4U-0/M2S4LinkTest.ttB.pcapRecorder[0].pcapng"}
 E3B_N3 = "runs/M2S5/pcap/M2S5-0/M1Bridge.upf.pcapRecorder[0].pcapng"
-PPP_LINKTYPES = {9, 50, 204}
-GTPU_PORTS = {2152, 31}
+# N3 capture policy (E3b-R1). Every rule below is derived from the pinned sources (Simu5G 1.8.1, INET 4.7.0) and the
+# reviewed configuration; see ci/tier2/README.md, "E3b-R1: N3 capture policy".
+N3_LINKTYPE = 204                      # INET PcapRecorder: Protocol::ppp -> LINKTYPE_PPP_WITH_DIR (direction in the EPB flags)
+PPP_HEADER = b"\x7e\xff\x03\x00\x21"  # INET PppHeader: flag 0x7e, address 0xff, control 0x03; protocol 0x0021 (IPv4) only
+PPP_TRAILER_LEN = 2                    # INET PppTrailer: FCS-16 only (2 bytes; the closing flag is not serialised)
+GTPU_PORTS = {31, 2152}                # Simu5G GtpUser localPort = tunnelPeerPort = 31 (default, not overridden); the reviewed
+                                       # decoder also recognises 2152; both UDP ports must be in this set
+GTPU_FLAGS = {0x30: "no-extension", 0x34: "pdu-session-container"}   # Simu5G GtpUserMsgSerializer: the only two forms
+GTPU_G_PDU, GTPU_END_MARKER = 0xFF, 0xFE
+N3_EXAMPLES = 5                        # bounded diagnostics: examples kept per violation class
+
+
+def ip_str(a):
+    return ".".join(str(x) for x in a)
+
+
+def addr_class(a):
+    """'n3' for the configurator's among-rule range of the gNB/UPF PPP link (10.x.x.x/24), 'node' for its hosts-rule range
+    (192.168.x.x/24; the gNB's first IPv4 interface is its cellular NIC, whose address is the gNB's tunnel endpoint)"""
+    if a[0] == 10:
+        return "n3"
+    if a[0] == 192 and a[1] == 168:
+        return "node"
+    return None
 
 
 def raw_files(exp):
@@ -65,139 +90,184 @@ def mac_policy(src, dst):
     return None
 
 
-def in_10(a):
-    return len(a) == 4 and a[0] == 10
+class N3Check:
+    """Validates every frame of the N3 capture and collects bounded diagnostics per violation class (it never stops at the
+    first problem). Accepted traffic class (the only one established from the sources): IPv4 / UDP / GTP-U G-PDU carrying
+    an Ethernet frame of the Ethernet PDU session, in one of the two serialiser forms, between the UPF's N3 address and the
+    gNB's tunnel endpoint (downlink, outbound at the UPF) or the gNB's N3 address and the UPF's (uplink)."""
 
+    def __init__(self):
+        self.cls, self.examples = defaultdict(int), defaultdict(list)
+        self.pairs, self.forms, self.frags = defaultdict(int), defaultdict(int), defaultdict(dict)
+        self.packets = self.accepted = 0
+        self.addresses = set()
 
-def check_gtpu_udp(pl):
-    """UDP datagram carrying a GTP-U G-PDU with an inner Ethernet frame under the MAC policy; None or the problem"""
-    if len(pl) < 8:
-        return "UDP header truncated"
-    sport, dport, ulen = struct.unpack(">HHH", pl[:6])
-    if ulen != len(pl):
-        return f"UDP length {ulen} != datagram payload {len(pl)}"
-    if not ({sport, dport} & GTPU_PORTS):
-        return f"UDP ports {sport}/{dport} are not GTP-U ports"
-    g = pl[8:]
-    if len(g) < 8:
-        return "GTP-U header truncated"
-    if g[0] >> 5 != 1 or not g[0] & 0x10:
-        return f"GTP-U flags 0x{g[0]:02x} (version 1, PT=1 required)"
-    if g[1] != 0xFF:
-        return f"GTP-U message type 0x{g[1]:02x} is not a G-PDU"
-    glen = struct.unpack(">H", g[2:4])[0]
-    if glen != len(g) - 8:
-        return f"GTP-U length {glen} != {len(g) - 8}"
-    h = 8
-    if g[0] & 7:
-        if len(g) < 12:
-            return "GTP-U optional fields truncated"
-        h, nxt = 12, g[11]
-        while nxt:
-            if h >= len(g) or g[h] == 0:
-                return "GTP-U extension header chain malformed"
-            ln = g[h] * 4
-            if h + ln > len(g):
-                return "GTP-U extension header truncated"
-            nxt = g[h + ln - 1]
-            h += ln
-    inner = g[h:]
-    if len(inner) < 14:
-        return f"inner Ethernet frame of {len(inner)} bytes"
-    return mac_policy(inner[6:12].hex(), inner[0:6].hex())   # Ethernet: destination, then source
+    def bad(self, cls, where, what):
+        self.cls[cls] += 1
+        if len(self.examples[cls]) < N3_EXAMPLES:
+            self.examples[cls].append(f"{where}: {what}")
 
+    def frame(self, i, p):
+        self.packets += 1
+        b, d = p["data"], p["dir"]
+        if p["linktype"] != N3_LINKTYPE:
+            return self.bad("link-type", f"packet {i}", f"link type {p['linktype']} (expected {N3_LINKTYPE}, PPP with direction)")
+        if len(b) < len(PPP_HEADER) + 20 + PPP_TRAILER_LEN:
+            return self.bad("truncated", f"packet {i}", f"{len(b)} bytes")
+        if b[:3] != PPP_HEADER[:3]:
+            return self.bad("ppp-framing", f"packet {i}", f"header {b[:3].hex()} (expected 7eff03)")
+        if b[3:5] != PPP_HEADER[3:5]:
+            return self.bad("ppp-protocol", f"packet {i}", f"protocol 0x{b[3:5].hex()} (only 0x0021 IPv4)")
+        ip = b[len(PPP_HEADER):]
+        if ip[0] >> 4 != 4 or ip[0] & 15 != 5:
+            return self.bad("ipv4-header", f"packet {i}", f"version/IHL byte 0x{ip[0]:02x} (expected 0x45, no options)")
+        tot = struct.unpack(">H", ip[2:4])[0]
+        if tot < 20 or tot > len(ip):
+            return self.bad("ipv4-length", f"packet {i}", f"total length {tot}, {len(ip)} bytes available")
+        if len(ip) - tot != PPP_TRAILER_LEN:
+            return self.bad("ppp-trailer", f"packet {i}", f"{len(ip) - tot} bytes after the datagram (expected the 2-byte FCS)")
+        src, dst = tuple(ip[12:16]), tuple(ip[16:20])
+        ok = True
+        if ip[9] != 17:
+            self.bad("ipv4-protocol", f"packet {i}", f"IP protocol {ip[9]} (only UDP 17)")
+            ok = False
+        if addr_class(src) != "n3":
+            self.bad("address-source", f"packet {i}", f"source {ip_str(src)} is not an N3 PPP address (10.x.x.x/24)")
+            ok = False
+        dc = addr_class(dst)
+        if dc is None:
+            self.bad("address-destination", f"packet {i}", f"destination {ip_str(dst)} outside 10.x.x.x/24 and 192.168.x.x/24")
+            ok = False
+        elif dc == "node" and d != 2:
+            self.bad("address-direction", f"packet {i}", f"{ip_str(src)} -> {ip_str(dst)} recorded with direction {d} "
+                     "(a gNB tunnel endpoint is reached only by downlink leaving the UPF, direction 2)")
+            ok = False
+        if src == dst:
+            self.bad("address-self", f"packet {i}", f"source equals destination {ip_str(src)}")
+            ok = False
+        if not ok:
+            return None
+        self.addresses |= {src, dst}
+        self.pairs[(ip_str(src), ip_str(dst), d)] += 1
+        ff = struct.unpack(">H", ip[6:8])[0]
+        mf, fo = ff & 0x2000, (ff & 0x1FFF) * 8
+        pl = ip[20:tot]
+        if mf or fo:
+            k = (src, dst, ip[4:6], d)
+            if fo in self.frags[k]:
+                return self.bad("ipv4-fragment", f"packet {i}", "duplicate fragment")
+            self.frags[k][fo] = (i, pl)
+            if not mf:
+                self.frags[k]["end"] = fo + len(pl)
+            return None
+        return self.datagram(f"packet {i}", pl)
 
-def check_ppp_frame(b, frags, key_dir):
-    """one N3 PPP frame decoded as check_m2s5.n3_inner does; returns (problem or None, [complete UDP payloads])"""
-    if len(b) < 5:
-        return "PPP frame truncated", []
-    if b[0] not in (0x00, 0x01, 0x7E):
-        return f"unexpected PPP prefix byte 0x{b[0]:02x}", []
-    off = 5 if b[1:3] == b"\xff\x03" else 3
-    if len(b) < off + 20:
-        return "IPv4 header truncated", []
-    if struct.unpack(">H", b[off - 2:off])[0] != 0x0021:
-        return f"PPP protocol 0x{struct.unpack('>H', b[off - 2:off])[0]:04x} is not IPv4", []
-    ip = b[off:]
-    if ip[0] >> 4 != 4 or (ip[0] & 15) < 5:
-        return f"not a valid IPv4 header (0x{ip[0]:02x})", []
-    ihl, tot = (ip[0] & 15) * 4, struct.unpack(">H", ip[2:4])[0]
-    if tot < ihl or tot > len(ip):
-        return f"IPv4 total length {tot} inconsistent with frame ({len(ip)} bytes, header {ihl})", []
-    if len(ip) - tot > 3:
-        return f"{len(ip) - tot} trailing bytes after the IPv4 datagram", []
-    if not (in_10(ip[12:16]) and in_10(ip[16:20])):
-        return f"IPv4 addresses {'.'.join(map(str, ip[12:16]))} -> {'.'.join(map(str, ip[16:20]))} outside 10.0.0.0/8", []
-    if ip[9] != 17:
-        return f"IPv4 protocol {ip[9]} is not UDP", []
-    ff = struct.unpack(">H", ip[6:8])[0]
-    mf, fo = ff & 0x2000, (ff & 0x1FFF) * 8
-    pl = ip[ihl:tot]
-    if mf or fo:
-        k = (ip[12:16], ip[16:20], ip[4:6], ip[9], key_dir)
-        if fo in frags[k]:
-            return "duplicate IPv4 fragment", []
-        frags[k][fo] = pl
-        if not mf:
-            frags[k]["end"] = fo + len(pl)
-        return None, []
-    return None, [pl]
-
-
-def check_n3(pk):
-    frags, dgrams = defaultdict(dict), []
-    for i, p in enumerate(pk):
-        if p["linktype"] not in PPP_LINKTYPES:
-            return f"packet {i}: link type {p['linktype']} is not PPP"
-        err, d = check_ppp_frame(p["data"], frags, p["dir"])
+    def datagram(self, where, pl):
+        if len(pl) < 8:
+            return self.bad("udp-length", where, f"{len(pl)}-byte UDP datagram")
+        sport, dport, ulen = struct.unpack(">HHH", pl[:6])
+        if ulen != len(pl):
+            return self.bad("udp-length", where, f"UDP length {ulen}, datagram {len(pl)}")
+        if sport not in GTPU_PORTS or dport not in GTPU_PORTS:
+            return self.bad("udp-ports", where, f"ports {sport} -> {dport} (both must be GTP-U ports {sorted(GTPU_PORTS)})")
+        g = pl[8:]
+        if len(g) < 8:
+            return self.bad("gtpu-header", where, f"{len(g)}-byte GTP-U message")
+        if g[0] not in GTPU_FLAGS:
+            return self.bad("gtpu-header", where, f"flags 0x{g[0]:02x} (only 0x30 or 0x34)")
+        if g[1] != GTPU_G_PDU:
+            return self.bad("gtpu-message-type", where, "End Marker (254; not expected without handover)" if g[1] == GTPU_END_MARKER
+                            else f"message type {g[1]}")
+        if struct.unpack(">H", g[2:4])[0] != len(g) - 8:
+            return self.bad("gtpu-length", where, f"length field {struct.unpack('>H', g[2:4])[0]}, {len(g) - 8} bytes follow")
+        h = 8
+        if g[0] == 0x34:
+            # sequence 0, N-PDU 0, next 0x85; container: length 1, PDU type << 4 (0 DL, 1 UL), QFI, next none
+            if len(g) < 16 or g[8:12] != b"\x00\x00\x00\x85" or g[12] != 1 or g[13] not in (0x00, 0x10) or g[14] & 0xC0 or g[15] != 0:
+                return self.bad("gtpu-extension", where, f"optional fields/extension {g[8:16].hex()} (expected 00000085 01 00|10 qfi 00)")
+            h = 16
+        inner = g[h:]
+        if len(inner) < 14:
+            return self.bad("inner-frame", where, f"{len(inner)}-byte inner Ethernet frame")
+        err = mac_policy(inner[6:12].hex(), inner[0:6].hex())   # Ethernet: destination, then source
         if err:
-            return f"packet {i}: {err}"
-        dgrams += d
-    for k, d in frags.items():
-        if "end" not in d:
-            return "incomplete IPv4 fragment set (no last fragment)"
-        buf, pos, used = b"", 0, set()
-        while pos < d["end"] and pos in d:
-            used.add(pos)
-            buf += d[pos]
-            pos += len(d[pos])
-        if pos != d["end"] or used != {x for x in d if x != "end"}:
-            return "IPv4 fragments do not reassemble completely"
-        dgrams.append(buf)
-    for j, pl in enumerate(dgrams):
-        err = check_gtpu_udp(pl)
-        if err:
-            return f"datagram {j}: {err}"
-    return None
+            return self.bad("inner-mac", where, err)
+        self.accepted += 1
+        self.forms[GTPU_FLAGS[g[0]]] += 1
+        return None
+
+    def finish(self):
+        for k, d in self.frags.items():
+            if "end" not in d:
+                self.bad("ipv4-fragment", f"fragments of packet {min(v[0] for x, v in d.items() if x != 'end')}", "no last fragment")
+                continue
+            buf, pos, used = b"", 0, set()
+            while pos < d["end"] and pos in d:
+                used.add(pos)
+                buf += d[pos][1]
+                pos += len(d[pos][1])
+            if pos != d["end"] or used != {x for x in d if x != "end"}:
+                self.bad("ipv4-fragment", f"fragments of packet {d[min(x for x in d if x != 'end')][0]}", "do not reassemble completely")
+            else:
+                self.datagram(f"reassembled datagram of packet {d[0][0]}", buf)
+        n3 = sorted(a for a in self.addresses if addr_class(a) == "n3")
+        node = sorted(a for a in self.addresses if addr_class(a) == "node")
+        if len(n3) > 2 or len({a[:3] for a in n3}) > 1:
+            self.bad("address-set", "file", f"N3 addresses {[ip_str(a) for a in n3]} (at most the two ends of one 10.x.x.x/24 PPP link)")
+        if len(node) > 1:
+            self.bad("address-set", "file", f"gNB tunnel endpoints {[ip_str(a) for a in node]} (one gNB: at most one)")
+        if self.packets == 0:
+            self.bad("empty", "file", "no packets")
+
+    def summary(self):
+        out = [f"n3_packets: {self.packets}", f"n3_gpdu_accepted: {self.accepted}"]
+        out += [f"n3_address_pair: {s} -> {d} direction {r}: {n}" for (s, d, r), n in sorted(self.pairs.items())]
+        out += [f"n3_gtpu_form: {k}: {n}" for k, n in sorted(self.forms.items())]
+        out += [f"n3_violation: {c}: {n}" for c, n in sorted(self.cls.items())]
+        out += [f"n3_violation_example: {c}: {e}" for c in sorted(self.examples) for e in self.examples[c]]
+        return out
+
+    def problems(self):
+        return [f"N3 {c}: {n} occurrence(s), e.g. {self.examples[c][0]}" for c, n in sorted(self.cls.items())]
 
 
 def check_pcap(path, pcapng, n3=False):
+    """returns (problems, summary lines); never stops at the first frame problem"""
     with open(path, "rb") as f:
         head = f.read(12)
     if len(head) < 12 or head[:4] != b"\x0a\x0d\x0d\x0a":
-        return "not a pcapng file"
+        return ["not a pcapng file"], []
     try:
         pk = pcapng.read(path)
     except Exception as e:  # noqa: BLE001
-        return f"pcapng parse failed: {type(e).__name__}"
-    if not pk:
-        return "no packets"
+        return [f"pcapng parse failed: {type(e).__name__}"], []
     if n3:
-        try:
-            return check_n3(pk)
-        except (IndexError, struct.error) as e:
-            return f"N3 frame not parsable: {type(e).__name__}"
+        c = N3Check()
+        for i, p in enumerate(pk):
+            try:
+                c.frame(i, p)
+            except (IndexError, struct.error) as e:
+                c.bad("malformed", f"packet {i}", type(e).__name__)
+        c.finish()
+        return c.problems(), c.summary()
+    if not pk:
+        return ["no packets"], []
+    cls, ex = defaultdict(int), defaultdict(list)
     for i, p in enumerate(pk):
         if p["linktype"] != 1:
-            return f"packet {i}: link type {p['linktype']}"
-        try:
-            f = pcapng.ethernet(p["data"])
-        except ValueError as e:
-            return f"packet {i}: {e}"
-        err = mac_policy(f["src"], f["dst"])
-        if err:
-            return f"packet {i}: {err}"
-    return None
+            k, msg = "link-type", f"packet {i}: link type {p['linktype']}"
+        else:
+            try:
+                f = pcapng.ethernet(p["data"])
+                err = mac_policy(f["src"], f["dst"])
+                k, msg = ("mac", f"packet {i}: {err}") if err else (None, None)
+            except ValueError as e:
+                k, msg = "malformed", f"packet {i}: {e}"
+        if k:
+            cls[k] += 1
+            if len(ex[k]) < N3_EXAMPLES:
+                ex[k].append(msg)
+    return [f"{k}: {n} packet(s), e.g. {ex[k][0]}" for k, n in sorted(cls.items())], []
 
 
 def main(argv):
@@ -209,7 +279,7 @@ def main(argv):
     sys.dont_write_bytecode = True   # never write into the reviewed checker directory
     sys.path.insert(0, pdir)
     import pcapng  # noqa: E402  (the repository's reviewed reader)
-    lines, problems = [], []
+    lines, problems, diag = [], [], []
     if os.path.exists(out):
         shutil.rmtree(out)
     os.makedirs(out)
@@ -247,16 +317,15 @@ def main(argv):
         base = os.path.basename(rel)
         if rel.endswith(".pcapng"):
             is_n3 = N3 is not None and rel == "raw/" + N3
-            err = check_pcap(p, pcapng, n3=is_n3)
-            if err:
-                problems.append(f"{rel}: {err}")
-                continue
+            errs, summ = check_pcap(p, pcapng, n3=is_n3)
+            diag += summ
+            problems += [f"{rel}: {e}" for e in errs]   # all classes are reported; the strings are still screened
             data = open(p, "rb").read()
             sp = os.path.join(strings_dir, base.replace("[", "_").replace("]", "_") + ".strings.txt")
             open(sp, "w").write("\n".join(m.decode("ascii") for m in re.findall(rb"[\x20-\x7e]{6,}", data)) + "\n")
             texts.append(sp)
-            lines.append(f"{rel}\t{size}\tpcapng\tchecked (" + ("N3 PPP/IPv4/UDP/GTP-U framing, 10.0.0.0/8 addresses, inner "
-                         "Ethernet MAC policy" if is_n3 else "format, Ethernet frames, MAC policy") + ", extracted strings)")
+            lines.append(f"{rel}\t{size}\tpcapng\tchecked (" + ("N3 PPP/IPv4/UDP/GTP-U G-PDU policy, N3/gNB endpoint "
+                         "addresses, inner Ethernet MAC policy" if is_n3 else "format, Ethernet frames, MAC policy") + ", extracted strings)")
         elif rel.endswith(TEXT_EXT) or base.startswith("lddebug."):
             data = open(p, "rb").read()
             if b"\0" in data:
@@ -280,13 +349,14 @@ def main(argv):
         problems.append(f"publication {total} B exceeds {limit} B")
     ok = not problems and bool(present)
     rep = ["path\tbytes\ttype\tcheck"] + lines + [f"total_bytes: {total}", f"files: {len(files)}"]
+    rep += diag
     rep += [f"problem: {p}" for p in problems]
     what = ("M2S4LinkTest (two simulated hosts, two translators)" if exp == "e3a" else
             "M1Bridge (simulated talker, listener, two translators, UE, gNB and UPF; N3 PPP/GTP-U capture)")
     rep += [f"content: synthetic simulation outputs of {what}, simulation records and loader/runner logs only" if ok
             else "content: NOT confirmed", f"rawpub_result: {'PASS' if ok else 'FAIL'}"]
     open(report, "w").write("\n".join(rep) + "\n")
-    print("\n".join(rep[-6:]))
+    print("\n".join(rep[len(lines) + 1:]))
     if not ok:
         shutil.rmtree(out, ignore_errors=True)
         return 1

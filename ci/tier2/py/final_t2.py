@@ -43,6 +43,7 @@ def verdict(state, env, rawpub):
     X = env.get("T2_EXPERIMENT", "e3a")
     XL = X[:1].upper() + X[1:]
     rows = [dict(r) for r in state.get("rows", [])]
+    sealed = any(r["id"] == "E-8" and r["result"] == "PASS" for r in rows)   # seal + verification, before publication
     pub = {"tier-1 diagnostics": env.get("PUBLISH_OUTCOME"), "tier-2 diagnostics": env.get("T2PUBLISH_OUTCOME"),
            "raw evidence": env.get("RAWPUB_OUTCOME")}
     for r in rows:
@@ -63,7 +64,8 @@ def verdict(state, env, rawpub):
     elif complete and all(r["result"] == "PASS" for r in mand):
         v = f"{XL} PASS"
     elif complete and all(r["result"] == "PASS" for r in mand if r["id"] != "E-8"):
-        v = f"{XL} PUBLICATION FAILURE (functional rows E-1 .. E-7 PASS; evidence not sealed or published)"
+        v = (f"{XL} PUBLICATION FAILURE (functional rows E-1 .. E-7 PASS; "
+             + ("raw evidence sealed and verified, but not published)" if sealed else "raw evidence not sealed or not verified)"))
     else:
         v = f"{XL} FAIL"
     return v, rows
@@ -79,7 +81,9 @@ def main():
     except (OSError, ValueError):
         state = {"stop": False, "guard_failure": True, "blocked": False, "rows": []}
     v, rows = verdict(state, os.environ, kv(os.path.join(rec, "rawpub-check.txt")))
-    lines = [f"# {TITLE[X][0]}: {v}", "",
+    label = os.environ.get("EXP_LABEL", "")
+    title = TITLE[X][0] if not label else f"{label}: " + TITLE[X][0] + " - publication correction re-run"
+    lines = [f"# {title}: {v}", "",
              TITLE[X][1] + " It is NOT independent scientific validation (a CI run started by the development agent is not "
              "level-3 evidence).", "",
              "| ID | Criterion | Result | Detail |", "|---|---|---|---|"]

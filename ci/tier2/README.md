@@ -6,7 +6,7 @@ The tier-2 code in `ci/tier2/` is shared by two **one-time experiments**. `T2_EX
 | | E3a (accepted) | E3b |
 |---|---|---|
 | Branch (never merged) | `wp-e3/e3a-m2s4u-smoke` | `wp-e3/e3b-m2s5-bridge`, branched from the accepted E3a commit `f2215ad` |
-| Workflow | `e3a-functional-smoke.yml` (frozen: the E3b commit may not touch it, and its push trigger only fires on the E3a branch) | `e3b-bridge-functional.yml` |
+| Workflow | `e3a-functional-smoke.yml` (frozen: the E3b commit may not touch it, and its push trigger only fires on the E3a branch) | `e3b-bridge-functional.yml` (frozen); E3b-R1: `e3b-r1-publication.yml` |
 | Pins | `pins-tier2.env` | `pins-e3b.env` |
 | Configuration | `M2S4U` (network `M2S4LinkTest`, 3 s) | `M2S5` (network `nasctime.simulations.m1.M1Bridge`, 5 s) |
 | Reviewed command | `simulations/m2/m2s4.sh` `run()` | `simulations/m2/m2s5.sh` `run()` |
@@ -53,18 +53,9 @@ is alive, then a final measurement.
 - Maxima that were never sampled are reported `NOT MEASURED`, never 0.
 - The limits are the same as E3a (below).
 
-**N3 capture.** `M1Bridge.upf.pcapRecorder[0]` records UPF `ppp[0]`. The raw publisher accepts it only as PPP (link type
-9, 50 or 204), decoded exactly as `check_m2s5.n3_inner` does:
-- PPP framing: one prefix byte, optional `ff03`, protocol `0x0021` only;
-- IPv4: valid header, consistent length, at most 3 trailing bytes;
-- addresses: source and destination in 10.0.0.0/8, the configurator's gNB/UPF range `10.x.x.x/24`;
-- fragments must reassemble completely;
-- UDP: consistent length, port 2152 or 31;
-- GTP-U: version 1 G-PDU, consistent length, bounded extension chain;
-- the inner Ethernet frame must meet the MAC policy;
-- the extracted strings are screened.
-
-Every other PCAP file must be Ethernet. Anything unexpected fails closed, and the outputs are never rewritten.
+**N3 capture.** `M1Bridge.upf.pcapRecorder[0]` records UPF `ppp[0]`. The raw publisher accepts it only under the
+E3b-R1 policy below. Every other PCAP file must be Ethernet. Anything unexpected fails closed, and the outputs are never
+rewritten.
 
 **Verdicts** (both experiments, in order of precedence):
 - `STOP`;
@@ -82,6 +73,104 @@ The job succeeds only with `<X> PASS` and both uploads.
 
 The rest of this file describes the accepted E3a experiment. Its sections apply to E3b with the substitutions in the
 table above.
+
+## E3b-R1: targeted publication correction
+
+The original E3b run is preserved unchanged, together with its verdict **E3b PUBLICATION FAILURE**:
+- branch `wp-e3/e3b-m2s5-bridge`, commit `4ed6759`;
+- run 44301703292.
+
+E-1 to E-7 passed. The raw publisher refused the N3 capture at packet 0 (`10.0.0.1 -> 192.168.2.1 outside 10.0.0.0/8`),
+so the raw artifact was not uploaded.
+
+E3b-R1 lives on `wp-e3/e3b-r1-publication`, whose parent is `4ed6759`. It uses the workflow
+`e3b-r1-publication.yml`, and both earlier workflows are frozen. It re-runs the same single simulation, oracle,
+reference and limits. It changes only the following:
+- the N3 publication policy;
+- the publication diagnostics: `<X>-rawpub-check.txt` is added to the screened diagnostics whatever the outcome;
+- the identity pins `EXP_BRANCH`, `EXP_PARENT`, `EXP_WORKFLOW`, `EXP_FROZEN` and `EXP_LABEL`;
+- the verdict wording, which now distinguishes "sealed and verified, but not published" from "not sealed or not verified".
+
+### Source evidence
+
+All sources are the pinned release tarballs: Simu5G 1.8.1 (sha256 `a63b3318…`) and INET 4.7.0 (sha256 `0de338f8…`).
+
+**Addresses.**
+- **Configurator rules:** `simulations/m1/omnetpp.ini` (included by `simulations/m2/omnetpp.ini`) has two rules:
+  - `<interface among='… gnb* … upf* …' address='10.x.x.x'/24>`;
+  - `<interface hosts='*' address='192.168.x.x'/24>`.
+- **How the rules apply:** In INET `Ipv4NetworkConfigurator::readInterfaceConfiguration`, `among` means `hosts` plus
+  `towards`. The first rule therefore applies only to interfaces whose link also contains a gNB or UPF, which is the
+  gNB–UPF PPP link (N3). Every other IPv4 interface falls to `hosts='*'`, in 192.168.x.x/24.
+- **IPv4 interfaces in M1Bridge:** talker, listener and UE have `hasIpv4 = false`, and the UPF's N6 `dnPpp` and `dnEth` are
+  not interfaces of its network layer. That leaves server, router, the UPF's `ppp[0]`, and the gNB's `ppp` and `cellular`
+  interfaces.
+- **Tunnel endpoints:**
+  - The gNB's downlink F-TEID address is `ConnectionControlEnb::getAddress()`.
+  - The UPF's address is `UserPlaneNodeControl::getAddress()`.
+  - Both use `L3AddressResolver().resolve(node)`, which returns the **first** non-loopback IPv4 interface address
+    (`L3AddressResolver::getIpv4AddressFrom`).
+  - The gNB's `cellularNic` (`LteNicBase extends NetworkInterface`) and its `pppIf` both add themselves to the interface
+    table in `INITSTAGE_NETWORK_INTERFACE_CONFIGURATION`. In `eNodeB.ned`, which `gNodeB` extends, `cellularNic` is
+    declared before `pppIf`, so `cellular` is the first interface.
+  - The gNB's tunnel endpoint is therefore its `cellular` address, in 192.168.x.x/24. The hosted pair
+    `10.0.0.1 -> 192.168.2.1` (UPF `ppp[0]` to the gNB endpoint, downlink) corroborates this.
+  - The exact host octets (`.0.1`, `.2.1`) depend on the configurator's link enumeration, so they are not pinned: the
+    policy checks roles and ranges, not exact values.
+- **Source address:** `GtpUser` binds only a port (`socket_.bind(localPort_)`), and INET `Ipv4::fragmentPostRouting`
+  fills an unspecified source with the outgoing interface's address. The source on N3 is therefore always an N3 PPP
+  address: uplink is gNB `ppp` → UPF address, and downlink is UPF `ppp[0]` → gNB endpoint.
+
+**Framing.**
+- **Link type:** INET `PcapRecorder` writes `Protocol::ppp` as link type 204 (`LINKTYPE_PPP_WITH_DIR`), with the
+  direction in the pcapng EPB flags, not as a prefix byte.
+- **PPP header:** `PppHeader` serialises flag 0x7e, address 0xff and control 0x03, then the protocol.
+- **PPP trailer:** `PppTrailer` serialises only the 2-byte FCS ("KLUDGE: 2 bytes instead of 3").
+
+**GTP-U.**
+- **The only socket:** `GtpUser` is Simu5G's only UDP socket on N3; `GtpUserX2` is not used, because M1Bridge has no X2.
+- **Ports:** `localPort` and `tunnelPeerPort` are both 31, and the reviewed configuration does not override them.
+- **Serialiser forms:** `GtpUserMsgSerializer` writes flags 0x30, or 0x34 with sequence 0, N-PDU 0, next 0x85, a
+  PDU-session container of length 1 (`type<<4`, QFI, next 0), the length field, and the TEID.
+- **Message types:** G-PDU (255), and End Marker (254), which is sent only when a session's downlink leaves a tunnel, i.e.
+  on handover.
+- **Inner frame:** Ethernet sessions tunnel the frame without its FCS (`GtpUser::tunnelDatagram`).
+- **Other traffic:** no other IPv4 traffic source exists on that link. There is no application on server or router, PPP
+  has no ARP, and there is no control-plane signalling over UDP.
+
+**Oracle versus publication.** The reviewed decoder `check_m2s5.n3_inner` is unchanged. It silently skips non-0x0021
+frames and non-GTP-U datagrams, and it does not look at addresses. It only needs the GTP-U inner frames. The publication
+checker is a separate safety gate that may be stricter, and it is.
+
+### N3 publication policy (E3b-R1)
+
+Every frame is examined. Violations are counted per class, with at most 5 examples each, and reported as
+`n3_violation: <class>: <count>` together with the per-pair address counts and the GTP-U forms. Any violation fails the
+publication; there is no allow-everything fallback.
+
+| Layer | Accepted (established from the sources) | Violation class |
+|---|---|---|
+| pcapng | link type 204 | `link-type` |
+| PPP | `7e ff 03`, protocol 0x0021, exactly a 2-byte trailer | `ppp-framing`, `ppp-protocol`, `ppp-trailer`, `truncated` |
+| IPv4 | 0x45 (no options), consistent total length, protocol 17 | `ipv4-header`, `ipv4-length`, `ipv4-protocol` |
+| addresses | source: an N3 PPP address (10.x.x.x/24) | `address-source` |
+| | destination: an N3 PPP address, or the gNB tunnel endpoint (192.168.x.x/24) only on downlink leaving the UPF (EPB direction 2) | `address-destination`, `address-direction` |
+| | source ≠ destination; per file at most two N3 addresses in one /24 and one gNB endpoint | `address-self`, `address-set` |
+| fragments | complete reassembly | `ipv4-fragment` |
+| UDP | consistent length; both ports in {31, 2152} | `udp-length`, `udp-ports` |
+| GTP-U | flags 0x30, or 0x34 with exactly one PDU-session container; G-PDU (End Marker refused); consistent length | `gtpu-header`, `gtpu-extension`, `gtpu-message-type`, `gtpu-length` |
+| inner frame | at least 14 bytes; locally administered unicast source; destination locally administered unicast, gPTP multicast or broadcast | `inner-frame`, `inner-mac` |
+| file | at least one packet | `empty`, `malformed` |
+
+**Not accepted:**
+- any other private range (for example 172.16/12, or 192.168 as a source);
+- ICMP, TCP or other IP protocols;
+- IPv6;
+- other UDP ports;
+- other GTP-U messages and other extension headers.
+
+None of these is produced by the sources for this configuration. If the hosted run shows one, the publication fails with
+its class, and the diagnostics show the counts.
 
 ## E3a: hosted functional smoke run of M2S4U
 

@@ -2,8 +2,8 @@
   layout(out)       the exact 36-file run-0 layout of M2S5 (names from the R181c reference list plus 0.vci) with
                     structurally valid but EMPTY content (pcapng without packets, CSV headers only, empty result files);
                     the real reviewed oracle must evaluate such a run as FAIL (its non-vacuity conditions)
-  n3_ppp_frame(...) a PPP-in-pcapng N3 frame (prefix byte, PPP ff03 0021, IPv4, UDP, GTP-U G-PDU with a PDU-session
-                    container carrying the QFI, inner Ethernet frame) as parsed by check_m2s5.n3_inner
+  n3_ppp_frame(...) a PPP-in-pcapng N3 frame as INET writes it (7e ff 03 0021, IPv4, UDP 31, GTP-U G-PDU with a
+                    PDU-session container carrying the QFI, inner Ethernet frame, 2-byte FCS)
 """
 import os
 import struct
@@ -45,9 +45,10 @@ def ipv4(src, dst, payload, proto=17, ident=1, frag=0):
     return hdr + payload
 
 
-def gtpu(inner, qfi=5, ext=True):
+def gtpu(inner, qfi=5, ext=True, pdu_type=0):
+    """the two Simu5G GtpUserMsgSerializer forms: 0x34 with one PDU-session container (type 0 DL, 1 UL), or 0x30"""
     if ext:
-        body = struct.pack(">HB", 0, 0) + bytes([0x85]) + bytes([1, 0x10, qfi & 0x3F, 0]) + inner
+        body = struct.pack(">HB", 0, 0) + bytes([0x85]) + bytes([1, pdu_type << 4, qfi & 0x3F, 0]) + inner
         return bytes([0x34, 0xFF]) + struct.pack(">H", len(body)) + struct.pack(">I", 1) + body
     return bytes([0x30, 0xFF]) + struct.pack(">H", len(inner)) + struct.pack(">I", 1) + inner
 
@@ -60,7 +61,8 @@ def inner_eth(dst="0aaa00000005", src="0aaa00000006", payload=b"\x10" * 46):
     return bytes.fromhex(dst) + bytes.fromhex(src) + struct.pack(">H", 0x88F7) + payload
 
 
-def n3_ppp_frame(src=(10, 0, 0, 1), dst=(10, 0, 0, 2), inner=None, prefix=b"\x7e", trailer=b"\x00\x00\x7e", **kw):
+def n3_ppp_frame(src=(10, 0, 0, 1), dst=(192, 168, 2, 1), inner=None, prefix=b"\x7e", trailer=b"\x00\x00", **kw):
+    """INET PPP framing (7e ff 03 0021, 2-byte FCS); default: the observed hosted downlink pair UPF 10.0.0.1 -> gNB 192.168.2.1"""
     ip = ipv4(src, dst, udp(gtpu(inner if inner is not None else inner_eth(), **kw)))
     return prefix + b"\xff\x03\x00\x21" + ip + trailer
 

@@ -155,7 +155,7 @@ def evaluate(env):
     need = [f"C-{i}" for i in range(1, 13)]
     cres = {c: crows.get(c, {}).get("result", "absent") for c in need}
     e1 = ident.get("identity_result") == "PASS" and all(v == "PASS" for v in cres.values())
-    row("E-1", f"authorised trigger and commit (push of {SP['branch']}, attempt 1, one commit in the authorised scope on "
+    row("E-1", f"authorised trigger and commit (push of {env.get('EXP_BRANCH') or SP['branch']}, attempt 1, one commit in the authorised scope on "
                "the authorised parent) and tier-1 prerequisites C-1 .. C-12 all PASS",
         pf(e1) if ran("t2identity") else "NOT EVALUATED",
         f"identity={ident.get('identity_result', 'absent')} head={ident.get('head')}; "

@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
-"""Offline validation of the E3b additions to the shared tier-2 implementation (ci/tier2): M2S5 on M1Bridge.
+"""Offline validation of the E3b additions to the shared tier-2 implementation (ci/tier2): M2S5 on M1Bridge, as corrected
+by E3b-R1 (raw-publication policy for the N3 capture; experiment identity of the re-run).
 No Nix, no opp_env, no network, no OMNeT++, no simulation. Three kinds of test input, labelled in every check name:
   [stand-in]   a stand-in script in place of opp_run (never a simulation);
   [synthetic]  synthetic files from tests/synth.py / tests/synth5.py (never evidence);
@@ -22,10 +23,12 @@ REPO = os.path.dirname(os.path.dirname(T2))
 T1 = os.path.join(REPO, "ci", "tier1")
 PYD, STEPS, SESSION = (os.path.join(T2, d) for d in ("py", "steps", "session"))
 CHECK = os.path.join(REPO, "simulations", "m2", "check")
-WF = os.path.join(REPO, ".github", "workflows", "e3b-bridge-functional.yml")
+WF = os.path.join(REPO, ".github", "workflows", "e3b-r1-publication.yml")
+WF_E3B = os.path.join(REPO, ".github", "workflows", "e3b-bridge-functional.yml")
 WF_E3A = os.path.join(REPO, ".github", "workflows", "e3a-functional-smoke.yml")
 BASELINE = "290babba3d12942344a2153f9ea5ea54287df366"
 E3A_PARENT = "f2215ad38169b86e4c0c7e0f220c14c82a78d603"
+E3B_COMMIT = "4ed675976ac516aaf26dccf720e0b12fb671cf4a"   # the original E3b commit: the parent of E3b-R1
 sys.path.insert(0, HERE)
 import synth  # noqa: E402
 import synth5  # noqa: E402
@@ -70,8 +73,8 @@ PINS = {**pins(os.path.join(T1, "pins.env")), **PB}
 
 # ======================================================================= B0 static checks and scope
 WFT = open(WF).read()
-check("B0 workflow: push to wp-e3/e3b-m2s5-bridge only; no pull_request / dispatch / schedule",
-      "on:\n  push:\n    branches: [wp-e3/e3b-m2s5-bridge]\n" in WFT and "pull_request" not in WFT and "workflow_dispatch" not in WFT
+check("B0 R1 workflow: push to wp-e3/e3b-r1-publication only; no pull_request / dispatch / schedule",
+      "on:\n  push:\n    branches: [wp-e3/e3b-r1-publication]\n" in WFT and "pull_request" not in WFT and "workflow_dispatch" not in WFT
       and "schedule" not in WFT)
 check("B0 workflow: T2_EXPERIMENT=e3b for the whole job, read-only token, no secrets, no caches, ubuntu-22.04, 120 min",
       "    env:\n      T2_EXPERIMENT: e3b\n" in WFT and "permissions:\n  contents: read\n" in WFT and "secrets." not in WFT
@@ -84,20 +87,41 @@ check("B0 workflow: same step sequence as the accepted E3a workflow",
       ids == re.findall(r"\n        id: (\w+)", open(WF_E3A).read()) and len(ids) == 27, ids)
 check("B0 workflow: the simulation step runs only if every earlier step succeeded (no 'if')",
       "if:" not in WFT[WFT.index("id: sim\n"):WFT.index("id: seal\n")])
-check("B0 workflow: two artifacts, e3b names, 7-day retention, raw from $RUNNER_TEMP/e3b/publish-raw",
-      "name: e3b-diagnostics-run${{ github.run_id }}-${{ github.run_attempt }}" in WFT
-      and "name: e3b-raw-m2s5-run${{ github.run_id }}-${{ github.run_attempt }}" in WFT
+check("B0 R1 workflow: two artifacts, e3b-r1 names, 7-day retention, raw from $RUNNER_TEMP/e3b/publish-raw",
+      "name: e3b-r1-diagnostics-run${{ github.run_id }}-${{ github.run_attempt }}" in WFT
+      and "name: e3b-r1-raw-m2s5-run${{ github.run_id }}-${{ github.run_attempt }}" in WFT
       and "path: ${{ runner.temp }}/e3b/publish-raw/" in WFT and WFT.count("retention-days: 7") == 2)
 check("B0 workflow: event values never interpolated into run scripts", not re.search(r"\n        run: [^\n]*\$\{\{", WFT))
 E3AW = open(WF_E3A).read()
 check("B0 E3a workflow untouched and its push trigger cannot run on the E3b branch",
       git(REPO, "diff", "--quiet", E3A_PARENT, "--", ".github/workflows/e3a-functional-smoke.yml").returncode == 0
       and "on:\n  push:\n    branches: [wp-e3/e3a-m2s4u-smoke]\n" in E3AW and "wp-e3/e3b" not in E3AW)
-r = git(REPO, "diff", "--name-status", E3A_PARENT)
+E3BW = open(WF_E3B).read()
+check("B0 original E3b workflow untouched (vs 4ed6759) and its push trigger cannot run on the R1 branch",
+      git(REPO, "diff", "--quiet", E3B_COMMIT, "--", ".github/workflows/e3b-bridge-functional.yml").returncode == 0
+      and "on:\n  push:\n    branches: [wp-e3/e3b-m2s5-bridge]\n" in E3BW and "e3b-r1" not in E3BW)
+check("B0 R1 workflow equals the E3b workflow apart from trigger, names, artifact names and the header comment",
+      [l for l in WFT.splitlines() if not l.startswith("#")] ==
+      [l.replace("e3b-bridge-functional", "e3b-r1-publication").replace("wp-e3/e3b-m2s5-bridge", "wp-e3/e3b-r1-publication")
+        .replace("E3b - M2S5 5G-TSN bridge functional smoke (one authorised simulation)",
+                 "E3b-R1 - M2S5 5G-TSN bridge functional smoke, publication correction (one authorised simulation)")
+        .replace("name: E3b trigger", "name: E3b-R1 trigger").replace("name: E3b verdict", "name: E3b-R1 verdict")
+        .replace("e3b-diagnostics-run", "e3b-r1-diagnostics-run").replace("e3b-raw-m2s5-run", "e3b-r1-raw-m2s5-run")
+       for l in E3BW.splitlines() if not l.startswith("#")])
+r = git(REPO, "diff", "--name-status", E3B_COMMIT)
 changed = [line.split("\t") for line in r.stdout.splitlines()]
-check("B0 diff against the E3a parent: only ci/tier2/** and the added E3b workflow (working tree)",
-      r.returncode == 0 and all(p.startswith("ci/tier2/") or (p == ".github/workflows/e3b-bridge-functional.yml" and s == "A")
+check("B0 diff against the original E3b commit: only ci/tier2/** and the added R1 workflow (working tree)",
+      r.returncode == 0 and all(p.startswith("ci/tier2/") or (p == ".github/workflows/e3b-r1-publication.yml" and s == "A")
                                 for s, p in changed), changed)
+r = git(REPO, "diff", "--name-status", E3B_COMMIT, "--", "ci/tier2/session", "ci/tier2/steps/sim.sh", "ci/tier2/steps/oracle.sh",
+        "ci/tier2/py/m2s5_oracle.py", "ci/tier2/py/u1_oracle.py", "ci/tier2/py/seal.py", "ci/tier2/ref-e3b-r181c-run0.sha256",
+        "ci/tier2/pins-tier2.env")
+check("B0 R1 leaves the simulation runner, the oracle adapters, sealing and the reference hashes unchanged (vs 4ed6759)",
+      r.returncode == 0 and r.stdout == "", r.stdout)
+r = git(REPO, "diff", "-U0", E3B_COMMIT, "--", "ci/tier2/pins-e3b.env")
+chg = [l for l in r.stdout.splitlines() if l[:1] in "+-" and not l.startswith(("+++", "---")) and not l[1:].startswith("#")]
+check("B0 R1 pin changes are identity only (branch, parent, workflow, frozen workflows, label); simulation and limit pins unchanged",
+      {l[1:].split("=")[0] for l in chg} == {"EXP_BRANCH", "EXP_PARENT", "EXP_WORKFLOW", "EXP_FROZEN", "EXP_LABEL"}, chg)
 r = git(REPO, "diff", "--name-status", BASELINE, "--", "ci/tier1", ".github/workflows/tier0-python.yml",
         ".github/workflows/tier1-full-stack.yml", "simulations", "src", "migration", "nix", "flake.nix", "flake.lock")
 check("B0 tier-0, tier-1, sources, configurations, evaluators, migration evidence and Nix files unchanged vs the baseline",
@@ -119,11 +143,13 @@ INI = git(REPO, "show", f"{BASELINE}:simulations/m2/omnetpp.ini").stdout
 check("B0 the reviewed configuration M2S5 exists unchanged at the baseline and the network is M1Bridge",
       "[Config M2S5]\n" in INI and "network = nasctime.simulations.m1.M1Bridge" in git(REPO, "show", f"{BASELINE}:simulations/m1/omnetpp.ini").stdout + INI)
 check("B0 pins: M2S5 run 0 of --repeat=10, 5 s, one run, approved limits, m2s5 oracle",
-      PB["EXP_ID"] == "e3b" and PB["EXP_BRANCH"] == "wp-e3/e3b-m2s5-bridge" and PB["EXP_PARENT"] == E3A_PARENT
+      PB["EXP_ID"] == "e3b" and PB["EXP_BRANCH"] == "wp-e3/e3b-r1-publication" and PB["EXP_PARENT"] == E3B_COMMIT
+      and PB["EXP_LABEL"] == "E3b-R1" and PB["EXP_WORKFLOW"] == ".github/workflows/e3b-r1-publication.yml"
       and PB["EXP_BASELINE"] == BASELINE and PB["SIM_CONFIG"] == "M2S5" and PB["SIM_RUN"] == "0" and PB["SIM_REPEAT"] == "10"
       and PB["SIM_TIME_LIMIT"] == "5s" and PB["SIM_MAX_RUNS"] == "1" and PB["SIM_NETWORK"] == "nasctime.simulations.m1.M1Bridge"
       and PB["SIM_WALL_CAP_S"] == "600" and PB["SIM_WATCHDOG_LIMIT_B"] == "500000000" and PB["SIM_ACCEPT_LIMIT_B"] == "200000000"
-      and PB["ORACLE"] == "m2s5" and PB["EXP_FROZEN"] == ".github/workflows/e3a-functional-smoke.yml")
+      and PB["ORACLE"] == "m2s5"
+      and PB["EXP_FROZEN"].split() == [".github/workflows/e3a-functional-smoke.yml", ".github/workflows/e3b-bridge-functional.yml"])
 refm = git(REPO, "show", f"{BASELINE}:simulations/results/simu5g-1.8.1/out-r181c-m2/m2/M2-S5/raw-outputs.sha256").stdout
 want = sorted(re.sub(r"  \./", "  ", line) for line in refm.splitlines() if "M2S5-0/" in line or "/M2S5/0." in line)
 have = sorted(line for line in open(os.path.join(T2, "ref-e3b-r181c-run0.sha256")).read().splitlines() if line)
@@ -185,7 +211,7 @@ check("B1 raw publisher refuses an unknown experiment", r.returncode != 0 and "u
 # ======================================================================= B2 trigger and commit identity (e3b rules)
 t = tempfile.mkdtemp(prefix="e3bid-")
 git(t, "init", "-q", "-b", "main")
-for f in ("a.txt", "ci/tier1/x", "ci/tier2/x.sh", ".github/workflows/e3a-functional-smoke.yml"):
+for f in ("a.txt", "ci/tier1/x", "ci/tier2/x.sh", ".github/workflows/e3a-functional-smoke.yml", ".github/workflows/e3b-bridge-functional.yml"):
     os.makedirs(os.path.dirname(f"{t}/{f}") or t, exist_ok=True)
     open(f"{t}/{f}", "w").write("base\n")
 git(t, "add", "-A")
@@ -214,18 +240,20 @@ def ident_commit(changes):
 
 
 IDENV = {k: PB[k] for k in ("EXP_BRANCH", "EXP_WORKFLOW", "EXP_SCOPE", "EXP_ALLOW_MODIFIED", "EXP_FROZEN")}
-IDENV.update(GITHUB_EVENT_NAME="push", GITHUB_REF="refs/heads/wp-e3/e3b-m2s5-bridge", GITHUB_RUN_ATTEMPT="1")
-GOOD = [("add", ".github/workflows/e3b-bridge-functional.yml"), ("mod", "ci/tier2/x.sh"), ("add", "ci/tier2/py/new.py")]
+IDENV.update(GITHUB_EVENT_NAME="push", GITHUB_REF="refs/heads/wp-e3/e3b-r1-publication", GITHUB_RUN_ATTEMPT="1")
+GOOD = [("add", PB["EXP_WORKFLOW"]), ("mod", "ci/tier2/x.sh"), ("add", "ci/tier2/py/new.py")]
 for label, changes, over, want in (
         ("authorised push: workflow added, shared tier-2 files modified and added", GOOD, {}, 0),
         ("pull_request event", GOOD, {"GITHUB_EVENT_NAME": "pull_request"}, 1),
         ("the E3a branch", GOOD, {"GITHUB_REF": "refs/heads/wp-e3/e3a-m2s4u-smoke"}, 1),
+        ("the original E3b branch", GOOD, {"GITHUB_REF": "refs/heads/wp-e3/e3b-m2s5-bridge"}, 1),
+        ("frozen original E3b workflow modified", GOOD + [("mod", ".github/workflows/e3b-bridge-functional.yml")], {}, 1),
         ("second attempt", GOOD, {"GITHUB_RUN_ATTEMPT": "2"}, 1),
         ("frozen E3a workflow modified", GOOD + [("mod", ".github/workflows/e3a-functional-smoke.yml")], {}, 1),
         ("tier-1 file modified", GOOD + [("mod", "ci/tier1/x")], {}, 1),
         ("file outside the scope deleted", GOOD + [("del", "a.txt")], {}, 1),
         ("new file outside the scope", GOOD + [("add", "simulations/m2/new.ini")], {}, 1),
-        ("E3b workflow missing", [("mod", "ci/tier2/x.sh")], {}, 1)):
+        ("R1 workflow missing", [("mod", "ci/tier2/x.sh")], {}, 1)):
     sha = ident_commit(changes)
     env = clean_env(**{**IDENV, "EXP_PARENT": PARENT, "EXP_BASELINE": BASE, "GITHUB_SHA": sha, **over})
     r = run([sys.executable, "-I", os.path.join(PYD, "identity.py"), t, f"{WORK}/id.txt"], env)
@@ -233,7 +261,7 @@ for label, changes, over, want in (
 sha = ident_commit(GOOD)
 r = run([sys.executable, "-I", os.path.join(PYD, "identity.py"), t, f"{WORK}/id.txt"],
         clean_env(**IDENV, EXP_PARENT=BASE, EXP_BASELINE=BASE, GITHUB_SHA=sha))
-check("B2 identity: parent is not the accepted E3a commit -> FAIL", r.returncode == 1)
+check("B2 identity: parent is not the authorised parent (the original E3b commit) -> FAIL", r.returncode == 1)
 shutil.rmtree(t)
 
 # ======================================================================= B3 runner for M2S5 and the monitoring paths (stand-in)
@@ -549,7 +577,9 @@ ETH_OK = synth.eth(synth.GPTP, "0aaa00000004", synth.gptp(2, (0x0B, 1), 1))
 
 
 def n3_file(frames, linktype=204):
-    return synth5.pcapng_linktype([(10 ** 9 + i, 1, f) for i, f in enumerate(frames)], linktype)
+    """frames: bytes (downlink, recorded outbound at the UPF: direction 2) or (bytes, direction)"""
+    items = [f if isinstance(f, tuple) else (f, 2) for f in frames]
+    return synth5.pcapng_linktype([(10 ** 9 + i, d, f) for i, (f, d) in enumerate(items)], linktype)
 
 
 def pub_fixture(t):
@@ -588,69 +618,160 @@ def n3(*frames, linktype=204):
     return f
 
 
-r, rep, pub, unchanged = rawpub()
-check("B5 [synthetic] e3b publication: the 36 run files + log + configuration published unchanged, N3 checked as PPP/GTP-U",
-      r.returncode == 0 and "rawpub_result: PASS" in rep and len([p for p in pub if p.startswith("raw/")]) == 38 and unchanged
-      and N3 in pub and "N3 PPP/IPv4/UDP/GTP-U framing" in rep and "M1Bridge" in rep, rep[-600:])
 F = synth5
-frag_payload = F.udp(F.gtpu(F.inner_eth(payload=b"\x10" * 200)))
+UPF, GNB_N3, GNB_EP = (10, 0, 0, 1), (10, 0, 0, 2), (192, 168, 2, 1)   # observed hosted pair: UPF 10.0.0.1 -> gNB 192.168.2.1
+HDR, FCS = b"\x7e\xff\x03\x00\x21", b"\x00\x00"
 
 
-def frags(payload, split=104):
+def frame(src=UPF, dst=GNB_EP, udp_payload=None, proto=17, hdr=HDR, fcs=FCS, ident=1, frag=0, raw_ip=None):
+    """an N3 PPP frame with full control over every layer"""
+    if raw_ip is None:
+        payload = udp_payload if udp_payload is not None else F.udp(F.gtpu(F.inner_eth()))
+        raw_ip = F.ipv4(src, dst, payload, proto=proto, ident=ident, frag=frag)
+    return hdr + raw_ip + fcs
+
+
+def gtp_bytes(flags=0x34, mtype=0xFF, ext=b"\x00\x00\x00\x85\x01\x00\x05\x00", inner=None, length=None):
+    inner = F.inner_eth() if inner is None else inner
+    body = (ext if flags & 0x07 else b"") + inner
+    return bytes([flags, mtype]) + (len(body) if length is None else length).to_bytes(2, "big") + b"\x00\x00\x00\x01" + body
+
+
+def frag_frames(payload, split=104, src=UPF, dst=GNB_EP, gap=False):
     a, b = payload[:split], payload[split:]
-    ip1 = F.ipv4((10, 0, 0, 1), (10, 0, 0, 2), b"", ident=7, frag=0x2000)
+    ip1 = F.ipv4(src, dst, b"", ident=7, frag=0x2000)
     ip1 = ip1[:2] + (20 + len(a)).to_bytes(2, "big") + ip1[4:] + a
-    ip2 = F.ipv4((10, 0, 0, 1), (10, 0, 0, 2), b"", ident=7, frag=split // 8)
+    ip2 = F.ipv4(src, dst, b"", ident=7, frag=(split + (8 if gap else 0)) // 8)
     ip2 = ip2[:2] + (20 + len(b)).to_bytes(2, "big") + ip2[4:] + b
-    return [b"\x00\xff\x03\x00\x21" + ip1, b"\x00\xff\x03\x00\x21" + ip2]
+    return [frame(raw_ip=ip1), frame(raw_ip=ip2)]
 
 
-for label, mut in (
-        ("legitimate variant: no GTP-U extension header", n3(F.n3_ppp_frame(ext=False))),
-        ("legitimate variant: address/control compressed (no ff03)", n3(b"\x00\x00\x21" + F.n3_ppp_frame()[5:])),
-        ("legitimate variant: direction prefix 0x01, no PPP trailer", n3(F.n3_ppp_frame(prefix=b"\x01", trailer=b""))),
-        ("legitimate variant: link type 9", n3(F.n3_ppp_frame(), linktype=9)),
-        ("legitimate variant: port 2152", n3(b"\x00\xff\x03\x00\x21" + F.ipv4((10, 0, 0, 1), (10, 0, 0, 2), F.udp(F.gtpu(F.inner_eth()), 2152, 2152)))),
-        ("legitimate variant: fragmented datagram reassembled", n3(*frags(frag_payload))),
-        ("legitimate variant: gPTP multicast inner destination", n3(F.n3_ppp_frame(inner=F.inner_eth(dst=synth.GPTP))))):
+frag_payload = F.udp(F.gtpu(F.inner_eth(payload=b"\x10" * 200)))
+r, rep, pub, unchanged = rawpub()
+check("B5 [synthetic] e3b publication: the 36 run files + log + configuration published unchanged; N3 checked under the R1 "
+      "policy; the observed hosted pair 10.0.0.1 -> 192.168.2.1 (downlink, direction 2) is accepted and reported",
+      r.returncode == 0 and "rawpub_result: PASS" in rep and len([p for p in pub if p.startswith("raw/")]) == 38 and unchanged
+      and N3 in pub and "N3 PPP/IPv4/UDP/GTP-U G-PDU policy" in rep and "n3_address_pair: 10.0.0.1 -> 192.168.2.1 direction 2: 1" in rep
+      and "n3_gpdu_accepted: 1" in rep and "n3_violation" not in rep, rep[-700:])
+for label, mut, expect in (
+        ("uplink reverse direction: gNB N3 address 10.0.0.2 -> UPF 10.0.0.1, inbound, UL PDU-session container",
+         n3(frame(), (frame(GNB_N3, UPF, F.udp(F.gtpu(F.inner_eth(), pdu_type=1))), 1)),
+         ["n3_address_pair: 10.0.0.2 -> 10.0.0.1 direction 1: 1", "n3_gpdu_accepted: 2"]),
+        ("downlink to the gNB's N3 PPP address (interface-order variant)", n3(frame(UPF, GNB_N3)),
+         ["n3_address_pair: 10.0.0.1 -> 10.0.0.2 direction 2: 1"]),
+        ("G-PDU without extension header (serialiser form 0x30)", n3(frame(udp_payload=F.udp(F.gtpu(F.inner_eth(), ext=False)))),
+         ["n3_gtpu_form: no-extension: 1"]),
+        ("both UDP ports 2152 (recognised by the reviewed decoder)", n3(frame(udp_payload=F.udp(F.gtpu(F.inner_eth()), 2152, 2152))),
+         ["n3_gpdu_accepted: 1"]),
+        ("fragmented datagram reassembled", n3(*frag_frames(frag_payload)), ["n3_gpdu_accepted: 1", "n3_packets: 2"]),
+        ("gPTP multicast and broadcast inner destinations", n3(frame(udp_payload=F.udp(F.gtpu(F.inner_eth(dst=synth.GPTP)))),
+                                                              frame(udp_payload=F.udp(F.gtpu(F.inner_eth(dst="ffffffffffff"))))),
+         ["n3_gpdu_accepted: 2"]),
+        ("a realistic mixed capture: 39 downlink G-PDUs and 5 uplink G-PDUs", n3(*([frame()] * 39 + [(frame(GNB_N3, UPF), 1)] * 5)),
+         ["n3_packets: 44", "n3_gpdu_accepted: 44", "n3_address_pair: 10.0.0.1 -> 192.168.2.1 direction 2: 39",
+          "n3_address_pair: 10.0.0.2 -> 10.0.0.1 direction 1: 5"])):
     r, rep, pub, _ = rawpub(mut)
-    check(f"B5 [synthetic] N3 {label} -> published", r.returncode == 0 and "rawpub_result: PASS" in rep, rep[-400:])
-bad_gtp_len = bytearray(F.gtpu(F.inner_eth()))
-bad_gtp_len[3] ^= 1
-trunc_ext = F.gtpu(F.inner_eth())[:13]
+    check(f"B5 [synthetic] N3 established class: {label} -> published",
+          r.returncode == 0 and "rawpub_result: PASS" in rep and all(e in rep for e in expect) and "n3_violation" not in rep, rep[-700:])
+EM = F.udp(gtp_bytes(flags=0x30, mtype=0xFE, inner=b""))
+for label, mut, cls in (
+        ("Ethernet link type on the N3 file", n3(frame(), linktype=1), "link-type"),
+        ("plain PPP link type 9 (INET writes 204)", n3(frame(), linktype=9), "link-type"),
+        ("PPP flag missing", n3(frame(hdr=b"\x00\xff\x03\x00\x21")), "ppp-framing"),
+        ("address/control compressed", n3(b"\x7e\x00\x21" + frame()[5:]), "ppp-framing"),
+        ("PPP protocol IPv6 (0x0057)", n3(frame(hdr=b"\x7e\xff\x03\x00\x57")), "ppp-protocol"),
+        ("IP version 6 in an IPv4 frame", n3(frame()[:5] + b"\x65" + frame()[6:]), "ipv4-header"),
+        ("IPv4 options (IHL 6)", n3(frame()[:5] + b"\x46" + frame()[6:]), "ipv4-header"),
+        ("truncated packet", n3(frame()[:40]), "ipv4-length"),
+        ("4-byte packet", n3(b"\x7e\xff\x03\x00"), "truncated"),
+        ("no FCS trailer", n3(frame(fcs=b"")), "ppp-trailer"),
+        ("3-byte trailer", n3(frame(fcs=b"\x00\x00\x7e")), "ppp-trailer"),
+        ("trailing garbage", n3(frame(fcs=b"\x00" * 12)), "ppp-trailer"),
+        ("reverse of the observed pair: gNB endpoint 192.168.2.1 as a source", n3((frame(GNB_EP, UPF), 1)), "address-source"),
+        ("another private source 172.16.0.1", n3(frame((172, 16, 0, 1), GNB_EP)), "address-source"),
+        ("source in 192.168/16 towards an N3 address", n3(frame((192, 168, 1, 1), UPF)), "address-source"),
+        ("public destination 8.8.8.8", n3(frame(UPF, (8, 8, 8, 8))), "address-destination"),
+        ("private destination outside both ranges (172.16.0.9)", n3(frame(UPF, (172, 16, 0, 9))), "address-destination"),
+        ("gNB endpoint reached inbound (direction 1)", n3((frame(), 1)), "address-direction"),
+        ("source equals destination", n3(frame(UPF, UPF)), "address-self"),
+        ("three N3 addresses", n3(frame(UPF, GNB_N3), frame(UPF, (10, 0, 0, 3))), "address-set"),
+        ("N3 addresses in two /24 subnets", n3(frame(UPF, GNB_EP), frame((10, 0, 1, 1), GNB_EP)), "address-set"),
+        ("two gNB tunnel endpoints", n3(frame(UPF, GNB_EP), frame(UPF, (192, 168, 3, 1))), "address-set"),
+        ("TCP instead of UDP", n3(frame(proto=6)), "ipv4-protocol"),
+        ("ICMP", n3(frame(proto=1, udp_payload=b"\x03\x03" + b"\x00" * 30)), "ipv4-protocol"),
+        ("UDP length inconsistent", n3(frame(udp_payload=F.udp(F.gtpu(F.inner_eth()))[:4] + b"\x00\x09" + F.udp(F.gtpu(F.inner_eth()))[6:])), "udp-length"),
+        ("UDP ports 53", n3(frame(udp_payload=F.udp(F.gtpu(F.inner_eth()), 53, 53))), "udp-ports"),
+        ("one UDP port not GTP-U (31 -> 53)", n3(frame(udp_payload=F.udp(F.gtpu(F.inner_eth()), 31, 53))), "udp-ports"),
+        ("GTP version 2 flags", n3(frame(udp_payload=F.udp(gtp_bytes(flags=0x54)))), "gtpu-header"),
+        ("GTP-U sequence-number flag (0x32), not a Simu5G form", n3(frame(udp_payload=F.udp(gtp_bytes(flags=0x32, ext=b"\x00\x01\x00\x00")))), "gtpu-header"),
+        ("GTP-U echo request", n3(frame(udp_payload=F.udp(gtp_bytes(mtype=0x01)))), "gtpu-message-type"),
+        ("GTP-U End Marker", n3(frame(udp_payload=EM)), "gtpu-message-type"),
+        ("GTP-U length inconsistent", n3(frame(udp_payload=F.udp(gtp_bytes(length=5)))), "gtpu-length"),
+        ("second extension header chained", n3(frame(udp_payload=F.udp(gtp_bytes(ext=b"\x00\x00\x00\x85\x01\x00\x05\x40")))), "gtpu-extension"),
+        ("extension of length 2", n3(frame(udp_payload=F.udp(gtp_bytes(ext=b"\x00\x00\x00\x85\x02\x00\x05\x00")))), "gtpu-extension"),
+        ("unknown extension type", n3(frame(udp_payload=F.udp(gtp_bytes(ext=b"\x00\x00\x00\x40\x01\x00\x05\x00")))), "gtpu-extension"),
+        ("truncated extension", n3(frame(udp_payload=F.udp(gtp_bytes(ext=b"\x00\x00\x00\x85", inner=b"")))), "gtpu-extension"),
+        ("inner frame of 10 bytes", n3(frame(udp_payload=F.udp(F.gtpu(b"\x0a" * 10)))), "inner-frame"),
+        ("inner frame with a real (globally administered) source MAC", n3(frame(udp_payload=F.udp(F.gtpu(F.inner_eth(src="001122334455"))))), "inner-mac"),
+        ("inner frame to an unexpected multicast", n3(frame(udp_payload=F.udp(F.gtpu(F.inner_eth(dst="01005e000001"))))), "inner-mac"),
+        ("incomplete fragment set", n3(frag_frames(frag_payload)[0]), "ipv4-fragment"),
+        ("fragments with a gap", n3(*frag_frames(frag_payload, gap=True)), "ipv4-fragment"),
+        ("empty N3 capture", n3(), "empty")):
+    r, rep, pub, _ = rawpub(mut)
+    check(f"B5 [synthetic] N3 refused [{label}] -> class '{cls}' reported, nothing left to upload",
+          r.returncode == 1 and "rawpub_result: FAIL" in rep and pub is None and f"n3_violation: {cls}: " in rep, rep[-700:])
 for label, mut, why in (
-        ("Ethernet link type on the N3 file", n3(F.n3_ppp_frame(), linktype=1), "is not PPP"),
         ("PPP link type on an Ethernet capture", lambda t: open(f"{t}/raw/runs/M2S5/pcap/M2S5-0/M1Bridge.talker.pcapRecorder[0].pcapng", "wb")
-         .write(F.pcapng_linktype([(10 ** 9, 1, F.n3_ppp_frame())], 204)), "link type 204"),
-        ("unexpected prefix byte", n3(F.n3_ppp_frame(prefix=b"\x45")), "prefix byte"),
-        ("PPP protocol not IPv4 (0x0057)", n3(b"\x00\xff\x03\x00\x57" + F.n3_ppp_frame()[5:]), "not IPv4"),
-        ("IP version 6 in an 0x0021 frame", n3(b"\x00\xff\x03\x00\x21\x65" + F.n3_ppp_frame()[6:]), "not a valid IPv4"),
-        ("IPv4 header length 16", n3(b"\x00\xff\x03\x00\x21\x44" + F.n3_ppp_frame()[6:]), "not a valid IPv4"),
-        ("truncated packet", n3(F.n3_ppp_frame()[:30]), "inconsistent with frame"),
-        ("4-byte packet", n3(b"\x00\xff\x03\x00"), "truncated"),
-        ("trailing garbage after the datagram", n3(F.n3_ppp_frame(trailer=b"\x00" * 12)), "trailing bytes"),
-        ("source address outside 10/8", n3(F.n3_ppp_frame(src=(192, 168, 1, 1))), "outside 10.0.0.0/8"),
-        ("public destination address", n3(F.n3_ppp_frame(dst=(8, 8, 8, 8))), "outside 10.0.0.0/8"),
-        ("TCP instead of UDP", n3(b"\x00\xff\x03\x00\x21" + F.ipv4((10, 0, 0, 1), (10, 0, 0, 2), F.udp(F.gtpu(F.inner_eth())), proto=6)), "not UDP"),
-        ("UDP length inconsistent", n3(b"\x00\xff\x03\x00\x21" + F.ipv4((10, 0, 0, 1), (10, 0, 0, 2), F.udp(F.gtpu(F.inner_eth()))[:4] + b"\x00\x09" + F.udp(F.gtpu(F.inner_eth()))[6:])), "UDP length"),
-        ("UDP port 53", n3(b"\x00\xff\x03\x00\x21" + F.ipv4((10, 0, 0, 1), (10, 0, 0, 2), F.udp(F.gtpu(F.inner_eth()), 53, 53))), "not GTP-U ports"),
-        ("GTP version 2", n3(b"\x00\xff\x03\x00\x21" + F.ipv4((10, 0, 0, 1), (10, 0, 0, 2), F.udp(b"\x54" + F.gtpu(F.inner_eth())[1:]))), "GTP-U flags"),
-        ("GTP-U echo request instead of a G-PDU", n3(b"\x00\xff\x03\x00\x21" + F.ipv4((10, 0, 0, 1), (10, 0, 0, 2), F.udp(F.gtpu(F.inner_eth())[:1] + b"\x01" + F.gtpu(F.inner_eth())[2:]))), "not a G-PDU"),
-        ("GTP-U length inconsistent", n3(b"\x00\xff\x03\x00\x21" + F.ipv4((10, 0, 0, 1), (10, 0, 0, 2), F.udp(bytes(bad_gtp_len)))), "GTP-U length"),
-        ("GTP-U extension header truncated", n3(b"\x00\xff\x03\x00\x21" + F.ipv4((10, 0, 0, 1), (10, 0, 0, 2), F.udp(trunc_ext[:2] + (len(trunc_ext) - 8).to_bytes(2, "big") + trunc_ext[4:]))), "extension header"),
-        ("inner frame of 10 bytes", n3(F.n3_ppp_frame(inner=b"\x0a" * 10)), "inner Ethernet frame"),
-        ("inner frame with a real (globally administered) source MAC", n3(F.n3_ppp_frame(inner=F.inner_eth(src="001122334455"))), "source MAC"),
-        ("inner frame to an unexpected multicast", n3(F.n3_ppp_frame(inner=F.inner_eth(dst="01005e000001"))), "destination MAC"),
-        ("incomplete fragment set", n3(frags(frag_payload)[0]), "incomplete IPv4 fragment"),
-        ("fragments with a gap", n3(*[frags(frag_payload)[0], frags(frag_payload + b"\x00" * 16, split=112)[1]]), "reassemble"),
-        ("token inside the tunnelled payload", n3(F.n3_ppp_frame(inner=F.inner_eth(payload=b"ghp_ABCDEFGHIJKLMNOPQRSTUVWXYZ0123" + b"\x00" * 20))), "screen matched"),
-        ("empty N3 capture", n3(), "no packets"),
+         .write(F.pcapng_linktype([(10 ** 9, 1, frame())], 204)), "link type 204"),
+        ("token inside the tunnelled payload", n3(frame(udp_payload=F.udp(F.gtpu(F.inner_eth(payload=b"ghp_ABCDEFGHIJKLMNOPQRSTUVWXYZ0123" + b"\x00" * 20))))), "screen matched"),
         ("unexpected extra raw file (another run)", lambda t: open(f"{t}/raw/runs/M2S5/M2S5/1.sca", "w").write("version 3\n"), "unexpected raw files"),
         ("an M2S4U-shaped raw file", lambda t: (os.makedirs(f"{t}/raw/runs/M2S4U/M2S4U"), open(f"{t}/raw/runs/M2S4U/M2S4U/0.sca", "w").write("x\n")), "unexpected raw files"),
         ("compiled library in the raw directory", lambda t: open(f"{t}/raw/runs/M2S5/M2S5/0.vci", "wb").write(b"\x7fELF\x02\x01\x01" + b"\0" * 40), "ELF")):
     r, rep, pub, _ = rawpub(mut)
-    check(f"B5 [synthetic] N3/raw publication refused [{label}] and nothing left to upload",
+    check(f"B5 [synthetic] raw publication refused [{label}] and nothing left to upload",
           r.returncode == 1 and "rawpub_result: FAIL" in rep and pub is None and why in rep, rep[-500:])
+
+
+def many(t):
+    frames = [frame()] + [frame((172, 16, 0, i), GNB_EP) for i in range(1, 9)] + [frame(udp_payload=EM), frame(proto=6), frame(fcs=b"")]
+    n3(*frames)(t)
+    open(f"{t}/raw/runs/M2S5/pcap/M2S5-0/M1Bridge.talker.pcapRecorder[0].pcapng", "wb").write(
+        synth.pcapng([(10 ** 9 + i, 1, synth.eth(synth.GPTP, "001122334455", synth.gptp(2, (1, 1), 1))) for i in range(3)]))
+    open(f"{t}/raw/runs/M2S5/M2S5/0.vci", "wb").write(b"\x7fELF\x02\x01\x01" + b"\0" * 40)
+
+
+r, rep, pub, _ = rawpub(many)
+ex = [l for l in rep.splitlines() if l.startswith("n3_violation_example: address-source:")]
+check("B5 [synthetic] multiple simultaneous violations: every N3 frame is examined, every class counted (address-source 8, "
+      "gtpu-message-type 1, ipv4-protocol 1, ppp-trailer 1), examples bounded to 5 per class, the valid frame still counted, and "
+      "the Ethernet-capture MAC violations (3) and the ELF file reported in the same run",
+      r.returncode == 1 and pub is None and "n3_packets: 12" in rep and "n3_gpdu_accepted: 1" in rep
+      and "n3_violation: address-source: 8" in rep and "n3_violation: gtpu-message-type: 1" in rep
+      and "n3_violation: ipv4-protocol: 1" in rep and "n3_violation: ppp-trailer: 1" in rep and len(ex) == 5
+      and "M1Bridge.talker.pcapRecorder[0].pcapng: mac: 3 packet(s)" in rep and "ELF" in rep, rep[-1500:])
+
+# sealing succeeds, then publication fails: the step exits 1, the raw evidence is left exactly as sealed, nothing is left to
+# upload, and the content-check report (with the N3 class diagnostics) reaches the screened diagnostic publication
+t = tempfile.mkdtemp(prefix="e3bsp-")
+E3D = f"{t}/rt/e3b"
+os.makedirs(f"{t}/rt/tier1/publish")
+os.makedirs(E3D)
+pub_fixture(E3D)
+os.rename(f"{E3D}/rec", f"{E3D}/records")
+n3(frame(), frame((172, 16, 0, 1), GNB_EP), frame(udp_payload=EM))(E3D)
+rs_ = run([sys.executable, "-I", os.path.join(PYD, "seal.py"), "create", f"{E3D}/raw", f"{E3D}/raw-manifest.sha256", f"{E3D}/records/seal.txt"], clean_env())
+r = run(["bash", os.path.join(STEPS, "rawpub.sh")], clean_env(RUNNER_TEMP=f"{t}/rt", T2_EXPERIMENT="e3b"))
+rv = run([sys.executable, "-I", os.path.join(PYD, "seal.py"), "verify", f"{E3D}/raw", f"{E3D}/raw-manifest.sha256", f"{t}/v.txt"], clean_env())
+dg = f"{t}/rt/tier1/publish/e3b-rawpub-check.txt"
+dtxt = open(dg).read() if os.path.exists(dg) else ""
+check("B5 [synthetic] successful sealing followed by a publication failure: rawpub step exit 1, raw evidence unchanged (seal "
+      "verifies), nothing to upload, and the class diagnostics are in the screened diagnostic publication",
+      rs_.returncode == 0 and r.returncode == 1 and rv.returncode == 0 and not os.path.exists(f"{E3D}/publish-raw")
+      and "n3_violation: address-source: 1" in dtxt and "n3_violation: gtpu-message-type: 1" in dtxt and "rawpub_result: FAIL" in dtxt,
+      r.stdout[-800:] + r.stderr[-300:])
+for d, _, fs in os.walk(t):
+    os.chmod(d, 0o755)
+shutil.rmtree(t)
 
 # ======================================================================= B6 evaluation E-1 .. E-9 and the verdict (synthetic records)
 EVAL, FINAL, CONCLUDE = os.path.join(PYD, "evaluate_t2.py"), os.path.join(PYD, "final_t2.py"), os.path.join(STEPS, "conclude.sh")
@@ -754,7 +875,8 @@ check("B6 [synthetic] E-6 detail reports partial rows (C8, P1) and NOT EVALUATED
       and "gm_syncs=40" in det["E-6"], det.get("E-6"))
 summ = open(f"{t}/sum.md").read()
 check("B6 [synthetic] verdict file e3b-verdict.md and job summary carry the level-2 downlink classification",
-      os.path.exists(f"{env['CI']}/publish/e3b-verdict.md") and "E3b hosted 5G-TSN bridge functional smoke (M2S5, run 0): E3b PASS" in summ
+      os.path.exists(f"{env['CI']}/publish/e3b-verdict.md")
+      and "# E3b-R1: E3b hosted 5G-TSN bridge functional smoke (M2S5, run 0) - publication correction re-run: E3b PASS" in summ
       and "Level-2 hosted functional smoke evidence for the downlink 5G-TSN timing path" in summ and "NOT independent scientific validation" in summ)
 shutil.rmtree(t)
 
@@ -793,7 +915,8 @@ def both(*fs):
     return f
 
 
-PF = "E3b PUBLICATION FAILURE (functional rows E-1 .. E-7 PASS; evidence not sealed or published)"
+PF = "E3b PUBLICATION FAILURE (functional rows E-1 .. E-7 PASS; raw evidence sealed and verified, but not published)"
+PF_SEAL = "E3b PUBLICATION FAILURE (functional rows E-1 .. E-7 PASS; raw evidence not sealed or not verified)"
 CASES = [
     ("short-lived run: no in-run sample, maxima NOT MEASURED -> still PASS (initial and final numeric)",
      both(edit("{REC}/sim-control-sim.txt", "in_run_samples: 20", "in_run_samples: 0"),
@@ -825,8 +948,9 @@ CASES = [
      "E3b FAIL", {"E-5": "FAIL"}),
     ("oracle FAIL", edit("{REC}/oracle.json", '"result": "PASS", "rows"', '"result": "FAIL", "rows"'), "E3b FAIL", {"E-6": "FAIL"}),
     ("oracle record missing although the oracle ran", remove("{REC}/oracle.json"), "E3b FAIL", {"E-6": "FAIL"}),
-    ("seal verification failed", edit("{REC}/seal-verify.txt", "PASS", "FAIL"), PF, {"E-8": "FAIL"}),
-    ("raw publication refused", setenv(RAWPUB_OUTCOME="failure"), PF, {"E-8": "FAIL"}),
+    ("seal verification failed", edit("{REC}/seal-verify.txt", "PASS", "FAIL"), PF_SEAL, {"E-8": "FAIL"}),
+    ("seal failed", edit("{REC}/seal.txt", "seal_result: PASS", "seal_result: FAIL"), PF_SEAL, {"E-8": "FAIL"}),
+    ("sealing succeeded, then the raw publication was refused (the hosted E3b outcome)", setenv(RAWPUB_OUTCOME="failure"), PF, {"E-8": "FAIL"}),
     ("raw content check failed", edit("{REC}/rawpub-check.txt", "rawpub_result: PASS", "rawpub_result: FAIL"), PF, {"E-8": "FAIL"}),
     ("publication refused AND oracle FAIL -> functional FAIL", both(setenv(RAWPUB_OUTCOME="failure"),
      edit("{REC}/oracle.json", '"result": "PASS", "rows"', '"result": "FAIL", "rows"')), "E3b FAIL", {"E-6": "FAIL", "E-8": "FAIL"}),

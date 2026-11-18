@@ -1,0 +1,179 @@
+# WP-E3b-R1 - targeted publication correction of E3b (ONE-TIME EXPERIMENT; lives only on wp-e3/e3b-r1-publication,
+# never merged). The original E3b run (wp-e3/e3b-m2s5-bridge, verdict E3b PUBLICATION FAILURE) is preserved unchanged;
+# its workflow is frozen and only triggers on its own branch.
+#
+# Identical to e3b-bridge-functional.yml apart from the trigger, names and artifact names: the same single simulation of
+# the reviewed configuration M2S5 (network nasctime.simulations.m1.M1Bridge; run 0 of --repeat=10; the command of
+# simulations/m2/m2s5.sh run()), the same unmodified reviewed per-run oracle check_m2s5.rows_5gs (C8 and P1 partially; S3
+# NOT EVALUATED) and the same E-1 .. E-9 acceptance. Changed: the raw-publication policy for the N3 capture (derived from
+# the pinned sources) and its diagnostics.
+# Evidence class: level-2 hosted functional smoke evidence for the downlink 5G-TSN timing path, not scientific validation.
+# Single attempt: a re-run is refused (E-1). No caches, no secrets, read-only token, pinned actions.
+
+name: e3b-r1-publication
+
+on:
+  push:
+    branches: [wp-e3/e3b-r1-publication]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: e3b-r1-publication
+  cancel-in-progress: false
+
+jobs:
+  e3b:
+    name: E3b-R1 - M2S5 5G-TSN bridge functional smoke, publication correction (one authorised simulation)
+    if: github.repository == 'MohamedSeliem/nascTime-5gtsn'
+    runs-on: ubuntu-22.04
+    timeout-minutes: 120
+    env:
+      T2_EXPERIMENT: e3b
+    defaults:
+      run:
+        shell: bash --noprofile --norc -euo pipefail {0}
+    steps:
+      - name: Checkout (authorised commit, complete history)
+        id: checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - name: E3b-R1 trigger and commit identity
+        id: t2identity
+        timeout-minutes: 2
+        run: bash ci/tier2/steps/identity.sh
+      - name: Tier-1 identity, capacity, start gate, disk guard, approved lock
+        id: setup
+        timeout-minutes: 5
+        run: bash ci/tier1/steps/setup.sh
+      - name: Tier-1 Nix, opp_env, workspace, release assets, realisation
+        id: bootstrap
+        timeout-minutes: 45
+        run: bash ci/tier1/steps/bootstrap.sh
+      - name: Tier-1 toolchain probe, manifest verification, adaptation screening
+        id: verify
+        timeout-minutes: 25
+        run: bash ci/tier1/steps/verify.sh
+      - name: Tier-1 host C++ runtime
+        id: runtime
+        timeout-minutes: 25
+        run: bash ci/tier1/steps/runtime.sh
+      - name: Tier-1 build OMNeT++ 6.5.0 (release) and SYS_LIBS gate
+        id: b_omnetpp
+        timeout-minutes: 25
+        run: bash ci/tier1/steps/build.sh omnetpp
+      - name: Tier-1 build INET 4.7.0 (release)
+        id: b_inet
+        timeout-minutes: 50
+        run: bash ci/tier1/steps/build.sh inet
+      - name: Tier-1 build Simu5G 1.8.1 (release)
+        id: b_simu5g
+        timeout-minutes: 25
+        run: bash ci/tier1/steps/build.sh simu5g
+      - name: Tier-1 build libnasctime_m2 (release)
+        id: b_nasctime
+        timeout-minutes: 8
+        run: bash ci/tier1/steps/build.sh nasctime
+      - name: Tier-1 validate binaries, linkage, C++ runtime, RUNPATH
+        id: validate
+        timeout-minutes: 8
+        run: bash ci/tier1/steps/validate.sh
+      - name: Tier-1 source changes caused by configuration and compilation
+        id: srcchanges
+        timeout-minutes: 10
+        run: bash ci/tier1/steps/srcchanges.sh
+      - name: Pre-flight runconfig and the ONE authorised simulation (M2S5, run 0)
+        id: sim
+        timeout-minutes: 20
+        run: bash ci/tier2/steps/sim.sh
+      - name: Seal the raw simulation evidence (before evaluation)
+        id: seal
+        if: always() && steps.sim.outcome != 'skipped'
+        timeout-minutes: 5
+        run: bash ci/tier2/steps/seal.sh
+      - name: Unmodified reviewed M2-S5 per-run oracle (check_m2s5.rows_5gs)
+        id: oracle
+        if: always() && steps.sim.outcome == 'success' && steps.seal.outcome == 'success'
+        timeout-minutes: 5
+        run: bash ci/tier2/steps/oracle.sh
+      - name: Tier-1 final lock gate
+        id: lockend
+        if: always()
+        timeout-minutes: 3
+        run: bash ci/tier1/steps/lockend.sh
+      - name: Tier-2 final lock gate (including the tier-2 session logs)
+        id: t2lockend
+        if: always()
+        timeout-minutes: 3
+        run: bash ci/tier2/steps/lockend.sh
+      - name: Tier-1 installed sizes and local Nix builds
+        id: measure
+        if: always()
+        timeout-minutes: 8
+        run: bash ci/tier1/steps/measure.sh
+      - name: Tier-1 guard termination and C-1 .. C-14 (C-1 .. C-12 used as E3b prerequisites)
+        id: evaluate
+        if: always()
+        timeout-minutes: 5
+        env:
+          STEP_OUTCOMES: ${{ toJSON(steps) }}
+        run: bash ci/tier1/steps/evaluate.sh
+      - name: Seal verification and E-1 .. E-9 evaluation
+        id: t2evaluate
+        if: always()
+        timeout-minutes: 5
+        env:
+          STEP_OUTCOMES: ${{ toJSON(steps) }}
+        run: bash ci/tier2/steps/evaluate.sh
+      - name: Tier-1 screened diagnostics
+        id: publish
+        if: always()
+        timeout-minutes: 5
+        run: bash ci/tier1/steps/publish.sh
+      - name: Tier-2 screened diagnostics
+        id: t2publish
+        if: always() && steps.publish.outcome == 'success'
+        timeout-minutes: 5
+        run: bash ci/tier2/steps/publish.sh
+      - name: Raw simulation evidence (content-checked per file type)
+        id: rawpub
+        if: always() && steps.seal.outcome == 'success'
+        timeout-minutes: 10
+        run: bash ci/tier2/steps/rawpub.sh
+      - name: E3b-R1 verdict
+        id: final
+        if: always()
+        timeout-minutes: 3
+        env:
+          PUBLISH_OUTCOME: ${{ steps.publish.outcome }}
+          T2PUBLISH_OUTCOME: ${{ steps.t2publish.outcome }}
+          RAWPUB_OUTCOME: ${{ steps.rawpub.outcome }}
+        run: bash ci/tier2/steps/final.sh
+      - name: Upload screened diagnostics (retained 7 days)
+        id: upload_diag
+        if: always() && steps.publish.outcome == 'success' && steps.t2publish.outcome == 'success'
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: e3b-r1-diagnostics-run${{ github.run_id }}-${{ github.run_attempt }}
+          path: ${{ runner.temp }}/tier1/publish/
+          retention-days: 7
+          if-no-files-found: error
+      - name: Upload raw simulation evidence (retained 7 days)
+        id: upload_raw
+        if: always() && steps.rawpub.outcome == 'success'
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: e3b-r1-raw-m2s5-run${{ github.run_id }}-${{ github.run_attempt }}
+          path: ${{ runner.temp }}/e3b/publish-raw/
+          retention-days: 7
+          if-no-files-found: error
+      - name: Conclusion (E3b PASS and both artifacts published)
+        id: conclude
+        if: always()
+        env:
+          UPLOAD_DIAG_OUTCOME: ${{ steps.upload_diag.outcome }}
+          UPLOAD_RAW_OUTCOME: ${{ steps.upload_raw.outcome }}
+        run: bash ci/tier2/steps/conclude.sh
