@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
-"""Offline validation of the E3a tier-2 implementation (ci/tier2). No Nix, no opp_env, no network, no OMNeT++, no
+"""Offline validation of the shared tier-2 implementation (ci/tier2) for the accepted E3a experiment (M2S4U), kept as a
+regression suite after the E3b changes (the E3b-specific checks are in test_e3b.py). No Nix, no opp_env, no network, no OMNeT++, no
 simulation: the simulator is a stand-in script; simulation outputs are SYNTHETIC (tests/synth.py) and are never evidence.
 The reviewed U1 oracle (simulations/m2/check/check_m2s4.py) is exercised unchanged through the adapter.
 usage: python3 -I ci/tier2/tests/test_tier2.py"""
-import hashlib
 import json
 import os
 import re
@@ -100,7 +100,7 @@ RS = open(os.path.join(SESSION, "run-sim.sh")).read()
 check("T0 run-sim: the reviewed argument vector is fixed in the script (m2s4.sh run(), M2S4U, --repeat=10 -r 0)",
       '-l "$REPO/src/nasctime/m2/nasctime_m2" -l "$SIMU5G_ROOT/src/simu5g"' in RS
       and '-n "$REPO/simulations:$REPO/src:$SIMU5G_ROOT/src:$INET_ROOT/src" -x nasctime.nodes' in RS
-      and "-u Cmdenv -f omnetpp.ini -c M2S4U --repeat=10 -r 0)" in RS
+      and '-u Cmdenv -f omnetpp.ini -c "$CFG" --repeat=10 -r 0)' in RS and "  e3a) CFG=M2S4U ;;" in RS
       and 'FULL=("$OPP" "${ARGV[@]}" --result-dir="$RESDIR" --cmdenv-express-mode=true)' in RS)
 M2S4 = subprocess.run(["git", "-C", REPO, "show", "290babba3d12942344a2153f9ea5ea54287df366:simulations/m2/m2s4.sh"],
                       capture_output=True, text=True).stdout
@@ -161,8 +161,9 @@ def ident_commit(changes):
 
 
 GOOD = [("add", ".github/workflows/e3a-functional-smoke.yml"), ("add", "ci/tier2/steps/x.sh")]
-IDENV = dict(E3A_BRANCH="wp-e3/e3a-m2s4u-smoke", E3A_ALLOWED_PATHS=PINS["E3A_ALLOWED_PATHS"], GITHUB_EVENT_NAME="push",
-             GITHUB_REF="refs/heads/wp-e3/e3a-m2s4u-smoke", GITHUB_RUN_ATTEMPT="1")
+IDENV = dict(EXP_BRANCH="wp-e3/e3a-m2s4u-smoke", EXP_WORKFLOW=".github/workflows/e3a-functional-smoke.yml", EXP_SCOPE="ci/tier2/",
+             EXP_ALLOW_MODIFIED="no", EXP_FROZEN="", GITHUB_EVENT_NAME="push", GITHUB_REF="refs/heads/wp-e3/e3a-m2s4u-smoke",
+             GITHUB_RUN_ATTEMPT="1")
 for label, changes, over, want in (("authorised push", GOOD, {}, 0),
                                    ("pull_request event", GOOD, {"GITHUB_EVENT_NAME": "pull_request"}, 1),
                                    ("other branch", GOOD, {"GITHUB_REF": "refs/heads/main"}, 1),
@@ -172,13 +173,13 @@ for label, changes, over, want in (("authorised push", GOOD, {}, 0),
                                    ("new file outside the scope", GOOD + [("add", "simulations/m2/new.ini")], {}, 1),
                                    ("workflow missing", [("add", "ci/tier2/steps/x.sh")], {}, 1)):
     sha = ident_commit(changes)
-    env = clean_env(**{**IDENV, "E3A_BASELINE": BASE, "GITHUB_SHA": sha, **over})
+    env = clean_env(**{**IDENV, "EXP_PARENT": BASE, "EXP_BASELINE": BASE, "GITHUB_SHA": sha, **over})
     r = run([sys.executable, "-I", os.path.join(PYD, "identity.py"), t, f"{t}/../id-{os.getpid()}.txt"], env)
     check(f"T2 identity [{label}] -> {'PASS' if want == 0 else 'FAIL'}", r.returncode == want, r.stdout[-400:])
 sha = ident_commit(GOOD)
-r = run([sys.executable, "-I", os.path.join(PYD, "identity.py"), t, f"{t}/../id.txt"], clean_env(**IDENV, E3A_BASELINE=BASE, GITHUB_SHA="0" * 40))
+r = run([sys.executable, "-I", os.path.join(PYD, "identity.py"), t, f"{t}/../id.txt"], clean_env(**IDENV, EXP_PARENT=BASE, EXP_BASELINE=BASE, GITHUB_SHA="0" * 40))
 check("T2 identity: checked-out commit differs from GITHUB_SHA -> FAIL", r.returncode == 1)
-r = run([sys.executable, "-I", os.path.join(PYD, "identity.py"), t, f"{t}/../id.txt"], clean_env(**IDENV, E3A_BASELINE="f" * 40, GITHUB_SHA=sha))
+r = run([sys.executable, "-I", os.path.join(PYD, "identity.py"), t, f"{t}/../id.txt"], clean_env(**IDENV, EXP_PARENT="f" * 40, EXP_BASELINE="f" * 40, GITHUB_SHA=sha))
 check("T2 identity: parent is not the authorised baseline -> FAIL", r.returncode == 1)
 shutil.rmtree(t)
 
@@ -236,7 +237,8 @@ def sim_env(mode="ok", readelf_runpath=None, du_bad=False):
 def rs(t, ws, repo, env, mode, cap="600", limit="500000000", raw=None, timeout=120):
     raw = raw or f"{t}/raw"
     os.makedirs(raw, exist_ok=True)
-    return run(["bash", os.path.join(SESSION, "run-sim.sh"), mode, repo, ws, raw, f"{t}/rec", f"{t}/ev", cap, limit, "1", "5"], env, timeout=timeout)
+    return run(["bash", os.path.join(SESSION, "run-sim.sh"), mode, "e3a", repo, ws, raw, f"{t}/rec", f"{t}/ev", cap, limit, "1", "5"],
+               env, timeout=timeout)
 
 
 def nulf(p):
@@ -392,7 +394,7 @@ def rawpub(mut=None, limit="250000000"):
     open(f"{t}/raw-manifest.sha256", "w").write("x  1  ./a\n")
     if mut:
         mut(t)
-    r = run([sys.executable, "-I", RAWPUB, f"{t}/raw", f"{t}/rec", t, f"{t}/pub", os.path.join(T1, "lib", "screen.py"), CHECK, limit,
+    r = run([sys.executable, "-I", RAWPUB, "e3a", f"{t}/raw", f"{t}/rec", t, f"{t}/pub", os.path.join(T1, "lib", "screen.py"), CHECK, limit,
              f"{t}/rep.txt"], clean_env())
     rep = open(f"{t}/rep.txt").read() if os.path.exists(f"{t}/rep.txt") else ""
     pub = sorted(os.path.relpath(os.path.join(d, f), f"{t}/pub") for d, _, fs in os.walk(f"{t}/pub") for f in fs) if os.path.isdir(f"{t}/pub") else None
@@ -479,9 +481,10 @@ def full_state():
         open(f"{ev}/{l}.log", "w").write("compiling\n")
     open(f"{rec}/identity.txt", "w").write("head: abc\nidentity_result: PASS\n")
     open(f"{rec}/sim-control-preflight.txt", "w").write("preflight_exit: 0\n")
-    open(f"{rec}/sim-control-sim.txt", "w").write("simulation_started: 1 pid=9\nsimulation_exit: 0\nwall_s: 7.500\nwatchdog_samples: 6\n"
-                                                  "watchdog_max_output_bytes: 24000000\nfinal_output_bytes: 24490001\npeak_vmhwm_kib: 90000\n"
-                                                  "watchdog_terminated: no\n")
+    open(f"{rec}/sim-control-sim.txt", "w").write("simulation_started: 1 pid=9\ninitial_output_bytes: 0\nsimulation_exit: 0\n"
+                                                  "wall_s: 7.500\nfinal_output_bytes: 24490001\nin_run_samples: 6\n"
+                                                  "sampled_max_output_bytes: 24000000\nsampled_peak_vmhwm_kib: 90000\n"
+                                                  "observed_identity_captured: yes\nwatchdog_terminated: no\n")
     base = [paths["opp_run"], "-l", f"{repo}/src/nasctime/m2/nasctime_m2", "-l", f"{ws}/simu5g-1.8.1/src/simu5g",
             "-n", f"{repo}/simulations:{repo}/src:{ws}/simu5g-1.8.1/src:{ws}/inet-4.7.0/src", "-x", "nasctime.nodes",
             "-u", "Cmdenv", "-f", "omnetpp.ini", "-c", "M2S4U", "--repeat=10", "-r", "0"]
@@ -498,7 +501,7 @@ def full_state():
         "/nix/store/x-glibc/lib/libc.so.6", f"{ws}/omnetpp-6.5.0/lib/liboppsim.so", paths["libnasctime_m2.so"],
         paths["libsimu5g.so"], paths["libINET.so"])))
     open(f"{rec}/sim.started", "w").close()
-    r = run([sys.executable, "-I", "-B", os.path.join(PYD, "u1_oracle.py"), raw, CHECK, f"{rec}/u1-oracle.json", f"{rec}/u1-oracle.txt", "50000", "25"], clean_env())
+    r = run([sys.executable, "-I", "-B", os.path.join(PYD, "u1_oracle.py"), raw, CHECK, f"{rec}/oracle.json", f"{rec}/oracle.txt", "50000", "25"], clean_env())
     assert r.returncode == 0, r.stdout
     open(f"{rec}/modified-during-sim.txt", "w").close()
     for x in ("before", "after", "final"):
@@ -619,26 +622,36 @@ CASES = [
     ("wall time above the cap", edit("{REC}/sim-control-sim.txt", "wall_s: 7.500", "wall_s: 600.500"), "E3a FAIL", {"E-4": "FAIL"}),
     ("watchdog terminated the run", edit("{REC}/sim-control-sim.txt", "watchdog_terminated: no", "watchdog_terminated: output too large"),
      "E3a FAIL", {"E-4": "FAIL"}),
-    ("non-numeric watchdog measurement", edit("{REC}/sim-control-sim.txt", "final_output_bytes: 24490001", "final_output_bytes: ERR"),
+    ("non-numeric final measurement", edit("{REC}/sim-control-sim.txt", "final_output_bytes: 24490001", "final_output_bytes: NOT NUMERIC"),
      "E3a FAIL", {"E-4": "FAIL"}),
-    ("output above the watchdog limit", edit("{REC}/sim-control-sim.txt", "watchdog_max_output_bytes: 24000000", "watchdog_max_output_bytes: 500000001"),
+    ("non-numeric initial measurement", edit("{REC}/sim-control-sim.txt", "initial_output_bytes: 0", "initial_output_bytes: NOT NUMERIC"),
+     "E3a FAIL", {"E-4": "FAIL"}),
+    ("initial measurement absent", edit("{REC}/sim-control-sim.txt", "initial_output_bytes: 0\n", ""), "E3a FAIL", {"E-4": "FAIL"}),
+    ("sampled maximum absent (neither a value nor NOT MEASURED)",
+     edit("{REC}/sim-control-sim.txt", "sampled_max_output_bytes: 24000000\n", ""), "E3a FAIL", {"E-4": "FAIL"}),
+    ("NOT MEASURED maximum while in-run samples were counted",
+     edit("{REC}/sim-control-sim.txt", "sampled_max_output_bytes: 24000000", "sampled_max_output_bytes: NOT MEASURED"), "E3a FAIL", {"E-4": "FAIL"}),
+    ("output above the watchdog limit", edit("{REC}/sim-control-sim.txt", "sampled_max_output_bytes: 24000000", "sampled_max_output_bytes: 500000001"),
      "E3a FAIL", {"E-4": "FAIL"}),
     ("a result file missing", remove("{RAW}/runs/M2S4U/M2S4U/0.vci"), "E3a FAIL", {"E-5": "FAIL"}),
     ("an empty result file", write("{RAW}/runs/M2S4U/M2S4U/0.vec", ""), "E3a FAIL", {"E-5": "FAIL"}),
     ("scalar file of another configuration", edit("{RAW}/runs/M2S4U/M2S4U/0.sca", "attr configname M2S4U", "attr configname M2S4U-73"),
      "E3a FAIL", {"E-5": "FAIL"}),
     ("outputs above the acceptance limit", setenv(SIM_ACCEPT_LIMIT_B="10"), "E3a FAIL", {"E-5": "FAIL"}),
-    ("U1 oracle failed", edit("{REC}/u1-oracle.json", '"result": "PASS"', '"result": "FAIL"'), "E3a FAIL", {"E-6": "FAIL"}),
-    ("U1 oracle output missing although the oracle ran", remove("{REC}/u1-oracle.json"), "E3a FAIL", {"E-6": "FAIL"}),
+    ("U1 oracle failed", edit("{REC}/oracle.json", '"result": "PASS"', '"result": "FAIL"'), "E3a FAIL", {"E-6": "FAIL"}),
+    ("U1 oracle output missing although the oracle ran", remove("{REC}/oracle.json"), "E3a FAIL", {"E-6": "FAIL"}),
     ("a file modified during the simulation", write("{REC}/modified-during-sim.txt", "/r/simulations/m2/omnetpp.ini\n"), "E3a FAIL", {"E-7": "FAIL"}),
     ("repository status changed", write("{REC}/git-status-final.txt", " M simulations/m2/omnetpp.ini\n"), "E3a FAIL", {"E-7": "FAIL"}),
     ("lock gate after the simulation failed", edit("{EV}/lock.txt", "after-t2-sim result: PASS", "after-t2-sim result: FAIL"), "E3a FAIL", {"E-7": "FAIL"}),
-    ("seal verification failed", edit("{REC}/seal-verify.txt", "PASS", "FAIL"), "E3a FAIL", {"E-8": "FAIL"}),
-    ("raw publication refused", setenv(RAWPUB_OUTCOME="failure"), "E3a FAIL", {"E-8": "FAIL"}),
-    ("tier-2 diagnostic publication failed", setenv(T2PUBLISH_OUTCOME="failure"), "E3a FAIL", {"E-8": "FAIL"}),
-    ("tier-1 diagnostic publication skipped", setenv(PUBLISH_OUTCOME="skipped"), "E3a FAIL", {"E-8": "FAIL"}),
-    ("simulation step did not run", both(outcome(sim="skipped", seal="skipped", oracle="skipped"), remove("{REC}/u1-oracle.json")),
+    ("seal verification failed", edit("{REC}/seal-verify.txt", "PASS", "FAIL"), "E3a PUBLICATION FAILURE (functional rows E-1 .. E-7 PASS; evidence not sealed or published)", {"E-8": "FAIL"}),
+    ("raw publication refused", setenv(RAWPUB_OUTCOME="failure"), "E3a PUBLICATION FAILURE (functional rows E-1 .. E-7 PASS; evidence not sealed or published)", {"E-8": "FAIL"}),
+    ("tier-2 diagnostic publication failed", setenv(T2PUBLISH_OUTCOME="failure"), "E3a PUBLICATION FAILURE (functional rows E-1 .. E-7 PASS; evidence not sealed or published)", {"E-8": "FAIL"}),
+    ("tier-1 diagnostic publication skipped", setenv(PUBLISH_OUTCOME="skipped"), "E3a PUBLICATION FAILURE (functional rows E-1 .. E-7 PASS; evidence not sealed or published)", {"E-8": "FAIL"}),
+    ("simulation step did not run", both(outcome(sim="skipped", seal="skipped", oracle="skipped"), remove("{REC}/oracle.json")),
      "E3a FAIL", {"E-2": NE, "E-3": NE, "E-4": NE, "E-5": NE, "E-6": NE, "E-7": NE, "E-8": NE}),
+    ("publication refused AND a functional row failed -> functional FAIL, not PUBLICATION FAILURE",
+     both(setenv(RAWPUB_OUTCOME="failure"), edit("{REC}/oracle.json", '"result": "PASS"', '"result": "FAIL"')), "E3a FAIL",
+     {"E-6": "FAIL", "E-8": "FAIL"}),
     ("STOP", write("{EV}/STOP", "disk guard\n"), "STOP", {"E-3": "FAIL"}),
     ("guard failure", write("{EV}/GUARD_FAILURE", "dead\n"), "INFRASTRUCTURE FAILURE", {"E-3": "FAIL"}),
     ("NED incompatibility in a failed simulation -> BLOCKED with the diagnostic quoted",

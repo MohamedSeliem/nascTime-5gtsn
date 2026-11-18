@@ -1,16 +1,18 @@
 #!/usr/bin/env bash
-# The approved pre-flight configuration query and exactly ONE authorised simulation (M2S4U, run 0), each in its own
+# The approved pre-flight configuration query and exactly ONE authorised simulation of the experiment's configuration
+# (e3a: M2S4U, e3b: M2S5; run 0 of --repeat=10), each in its own
 # guarded opp_env session started in tier-1's controlled directory, with lock gates, repository snapshots and a
 # modification scan around them. Runs only if every earlier step (tier-1 C-1 .. C-12 prerequisites) succeeded.
 . "$(dirname "$0")/../lib/t2common.sh"
-[[ "$SIM_CONFIG" == M2S4U && "$SIM_RUN" == 0 && "$SIM_REPEAT" == 10 && "$SIM_MAX_RUNS" == 1 ]] \
-  || { echo "::error::pins do not authorise exactly M2S4U run 0 of --repeat=10"; exit 1; }
+case "$T2_EXPERIMENT" in e3a) want=M2S4U ;; e3b) want=M2S5 ;; *) want="" ;; esac
+[[ -n "$want" && "$SIM_CONFIG" == "$want" && "$SIM_RUN" == 0 && "$SIM_REPEAT" == 10 && "$SIM_MAX_RUNS" == 1 ]] \
+  || { echo "::error::pins do not authorise exactly $want run 0 of --repeat=10 for $T2_EXPERIMENT"; exit 1; }
 [[ ! -e "$RAW" ]] || { echo "::error::raw output directory already exists"; exit 1; }
 mkdir -p "$RAW"
 git -C "$REPO" status --porcelain=v1 --untracked-files=all --ignored=matching > "$REC/git-status-before.txt"
 touch "$REC/presim.marker"; sleep 1
 "$T1_LIB/diskgate.sh" "before t2"
-SESSION_ARGS="$REPO $WS $RAW $REC $EV $SIM_WALL_CAP_S $SIM_WATCHDOG_LIMIT_B $SIM_WATCHDOG_POLL_S $SIM_WATCHDOG_MEASURE_TIMEOUT_S"
+SESSION_ARGS="$T2_EXPERIMENT $REPO $WS $RAW $REC $EV $SIM_WALL_CAP_S $SIM_WATCHDOG_LIMIT_B $SIM_WATCHDOG_POLL_S $SIM_WATCHDOG_MEASURE_TIMEOUT_S"
 rc=0
 STAGE_CAP_S=$CAP_T2_RUNCONFIG_S oe_session t2-runconfig run -w "$WS" --build-modes release $PROJECTS \
   -c "bash $T2_DIR/session/run-sim.sh preflight $SESSION_ARGS" || rc=$?
@@ -31,7 +33,7 @@ find "$REPO" "$WS/omnetpp-6.5.0" "$WS/inet-4.7.0" "$WS/simu5g-1.8.1" -newer "$RE
 find "$WS" -newer "$REC/presim.marker" -type f -path "$WS/*/.opp_env/*" > "$REC/opp_env-state-changed.txt"
 git -C "$REPO" status --porcelain=v1 --untracked-files=all --ignored=matching > "$REC/git-status-after.txt"
 cat "$REC/sim-control-sim.txt" 2>/dev/null || true
-if [[ -f "$RAW/run-M2S4U.log" ]]; then
-  tail -n 25 "$RAW/run-M2S4U.log" > "$E3/run-tail.txt"; screened_cat "$E3/run-tail.txt"
+if [[ -f "$RAW/run-$SIM_CONFIG.log" ]]; then
+  tail -n 25 "$RAW/run-$SIM_CONFIG.log" > "$E3/run-tail.txt"; screened_cat "$E3/run-tail.txt"
 fi
 exit "$rc"

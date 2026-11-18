@@ -1,4 +1,89 @@
-# Tier-2 experiment E3a: hosted functional smoke run of M2S4U
+# Tier-2 hosted functional experiments E3a and E3b
+
+The tier-2 code in `ci/tier2/` is shared by two **one-time experiments**. `T2_EXPERIMENT` selects one; it defaults to
+`e3a`, and any other value is refused.
+
+| | E3a (accepted) | E3b |
+|---|---|---|
+| Branch (never merged) | `wp-e3/e3a-m2s4u-smoke` | `wp-e3/e3b-m2s5-bridge`, branched from the accepted E3a commit `f2215ad` |
+| Workflow | `e3a-functional-smoke.yml` (frozen: the E3b commit may not touch it, and its push trigger only fires on the E3a branch) | `e3b-bridge-functional.yml` |
+| Pins | `pins-tier2.env` | `pins-e3b.env` |
+| Configuration | `M2S4U` (network `M2S4LinkTest`, 3 s) | `M2S5` (network `nasctime.simulations.m1.M1Bridge`, 5 s) |
+| Reviewed command | `simulations/m2/m2s4.sh` `run()` | `simulations/m2/m2s5.sh` `run()` |
+| Oracle (E-6) | U1 of `check_m2s4.py` (`py/u1_oracle.py`) | `check_m2s5.rows_5gs(Run(RUNS, "M2S5", 0), None, exp_missing=0)` (`py/m2s5_oracle.py`) |
+| E-9 reference (informational) | four OMNeT++ 6.4.0 hashes | the 35 R181c (Simu5G 1.8.1) run-0 hashes, `ref-e3b-r181c-run0.sha256` |
+
+Each experiment authorises exactly one configuration, fixed in `session/run-sim.sh` and `steps/sim.sh`; the evaluator and
+the raw publisher check it again. E3b therefore refuses `M2S4U`, `M2S5-frag` or any other configuration.
+
+## E3b in brief
+
+**Evidence class:** level-2 hosted functional smoke evidence for the **downlink 5G–TSN timing path**. It is not scientific
+validation and not a full M2-S5 campaign result; uplink is outside its scope.
+
+**The single simulation** (run 0 of `--repeat=10`, seed-set 0):
+
+```bash
+cd "$REPO/simulations/m2" && "$OMNETPP_ROOT/bin/opp_run" -l "$REPO/src/nasctime/m2/nasctime_m2" -l "$SIMU5G_ROOT/src/simu5g" \
+  -n "$REPO/simulations:$REPO/src:$SIMU5G_ROOT/src:$INET_ROOT/src" -x nasctime.nodes \
+  -u Cmdenv -f omnetpp.ini -c M2S5 --repeat=10 -r 0 --result-dir="$RAW/runs/M2S5" --cmdenv-express-mode=true
+```
+
+The pre-flight `-q runconfig` dump must show exactly `Run 0: $repetition=0`, network `nasctime.simulations.m1.M1Bridge`,
+`sim-time-limit = 5s` and `seed-set = 0`. The run must produce exactly 36 non-empty files: the 35 names of the R181c
+reference plus `M2S5/M2S5/0.vci` (9 PCAP files, 24 CSV logs, `.sca`, `.vec`, `.vci`).
+
+**Oracle (E-6).** The adapter imports the unmodified `check_m2s5.py` and its full import chain offline. It replaces
+`main()` with a trap, gives `"-"` for the M2-S4 baseline arguments (never used, because `R4` is `None`) and calls only
+`rows_5gs`. An audit hook fails the oracle if any file outside the raw directory, the checker directory or the Python
+runtime is opened, so no historical or private result can be read.
+- **Fully evaluated:** C1–C7, S1, S2, P2 (integer picoseconds).
+- **Partially evaluated:** C8 (slave audit `framesWithSyncTag = 0`) and P1 (NW-TT D = 50 000 ps from PCAP). Their M2-S4
+  baseline comparisons are **NOT EVALUATED**. P1's printed text "engine log byte-identical to M2S4: False" means NOT
+  EVALUATED here.
+- **NOT EVALUATED:** S3, which needs the M2S4 baseline run.
+- **Counts recorded:** Syncs and Follow_Ups at the GM, the slave and on N3; NW-TT link-delay exchanges; slave Pdelay and
+  clock samples; model steps.
+
+**Monitoring.** There is an immediate initial measurement after the start, then a sample every second while the process
+is alive, then a final measurement.
+- The initial and final values must both be numeric.
+- A failed or non-numeric measurement while the process is alive terminates it as a monitoring failure. A failure after
+  it ended is noted but does not terminate anything.
+- Maxima that were never sampled are reported `NOT MEASURED`, never 0.
+- The limits are the same as E3a (below).
+
+**N3 capture.** `M1Bridge.upf.pcapRecorder[0]` records UPF `ppp[0]`. The raw publisher accepts it only as PPP (link type
+9, 50 or 204), decoded exactly as `check_m2s5.n3_inner` does:
+- PPP framing: one prefix byte, optional `ff03`, protocol `0x0021` only;
+- IPv4: valid header, consistent length, at most 3 trailing bytes;
+- addresses: source and destination in 10.0.0.0/8, the configurator's gNB/UPF range `10.x.x.x/24`;
+- fragments must reassemble completely;
+- UDP: consistent length, port 2152 or 31;
+- GTP-U: version 1 G-PDU, consistent length, bounded extension chain;
+- the inner Ethernet frame must meet the MAC policy;
+- the extracted strings are screened.
+
+Every other PCAP file must be Ethernet. Anything unexpected fails closed, and the outputs are never rewritten.
+
+**Verdicts** (both experiments, in order of precedence):
+- `STOP`;
+- `INFRASTRUCTURE FAILURE`;
+- `<X> BLOCKED`, for compatibility, quoting the diagnostic;
+- `<X> PUBLICATION FAILURE`, when E-1 to E-7 PASS but E-8 does not;
+- `<X> FAIL`, a functional failure;
+- `<X> PASS`.
+
+The job succeeds only with `<X> PASS` and both uploads.
+
+**Artifacts:** `e3b-diagnostics-run<id>-1` and `e3b-raw-m2s5-run<id>-1`, each kept for 7 days.
+
+---
+
+The rest of this file describes the accepted E3a experiment. Its sections apply to E3b with the substitutions in the
+table above.
+
+## E3a: hosted functional smoke run of M2S4U
 
 E3a is a **one-time experiment**. It is authorised for branch `wp-e3/e3a-m2s4u-smoke` only, which is never merged. Its
 workflow is `.github/workflows/e3a-functional-smoke.yml`.
@@ -12,7 +97,7 @@ reviewed unit oracle. It is **not** independent scientific validation: a CI run 
 level-3 evidence. It is unrelated to the A2-V1 campaign, and it reads no private evidence, VM results root or archived
 campaign outputs.
 
-## What it reuses and what it adds
+### What it reuses and what it adds
 
 **Reused, not modified:** the integrated tier-1 steps.
 - `setup`, `bootstrap`, `verify` and `runtime`;
@@ -33,7 +118,7 @@ The separate tier-2 evaluator does not weaken or bypass it.
 - **Evaluator and verdict:** `py/evaluate_t2.py` and `py/final_t2.py`.
 - **Offline tests:** `tests/`.
 
-## The single authorised simulation
+### The single authorised simulation
 
 The command is that of the reviewed `simulations/m2/m2s4.sh` `run()` (lines 39–43), for configuration `M2S4U`, run 0. It
 is fixed in `session/run-sim.sh`, and nothing can be passed in to change it:
@@ -78,7 +163,7 @@ ends, and tier-1's guarded runner kills the whole process group.
 
 **Duplicate starts.** A second start is refused, by an atomic start marker and by refusing an existing output directory.
 
-## Acceptance (defined before the hosted run)
+### Acceptance (defined before the hosted run)
 
 E3a PASS requires every mandatory row, E-1 to E-8, to PASS. E-9 is informational. Each row is PASS, FAIL or NOT
 EVALUATED, and NOT EVALUATED is never PASS.
@@ -171,7 +256,7 @@ EVALUATED, and NOT EVALUATED is never PASS.
 - **E3a FAIL:** any other failed or unevaluated mandatory row.
 - **E3a PASS:** every mandatory row is PASS.
 
-## Evidence and publication
+### Evidence and publication
 
 There are two artifacts, each kept for 7 days.
 
@@ -210,6 +295,22 @@ A binary file is never treated as screened merely because a text regex found not
 ```bash
 python3 -I ci/tier2/tests/test_tier2.py
 ```
+
+```bash
+python3 -I ci/tier2/tests/test_e3b.py
+```
+
+`test_tier2.py` is the E3a regression suite for the shared code. `test_e3b.py` covers the E3b additions. Each check name says
+what kind of input it uses:
+- `[stand-in]`: a script in place of `opp_run`;
+- `[synthetic]`: generated files from `tests/synth.py` and `tests/synth5.py`;
+- `[mock]`: a mocked `check_m2s5`, used for the adapter's row mapping only;
+- `[reviewed]`: the real `check_m2s5.py` with its import chain, on synthetic evidence. Empty traffic must FAIL, as must
+  missing or malformed files.
+
+No test runs OMNeT++ or a simulation.
+
+The E3a suite:
 
 The suite takes about 2 minutes and needs no Nix, network, OMNeT++ or simulation. Its synthetic outputs come from
 `tests/synth.py` and are never evidence. It covers:

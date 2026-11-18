@@ -1,20 +1,27 @@
 #!/usr/bin/env bash
-# usage: run-sim.sh <preflight|sim> <repo> <ws> <raw> <rec> <ev> <wall_cap_s> <watchdog_limit_B> <poll_s> <measure_timeout_s>
+# usage: run-sim.sh <preflight|sim> <experiment> <repo> <ws> <raw> <rec> <ev> <wall_cap_s> <watchdog_limit_B> <poll_s> <measure_timeout_s>
 # Runs INSIDE the opp_env session (OMNeT++ 6.5.0 / INET 4.7.0 / Simu5G 1.8.1 built and validated by tier-1).
-#   preflight  the approved configuration query (-q runconfig) of the authorised configuration; no simulation
-#   sim        exactly ONE simulation of the authorised configuration (M2S4U, --repeat=10 -r 0), with the command of
-#              simulations/m2/m2s4.sh run() (lines 39-43), an output-size / wall-time / STOP watchdog and evidence.
-# The configuration, run selection and argument vector are fixed in this file (the reviewed values); nothing can be
-# passed in to change them. Every refusal exits 3 before anything is started; a watchdog termination exits 4.
+#   preflight  the approved configuration query (-q runconfig) of the experiment's authorised configuration; no simulation
+#   sim        exactly ONE simulation of the experiment's authorised configuration, run 0 of --repeat=10, with the
+#              reviewed command of simulations/m2/m2s4.sh / m2s5.sh run() (identical apart from -c), an output-size /
+#              wall-time / STOP watchdog and evidence.
+# Each experiment authorises exactly one configuration (e3a: M2S4U; e3b: M2S5); the table below is fixed and nothing can
+# be passed in to change the argument vector. Every refusal exits 3 before anything is started; a watchdog
+# termination exits 4.
 set -uo pipefail
-[[ $# == 10 ]] || { echo "run-sim: expected 10 arguments, got $#" >&2; exit 3; }
-mode=$1 REPO=$2 WSD=$3 RAW=$4 REC=$5 EVD=$6 CAP=$7 LIMIT=$8 POLL=$9 MT=${10}
+[[ $# == 11 ]] || { echo "run-sim: expected 11 arguments, got $#" >&2; exit 3; }
+mode=$1 EXP=$2 REPO=$3 WSD=$4 RAW=$5 REC=$6 EVD=$7 CAP=$8 LIMIT=$9 POLL=${10} MT=${11}
 CTL="$REC/sim-control-$mode.txt"
 die() { echo "refused: $*" >> "$CTL"; echo "run-sim ($mode) refused: $*" >&2; exit 3; }
-log() { echo "$*" >> "$CTL"; }
 mkdir -p "$REC" || exit 3
 : >> "$CTL"
 case "$mode" in preflight|sim) ;; *) die "unknown mode '$mode'" ;; esac
+case "$EXP" in   # the only authorised configuration of each experiment (fixed)
+  e3a) CFG=M2S4U ;;
+  e3b) CFG=M2S5 ;;
+  *) die "unknown experiment '$EXP'" ;;
+esac
+echo "experiment: $EXP authorised_configuration: $CFG" >> "$CTL"
 for v in "$CAP" "$LIMIT" "$POLL" "$MT"; do [[ "$v" =~ ^[0-9]+$ && "$v" -gt 0 ]] || die "invalid limit '$v'"; done
 # --- the session's stack must be the tier-1 workspace
 [[ "${OMNETPP_ROOT:-}" == "$WSD/omnetpp-6.5.0" ]] || die "OMNETPP_ROOT=${OMNETPP_ROOT:-unset}"
@@ -25,10 +32,10 @@ OPP=$OMNETPP_ROOT/bin/opp_run
 M2=$REPO/simulations/m2
 [[ -f "$M2/omnetpp.ini" ]] || die "configuration missing"
 case "$(realpath -m "$RAW")/" in "$(realpath "$REPO")"/*) die "output directory inside the repository" ;; esac
-# --- the reviewed command (simulations/m2/m2s4.sh run(), configuration M2S4U, run 0 of --repeat=10)
+# --- the reviewed command (simulations/m2/m2s4.sh and m2s5.sh run(), the authorised configuration, run 0 of --repeat=10)
 ARGV=(-l "$REPO/src/nasctime/m2/nasctime_m2" -l "$SIMU5G_ROOT/src/simu5g"
       -n "$REPO/simulations:$REPO/src:$SIMU5G_ROOT/src:$INET_ROOT/src" -x nasctime.nodes
-      -u Cmdenv -f omnetpp.ini -c M2S4U --repeat=10 -r 0)
+      -u Cmdenv -f omnetpp.ini -c "$CFG" --repeat=10 -r 0)
 LIBS=("$REPO/src/nasctime/m2/libnasctime_m2.so" "$SIMU5G_ROOT/src/libsimu5g.so" "$INET_ROOT/src/libINET.so")
 # --- identities of the simulator and the libraries it is told to load
 {
@@ -87,7 +94,7 @@ grep -qx 'preflight_exit: 0' "$REC/sim-control-preflight.txt" 2>/dev/null || die
 [[ ! -e "$RAW/runs" ]] || die "duplicate invocation: output directory exists"
 ( set -o noclobber; : > "$REC/sim.started" ) 2>/dev/null || die "duplicate invocation: a simulation was already started"
 mkdir "$RAW/runs" || die "cannot create the output directory"
-RESDIR="$RAW/runs/M2S4U"
+RESDIR="$RAW/runs/$CFG"
 FULL=("$OPP" "${ARGV[@]}" --result-dir="$RESDIR" --cmdenv-express-mode=true)
 printf '%s\0' "${FULL[@]}" > "$REC/argv-sim.nul"
 REALOPP=$(realpath "$OPP")
@@ -106,48 +113,79 @@ kill_tree() {  # $1 pid, $2 reason: TERM, then KILL, the process and all its des
   kill -KILL "${pids[@]}" 2>/dev/null
 }
 running() { local st; st=$(ps -o stat= -p "$1" 2>/dev/null | tr -d ' '); [[ -n "$st" && "$st" != Z* ]]; }
-t0=$(date +%s.%N)
-(cd "$M2" && exec env LD_DEBUG=files LD_DEBUG_OUTPUT="$REC/lddebug" "${FULL[@]}") > "$RAW/run-M2S4U.log" 2>&1 &
-SIM=$!
-echo "simulation_started: 1 pid=$SIM t0=$t0" >> "$CTL"
-# observed identity of the running process (once it is opp_run): executable, argument vector, working directory
-for _ in $(seq 1 100); do
+measure() {  # prints the apparent output size in bytes, or nothing on failure
+  timeout "$MT" du -s --apparent-size -B1 "$RAW/runs" 2>/dev/null | cut -f1
+}
+numeric() { if [[ "$1" =~ ^[0-9]+$ ]]; then echo "$1"; else echo "NOT NUMERIC"; fi; }   # never record a raw non-numeric reading as a value
+hwm_of() { awk '/^VmHWM:/ {print $2}' "/proc/$1/status" 2>/dev/null; }
+capture() {  # observed identity of the running process (once it is opp_run): executable, argument vector, cwd
+  [[ -s "$REC/observed-cmdline.nul" ]] && return 0
   if [[ "$(readlink "/proc/$SIM/exe" 2>/dev/null)" == "$REALOPP" ]]; then
     cat "/proc/$SIM/cmdline" > "$REC/observed-cmdline.nul" 2>/dev/null
     readlink "/proc/$SIM/cwd" > "$REC/observed-cwd.txt" 2>/dev/null
-    break
   fi
+}
+printf 'utc\telapsed_s\tkind\toutput_bytes\tvmhwm_kib\tprocess_alive\n' > "$REC/watchdog.tsv"
+reason=""; insamples=0; maxb=""; hwm=""
+sample() {  # $1 kind (initial | in-run); a failed or non-numeric measurement while the process is alive terminates it
+  local alive_before b h el alive_after
+  alive_before=no; running "$SIM" && alive_before=yes
+  b=$(measure)
+  h=$(hwm_of "$SIM")
+  alive_after=no; running "$SIM" && alive_after=yes
+  el=$(awk -v a="$(date +%s.%N)" -v b="$t0" 'BEGIN{printf "%.3f", a-b}')
+  printf '%s\t%s\t%s\t%s\t%s\t%s\n' "$(date -u +%FT%TZ)" "$el" "$1" "${b:-ERR}" "${h:-}" "$alive_before/$alive_after" >> "$REC/watchdog.tsv"
+  [[ "$1" == initial ]] && echo "initial_output_bytes: $(numeric "$b")" >> "$CTL"
+  if [[ "$alive_before" == yes ]]; then
+    if [[ "$b" =~ ^[0-9]+$ ]]; then
+      insamples=$((insamples + 1))
+      [[ -z "$maxb" ]] || (( b > maxb )) || b=$maxb
+      maxb=$b
+    elif [[ "$alive_after" == yes ]]; then
+      reason="output measurement failed or non-numeric ('${b:-empty}') while the simulation was running"; return 1
+    else
+      echo "measurement_note: a measurement failed while the simulation ended (not a monitoring failure)" >> "$CTL"
+    fi
+    if [[ "$h" =~ ^[0-9]+$ ]] && { [[ -z "$hwm" ]] || (( h > hwm )); }; then hwm=$h; fi
+  fi
+  if [[ "$b" =~ ^[0-9]+$ ]] && (( b > LIMIT )); then reason="output ${b} B exceeds the watchdog limit ${LIMIT} B"; return 1; fi
+  return 0
+}
+t0=$(date +%s.%N)
+(cd "$M2" && exec env LD_DEBUG=files LD_DEBUG_OUTPUT="$REC/lddebug" "${FULL[@]}") > "$RAW/run-$CFG.log" 2>&1 &
+SIM=$!
+echo "simulation_started: 1 pid=$SIM t0=$t0" >> "$CTL"
+# immediate initial measurement (before any wait), then a short identity capture, then the regular watchdog loop
+if ! sample initial; then kill_tree "$SIM" "$reason"; fi
+for _ in $(seq 1 100); do
+  [[ -n "$reason" ]] && break
+  capture; [[ -s "$REC/observed-cmdline.nul" ]] && break
   running "$SIM" || break
-  sleep 0.05
+  sleep 0.02
 done
-printf 'utc\telapsed_s\toutput_bytes\tvmhwm_kib\n' > "$REC/watchdog.tsv"
-reason=""; maxb=0; hwm=0
-while running "$SIM"; do
-  now=$(date +%s.%N); el=$(awk -v a="$now" -v b="$t0" 'BEGIN{printf "%.1f", a-b}')
-  b=$(timeout "$MT" du -s --apparent-size -B1 "$RAW/runs" 2>/dev/null | cut -f1)
-  h=$(awk '/^VmHWM:/ {print $2}' "/proc/$SIM/status" 2>/dev/null)
-  [[ "$h" =~ ^[0-9]+$ ]] && (( h > hwm )) && hwm=$h
-  printf '%s\t%s\t%s\t%s\n' "$(date -u +%FT%TZ)" "$el" "${b:-ERR}" "${h:-}" >> "$REC/watchdog.tsv"
-  if [[ ! "$b" =~ ^[0-9]+$ ]]; then reason="output measurement failed or non-numeric ('${b:-empty}')"
-  elif (( b > LIMIT )); then reason="output ${b} B exceeds the watchdog limit ${LIMIT} B"
-  elif awk -v e="$el" -v c="$CAP" 'BEGIN{exit !(e > c)}'; then reason="wall time ${el} s exceeds the cap ${CAP} s"
+while [[ -z "$reason" ]] && running "$SIM"; do
+  capture
+  el=$(awk -v a="$(date +%s.%N)" -v b="$t0" 'BEGIN{printf "%.1f", a-b}')
+  if awk -v e="$el" -v c="$CAP" 'BEGIN{exit !(e > c)}'; then reason="wall time ${el} s exceeds the cap ${CAP} s"
   elif [[ -e "$EVD/STOP" ]]; then reason="STOP declared: $(cat "$EVD/STOP" 2>/dev/null)"
+  else sample in-run || true
   fi
-  [[ "$b" =~ ^[0-9]+$ ]] && (( b > maxb )) && maxb=$b
   if [[ -n "$reason" ]]; then kill_tree "$SIM" "$reason"; break; fi
   date +%s > "$REC/watchdog.heartbeat"
   sleep "$POLL"
 done
 wait "$SIM"; rc=$?
 t1=$(date +%s.%N)
-fb=$(timeout "$MT" du -s --apparent-size -B1 "$RAW/runs" 2>/dev/null | cut -f1)
+fb=$(measure)
+printf '%s\t%s\t%s\t%s\t%s\t%s\n' "$(date -u +%FT%TZ)" "$(awk -v a="$t1" -v b="$t0" 'BEGIN{printf "%.3f", a-b}')" final "${fb:-ERR}" "" "no/no" >> "$REC/watchdog.tsv"
 {
   echo "simulation_exit: $rc"
   echo "wall_s: $(awk -v a="$t1" -v b="$t0" 'BEGIN{printf "%.3f", a-b}')"
-  echo "watchdog_samples: $(($(wc -l < "$REC/watchdog.tsv") - 1))"
-  echo "watchdog_max_output_bytes: $maxb"
-  echo "final_output_bytes: ${fb:-ERR}"
-  echo "peak_vmhwm_kib: $hwm"
+  echo "final_output_bytes: $(numeric "$fb")"
+  echo "in_run_samples: $insamples"
+  echo "sampled_max_output_bytes: ${maxb:-NOT MEASURED}"
+  echo "sampled_peak_vmhwm_kib: ${hwm:-NOT MEASURED}"
+  echo "observed_identity_captured: $([[ -s "$REC/observed-cmdline.nul" ]] && echo yes || echo no)"
   echo "watchdog_terminated: ${reason:-no}"
 } >> "$CTL"
 [[ -z "$reason" ]] || exit 4
