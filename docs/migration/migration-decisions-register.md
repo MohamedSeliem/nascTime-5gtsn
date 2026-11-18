@@ -395,7 +395,7 @@ The collisions are F1–F4 (FRER bindings vs S7-roadmap decisions), F3 (also A2-
 
 **Facts recorded with the decision:**
 - **Tier-0 negative controls.** Both failed at their intended hosted gates: the fixture gate, and the Simu5G identity gate.
-- **Tier-1 negative controls N-1 and N-2.** Both failed during the offline self-tests. **Neither exercised its intended downstream hosted negative gate.**
+- **Tier-1 negative controls N-1 and N-2.** N-1 and N-2 failed during the **offline self-tests** of their hosted runs, so those hosted runs **never reached** the downstream gates they target. Those gates are the lock-identity gate (N-1) and the C-5 SYS_LIBS gate (N-2). Both gates **passed** in the positive hosted tier-1 runs: PR #7 and the C-1 … C-12 prerequisites of E3a, E3b and E3b-R1. Their negative (rejecting) behaviour was tested **offline** by the tier-1 self-tests.
 - **Tier-1 triggering.** Tier-1 automatically selects relevant non-draft pull requests. The label `tier1:run` is an override, including for draft pull requests.
 - **Tier-1 scope.** Tier-1 validates the release build, linkage and its specific reviewed configuration queries. It does not automatically validate every newly introduced NED or INI configuration.
 

@@ -9,6 +9,12 @@
 
 **Revision-3 note, retained:** "Nothing in this document is verified yet." Every item was a check to be done, either by WP-E2 or by the maintainer, before the corresponding tier is enabled. Statements about third-party services and licences are the author's current understanding. Where they are still marked **[verify]**, they are not facts to rely on.
 
+**How to read this revision.**
+- Text between *[Superseded (rev. 4)…]* and *[end of superseded text]* is retained revision-3 history. It is **not** an active instruction and **not** the current repository status.
+- The current position is given by the "(rev. 4)" text and by the decisions DR-14 … DR-18.
+- **WP-E4 (repository consolidation and travel handover) is completed by the documentation pull request that introduces revision 4.**
+- **Still open:** release documentation and M4 readiness. These are plan work package **E4** (M4 groundwork: README 2.0, compatibility table, `opp_env` entry, skills, nightly job), which is a different item from WP-E4.
+
 The VM is the currently available independent environment. It is not the only possible one.
 
 ## 1. The three mechanisms
@@ -21,7 +27,7 @@ The VM is the currently available independent environment. It is not the only po
 
 ## 2. M-1 and M-2 checks (WP-E1 / WP-E2)
 
-| ID | Check | Why | Status |
+| ID | Check | Why | Status (rev. 3; superseded by §2a, not the current status) |
 |---|---|---|---|
 | F-1 | Measured tier-0 runtime on a hosted runner. Locally: about 3.5 min for 11 suites on 2 cores, 17 Nov. | CI cost and latency | to do (E1) |
 | F-2 | A Simu5G `v1.8.1` source checkout in CI (public tag; no build) | A2-0s rows | to do |
@@ -63,7 +69,7 @@ The VM is the currently available independent environment. It is not the only po
 
 **Negative controls.**
 - **Tier-0:** both controls failed at their intended hosted gates.
-- **Tier-1 (N-1, N-2):** both failed during the **offline self-tests**. **Neither exercised its intended downstream hosted negative gate.**
+- **Tier-1 (N-1, N-2):** N-1 and N-2 failed during the **offline self-tests** of their hosted runs, so those hosted runs **never reached** the downstream gates they target. Those gates are the lock-identity gate (N-1) and the C-5 SYS_LIBS gate (N-2). Both gates **passed** in the positive hosted tier-1 runs: PR #7 and the C-1 … C-12 prerequisites of E3a, E3b and E3b-R1. Their negative (rejecting) behaviour was tested **offline** by the tier-1 self-tests.
 
 ## 3. Licensing and security checks
 

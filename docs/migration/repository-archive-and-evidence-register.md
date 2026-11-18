@@ -1,7 +1,7 @@
 # nascTime 2.0 — repository archive and hosted evidence register
 
 **Status: revision 1, 18 November 2026 (WP-E4 Phase 3).** Canonical location: `docs/migration/repository-archive-and-evidence-register.md`. This register records:
-- the repository consolidation of WP-E4 (decision DR-17);
+- the repository consolidation of WP-E4 (decision DR-17), which is completed by the documentation PR introducing this register (release documentation and M4 readiness remain open);
 - the hosted CI and experiment evidence of WP-E1 … WP-E3.
 
 It changes no code, configuration, test, fixture, evidence or historical record.
@@ -14,9 +14,9 @@ It changes no code, configuration, test, fixture, evidence or historical record.
 
 ## 1. Permanent branches (DR-17)
 
-| Branch | Head | Role |
+| Branch | Head (as reviewed, 18 Nov 2026) | Role |
 |---|---|---|
-| `m2/continuation` | `290babba3d12942344a2153f9ea5ea54287df366` | **Integration branch** of the 2.0 line (DR-11). Every new work package starts from it. |
+| `m2/continuation` | `290babba3d12942344a2153f9ea5ea54287df366`: the **reviewed pre-E4 integration baseline**, not a permanent head. The live head advances when this documentation PR is merged, and with every later merge. | **Integration branch** of the 2.0 line (DR-11). Every new work package starts from its current head. |
 | `master` | `9e8bc83dfdfaffd918eb304bda6b8ecb98ff0684` | **Frozen legacy provenance** (1.x line, tag `v1.0.1`). Default branch. No common history with `m2/continuation` (DR-18). Target of the open external PRs #2 and #3. |
 | `m1/ethernet-bridge` | `fbe41a9e9ba1befc0d68b9fd559be52b024c1ca9` | **Frozen provenance.** M1, CLOSED 2026-10-13. Holds 28 commits that are on no other branch, including the accepted M1 stage commits S0 `9138d83`, S1 `0226e56`, S2 `db81377`, S3 `ea05c1a`, S4 `ef500cd` and S5 `b7918ff`. |
 | `wp-e3/e3b-r1-publication` | `edf3329ddf2350650fd0957ddd5a965fe3ddbb56` | **Frozen experimental branch.** The tier-2 harness (`ci/tier2/`) accepted with E3b-R1 (DR-15). It is not integrated into `m2/continuation`. |
@@ -70,8 +70,8 @@ Phase 0 tags (`legacy-v1.0`, `legacy/1.x`) remain **deferred**.
 | `ci/tier1-full-stack` | `archive/ci/tier1-full-stack-pr7` | `46e95bacc3ceaae9ec163aa0676f03c834f3ff50` | Tier-1 accepted; PR #7 merged |
 | `ci/nc-h4-fixture` | `archive/nc/h4-3-fixture-byte-expected-fail` | `61871909cd9f7b69b699636e6a418bfce87259c9` | **Negative control**, failed at its intended gate (§3.1) |
 | `ci/nc-h4-simu5g` | `archive/nc/h4-4-simu5g-commit-expected-fail` | `21350bb1919cd08b07c6e517ec3c3a66293c779c` | **Negative control**, failed at its intended gate (§3.1) |
-| `ci/nc-tier1-lock` | `archive/nc/t1-n1-lock-expected-fail` | `c2ddebd9d5c4f7f983b8428379b7b75c0b6ee75c` | **Negative control**, failed in the offline self-tests; intended hosted gate **not exercised** (§3.2) |
-| `ci/nc-tier1-syslibs` | `archive/nc/t1-n2-syslibs-expected-fail` | `ea9e378ef74c8c2abba9d486822cc72508c7a75b` | **Negative control**, failed in the offline self-tests; intended hosted gate **not exercised** (§3.2) |
+| `ci/nc-tier1-lock` | `archive/nc/t1-n1-lock-expected-fail` | `c2ddebd9d5c4f7f983b8428379b7b75c0b6ee75c` | **Negative control**. Its hosted run failed in the offline self-tests and did not reach the lock-identity gate. That gate passed in the positive hosted runs; its rejection was tested offline (§3.2). |
+| `ci/nc-tier1-syslibs` | `archive/nc/t1-n2-syslibs-expected-fail` | `ea9e378ef74c8c2abba9d486822cc72508c7a75b` | **Negative control**. Its hosted run failed in the offline self-tests and did not reach the C-5 SYS_LIBS gate. That gate passed in the positive hosted runs; its rejection was tested offline (§3.2). |
 | `wp-e2/e2b1-preflight` | `archive/exp/e2b1-preflight-pass` | `d49930e08a053f3610209ba8f795470c66a2232e` | Experiment PASS |
 | `wp-e2/e2b2-full-build` | `archive/exp/e2b2-full-build-fail` | `ae312a52af066597d6940fcbb9961905cccebf74` | **Experiment FAIL** (preserved) |
 | `wp-e2/e2b3-runtime-consistency` | `archive/exp/e2b3-runtime-consistency-fail` | `a24d797ae0db1b54500c4cd44ef7a427f01cf109` | **Experiment FAIL** (preserved) |
@@ -123,8 +123,8 @@ Phase 0 tags (`legacy-v1.0`, `legacy/1.x`) remain **deferred**.
 | E2b.3 runtime consistency (`a24d797`) | 44204158423 | **FAIL** at the R-1 causal gate (versioned libc++ trace paths not accepted) |
 | E2b.3-R1 (`5cfd890`) | 44207656877 | PASS; its linker trace is reused as a tier-1 test fixture |
 | Tier-1, PR #7 (`46e95ba`) | 44227341499; 44264734964 (accepted pre-merge run) | TIER-1 PASS (C-1 … C-15) |
-| N-1 wrong `LOCK_SHA256` (`c2ddebd`, PR #8) | 44261863234 (job 134656911594) | Failed in the job **"Tier 1 - offline self-tests"**. The full-stack job was skipped. **Its intended downstream hosted negative gate (lock identity before realisation) was not exercised.** |
-| N-2 reordered `VM_SYS_LIBS` (`ea9e378`, PR #9) | 44261866832 | Failed **during the offline self-tests**. **Its intended downstream hosted negative gate (the SYS_LIBS gate C-5) was not exercised.** |
+| N-1 wrong `LOCK_SHA256` (`c2ddebd`, PR #8) | 44261863234 (job 134656911594) | Failed in the job **"Tier 1 - offline self-tests"**; the full-stack job was skipped. **This hosted run never reached the downstream lock-identity gate.** That gate **passed** in every positive hosted tier-1 run, and its rejection of a wrong lock was tested offline. |
+| N-2 reordered `VM_SYS_LIBS` (`ea9e378`, PR #9) | 44261866832 | Failed **during the offline self-tests**. **This hosted run never reached the downstream C-5 SYS_LIBS gate.** C-5 **passed** in every positive hosted tier-1 run, and its rejection of a reordered token list was tested offline. |
 
 **Tier-1 scope (correction).** Tier-1 validates:
 - the pinned release build of OMNeT++ 6.5.0, INET 4.7.0, Simu5G 1.8.1 and `libnasctime_m2`;
@@ -166,7 +166,7 @@ It does **not** automatically validate every newly introduced NED or INI configu
 
 ## 4. Hosted evidence archives (11)
 
-All artifacts had a 7-day retention and expired on 24–25 November 2026.
+All artifacts have a 7-day retention and are **scheduled to expire on 24–25 November 2026**. They have already been preserved by the maintainer (below).
 
 **The maintainer reports that all 11 ZIP archives were downloaded, verified against the GitHub SHA-256 digests below, and preserved in a private evidence release.** That statement is recorded here as given; the development agent did not access or verify the private release.
 

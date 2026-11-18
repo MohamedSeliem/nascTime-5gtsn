@@ -10,6 +10,12 @@ Revision 4 records:
 
 Workstreams, work packages, dependencies and the held acceptance queue are otherwise unchanged.
 
+**How to read this revision.**
+- Text between *[Superseded (rev. 4)…]* and *[end of superseded text]* is retained revision-3 history. It is **not** an active instruction and **not** the current repository status.
+- The current position is given by the "(rev. 4)" text and by the decisions DR-14 … DR-18.
+- **WP-E4 (repository consolidation and travel handover) is completed by the documentation pull request that introduces revision 4.**
+- **Still open:** release documentation and M4 readiness. These are plan work package **E4** (M4 groundwork: README 2.0, compatibility table, `opp_env` entry, skills, nightly job), which is a different item from WP-E4.
+
 **This is a prioritised backlog, not a delivery commitment.** No item is promised by a date. Week labels give order only.
 
 **Inputs:**
@@ -34,7 +40,7 @@ Workstreams, work packages, dependencies and the held acceptance queue are other
 2. **Two kinds of dependency** are marked on every work package:
    - **I-dep:** prevents *implementation*. The work cannot be written or CI-validated without it.
    - **A-dep:** prevents *scientific acceptance* only. The work proceeds to level 2 (CI-validated) and its acceptance is queued.
-3. **The build environment comes first.** Tier-1 CI (the full pinned-stack build) is investigated in week 1 (WP E2), right after tier 0 (WP E1). C++ or NED work that needs it starts **only** when a build environment is verified. Until then it stays at design or prototype level, and this is stated in each package.
+3. *[Superseded (rev. 4); not an active instruction:]* **The build environment comes first.** Tier-1 CI (the full pinned-stack build) is investigated in week 1 (WP E2), right after tier 0 (WP E1). C++ or NED work that needs it starts **only** when a build environment is verified. Until then it stays at design or prototype level, and this is stated in each package. *[end of superseded text]* Tier-1 is verified and integrated (DR-14); C++ / NED work proceeds to level 2 through tier-1.
 4. **The VM is the current independent environment, not a permanent limit.** A package whose acceptance needs a simulation is queued for an independent execution environment, either the VM or one approved under `remote-execution-feasibility.md` §4. Development never waits for the VM unless an I-dep says so.
 5. **Three levels** (handover §8): code complete → CI-validated → independently accepted. Only the maintainer grants the third.
 6. **Evidence vs source.**
@@ -77,10 +83,10 @@ The three lines meet at the architectural seams of `revised-migration-roadmap.md
 
 | WP | Objective | I-dep | A-dep | Deliverables and acceptance tests | Environment | Stop conditions | Effort |
 |---|---|---|---|---|---|---|---|
-| **E0** | Integration branch and document import. **Prepared 17 Nov as a documentation-only commit; awaiting review and push by the maintainer.** | DR-11 approved (17 Nov) | — | `m2/continuation` from `033c3ed`. Approved documents imported into `docs/migration/` with provenance (`document-index.md`). | GitHub | Any import of a document not cleared for publication | 1 d |
+| **E0** | Integration branch and document import. *[Superseded (rev. 4); not an active instruction:]* Prepared 17 Nov as a documentation-only commit; awaiting review and push by the maintainer. *[end of superseded text]* Done (see the status table below). | DR-11 approved (17 Nov) | — | `m2/continuation` from `033c3ed`. Approved documents imported into `docs/migration/` with provenance (`document-index.md`). | GitHub | Any import of a document not cleared for publication | 1 d |
 | **E1** | CI tier 0: Python suites. **The first H4 task**; full specification in `h4-first-task.md` | E0 (the branch only) | — | Workflow running the handover §6 suites with a Simu5G `v1.8.1` **source** checkout. Expected counts as listed there; T-real-first-chain must PASS on the fixture. Measured locally: about 3.5 min for 11 suites on 2 cores. | GitHub-hosted runner | A count differs; PENDING reported as PASS | 1 d |
 | **E2** | Tier-1 feasibility: full pinned-stack build | E0; checklist `remote-execution-feasibility.md` §2–§3 (licence, runner limits). The preserved environment description (`opp_env` 0.36.2.261110, Nix 2.34.4 flakes and lock files, in the private the private environment archive) is the reference. Publishing the flake and lock files to the public repository needs approval (DR-12; publication class). | — | Feasibility report with measured build time, cache size and runner limits. The first attempt reproduces the preserved `opp_env` / Nix environment; a from-source build is the fallback. Then, if feasible, a workflow building OMNeT++ 6.5.0 / INET 4.7.0 / Simu5G 1.8.1 (unmodified) and `libnasctime_m2`, plus `opp_run -q runconfig` checks (the A2-V1 wrapper suite; generator `verify`) | GitHub-hosted runner, or another runner after approval | Licence not cleared; limits exceeded; any upstream source modified to make it build | 2–4 d |
-| **E3** | Tier-2 functional smoke (short runs, not evidence) | E2 | — | Each NED / ini change gets one short run that must load and complete. Labelled "functional smoke: not evidence". | Same as E2 | A smoke result used as a scientific result | 1 d |
+| **E3** | Tier-2 functional smoke (short runs, not evidence) | E2 | — | *[Superseded (rev. 4); not an active instruction:]* Each NED / ini change gets one short run that must load and complete. *[end of superseded text]* Replaced by DR-15 (individually authorised runs). Labelled "functional smoke: not evidence". | Same as E2 | A smoke result used as a scientific result | 1 d |
 | **E4** | M4 groundwork | E0; DR-10 | M4 acceptance: clean-machine install by the maintainer | `docs/README-2.0-draft.md`; compatibility table; `opp_env` check (B9); skill drafts `nasctime-dev-environment` and `nasctime-fingerprint-testing`; claim-scoping notes; a non-blocking nightly job against Simu5G `dev` (after E2) | GitHub | — | 3–4 d, spread over the period |
 
 **Workstream E status (rev. 4; identities in `repository-archive-and-evidence-register.md` §3):**
@@ -89,9 +95,9 @@ The three lines meet at the architectural seams of `revised-migration-roadmap.md
 |---|---|
 | E0 | **Done.** `m2/continuation` created; documents imported (`db8027d`). |
 | E1 | **Done.** Tier-0 integrated (PR #4). Both negative controls failed at their intended gates. |
-| E2 | **Done.** Tier-1 integrated (PR #7) after E2b.1 PASS, E2b.2 FAIL, E2b.3 FAIL and E2b.3-R1 PASS. Tier-1 negative controls N-1 and N-2 failed in the offline self-tests; **neither exercised its intended downstream hosted gate.** |
+| E2 | **Done.** Tier-1 integrated (PR #7) after E2b.1 PASS, E2b.2 FAIL, E2b.3 FAIL and E2b.3-R1 PASS. Tier-1 negative controls N-1 and N-2 failed in the offline self-tests of their hosted runs, which therefore did not reach the lock-identity gate or the C-5 SYS_LIBS gate. Both gates passed in the positive hosted tier-1 runs; their rejection behaviour was tested offline. |
 | E3 | **Done, as one-time experiments:**<br>• E3a PASS (`M2S4U`: wired timing functionality);<br>• E3b PUBLICATION FAILURE (preserved);<br>• E3b-R1 PASS (`M2S5`: the downlink 5G–TSN timing path).<br>All level 2. The harness is frozen on `wp-e3/e3b-r1-publication` (DR-15).<br>**The rev-3 rule "each NED / ini change gets one short run" is replaced by DR-15:** a hosted functional run happens only when individually authorised and bounded. |
-| E4 | Open (README 2.0 draft, compatibility table, `opp_env` entry B9, skills, nightly job), spread over the period |
+| E4 | Open: release documentation and M4 readiness (README 2.0 draft, compatibility table, `opp_env` entry B9, skills, nightly job), spread over the period. Plan package E4 is distinct from **WP-E4** (repository consolidation and handover), which is completed by the documentation PR introducing revision 4. |
 
 ### Workstream A — Remaining S7.2a tooling and protocols
 
@@ -137,7 +143,7 @@ The three lines meet at the architectural seams of `revised-migration-roadmap.md
 
 ## 3. Priority order (when capacity is limited)
 
-1. **E0, E1, E2.** Without E2, C2, C4, B4–B6 and D2–D3 stay at design level.
+1. *[Superseded (rev. 4); not an active instruction:]* **E0, E1, E2.** Without E2, C2, C4, B4–B6 and D2–D3 stay at design level. *[end of superseded text]* E0–E2 are done.
 2. **A1**, the single blocker of every N > 1 Stage 5 result.
 3. **B1, B2, D1, B7.** The designs that unblock two workstreams each.
 4. **A2, A3, A4.**
@@ -179,9 +185,15 @@ The three lines meet at the architectural seams of `revised-migration-roadmap.md
 | 7–9 | Implementation preparation for **C2 / C4** (S7.2b network and configurations; S7.3 state machine) and the **D2 / D3** skeletons (S-PATH emission through S-CFG). Default-off, release build and linkage validated by tier-1. New configurations get reviewed queries, or an individually authorised hosted functional run (DR-15). **E4** README 2.0 draft. | CP3 (Stage 6), S7.2b / S7.3 / M3 rows; Phase 0 and legacy comparisons (VM); M4 clean-machine install |
 
 **Never in this window:**
-- any simulation presented as scientific evidence;
-- any Stage 5, M2-B or M3 campaign run by the development agent;
+- a development-agent run (tier-0 / tier-1 CI or an authorised hosted functional simulation) presented as independent scientific evidence;
+- a Stage 5, M2-B or M3 campaign run by the development agent;
 - a release.
+
+**Independent scientific execution during travel is permitted.** An authorised independent scientific executor may undertake qualifying scientific experiments during the travel period (the right-hand column above). The conditions are those already established:
+- a pre-declared, approved protocol;
+- the approved budget (feasibility C-1);
+- the conditions of `remote-execution-feasibility.md` §4;
+- the maintainer's acceptance.
 
 ## 4. Held acceptance queue (order of independent execution)
 

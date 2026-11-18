@@ -4,7 +4,7 @@
 
 ~~**Not started.**~~ The maintainer implements H4 through the GitHub-based remote development workflow. This document specifies it; it does not implement it.
 
-**Status (revision 3, 18 Nov 2026): implemented and accepted (DR-14).** The specification below is unchanged.
+**Status (revision 3, 18 Nov 2026): implemented and accepted (DR-14).** The specification below is unchanged and is now **historical**. Its authorisation boundary, stop conditions and "next tasks" applied to H4 only. They are **not** active restrictions or the current status: see `travel-development-plan.md` §3a and `remote-agent-handover.md`.
 
 | Criterion | Record |
 |---|---|
@@ -110,6 +110,8 @@ If a suite does not produce its expected line on the hosted runner (for example 
 - Any need for secrets, private access, a full-stack build or a self-hosted runner.
 
 ## 8. Next tasks after H4 (backlog order)
+
+*[Superseded (rev. 4): this list is historical; E2 is done and A1 is next.]*
 
 1. Plan E2: tier-1 feasibility, from the preserved `opp_env` / Nix environment (publication of the configuration only after content review).
 2. A1: A-2.1 integration into E0v-N.

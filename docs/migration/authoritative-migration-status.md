@@ -8,7 +8,13 @@ Revision 4 records:
 - the repository consolidation (four permanent branches, 30 annotated tags);
 - the decisions DR-14 … DR-18.
 
-Revision 4 changes are marked "(rev. 4)". Revision-3 text that is superseded is kept and labelled, not deleted. This record changes no code, configuration, test, evidence or historical record.
+Revision 4 changes are marked "(rev. 4)". Revision-3 text that is superseded is kept and labelled, not deleted.
+
+**How to read this revision.**
+- Text between *[Superseded (rev. 4)…]* and *[end of superseded text]* is retained revision-3 history. It is **not** an active instruction and **not** the current repository status.
+- The current position is given by the "(rev. 4)" text and by the decisions DR-14 … DR-18.
+- **WP-E4 (repository consolidation and travel handover) is completed by the documentation pull request that introduces revision 4.**
+- **Still open:** release documentation and M4 readiness. These are plan work package **E4** (M4 groundwork: README 2.0, compatibility table, `opp_env` entry, skills, nightly job), which is a different item from WP-E4. This record changes no code, configuration, test, evidence or historical record.
 
 **Canonical location after approval:** `docs/migration/authoritative-migration-status.md` in the repository. Repository files are cited by repository path. Documents cited by bare name (for example `migration/revised-migration-roadmap.md`) are **private planning documents** unless `docs/migration/document-index.md` lists them as published. They are cited for traceability; the maintainer provides reviewed extracts on request (DR-12).
 
@@ -50,7 +56,7 @@ Every discrepancy between these sources is listed in `migration/migration-decisi
 
 **Current state (rev. 4, 18 Nov 2026; DR-17).**
 - **Permanent branches.** Exactly four remain:
-  - `m2/continuation` at `290babba3d12942344a2153f9ea5ea54287df366` (integration);
+  - `m2/continuation` (integration). **Reviewed pre-E4 integration baseline:** `290babba3d12942344a2153f9ea5ea54287df366`. This is not a permanent head: the live head advances when this documentation PR is merged, and with every later merge. New work starts from the current head;
   - `master` at `9e8bc83dfdfaffd918eb304bda6b8ecb98ff0684` (frozen legacy provenance);
   - `m1/ethernet-bridge` at `fbe41a9e9ba1befc0d68b9fd559be52b024c1ca9` (frozen M1 provenance);
   - `wp-e3/e3b-r1-publication` at `edf3329ddf2350650fd0957ddd5a965fe3ddbb56` (frozen experimental tier-2 harness).
@@ -77,7 +83,7 @@ Every discrepancy between these sources is listed in `migration/migration-decisi
 | `m2/s72a-a2d2` | `612f353` | A2-V1 design and protocol r1.1 | `archive/m2/s72a-a2d2-a2v1-not-accepted` |
 | `m2/s72a-a21` | `115012f` | A-2.1, F3, S1, S1 closure | `archive/m2/s72a-a21-closed` |
 | **`m2/s72a-a21-fixture`** | **`033c3ed3fbc5b6ee21271ce24c62084283d8e79b`** | **Approved continuation baseline (DR-11):** `115012f` plus the three genuine F3 fixture files under `simulations/m2/check/fixtures/` (fixture sha256 `cfb05ff7…6e65b`). No implementation is changed. | `archive/m2/s72a-a21-fixture-baseline` |
-| **`m2/continuation`** | E0 tip: given in the delivery note. A commit cannot contain its own hash. | **Integration branch** (DR-11), created from `033c3ed`. The E0 commit adds documentation only: the public handover set under `docs/migration/`, and the Stage 5 plan selectively imported from `57fa0c5`. | branch retained (integration); head `290babb` (rev. 4) |
+| **`m2/continuation`** | E0 tip: given in the delivery note. A commit cannot contain its own hash. | **Integration branch** (DR-11), created from `033c3ed`. The E0 commit adds documentation only: the public handover set under `docs/migration/`, and the Stage 5 plan selectively imported from `57fa0c5`. | branch retained (integration); reviewed pre-E4 integration baseline `290babb` (rev. 4; the live head advances with merges) |
 | `v1.5.0-migration` | `91ad643` | Stale, unrelated history (`migration/legacy-baseline-manifest.md` §1) | `archive/legacy/v1.5.0-migration` |
 
 The local clone also has `m2/s72a-a2f1` at `13b0fb4`, which holds F1 rev. 2. The maintainer's list does not include it. It is an ancestor of `m2/s72a-a21`, so its content is reachable there.
@@ -106,7 +112,7 @@ The local clone also has `m2/s72a-a2f1` at `13b0fb4`, which holds F1 rev. 2. The
 | **Supplementary pre-departure archives (H2, completed)** | private supplementary archives (environment, F3 evidence, legacy provenance, VM compatibility), each checksum-verified | no |
 | Legacy datasets: multi-endpoint, FRER, bridge and NW-TT result sets | **the VM only**. An inventory of 79 legacy experimental files and the historical migration records are in the private legacy-provenance archive. Their relationship to the published experiments is **unverified**. | **no** |
 | Other larger raw datasets (E0, CP2 campaign outputs) | the VM only; not collected | **no** |
-| **Hosted CI and experiment evidence (rev. 4)** | GitHub Actions artifacts (7-day retention, expired 24–25 Nov 2026), job logs. The 11 artifact ZIP archives were downloaded, verified against their GitHub SHA-256 digests and preserved by the maintainer in a private evidence release (the maintainer's statement). Register: `repository-archive-and-evidence-register.md` §3–§4. Job-log exports and the internal raw-manifest verification are **pending**. | identities and digests: yes (register); archives: no (DR-12) |
+| **Hosted CI and experiment evidence (rev. 4)** | GitHub Actions artifacts (7-day retention; **scheduled to expire on 24–25 Nov 2026**), job logs. The 11 artifact ZIP archives were downloaded, verified against their GitHub SHA-256 digests and preserved by the maintainer in a private evidence release (the maintainer's statement). Register: `repository-archive-and-evidence-register.md` §3–§4. Job-log exports and the internal raw-manifest verification are **pending**. | identities and digests: yes (register); archives: no (DR-12) |
 
 No further VM collection is planned before departure.
 
@@ -312,7 +318,7 @@ E2 (the load sweep) is outside the plan's execution scope. It is re-declared aft
 | Status | **Not started.** The legacy FRER implementation (`FrerReplicator`, `FrerRecovery`) exists only on the legacy line (`inventory-and-architecture.md` §3: replace with INET elements; keep recovery as an extension). |
 | Dependencies | S-PATH binding (roadmap §1). Multi-DRB and multi-UE configurations from S7.1 / S7.2a (S7 roadmap §9). Legacy F1 / F2 sweep profiles and results (Phase 0 mapping). The pinned stack: DR-01 (17 Nov) sets OMNeT++ 6.5.0 / INET 4.7.0 / unmodified Simu5G 1.8.1 for M3. The roadmap title "on vanilla 1.8.0" is preserved as historical text. |
 | Blockers | F3 (inter-PDU-session) waits for upstream multi-session support with per-session anchors (blocker B2; roadmap Phase 5). F4 (NR-DC) waits for upstream NR dual-connectivity support (blocker B1). Neither blocks M3 (F1 / F2). |
-| Remote | Design, S-PATH binding code, `FrerRecovery` extension code and unit tests: yes, once tier-1 CI is verified and enabled (plan WP-E2; `remote-execution-feasibility.md`). Until then: design and prototype only.<br>**(rev. 4)** Tier-1 is integrated (PR #7, DR-14). Default-off C++ code can be CI-validated for release build and linkage. A new configuration is validated only by its own reviewed query or an individually authorised hosted functional run (§8; DR-15). |
+| Remote | Design, S-PATH binding code, `FrerRecovery` extension code and unit tests: *[Superseded (rev. 4); not an active instruction:]* yes, once tier-1 CI is verified and enabled (plan WP-E2; `remote-execution-feasibility.md`). Until then: design and prototype only. *[end of superseded text]*<br>**(rev. 4)** Tier-1 is integrated (PR #7, DR-14). Default-off C++ code can be CI-validated for release build and linkage. A new configuration is validated only by its own reviewed query or an individually authorised hosted functional run (§8; DR-15). |
 | Independent evidence | **Yes**: the functional, protocol and experimental rows need simulation, and the legacy comparison needs the legacy stack. |
 
 ## 5. M4 (Phase 4) — Release nascTime 2.0
@@ -322,7 +328,7 @@ E2 (the load sweep) is outside the plan's execution scope. It is re-declared aft
 | Original scope | Roadmap §2 Phase 4: README boundary statement and compatibility table; `opp_env` entry (B9); CI (a blocking pinned job plus a non-blocking nightly `simu5g@dev`); skills `nasctime-dev-environment` and `nasctime-fingerprint-testing`; claim-scoping notes. |
 | Acceptance | Clean-machine install and run of every example; the CI dev job has run at least once; the boundary statement reviewed. |
 | Release scope constraints | S7 roadmap §2.1 minimum scope: S7.1, S7.2a, S7.2b, S7.3 (detection and state; recovery experimental). §2.2: S7.4a optional. D7: BMCA not mandatory. F1: S7.4a never delays M3 or M4. |
-| Status | **Not started.** No `.github/` CI exists in the repository (checked on the authoring clone at `115012f`).<br>**(rev. 4)** CI groundwork exists: tier-0 (PR #4) and tier-1 (PR #7) are integrated on `m2/continuation` (DR-14). **M4 itself is not started, and 2.0 is not release-ready.** The release path is decided in principle by DR-18. |
+| Status | **Not started.** *[Superseded (rev. 4); not an active instruction:]* No `.github/` CI exists in the repository (checked on the authoring clone at `115012f`). *[end of superseded text]*<br>**(rev. 4)** CI groundwork exists: tier-0 (PR #4) and tier-1 (PR #7) are integrated on `m2/continuation` (DR-14). **M4 itself is not started, and 2.0 is not release-ready.** The release path is decided in principle by DR-18. |
 | Dependencies | The DR-01 pin; M2 (scope per DR-02) and M3. |
 | Remote | README draft, CI and documentation: yes. The clean-machine run: partly (CI). |
 | Independent evidence | The clean-machine install, by the maintainer. |
@@ -364,13 +370,15 @@ Upstream contributions are coordinated separately by the maintainer. Simu5G 1.8.
 |---|---|---|
 | Tier-0 Python regression CI (H4 / WP-E1) | **Integrated** (PR #4, 17 Nov). Runs on every pull request to `m2/continuation`. Required at repository-ruleset level (DR-14). Negative controls NC-H4-fixture and NC-H4-simu5g each failed at their intended gate. | 2 |
 | Tier-1 full-stack CI (WP-E2) | **Integrated** (PR #7, 18 Nov). Pinned release build of OMNeT++ 6.5.0 / INET 4.7.0 / Simu5G 1.8.1 and `libnasctime_m2`; linkage, single C++ runtime and RUNPATH classes; **its specific reviewed configuration queries** (the two `-q runconfig` queries of the A2-V1 wrapper suite). It does **not** automatically validate every newly introduced NED or INI configuration. **Triggering:** automatic for relevant **non-draft** pull requests (complete change set, fail closed); the label `tier1:run` overrides, including for drafts. **Not mandatory** at ruleset level (DR-14). | 2 |
-| Tier-1 negative controls N-1 (lock) and N-2 (SYS_LIBS) | Both failed **during the offline self-tests**. **Neither exercised its intended downstream hosted negative gate** (lock identity before realisation; the SYS_LIBS gate C-5). Those gates are covered by offline self-tests only. | — |
+| Tier-1 negative controls N-1 (lock) and N-2 (SYS_LIBS) | N-1 and N-2 failed during the **offline self-tests** of their hosted runs, so those hosted runs **never reached** the downstream gates they target. Those gates are the lock-identity gate (N-1) and the C-5 SYS_LIBS gate (N-2). Both gates **passed** in the positive hosted tier-1 runs: PR #7 and the C-1 … C-12 prerequisites of E3a, E3b and E3b-R1. Their negative (rejecting) behaviour was tested **offline** by the tier-1 self-tests. | — |
 | E2b.1 / E2b.2 / E2b.3 / E2b.3-R1 | PASS / **FAIL** / **FAIL** / PASS. The failures are preserved (`archive/exp/*`). Superseded by tier-1. | — |
 | **E3a** (`M2S4U`, run 0) | **E3a PASS.** C-1 … C-12 and E-1 … E-8 PASS; unmodified U1 oracle PASS. **Demonstrates wired timing functionality.** Seal manifest: 9 files, 24 496 082 B; the complete raw artifact has 37 files. E-9: 4/4 historical 6.4.0 engine-log / PCAP hashes reproduced. | **2** (development smoke) |
 | **E3b** (`M2S5`, run 0; original) | **E3b PUBLICATION FAILURE, preserved.** E-1 … E-7 PASS. The evidence seal passed and was verified. The raw publication failed: the N3 publication policy was too narrow, and the raw evidence was lost with the runner. | — |
 | **E3b-R1** (`M2S5`, run 0; publication correction) | **E3b PASS.** C-1 … C-12 and E-1 … E-8 PASS. Per-run M2-S5 oracle PASS: C1–C7, S1, S2 and P2 fully; C8 and P1 partially; S3 NOT EVALUATED. **Demonstrates the downlink 5G–TSN timing path.** 33/33 R181c CSV / PCAP hashes reproduced. 568 downlink and 488 uplink N3 packets passed publication validation. | **2** (development smoke) |
 | Differing `.sca` / `.vec` hashes (E3b, E3b-R1) | **Cause unverified.** Not attributed to metadata or any other cause; no whole-result equivalence claim. | — |
 | Hosted functional simulations during travel | **Permitted when individually authorised and bounded** (DR-15). There is no automatic tier-2 integration. | 2 |
+| Independent scientific execution during travel | **Permitted** for an authorised independent scientific executor, under a pre-declared protocol, the approved budget and the maintainer's acceptance (feasibility §4) | 3 candidates |
+| **WP-E4: repository consolidation and travel handover** | **Completed by the documentation PR that introduces revision 4.** That covers four permanent branches, 30 tags and the archive and evidence register. **Still open:** release documentation and M4 readiness (plan package E4, M4). | — |
 
 **Hosted development smoke tests and independent scientific execution are different things.**
 - E3a and E3b-R1 were started by the development agent, so they are **not eligible for level 3** (`remote-execution-feasibility.md` §4, X-1).

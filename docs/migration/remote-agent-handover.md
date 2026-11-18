@@ -2,6 +2,12 @@
 
 **Status: revision 4, 18 November 2026 (WP-E4 Phase 3, documentation-only; pending the maintainer's review).** Revision 3 was approved on 17 November 2026 with the maintainer's targeted corrections. Canonical location: `docs/migration/remote-agent-handover.md`. Revision-4 changes are marked "(rev. 4)".
 
+**How to read this revision.**
+- Text between *[Superseded (rev. 4)…]* and *[end of superseded text]* is retained revision-3 history. It is **not** an active instruction and **not** the current repository status.
+- The current position is given by the "(rev. 4)" text and by the decisions DR-14 … DR-18.
+- **WP-E4 (repository consolidation and travel handover) is completed by the documentation pull request that introduces revision 4.**
+- **Still open:** release documentation and M4 readiness. These are plan work package **E4** (M4 groundwork: README 2.0, compatibility table, `opp_env` entry, skills, nightly job), which is a different item from WP-E4.
+
 This file is self-contained. Where it and any other document disagree, stop and ask (§12). Do not choose between them yourself.
 
 ## 1. Repository and continuation baseline
@@ -10,9 +16,9 @@ This file is self-contained. Where it and any other document disagree, stop and 
 |---|---|
 | Repository | `github.com/MohamedSeliem/nascTime-5gtsn` |
 | Continuation baseline | `m2/s72a-a21-fixture` at `033c3ed3fbc5b6ee21271ce24c62084283d8e79b`: the accepted A2-V1-S1 closure (`115012f`) plus the genuine F3 fixture `simulations/m2/check/fixtures/a2v1-first-chain.log.gz` (sha256 `cfb05ff78e63e056f512bdea9fdc568d555dba71ffd884675fc46f905bc6e65b`) with its `.sha256` and `.meta.json` |
-| Integration branch | `m2/continuation`, created from `033c3ed` **after the maintainer approves DR-11**. Work only there, through feature branches. **(rev. 4)** Current baseline: `290babba3d12942344a2153f9ea5ea54287df366` (tier-0 and tier-1 integrated). |
+| Integration branch | `m2/continuation`, created from `033c3ed` **after the maintainer approves DR-11**. Work only there, through feature branches. **(rev. 4)** Reviewed pre-E4 integration baseline: `290babba3d12942344a2153f9ea5ea54287df366` (tier-0 and tier-1 integrated). This is not a permanent head: the live head advances when the WP-E4 documentation PR is merged, and with every later merge. Always start from the **current** head of `m2/continuation`. |
 | Frozen | `master` (`9e8bc83`, tag `v1.0.1`) and tag `v1.0` (`f03e38d`). Never commit to, merge into or rebase `master`. Never create, move or delete tags. **(rev. 4)** Also frozen:<br>• `m1/ethernet-bridge` (`fbe41a9`, M1 provenance);<br>• `wp-e3/e3b-r1-publication` (`edf3329`, the experimental tier-2 harness);<br>• the 28 annotated `archive/*` tags (DR-17).<br>`master` and `m2/continuation` share no history (DR-18). |
-| Accepted history | All branches listed in `docs/migration/authoritative-migration-status.md` §0.1. Never rewrite, force-push or delete them. **(rev. 4)** Only four branches remain. The heads of the 26 deleted branches are preserved by archive tags. Resolve a historical branch name with `repository-archive-and-evidence-register.md` §2.2; never recreate a deleted branch. |
+| Accepted history | *[Superseded (rev. 4); not an active instruction:]* All branches listed in `docs/migration/authoritative-migration-status.md` §0.1. Never rewrite, force-push or delete them. *[end of superseded text]* Current rule: never rewrite, force-push, move or delete the four permanent branches or any tag. **(rev. 4)** Only four branches remain. The heads of the 26 deleted branches are preserved by archive tags. Resolve a historical branch name with `repository-archive-and-evidence-register.md` §2.2; never recreate a deleted branch. |
 | Private evidence | A private, access-controlled evidence archive maintained by the project owner. Contents: the N = 1 smoke, N = 2 smoke and A2-V1 evidence archives; the sealed S1 evidence ((private)); supplementary archives (environment, F3, legacy provenance, VM compatibility).<br>**You have no access (DR-12, 17 Nov).** The maintainer gives you reviewed documents where necessary. Any future access will be configured with real access controls, and you will verify it (read a named file and compare its sha256) before using it. Never write to it. Never copy its content into the public repository, a public workflow, a log, an issue or a pull request. |
 | Simulation environments | **None is available to you by default.** The VM is the maintainer's. No persistent personal VM runner is attached to the public repository (maintainer instruction, 17 Nov). **(rev. 4)** A hosted functional simulation on a GitHub-hosted runner is possible **only when the maintainer individually authorises it**, with its bounds and acceptance declared beforehand (DR-15). It is level-2 development evidence only. |
 
@@ -41,7 +47,7 @@ A document marked *private* there is not in the public repository. You have no a
 4. Tier-2 functional smoke testing.
 5. Separately authorised scientific execution and acceptance.
 
-Your first task is specified in `docs/migration/h4-first-task.md` (if approved).
+*[Superseded (rev. 4); not an active instruction:]* Your first task is specified in `docs/migration/h4-first-task.md` (if approved). *[end of superseded text]* H4 is completed; the next task is A1.
 
 **(rev. 4) Status:**
 - Items 1–3 are done: tier-0 (PR #4) and tier-1 (PR #7) are integrated (DR-14).
@@ -58,7 +64,7 @@ Your first task is specified in `docs/migration/h4-first-task.md` (if approved).
 
 ## 3. Branching and pull-request policy
 
-- One feature branch per increment from `m2/continuation`, named `wp-<id>/<short-name>` (WP ids as in the plan). **(rev. 4, DR-17)** Short-lived work-package branches named `wp/<id>-<slug>` (for example `wp/a1-a21-e0vn-wrapper`). They are deleted by the maintainer after merge.
+- *[Superseded (rev. 4); not an active instruction:]* One feature branch per increment from `m2/continuation`, named `wp-<id>/<short-name>` (WP ids as in the plan). *[end of superseded text]* **(rev. 4, DR-17)** Short-lived work-package branches named `wp/<id>-<slug>` (for example `wp/a1-a21-e0vn-wrapper`). They are deleted by the maintainer after merge.
 - **Pull requests:**
   - target `m2/continuation` only;
   - contain one increment;
@@ -72,8 +78,8 @@ Your first task is specified in `docs/migration/h4-first-task.md` (if approved).
 | Purpose | Environment |
 |---|---|
 | Python checkers and tests | Python ≥ 3.11 (validated locally on 3.13); the checkers use the standard library only. A Simu5G `v1.8.1` **source** checkout in `SIMU5G_ROOT` (no build) for the A2-0s source-contract rows. |
-| C++ / NED / ini | The pinned stack (DR-01; currently D-2: OMNeT++ 6.5.0, INET 4.7.0, Simu5G 1.8.1), built **unmodified**; `libnasctime_m2` built with the repository `Makefile`. Available to you only through tier-1 CI once WP-E2 has verified and enabled it. Until then, C++ / NED work stays at design or prototype level and is labelled so.<br>**(rev. 4)** Tier-1 is enabled (PR #7).<br>• **What it validates:** the release build, linkage and **its specific reviewed configuration queries** only. A new NED or INI configuration is **not** validated automatically.<br>• **When it runs:** automatically for relevant non-draft pull requests; for a draft, only if the maintainer adds `tier1:run`. |
-| Simulations | Short functional smoke runs in tier 2 only, once enabled, and **never** as evidence. Scientific runs happen only in an independent environment (§11) and are never started by you. **(rev. 4)** Tier 2 is not integrated. A hosted functional run needs an individual authorisation (DR-15) and yields level-2 development evidence only. |
+| C++ / NED / ini | The pinned stack (DR-01; currently D-2: OMNeT++ 6.5.0, INET 4.7.0, Simu5G 1.8.1), built **unmodified**; `libnasctime_m2` built with the repository `Makefile`. *[Superseded (rev. 4); not an active instruction:]* Available to you only through tier-1 CI once WP-E2 has verified and enabled it. Until then, C++ / NED work stays at design or prototype level and is labelled so. *[end of superseded text]*<br>**(rev. 4)** Tier-1 is enabled (PR #7).<br>• **What it validates:** the release build, linkage and **its specific reviewed configuration queries** only. A new NED or INI configuration is **not** validated automatically.<br>• **When it runs:** automatically for relevant non-draft pull requests; for a draft, only if the maintainer adds `tier1:run`. |
+| Simulations | *[Superseded (rev. 4); not an active instruction:]* Short functional smoke runs in tier 2 only, once enabled, and **never** as evidence. *[end of superseded text]* Scientific runs happen only in an independent environment (§11) and are never started by you. **(rev. 4)** Tier 2 is not integrated. A hosted functional run needs an individual authorisation (DR-15) and yields level-2 development evidence only. |
 
 ## 5. Upstream prohibition and change discipline
 
@@ -162,7 +168,7 @@ Every status statement names its level, for example "A1: level 2; V-N1 / V-N2 / 
 
 ## 11. Execution tiers and CI
 
-The full analysis is in `docs/migration/remote-execution-feasibility.md`. **Nothing beyond tier 0 may be assumed available or permitted until that document's checks are completed and the maintainer approves.**
+The full analysis is in `docs/migration/remote-execution-feasibility.md`. *[Superseded (rev. 4); not an active instruction:]* Nothing beyond tier 0 may be assumed available or permitted until that document's checks are completed and the maintainer approves. *[end of superseded text]* The current tier status is the rev-4 table below (DR-14, DR-15).
 
 | Tier | Purpose | Level it can support |
 |---|---|---|
