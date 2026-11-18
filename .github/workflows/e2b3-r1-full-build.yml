@@ -1,0 +1,1803 @@
+# WP-E2 / E2b.3-R1 - E2b.3 with the targeted R-1 causal-gate correction. EXPERIMENTAL: lives only on
+# wp-e2/e2b3-r1-correction, never merged. Changes from E2b.3 (a24d797): corrected R-1 (versioned trace evidence,
+# linker-entry relationship, merged-/usr aliases, separate runtime/development ownership), RUNPATH observation
+# (non-store entries recorded; resolution through them is a failure), and the identity gates below.
+#
+# Does:   repeat the accepted E2b.1 preflight; prove (minimal linker-traced probes, no framework code) that the libc++
+#         selected by OMNeT++'s configure check is a dpkg-owned host library outside /nix/store; remove exactly the host
+#         libc++ development packages after inspecting the simulated apt transaction; re-run negative and positive
+#         probes; then compile release-only OMNeT++ 6.5.0, INET 4.7.0, Simu5G 1.8.1 (pinned opp_env build functions)
+#         and libnasctime_m2 (src/nasctime/m2/build.sh), gate SYS_LIBS against the recovered VM reference, and validate
+#         binaries, linkage, the single C++ runtime and build-induced source changes.
+# Does NOT: run any simulation, smoke test, test suite, fingerprint test, NED/INI loading or the opp_run wrapper suite
+#         (only the approved `opp_run -v` identity probe); execute the probe binaries; modify Nix locks, upstream sources
+#         or the generated Makefile.inc; add host directories to LD_LIBRARY_PATH; use caches, secrets or the private
+#         repository; publish binaries. Tier-0 CI and the E2b.1 / E2b.2 workflows are not touched.
+# Level: build feasibility (level 2) only. No scientific evidence; no VM byte-equivalence or source-provenance claim.
+
+name: e2b3-r1-full-build
+
+on:
+  push:
+    branches: [wp-e2/e2b3-r1-correction]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: e2b3-r1-correction
+  cancel-in-progress: false
+
+jobs:
+  fullbuild:
+    name: E2b.3-R1 runtime-consistency full release build (no simulation)
+    if: github.repository == 'MohamedSeliem/nascTime-5gtsn'
+    runs-on: ubuntu-22.04
+    timeout-minutes: 330
+
+    defaults:
+      run:
+        shell: bash --noprofile --norc -euo pipefail {0}
+
+    env:
+      # Single-run rule: the experiment commit must sit directly on the accepted E2b.1 preflight commit, which
+      # sits directly on the pinned nascTime baseline.
+      EXPECTED_PARENT: d49930e08a053f3610209ba8f795470c66a2232e
+      BASELINE_COMMIT: c4fb6c874b43c2cf1550f344464af1d695cdf93f
+      # Time budget: guarded stages never start or continue past (job start + 330 min - reserve), so that the
+      # validation and diagnostic steps always have RESERVE_S seconds left.
+      JOB_BUDGET_S: '19800'
+      RESERVE_S: '1500'
+      # Nix: installer pinned by sha256 (independently confirmed by the maintainer); the installer verifies the
+      # tarball against its embedded hash, which must equal the published x86_64-linux tarball hash.
+      NIX_VERSION: '2.34.4'
+      NIX_INSTALLER_URL: https://releases.nixos.org/nix/nix-2.34.4/install
+      NIX_INSTALLER_SHA256: de490f61fcbaf9a5cabf2fa621ddb9ef93ad35d9a23a04e7d51b26e092b63691
+      NIX_TARBALL_SHA256: 595669eb6db6117135ca8ba6667b273eaf980a47523a92e61ed963556cd547b8
+      # opp_env: the PyPI wheel (no dependencies) pinned by sha256, plus the main module's sha256.
+      OPP_ENV_PIN: '0.36.2.261110'
+      OPP_ENV_WHEEL_URL: https://files.pythonhosted.org/packages/44/9a/c9643e77326634b92e14d2268ca8d82f4fd1da00166a5c99c5de5e2244d6/opp_env-0.36.2.261110-py3-none-any.whl
+      OPP_ENV_WHEEL_SHA256: 7a962e2a58f56367a71322de8b65d007c8f31a917b5bdc4e6a9f032b6b6d4e73
+      OPP_ENV_MAIN_SHA256: 233658171942a731a62ee8b77d86dc5845daaf964ee9675508d405db1bb4cfb9
+      # Approved 26.05 lock (M-2) and the 22.11 helper lock of the opp_env 0.36.2.261110 workspace template
+      # (both independently confirmed by the maintainer).
+      LOCK_FILE: ci/e2b1/flake.lock
+      LOCK_SHA256: 9ead146500c1f8b54f2a611e0a753e705e35682639307c3ea7bd104f5109f60a
+      LOCK_SIZE: '1462'
+      HELPER_LOCK_SHA256: 0fc40c96aefff3032f7ef727d4d498f7ceddf065503bcda81520c8624245618c
+      PROJECTS: omnetpp-6.5.0 inet-4.7.0 simu5g-1.8.1
+      # Reference toolchain (F-7).
+      EXPECT_CLANG: '21.1.8'
+      EXPECT_GCC: '15.2.0'
+      EXPECT_MAKE: '4.2.1'
+      EXPECT_PYTHON: '3.13.13'
+      # Disk limits and guard timing (the 10 GiB gate is repeated before compilation and between build stages).
+      START_MIN_FREE_GIB: '10'
+      STOP_FREE_GIB: '4'
+      GUARD_INTERVAL_S: '5'
+      GUARD_STALE_S: '30'
+      NIX_X: --extra-experimental-features nix-command --extra-experimental-features flakes
+      # SYS_LIBS of the original VM OMNeT++ 6.5.0 Makefile.inc (recovered by the maintainer from the preserved archive).
+      VM_SYS_LIBS: '-lstdc++ -lpython3.13 -ldl -lm -L/nix/store/qhmqdg27kcrlkl8ida6d5hiacw0y8d21-elfutils-0.194/lib -ldw -lelf'
+
+    steps:
+      - name: Single-run rule and work directories
+        id: setup
+        run: |
+          if [[ "$GITHUB_RUN_ATTEMPT" != 1 ]]; then
+            echo "::error::E2b.3-R1 allows exactly one attempt; a re-run needs maintainer approval"; exit 1
+          fi
+          B="$RUNNER_TEMP/e2b3r1"
+          echo "JOB_START=$(date +%s)" >> "$GITHUB_ENV"
+          mkdir -p "$B/evidence" "$B/dl" "$B/unpublished"
+          {
+            echo "E2B=$B"; echo "EV=$B/evidence"; echo "DL=$B/dl"; echo "WS=$B/ws"; echo "VENV=$B/venv"
+          } >> "$GITHUB_ENV"
+          printf 'step\tseconds\texit\tstart_epoch\tend_epoch\n' > "$B/evidence/timings.tsv"
+
+      - name: Checkout (experiment commit, E2b.1 parent and baseline)
+        id: checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+          fetch-depth: 3
+
+      - name: Verify the experiment commit
+        id: commit
+        run: |
+          parent=$(git rev-parse HEAD^); grandparent=$(git rev-parse HEAD^^)
+          [[ "$parent" == "$EXPECTED_PARENT" ]] || { echo "::error::HEAD^ is $parent, expected $EXPECTED_PARENT"; exit 1; }
+          [[ "$grandparent" == "$BASELINE_COMMIT" ]] || { echo "::error::HEAD^^ is $grandparent, expected $BASELINE_COMMIT"; exit 1; }
+          changed=$(git diff --name-status HEAD^ HEAD | sort | tr '\t\n' ' ;')
+          [[ "$changed" == "A .github/workflows/e2b3-r1-full-build.yml;" ]] \
+            || { echo "::error::unexpected changes in the experiment commit: $changed"; exit 1; }
+          # Everything except the two E2b.1 files and this workflow is the pinned baseline, byte for byte.
+          base_diff=$(git diff --name-status "$BASELINE_COMMIT" HEAD | sort | tr '\t\n' ' ;')
+          [[ "$base_diff" == "A .github/workflows/e2b1-preflight.yml;A .github/workflows/e2b3-r1-full-build.yml;A ci/e2b1/flake.lock;" ]] \
+            || { echo "::error::tree differs from the baseline beyond the experiment files: $base_diff"; exit 1; }
+          echo "experiment commit $(git rev-parse HEAD) on $parent on $grandparent; changes: $changed"
+
+      - name: Record runner capacity (measured) and apply the start gate
+        id: capacity
+        run: |
+          {
+            echo "date_utc: $(date -u +%FT%TZ)"
+            echo "nascTime_commit: $GITHUB_SHA"
+            echo "workflow_sha256: $(sha256sum .github/workflows/e2b3-r1-full-build.yml | cut -c1-64)"
+            echo "run: $GITHUB_RUN_ID attempt $GITHUB_RUN_ATTEMPT"
+            echo "image_os: ${ImageOS:-unknown}"
+            echo "image_version: ${ImageVersion:-unknown}"
+            echo "os_release: $(. /etc/os-release && echo "$PRETTY_NAME")"
+            echo "kernel: $(uname -srm)"
+            echo "nproc: $(nproc)"
+            echo "cpu_model: $(lscpu | sed -n 's/^Model name:[[:space:]]*//p' | head -1)"
+            echo "mem_total_kib: $(awk '/^MemTotal:/ {print $2}' /proc/meminfo)"
+            echo "mem_available_start_kib: $(awk '/^MemAvailable:/ {print $2}' /proc/meminfo)"
+            echo "swap_total_kib: $(awk '/^SwapTotal:/ {print $2}' /proc/meminfo)"
+            echo "host_python: $(/usr/bin/python3 -V 2>&1)"
+            echo "runner_temp_mount: $(df -B1 --output=target "$RUNNER_TEMP" | tail -1)"
+            echo "root_avail_start_B: $(df -B1 --output=avail / | tail -1 | tr -d ' ')"
+            echo "root_size_B: $(df -B1 --output=size / | tail -1 | tr -d ' ')"
+          } | tee "$EV/runner.txt"
+          df -B1 -T | tee "$EV/df-start.txt"
+          lsblk -b -o NAME,SIZE,TYPE,MOUNTPOINT | tee "$EV/lsblk.txt"
+          avail=$(df -B1 --output=avail / | tail -1 | tr -d ' ')
+          if (( avail < START_MIN_FREE_GIB * 1073741824 )); then
+            echo "start gate: root free $avail B < $START_MIN_FREE_GIB GiB" > "$EV/STOP"
+            echo "::error::STOP: $(cat "$EV/STOP")"; exit 1
+          fi
+
+      - name: Install helper scripts and start the disk guard
+        id: guard
+        run: |
+          cat > "$E2B/guard.sh" <<'GUARD'
+          #!/usr/bin/env bash
+          # Disk guard. Samples free space on / and on $RUNNER_TEMP's filesystem, plus MemAvailable, every
+          # GUARD_INTERVAL_S seconds and writes a heartbeat. On a breach it declares STOP (atomically) and stops
+          # the Nix daemon. While STOP exists it kills any registered guarded process group on every iteration,
+          # which also covers a group registered after STOP was declared. Exits when guard.off appears.
+          set -u
+          echo "$$" > "$EV/guard.pid"
+          limit=$(( STOP_FREE_GIB * 1073741824 ))
+          printf 'utc\tpath\tavail_B\tused_B\tmem_avail_kib\n' > "$EV/disk.tsv"
+          kill_target() {
+            local pg
+            pg=$(cat "$EV/guard.target" 2>/dev/null)
+            [[ -n "$pg" ]] || return 0
+            kill -TERM -- "-$pg" 2>/dev/null || return 0
+            echo "$(date -u +%FT%TZ) TERM sent to process group $pg" >> "$EV/guard-actions.txt"
+            sleep 5
+            kill -KILL -- "-$pg" 2>/dev/null && echo "$(date -u +%FT%TZ) KILL sent to process group $pg" >> "$EV/guard-actions.txt"
+            return 0
+          }
+          while [[ ! -e "$EV/guard.off" ]]; do
+            date +%s > "$EV/guard.heartbeat.tmp" && mv -f "$EV/guard.heartbeat.tmp" "$EV/guard.heartbeat"
+            mem=$(awk '/^MemAvailable:/ {print $2}' /proc/meminfo)
+            for p in / "$RUNNER_TEMP"; do
+              read -r avail used < <(df -B1 --output=avail,used "$p" | tail -1)
+              printf '%s\t%s\t%s\t%s\t%s\n' "$(date -u +%FT%TZ)" "$p" "$avail" "$used" "$mem" >> "$EV/disk.tsv"
+              if (( avail < limit )) && [[ ! -e "$EV/STOP" ]]; then
+                echo "disk guard: free $avail B on $p < $STOP_FREE_GIB GiB" > "$EV/STOP.tmp" && mv -f "$EV/STOP.tmp" "$EV/STOP"
+                echo "$(date -u +%FT%TZ) STOP declared" >> "$EV/guard-actions.txt"
+                sudo systemctl stop nix-daemon.socket nix-daemon.service 2>/dev/null || true
+              fi
+            done
+            [[ -e "$EV/STOP" ]] && kill_target
+            sleep "$GUARD_INTERVAL_S"
+          done
+          date -u +%FT%TZ > "$EV/guard.exited"
+          GUARD
+          cat > "$E2B/guard-alive.sh" <<'ALIVE'
+          #!/usr/bin/env bash
+          # usage: guard-alive.sh <checkpoint>. Exit 91 (infrastructure failure) unless the guard process exists
+          # and its heartbeat is fresh.
+          set -u
+          cp=$1
+          now=$(date +%s)
+          pid=$(cat "$EV/guard.pid" 2>/dev/null || true)
+          hb=$(cat "$EV/guard.heartbeat" 2>/dev/null || echo 0)
+          age=$(( now - hb ))
+          state=$(ps -o stat= -p "${pid:-0}" 2>/dev/null | tr -d ' ')
+          if [[ -n "$pid" && -n "$state" && "$state" != Z* ]] && (( age <= GUARD_STALE_S )); then
+            echo "$(date -u +%FT%TZ) ok [$cp] pid=$pid heartbeat_age_s=$age" >> "$EV/guard-checks.txt"
+            exit 0
+          fi
+          echo "$(date -u +%FT%TZ) FAIL [$cp] pid=${pid:-none} heartbeat_age_s=$age" >> "$EV/guard-checks.txt"
+          echo "disk guard not alive at checkpoint: $cp" > "$EV/GUARD_FAILURE"
+          echo "::error::INFRASTRUCTURE FAILURE: disk guard not alive at checkpoint: $cp"
+          exit 91
+          ALIVE
+          cat > "$E2B/guarded.sh" <<'RUN'
+          #!/usr/bin/env bash
+          # usage: guarded.sh <label> <command...>
+          # Checks guard liveness, runs the command in its own session / process group (killable by the guard),
+          # logs to $EV/<label>.log (not streamed to the public console), records the wall time, re-checks the
+          # guard, and fails closed on STOP (90), guard failure (91) or exhausted time budget (92; 124 = timed out).
+          # Time limit = min(STAGE_CAP_S if set, job start + JOB_BUDGET_S - RESERVE_S - now). On a command failure
+          # it prints a screened log tail, or a suppression notice.
+          set -uo pipefail
+          label=$1; shift
+          "$E2B/guard-alive.sh" "before $label" || exit 91
+          [[ ! -e "$EV/STOP" ]] || { echo "::error::STOP already declared: $(cat "$EV/STOP")"; exit 90; }
+          t0=$(date +%s)
+          remaining=$(( JOB_START + JOB_BUDGET_S - RESERVE_S - t0 ))
+          if (( remaining < 120 )); then
+            printf '%s\t0\t92\t%s\t%s\n' "$label" "$t0" "$t0" >> "$EV/timings.tsv"
+            echo "::error::$label not started: remaining job time budget ${remaining}s"; exit 92
+          fi
+          budget=$remaining
+          if [[ -n "${STAGE_CAP_S:-}" ]] && (( STAGE_CAP_S < budget )); then budget=$STAGE_CAP_S; fi
+          echo "$label: time limit ${budget}s"
+          setsid timeout -k 60 "$budget" "$@" > "$EV/$label.log" 2>&1 < /dev/null &
+          pid=$!
+          echo "$pid" > "$EV/guard.target"
+          pg=""
+          for _ in $(seq 1 50); do
+            pg=$(ps -o pgid= -p "$pid" 2>/dev/null | tr -d ' ')
+            [[ -z "$pg" || "$pg" == "$pid" ]] && break
+            sleep 0.1
+          done
+          if [[ -n "$pg" && "$pg" != "$pid" ]]; then
+            kill -KILL "$pid" 2>/dev/null
+            echo "guarded process $pid is not its own process group" > "$EV/GUARD_FAILURE"
+            echo "::error::INFRASTRUCTURE FAILURE: guarded process is not killable as a group"; exit 91
+          fi
+          # Race: STOP may have been declared just before registration. Kill here too; the guard also re-kills.
+          if [[ -e "$EV/STOP" ]]; then kill -TERM -- "-$pid" 2>/dev/null; sleep 2; kill -KILL -- "-$pid" 2>/dev/null; fi
+          wait "$pid"; rc=$?
+          kill -KILL -- "-$pid" 2>/dev/null   # no stragglers of the stage's process group survive it
+          : > "$EV/guard.target"
+          t1=$(date +%s)
+          printf '%s\t%s\t%s\t%s\t%s\n' "$label" "$(( t1 - t0 ))" "$rc" "$t0" "$t1" >> "$EV/timings.tsv"
+          [[ "$rc" != 124 ]] || echo "::error::$label exceeded its time limit (${budget}s)"
+          echo "$label: exit $rc after $(( $(date +%s) - t0 )) s"
+          if [[ "$rc" != 0 ]]; then
+            tail -n 40 "$EV/$label.log" | sed 's/\x1b\[[0-9;?]*[A-Za-z]//g; s/\r/\n/g' > "$E2B/tail.tmp"
+            if /usr/bin/python3 -I "$E2B/screen.py" "$E2B/tail.tmp" > /dev/null; then
+              echo "::group::$label log tail (screened)"; cat "$E2B/tail.tmp"; echo "::endgroup::"
+            else
+              echo "$label log tail suppressed: screening matched a sensitive-content pattern"
+            fi
+          fi
+          "$E2B/guard-alive.sh" "after $label" || exit 91
+          if [[ -e "$EV/STOP" ]]; then echo "::error::STOP: $(cat "$EV/STOP")"; exit 90; fi
+          exit "$rc"
+          RUN
+          cat > "$E2B/lockcheck.sh" <<'LOCK'
+          #!/usr/bin/env bash
+          # usage: lockcheck.sh <phase> [log...]. Gate: both locks must equal their approved sha256, and no
+          # Nix lock-update message may appear in the given logs. Exit 1 on any failure.
+          set -uo pipefail
+          phase=$1; shift
+          A="$WS/.opp_env_workspace"; ok=1
+          a=$(sha256sum "$A/26.05/flake.lock" 2>/dev/null | cut -c1-64)
+          h=$(sha256sum "$A/22.11/flake.lock" 2>/dev/null | cut -c1-64)
+          echo "$phase approved_26.05: ${a:-missing}" >> "$EV/lock.txt"
+          echo "$phase helper_22.11: ${h:-missing}" >> "$EV/lock.txt"
+          [[ "$a" == "$LOCK_SHA256" ]] || ok=0
+          [[ "$h" == "$HELPER_LOCK_SHA256" ]] || ok=0
+          for log in "$@"; do
+            if grep -qiE 'updating lock file|creating lock file|not writing (modified )?lock file|requires lock file changes' "$log"; then
+              echo "$phase lock_update_message_in: $(basename "$log")" >> "$EV/lock.txt"; ok=0
+            fi
+          done
+          if (( ok == 1 )); then echo "$phase result: PASS" >> "$EV/lock.txt"; exit 0; fi
+          echo "$phase result: FAIL" >> "$EV/lock.txt"
+          echo "::error::lock gate failed at $phase"; exit 1
+          LOCK
+          cat > "$E2B/screen.py" <<'SCREEN'
+          # usage: screen.py FILE...  Exit 1 if any file matches a sensitive-content pattern.
+          # Prints only "<file>: <pattern name>" for matches, never the matching content.
+          import os, re, sys
+          PATTERNS = {
+              "github-token": r"gh[pousr]_[A-Za-z0-9]{20,}|github_pat_[A-Za-z0-9_]{20,}",
+              "aws-access-key": r"AKIA[0-9A-Z]{16}",
+              "private-key": r"-----BEGIN [A-Z ]*PRIVATE KEY-----",
+              "auth-header": r"(?i)authorization:\s*(bearer|basic|token)\s+\S",
+              "credential-assignment": r"(?i)\b(password|passwd|secret|api[_-]?key|access[_-]?tokens?)\s*[=:]\s*\S{6,}",
+              "actions-runtime-token": r"ACTIONS_(RUNTIME|ID_TOKEN_REQUEST)_(TOKEN|URL)",
+              "url-with-credentials": r"https?://[^/\s:@]+:[^/\s@]+@",
+              "email-address": r"\b[A-Za-z0-9._%+-]+@[A-Za-z0-9-]+(\.[A-Za-z0-9-]+)*\.(com|org|net|edu|gov|io|de|it|uk|eu|fr|nl|ch|at|se|fi|dk|no|es|pl|cz|hu|cn|jp|kr|in|us|ca|au|info)\b",
+              "private-path": r"(?<![\w/.-])(/root/|/Users/|/var/root/|/home/(?!runner/))",
+          }
+          bad = 0
+          for f in sys.argv[1:]:
+              try:
+                  text = open(f, encoding="utf-8", errors="strict").read()
+              except (OSError, UnicodeDecodeError) as e:
+                  print(f"{os.path.basename(f)}: unreadable-or-not-utf8"); bad = 1; continue
+              for name, rx in PATTERNS.items():
+                  if re.search(rx, text):
+                      print(f"{os.path.basename(f)}: {name}"); bad = 1
+          sys.exit(bad)
+          SCREEN
+          chmod +x "$E2B/guard.sh" "$E2B/guard-alive.sh" "$E2B/guarded.sh" "$E2B/lockcheck.sh"
+          nohup setsid "$E2B/guard.sh" > "$EV/guard-stderr.log" 2>&1 < /dev/null &
+          for _ in $(seq 1 20); do [[ -s "$EV/guard.heartbeat" ]] && break; sleep 0.5; done
+          "$E2B/guard-alive.sh" "guard start"
+          echo "disk guard running, pid $(cat "$EV/guard.pid")"
+
+      - name: Verify the approved 26.05 lock file in the repository
+        id: lockfile
+        run: |
+          "$E2B/guard-alive.sh" "lockfile"
+          size=$(stat -c %s "$LOCK_FILE"); sum=$(sha256sum "$LOCK_FILE" | cut -c1-64)
+          echo "lock_size: $size"; echo "lock_sha256: $sum"
+          [[ "$size" == "$LOCK_SIZE" && "$sum" == "$LOCK_SHA256" ]] || { echo "::error::approved lock mismatch"; exit 1; }
+          /usr/bin/python3 -I - "$LOCK_FILE" <<'PY'
+          import json, sys
+          n = json.load(open(sys.argv[1]))["nodes"]
+          want = {
+              "nixpkgs": ("NixOS", "nixpkgs", "8c50a710ddca43d7a530fb805ad55bde8d0141c5",
+                          "sha256-md0zn0RnwNvPyASas1yG5YUuwQ4ALA6ucL50l0DvqCo="),
+              "flake-utils": ("numtide", "flake-utils", "b7a79d3fea1e214f6d668d521cecec0c01e26544",
+                              "sha256-Zf/xfQEAasnwnmEfHqW/4hjDE/s44yn2hD4RuVIZRjA="),
+              "systems": ("nix-systems", "default", "da67096a3b9bf56a91d16901293e51ba5b49a27e",
+                          "sha256-Vy1rq5AaRuLzOxct8nz4T6wlgyUR7zLU309k9mBC768="),
+          }
+          for k, (owner, repo, rev, nar) in want.items():
+              l = n[k]["locked"]
+              assert (l["owner"], l["repo"], l["rev"], l["narHash"]) == (owner, repo, rev, nar), k
+          assert n["nixpkgs"]["original"] == {"id": "nixpkgs", "ref": "26.05", "type": "indirect"}
+          print("lock content: nixpkgs, flake-utils and systems as approved")
+          PY
+          echo "repository approved_26.05: $sum" > "$EV/lock.txt"
+
+      - name: Install Nix 2.34.4 (verified installer, multi-user)
+        id: nix
+        timeout-minutes: 8
+        run: |
+          curl --fail -sSL --proto '=https' --tlsv1.2 -o "$DL/nix-install" "$NIX_INSTALLER_URL"
+          echo "$NIX_INSTALLER_SHA256  $DL/nix-install" | sha256sum -c -
+          # The installer checks the tarball against its embedded hash; require that hash for x86_64-linux.
+          grep -A2 -F "hash=$NIX_TARBALL_SHA256" "$DL/nix-install" | grep -qx '[[:space:]]*system=x86_64-linux'
+          "$E2B/guarded.sh" nix-install sh "$DL/nix-install" --daemon --yes --no-channel-add --no-modify-profile
+          echo "/nix/var/nix/profiles/default/bin" >> "$GITHUB_PATH"
+          export PATH="/nix/var/nix/profiles/default/bin:$PATH"
+          v=$(nix --version)
+          echo "nix_version: $v" | tee "$EV/nix.txt"
+          [[ "$v" == "nix (Nix) $NIX_VERSION" ]] || { echo "::error::unexpected Nix version: $v"; exit 1; }
+          nix $NIX_X config show > "$E2B/unpublished/nix-config.txt"
+          grep -E '^(substituters|trusted-public-keys|require-sigs|sandbox|max-jobs|cores|experimental-features|accept-flake-config) ' \
+            "$E2B/unpublished/nix-config.txt" | tee -a "$EV/nix.txt"
+          grep -qx 'require-sigs = true' "$E2B/unpublished/nix-config.txt" || { echo "::error::require-sigs is not true"; exit 1; }
+          echo "nix_store_mount: $(df -B1 --output=target /nix | tail -1)" | tee -a "$EV/nix.txt"
+          echo "nix_store_bytes_after_nix_install: $(du -sb /nix/store | cut -f1)" | tee -a "$EV/nix.txt"
+          echo "root_avail_after_nix_install_B: $(df -B1 --output=avail / | tail -1 | tr -d ' ')" | tee -a "$EV/nix.txt"
+
+      - name: Install opp_env 0.36.2.261110 (verified wheel, no dependency resolution)
+        id: oppenv
+        timeout-minutes: 3
+        run: |
+          "$E2B/guard-alive.sh" "oppenv"
+          W="$DL/opp_env-${OPP_ENV_PIN}-py3-none-any.whl"
+          curl --fail -sSL --proto '=https' --tlsv1.2 -o "$W" "$OPP_ENV_WHEEL_URL"
+          echo "$OPP_ENV_WHEEL_SHA256  $W" | sha256sum -c -
+          # The pinned wheel declares no dependencies; fail closed if it does.
+          if /usr/bin/python3 -I -c 'import sys, zipfile
+          z = zipfile.ZipFile(sys.argv[1])
+          m = [n for n in z.namelist() if n.endswith(".dist-info/METADATA")][0]
+          print(z.read(m).decode())' "$W" | grep -q '^Requires-Dist:'; then
+            echo "::error::wheel declares dependencies"; exit 1
+          fi
+          /usr/bin/python3 -m venv "$VENV"
+          "$VENV/bin/python" -m pip install --no-index --no-deps --only-binary :all: "$W" > "$E2B/unpublished/pip.log" 2>&1
+          OE="$VENV/bin/opp_env"
+          [[ "$("$OE" --version)" == "$OPP_ENV_PIN" ]] || { echo "::error::opp_env version mismatch"; exit 1; }
+          mod=$("$VENV/bin/python" -I -c 'import opp_env, os; print(os.path.dirname(os.path.realpath(opp_env.__file__)))')
+          [[ "$mod" == "$(realpath "$VENV")"/* ]] || { echo "::error::opp_env module outside the venv"; exit 1; }
+          echo "$OPP_ENV_MAIN_SHA256  $mod/opp_env.py" | sha256sum -c -
+          {
+            echo "opp_env_exe: $OE"
+            echo "opp_env_version: $("$OE" --version)"
+            echo "opp_env_module: $mod"
+            echo "opp_env_main_sha256: $(sha256sum "$mod/opp_env.py" | cut -c1-64)"
+            echo "opp_env_on_PATH: $(type -P opp_env || echo none)"
+            echo "venv_python: $("$VENV/bin/python" -V 2>&1)"
+          } | tee "$EV/opp_env.txt"
+          echo "OE=$OE" >> "$GITHUB_ENV"
+
+      - name: Initialise the workspace, install the approved lock, write-protect both locks
+        id: init
+        run: |
+          "$E2B/guard-alive.sh" "init"
+          "$OE" init -w "$WS"
+          A="$WS/.opp_env_workspace"
+          [[ ! -e "$A/26.05" ]] || { echo "::error::$A/26.05 already exists"; exit 1; }
+          echo "$HELPER_LOCK_SHA256  $A/22.11/flake.lock" | sha256sum -c -
+          mkdir "$A/26.05"
+          install -m 0444 "$LOCK_FILE" "$A/26.05/flake.lock"
+          echo "$LOCK_SHA256  $A/26.05/flake.lock" | sha256sum -c -
+          # opp_env runs `nix develop` without --no-update-lock-file, and Nix 2.34.4 has no setting that forbids
+          # lock updates. Mitigation: the immutable attribute makes any attempted lock write fail; detection by the
+          # lock gates (hashes + Nix lock-update messages) remains the authoritative control.
+          sudo chattr +i "$A/26.05/flake.lock" "$A/22.11/flake.lock"
+          {
+            for f in "$A/26.05/flake.lock" "$A/22.11/flake.lock"; do
+              attrs=$(lsattr "$f" | cut -d' ' -f1)
+              [[ "$attrs" == *i* ]] || { echo "::error::immutable attribute not set on $(basename "$(dirname "$f")")"; exit 1; }
+              echo "write_protection $(basename "$(dirname "$f")"): immutable ($attrs)"
+            done
+            echo "limitation: opp_env's nix develop invocation cannot be given --no-update-lock-file; an in-process lock update is detected and its write is blocked, but is not proven impossible"
+          } | tee "$EV/lock-enforcement.txt"
+          (cd "$A" && find . -type f -print0 | sort -z | xargs -0 sha256sum) | tee "$EV/workspace-admin-before.sha256"
+          "$E2B/lockcheck.sh" before-realisation
+
+      - name: Record release-asset checksums (separate streamed fetch; not proof of what opp_env consumed)
+        id: assets
+        timeout-minutes: 6
+        run: |
+          "$E2B/guard-alive.sh" "assets"
+          "$OE" info --raw $PROJECTS > "$E2B/unpublished/opp_env-info.json" 2>&1
+          {
+            echo "# Checksums of release assets retrieved by this separate, streamed operation (not stored)."
+            echo "# LIMITATION: they do not prove that opp_env consumed identical archive bytes (opp_env streams"
+            echo "# curl into tar without a checksum), and they do not establish VM source equivalence."
+            for u in \
+              https://github.com/omnetpp/omnetpp/releases/download/omnetpp-6.5.0/omnetpp-6.5.0-linux-x86_64.tgz \
+              https://github.com/inet-framework/inet/releases/download/v4.7.0/inet-4.7.0-src.tgz \
+              https://github.com/Unipisa/Simu5G/releases/download/v1.8.1/simu5g-1.8.1-src.tgz; do
+              grep -qF "$u" "$E2B/unpublished/opp_env-info.json" || { echo "::error::opp_env does not use $u" >&2; exit 1; }
+              printf '%s  %s\n' "$(curl --fail -sSL --proto '=https' "$u" | sha256sum | cut -c1-64)" "$u"
+            done
+          } | tee "$EV/release-assets.sha256"
+
+      - name: Realise the pinned development shell (opp_env install --no-build)
+        id: realise
+        timeout-minutes: 30
+        run: |
+          # Downloads the three trees and applies the pinned opp_env recipe adaptations (M-3); the patch sessions
+          # realise the 26.05 development shell. --no-build suppresses build_all: nothing is configured or compiled.
+          "$E2B/guarded.sh" realise "$OE" install -w "$WS" --no-pause --no-build $PROJECTS
+          echo "root_avail_after_realise_B: $(df -B1 --output=avail / | tail -1 | tr -d ' ')" | tee -a "$EV/sizes.txt"
+
+      - name: Lock gate after realisation (hashes, lock-update messages, locked metadata check)
+        id: lockpost
+        timeout-minutes: 4
+        run: |
+          "$E2B/guard-alive.sh" "lockpost"
+          "$E2B/lockcheck.sh" after-realisation "$EV/realise.log"
+          A="$WS/.opp_env_workspace"
+          nix $NIX_X flake metadata --json --no-update-lock-file --no-write-lock-file "path:$A/26.05" \
+            > "$E2B/unpublished/flake-metadata-26.05.json"
+          /usr/bin/python3 -I - "$E2B/unpublished/flake-metadata-26.05.json" "$EV/flake-lock-check.txt" <<'PY'
+          import json, sys
+          nodes = json.load(open(sys.argv[1]))["locks"]["nodes"]
+          got = {k: nodes[k]["locked"]["rev"] for k in ("nixpkgs", "flake-utils", "systems")}
+          want = {"nixpkgs": "8c50a710ddca43d7a530fb805ad55bde8d0141c5",
+                  "flake-utils": "b7a79d3fea1e214f6d668d521cecec0c01e26544",
+                  "systems": "da67096a3b9bf56a91d16901293e51ba5b49a27e"}
+          with open(sys.argv[2], "w") as f:
+              for k in want:
+                  f.write(f"locked_rev {k}: {got[k]}\n")
+              f.write(f"flake_metadata_no_update_check: {'PASS' if got == want else 'FAIL'}\n")
+          assert got == want, got
+          print("flake metadata (lock update forbidden): locked revisions equal the approved lock")
+          PY
+          echo "generated_flake_26.05_sha256: $(sha256sum "$A/26.05/flake.nix" | cut -c1-64)" | tee -a "$EV/flake-lock-check.txt"
+          echo "generated_flake_22.11_sha256: $(sha256sum "$A/22.11/flake.nix" | cut -c1-64)" | tee -a "$EV/flake-lock-check.txt"
+          grep -E '^\s*(nixpkgs|flake-utils)\.url' "$A/26.05/flake.nix" | sed 's/^ */generated_flake_26.05_input: /' | tee -a "$EV/flake-lock-check.txt"
+          (cd "$A" && find . -type f -print0 | sort -z | xargs -0 sha256sum) > "$EV/workspace-admin-after.sha256"
+          /usr/bin/python3 -I - "$EV/workspace-admin-before.sha256" "$EV/workspace-admin-after.sha256" <<'PY'
+          import sys
+          def load(p):
+              return {l.split(maxsplit=1)[1].strip(): l.split()[0] for l in open(p) if l.strip()}
+          before, after = load(sys.argv[1]), load(sys.argv[2])
+          changed = sorted(p for p in before if p in after and before[p] != after[p])
+          removed = sorted(p for p in before if p not in after)
+          added = sorted(p for p in after if p not in before)
+          print("admin files added:", added, "changed:", changed, "removed:", removed)
+          assert not changed and not removed, "workspace admin files changed or removed"
+          assert set(added) <= {"./22.11/flake.nix", "./26.05/flake.nix"}, "unexpected admin files added"
+          PY
+
+      - name: Toolchain and configuration probe inside the opp_env shell (no build, no simulation)
+        id: probe
+        timeout-minutes: 6
+        run: |
+          cat > "$E2B/probe.sh" <<'PROBE'
+          # usage: bash probe.sh <output file>. Required probes fail the step; optional ones report NOT AVAILABLE.
+          out=$1; fail=0
+          {
+            echo "opp_env_version_in_shell: ${OPP_ENV_VERSION:-<unset>}"
+            echo "omnetpp_root: $OMNETPP_ROOT"
+            echo "inet_root: $INET_ROOT"
+            echo "simu5g_root: $SIMU5G_ROOT"
+            echo "build_modes_session: ${BUILD_MODES:-<unset>}"
+            for t in clang++ g++ make python3; do
+              if ! p=$(command -v "$t"); then echo "required $t: MISSING"; fail=1; continue; fi
+              if v=$("$t" --version 2>&1); then echo "tool $t: $p | $(head -1 <<< "$v")"; else echo "required $t: VERSION COMMAND FAILED"; fail=1; fi
+            done
+            for t in cc c++ clang gcc ld ld.lld bison flex perl pkg-config ccache lldb patchelf qmake z3; do
+              if p=$(command -v "$t") && v=$("$t" --version 2>&1); then echo "tool $t: $p | $(head -1 <<< "$v")"
+              else echo "tool $t: NOT AVAILABLE"; fi
+            done
+            python3 -c 'import numpy, scipy, pandas, matplotlib; print("python_modules:", numpy.__version__, scipy.__version__, pandas.__version__, matplotlib.__version__)' 2>/dev/null \
+              || echo "python_modules: NOT AVAILABLE"
+            if v=$(cat "$OMNETPP_ROOT/Version"); then echo "omnetpp_version_file: $v"; else echo "required omnetpp Version: FAILED"; fail=1; fi
+            if v=$(cat "$SIMU5G_ROOT/Version"); then echo "simu5g_version_file: $v"; else echo "required simu5g Version: FAILED"; fail=1; fi
+            if c=$(grep -E '^(WITH_|PREFER_|USE_)' "$OMNETPP_ROOT/configure.user"); then
+              sed 's/^/configure.user /; s/=/: /' <<< "$c"
+            else
+              echo "required configure.user: FAILED"; fail=1
+            fi
+            echo "probe_result: $([ "$fail" = 0 ] && echo PASS || echo FAIL)"
+          } > "$out" 2>&1
+          exit "$fail"
+          PROBE
+          "$E2B/guarded.sh" probe "$OE" run -w "$WS" $PROJECTS -c "bash $E2B/probe.sh $EV/probe.txt"
+          cat "$EV/probe.txt"
+
+      - name: Lock gate after the final opp_env probe
+        id: lockfinal
+        run: |
+          "$E2B/guard-alive.sh" "lockfinal"
+          "$E2B/lockcheck.sh" after-probe "$EV/realise.log" "$EV/probe.log"
+
+      - name: Adaptation screening (recipe consistency, not transformation equivalence) and build-output check
+        id: adapt
+        timeout-minutes: 3
+        run: |
+          "$E2B/guard-alive.sh" "adapt"
+          /usr/bin/python3 -I - <<'PY'
+          import os, re
+          EV = os.environ["EV"]
+          roots = {}
+          for line in open(os.path.join(EV, "probe.txt")):
+              m = re.match(r"(omnetpp|inet|simu5g)_root: (\S+)$", line.strip())
+              if m:
+                  roots[m.group(1)] = m.group(2)
+          assert set(roots) == {"omnetpp", "inet", "simu5g"}, "project roots not found in probe output"
+
+          def manifest(root, name):
+              d = {}
+              for line in open(os.path.join(root, ".opp_env", name + ".sha")):
+                  h, p = line.rstrip("\n").split(maxsplit=1)
+                  d[p] = h
+              return d
+
+          def contains(root, rel, s):
+              try:
+                  return s in open(os.path.join(root, rel), errors="replace").read()
+              except OSError:
+                  return False
+
+          # Pattern-based attribution to the pinned opp_env 0.36.2.261110 recipes (database/omnetpp.py, inet.py,
+          # simu5g.py). This establishes RECIPE CONSISTENCY ONLY: a string-presence check does not prove that a file
+          # received exactly the recipe's transformation and nothing else.
+          OMNETPP = {"./src/envir/evmain.cc", "./src/utils/opp_ide", "./Makefile.inc.in", "./configure.user", "./Version"}
+          def attributable(proj, root, p, kind):
+              if proj == "omnetpp":
+                  return p in OMNETPP
+              if proj == "inet":
+                  if p in ("./.oppfeaturestate", "./.nedexclusions"):
+                      return True
+                  if kind == "removed" and p.startswith("./examples/voipstream/osudp/"):
+                      return True
+                  return kind == "changed" and contains(root, p, "defined(__linux__)")
+              if proj == "simu5g":
+                  if p == "./Makefile":
+                      return kind == "changed" and contains(root, p, "-KINET_PROJ=$(INET_ROOT)")
+                  return kind == "changed" and os.path.basename(p) == "omnetpp.ini" and contains(root, p, "#image-path")
+              return False
+
+          unexpected = outputs = 0
+          with open(os.path.join(EV, "adaptations.tsv"), "w") as out:
+              out.write("project\tkind\tpath\tattribution\n")
+              for proj, root in sorted(roots.items()):
+                  pre, post = manifest(root, "prepatch"), manifest(root, "postdownload")
+                  changes = [(p, "changed") for p in post if p in pre and pre[p] != post[p]]
+                  changes += [(p, "added") for p in post if p not in pre]
+                  changes += [(p, "removed") for p in pre if p not in post]
+                  for p, kind in sorted(changes):
+                      ok = attributable(proj, root, p, kind)
+                      unexpected += not ok
+                      out.write(f"{proj}\t{kind}\t{p}\t{'recipe-consistent' if ok else 'UNEXPECTED'}\n")
+                  for d, dirs, files in os.walk(root):
+                      rel_d = os.path.relpath(d, root)
+                      if rel_d.split(os.sep)[0] in ("ide", ".opp_env"):
+                          continue
+                      for f in files:
+                          rp = "./" + os.path.normpath(os.path.join(rel_d, f))
+                          if re.search(r"\.(o|so|a)$", f) and rp not in post:
+                              outputs += 1
+                              out.write(f"{proj}\tbuild-output\t{rp}\tFRAMEWORK-BUILD-OUTPUT\n")
+          with open(os.path.join(EV, "adaptations-summary.txt"), "w") as s:
+              s.write("scope: recipe consistency (pattern-based attribution); NOT exact transformation equivalence\n")
+              s.write(f"unexpected_adaptations: {unexpected}\nframework_build_outputs_after_download: {outputs}\n")
+          print(open(os.path.join(EV, "adaptations-summary.txt")).read())
+          assert unexpected == 0, "change not attributable to the pinned opp_env recipe"
+          assert outputs == 0, "simulation-framework build outputs found"
+          PY
+          for p in omnetpp inet simu5g; do
+            r=$(sed -n "s/^${p}_root: //p" "$EV/probe.txt")
+            cp "$r/.opp_env/prepatch.sha" "$EV/$p-prepatch.sha"
+            cp "$r/.opp_env/postdownload.sha" "$EV/$p-postdownload.sha"
+          done
+
+      - name: Independent verification of the installed trees against the postdownload manifests
+        id: verify
+        timeout-minutes: 3
+        run: |
+          "$E2B/guard-alive.sh" "verify"
+          : > "$EV/postdownload-verify.txt"
+          rc=0
+          for p in omnetpp inet simu5g; do
+            r=$(sed -n "s/^${p}_root: //p" "$EV/probe.txt")
+            n=$(wc -l < "$r/.opp_env/postdownload.sha")
+            # sha1sum -c exits non-zero on any mismatched or missing file (opp_env manifests are SHA-1, shasum format).
+            if (cd "$r" && sha1sum -c --quiet --strict .opp_env/postdownload.sha) > "$E2B/unpublished/verify-$p.txt" 2>&1; then
+              echo "$p postdownload_manifest_entries: $n" >> "$EV/postdownload-verify.txt"
+              echo "$p sha1sum_check: PASS" >> "$EV/postdownload-verify.txt"
+            else
+              echo "$p sha1sum_check: FAIL ($(grep -c -E ': (FAILED|FAILED open or read)$' "$E2B/unpublished/verify-$p.txt") files)" >> "$EV/postdownload-verify.txt"
+              rc=1
+            fi
+            # Files present now but absent from the manifest (outside ide/ and .opp_env/, which opp_env excludes).
+            extra=$(cd "$r" && comm -13 <(cut -d' ' -f3- .opp_env/postdownload.sha | sort -u) \
+                      <(find . \( -path ./.opp_env -o -path ./ide \) -prune -o -type f -print | sort -u) | wc -l)
+            echo "$p files_added_after_download: $extra" >> "$EV/postdownload-verify.txt"
+            (( extra == 0 )) || rc=1
+          done
+          cat "$EV/postdownload-verify.txt"
+          exit "$rc"
+
+      - name: Runtime causal evidence before correction (search paths, link traces of minimal probes; no framework build)
+        id: rprobe_before
+        timeout-minutes: 10
+        env:
+          STAGE_CAP_S: '420'
+        run: |
+          "$E2B/guard-alive.sh" "rprobe_before"
+          cat > "$E2B/runtime-probe.sh" <<'RPROBE'
+          # usage: bash runtime-probe.sh <out> <phase> <workdir>. Runs inside the opp_env session.
+          # Compiles and links one minimal C++ program three ways with linker tracing (no framework code). The
+          # resulting probe binaries are never executed; their dependencies are only listed by the ELF loader.
+          set -u
+          out=$1; phase=$2; D=$3; mkdir -p "$D"
+          RD=$(command -v readelf || command -v llvm-readelf || true)
+          printf '#include <iostream>\nint main() { std::cout << ""; return 0; }\n' > "$D/p.cc"
+          probe() {
+            local name=$1 rc I; shift
+            clang++ -fuse-ld=lld "$D/p.cc" "$@" -o "$D/$name" -Wl,--trace > "$D/$name.trace" 2>&1; rc=$?
+            echo "probe $name args: ${*:-<none>}"
+            echo "probe $name rc: $rc"
+            grep -E 'libc\+\+|libunwind|libstdc\+\+|libgcc_s|unable to find library' "$D/$name.trace" | sed "s/^/probe $name trace: /"
+            if [ "$rc" = 0 ] && [ -n "$RD" ]; then
+              echo "probe $name needed: $("$RD" -d "$D/$name" | sed -n 's/.*(NEEDED).*\[\(.*\)\]/\1/p' | paste -sd,)"
+              echo "probe $name runpath: $("$RD" -d "$D/$name" | sed -n 's/.*(\(RUNPATH\|RPATH\)).*\[\(.*\)\]/\2/p' | paste -sd,)"
+              I=$(patchelf --print-interpreter "$D/$name" 2>/dev/null)
+              echo "probe $name interpreter: $I"
+              "$I" --list "$D/$name" 2>&1 | sed "s/^/probe $name resolved: /"
+            fi
+          }
+          {
+            echo "phase: $phase"
+            echo "clang++: $(command -v clang++) | $(clang++ --version 2>&1 | head -1)"
+            echo "ld.lld: $(command -v ld.lld) | $(ld.lld --version 2>&1 | head -1)"
+            clang++ -print-search-dirs 2>&1 | sed 's/^/search-dirs /'
+            clang++ -### -fuse-ld=lld "$D/p.cc" -lc++ -o "$D/driver" 2>&1 | tail -n 1 | tr ' ' '\n' | tr -d '"' | grep -E '^-L' | sed 's/^/driver-L /'
+            probe libcxx -lc++
+            probe default
+            probe stdcxx -lstdc++
+          } > "$out" 2>&1
+          exit 0
+          RPROBE
+          dpkg-query -W -f '${Package}\t${Version}\t${Status}\n' | sort > "$EV/host-packages-before.tsv"
+          grep -E '^(libc\+\+|libunwind|clang|lld|llvm)' "$EV/host-packages-before.tsv" | tee "$EV/host-cxx-packages-before.tsv"
+          "$E2B/guarded.sh" probe-runtime-before "$OE" run -w "$WS" --build-modes release $PROJECTS \
+            -c "bash $E2B/runtime-probe.sh $EV/runtime-probe-before.txt before $E2B/probes/before"
+          "$E2B/lockcheck.sh" after-runtime-probe-before "$EV/probe-runtime-before.log"
+          if /usr/bin/python3 -I "$E2B/screen.py" "$EV/runtime-probe-before.txt"; then cat "$EV/runtime-probe-before.txt"; else echo "runtime-probe-before.txt withheld from the console by screening"; fi
+          /usr/bin/python3 -I - <<'PY'
+          # R-1 (corrected): establish, fail-closed, that the libc++ actually selected by the -lc++ probe is a host library
+          # outside /nix/store, identify the unversioned linker entry that selected it (by replaying the linker's -L search
+          # order recorded from the driver), verify the entry -> runtime-library relationship (symlink chain or linker-script
+          # INPUT), and record runtime and development package ownership separately. Removal candidates are derived only
+          # from verified development-package ownership.
+          # E2B3_TEST_FS_ROOT is a test hook for mocked filesystems; it is unset in the workflow (real filesystem).
+          import os, re, subprocess
+          EV = os.environ["EV"]
+          ROOT = os.environ.get("E2B3_TEST_FS_ROOT", "").rstrip("/")
+          STORE = "/nix/store/"
+          DEV = re.compile(r"^libc\+\+(abi)?(-[0-9]+)?-dev(:amd64)?$")
+          lines = open(os.path.join(EV, "runtime-probe-before.txt")).read().splitlines()
+
+          def val(key):
+              return next((l.split(": ", 1)[1] for l in lines if l.startswith(key + ": ")), "")
+          def fs(p):
+              return ROOT + p
+          def exists(p):
+              return os.path.lexists(fs(p))
+          def canon(p):
+              r = os.path.realpath(fs(p))
+              if ROOT:
+                  rr = os.path.realpath(ROOT)
+                  if not (r == rr or r.startswith(rr + "/")):
+                      raise SystemExit("mocked filesystem escape")
+                  r = r[len(rr):] or "/"
+              return r
+          def chain(p):
+              hops, cur, seen = [p], p, set()
+              while os.path.islink(fs(cur)) and cur not in seen:
+                  seen.add(cur)
+                  t = os.readlink(fs(cur))
+                  cur = os.path.normpath(t if t.startswith("/") else os.path.join(os.path.dirname(cur), t))
+                  hops.append(cur)
+              return hops
+          def aliases(p, follow=True):
+              """Spellings to query in the dpkg database: the original path, its canonical form (follow=True: the file the
+              path finally resolves to; follow=False: only the directory is canonicalised, so a development symlink is never
+              replaced by its runtime target), and the merged-/usr alias of each."""
+              if follow:
+                  out = [p] + ([canon(p)] if exists(p) else [])
+              else:
+                  d = os.path.dirname(p)
+                  out = [p] + ([os.path.join(canon(d), os.path.basename(p))] if exists(d) else [])
+              for x in list(out):
+                  for a, b in (("/lib/", "/usr/lib/"), ("/lib64/", "/usr/lib64/"), ("/bin/", "/usr/bin/"), ("/sbin/", "/usr/sbin/")):
+                      if x.startswith(a):
+                          out.append(b + x[len(a):])
+                      elif x.startswith(b):
+                          out.append(a + x[len(b):])
+              return list(dict.fromkeys(out))
+          queries = []
+          def owners_of(p, follow=True):
+              found = set()
+              for a in aliases(p, follow):
+                  r = subprocess.run(["dpkg", "-S", a], capture_output=True, text=True)
+                  queries.append(f"{a} -> {'hit' if r.returncode == 0 else 'miss'}")
+                  if r.returncode == 0:
+                      for line in r.stdout.splitlines():
+                          if line.startswith("diversion ") or ": " not in line:
+                              continue
+                          found.update(x.strip() for x in line.rsplit(": ", 1)[0].split(","))
+              return sorted(found)
+          def kind(p):
+              try:
+                  with open(fs(canon(p)), "rb") as f:
+                      head = f.read(4096)
+              except OSError:
+                  return "missing", []
+              if head.startswith(b"\x7fELF"):
+                  return "elf", []
+              text = head.decode("utf-8", "replace")
+              refs = []
+              for m in re.finditer(r"\b(?:INPUT|GROUP)\s*\(([^)]*(?:\([^)]*\)[^)]*)*)\)", text):
+                  refs += [t for t in re.split(r"[\s,()]+", m.group(1)) if t and t != "AS_NEEDED"]
+              return ("linker-script" if refs else "other"), refs
+
+          rc = val("probe libcxx rc")
+          driver_dirs = [l.split(" -L", 1)[1].strip() for l in lines if l.startswith("driver-L -L")]
+          trace_paths = []
+          for l in lines:
+              if l.startswith("probe libcxx trace: "):
+                  trace_paths += re.findall(r"(/[^\s:()'\"]+)", l.split("trace: ", 1)[1])
+          trace_paths = list(dict.fromkeys(trace_paths))
+          def base_kind(p):
+              b = os.path.basename(p)
+              for k, rx in (("libc++", r"^libc\+\+\.so(\.[0-9][0-9.]*)?$"), ("libc++abi", r"^libc\+\+abi\.so(\.[0-9][0-9.]*)?$"),
+                            ("libunwind", r"^libunwind\.so(\.[0-9][0-9.]*)?$")):
+                  if re.match(rx, b):
+                      return k
+              return None
+          traced = {k: [p for p in trace_paths if base_kind(p) == k] for k in ("libc++", "libc++abi", "libunwind")}
+          unrelated_host = [p for p in trace_paths if base_kind(p) is None and not p.startswith(STORE)]
+
+          def linker_entry(name):
+              """Replays the linker search for -l<name>: first -L directory (driver order) containing lib<name>.so."""
+              for d in driver_dirs:
+                  p = os.path.join(d, f"lib{name}.so")
+                  if exists(p):
+                      return p
+              return ""
+          def resolve_ref(ref, entry, final):
+              if ref.startswith("/"):
+                  return ref if exists(ref) else ""
+              if ref.startswith("-l"):
+                  return linker_entry(ref[2:])
+              for d in [os.path.dirname(entry), os.path.dirname(final)] + driver_dirs:
+                  p = os.path.join(d, ref)
+                  if exists(p):
+                      return p
+              return ""
+
+          out, problems = [], []
+          selected = traced["libc++"][0] if traced["libc++"] else ""
+          if rc != "0":
+              problems.append(f"libc++ probe did not link (rc={rc or 'missing'})")
+          if not selected:
+              problems.append("no libc++ library in the linker trace")
+          sel_canon = canon(selected) if selected and exists(selected) else ""
+          if selected and not sel_canon:
+              problems.append("traced libc++ library not present on this filesystem")
+          outside = bool(selected) and not selected.startswith(STORE) and bool(sel_canon) and not sel_canon.startswith(STORE)
+          if selected and not outside:
+              problems.append("selected libc++ is not outside /nix/store")
+
+          # The unversioned linker entry: the traced path itself if unversioned, else the linker's -lc++ search result.
+          entry = selected if selected and os.path.basename(selected) == "libc++.so" else (linker_entry("c++") if selected else "")
+          hops = chain(entry) if entry else []
+          final = canon(entry) if entry and exists(entry) else ""
+          ekind, refs = kind(entry) if entry else ("missing", [])
+          related, via = False, ""
+          if entry and sel_canon:
+              if ekind == "elf":
+                  related, via = final == sel_canon, "symlink chain to the selected ELF"
+              elif ekind == "linker-script":
+                  for ref in refs:
+                      r = resolve_ref(ref, entry, final)
+                      if r and base_kind(r) == "libc++" and canon(r) == sel_canon:
+                          related, via = True, f"linker-script INPUT '{ref}' -> {r}"
+                          break
+          if selected and not entry:
+              problems.append("no unversioned libc++.so linker entry found along the driver -L search path")
+          if entry and (entry.startswith(STORE) or final.startswith(STORE)):
+              problems.append("unversioned linker entry is inside /nix/store")
+          if entry and not related:
+              problems.append("unversioned linker entry does not lead to the traced libc++ library")
+
+          # Runtime ownership: the runtime library file itself (the canonical file when the trace names the unversioned entry).
+          runtime_query = sel_canon if selected and os.path.basename(selected) == "libc++.so" else selected
+          runtime_owners = owners_of(runtime_query) if sel_canon else []
+          # Development ownership: the unversioned-name hops of the entry chain (and the linker script itself), never the
+          # versioned runtime library the chain may end in.
+          dev_paths = list(dict.fromkeys([h for h in hops if os.path.basename(h) == "libc++.so"] + ([final] if ekind == "linker-script" else [])))
+          dev_owners = sorted({o for h in dev_paths for o in owners_of(h, follow=False)}) if entry else []
+          if sel_canon and not runtime_owners:
+              problems.append("runtime library ownership not established")
+          if entry and not dev_owners:
+              problems.append("development (linker-entry) ownership not established")
+          bad_dev = [o for o in dev_owners if not DEV.match(o)]
+          if bad_dev:
+              problems.append(f"unexpected development owners: {bad_dev}")
+          overlap = sorted(set(dev_owners) & set(runtime_owners))
+          if overlap:
+              problems.append(f"development owners also own the runtime library: {overlap}")
+
+          # Associated libc++abi development entry: only if the verified libc++ entry references it and it was traced.
+          abi_entry, abi_dev, abi_related = "", [], False
+          if related and any(r in ("-lc++abi",) or os.path.basename(r).startswith("libc++abi") for r in refs) and traced["libc++abi"]:
+              t = traced["libc++abi"][0]
+              abi_entry = t if os.path.basename(t) == "libc++abi.so" else linker_entry("c++abi")
+              if abi_entry and not abi_entry.startswith(STORE) and exists(abi_entry) and not canon(abi_entry).startswith(STORE):
+                  abi_related = True
+                  ah = chain(abi_entry); ak, _ = kind(abi_entry)
+                  apaths = [h for h in ah if os.path.basename(h) == "libc++abi.so"] + ([canon(abi_entry)] if ak == "linker-script" else [])
+                  abi_dev = sorted({o for h in dict.fromkeys(apaths) for o in owners_of(h, follow=False)})
+          unw = traced["libunwind"][0] if traced["libunwind"] else ""
+          unw_owners = owners_of(unw, follow=False) if unw and exists(unw) else []
+
+          candidates = list(dev_owners) + [o for o in abi_dev if DEV.match(o) and o not in runtime_owners]
+          ok = not problems
+          out += [f"libcxx_probe_rc: {rc or 'missing'}",
+                  f"trace_paths: {', '.join(trace_paths) or 'none'}",
+                  f"selected_libcxx_runtime: {selected or 'none'}",
+                  f"selected_libcxx_canonical: {sel_canon or 'none'}",
+                  f"selected_outside_nix_store: {'yes' if outside else 'no'}",
+                  f"driver_search_dirs: {len(driver_dirs)}",
+                  f"unversioned_linker_entry: {entry or 'none'}",
+                  f"unversioned_entry_chain: {' -> '.join(hops) or 'none'}",
+                  f"unversioned_entry_final: {final or 'none'}",
+                  f"unversioned_entry_kind: {ekind}",
+                  f"development_paths: {', '.join(dev_paths) if entry else 'none'}",
+                  f"unversioned_entry_inputs: {' '.join(refs) or 'none'}",
+                  f"entry_relationship: {'verified (' + via + ')' if related else 'NOT verified'}",
+                  f"runtime_owners: {', '.join(runtime_owners) or 'none'}",
+                  f"development_owners: {', '.join(dev_owners) or 'none'}",
+                  f"libcxxabi_traced: {', '.join(traced['libc++abi']) or 'none'}",
+                  f"libcxxabi_dev_entry: {abi_entry or 'none'}",
+                  f"libcxxabi_associated: {'yes' if abi_related else 'no'}",
+                  f"libcxxabi_development_owners: {', '.join(abi_dev) or 'none'}",
+                  f"libunwind_traced: {unw or 'none'} (recorded only; not a removal candidate)",
+                  f"libunwind_owners: {', '.join(unw_owners) or 'none'}",
+                  f"unrelated_host_paths_in_trace: {', '.join(unrelated_host) or 'none'}"]
+          if ekind == "linker-script":
+              try:
+                  out.append("linker_script: " + open(fs(final)).read(2048).strip().replace("\n", " | "))
+              except (OSError, UnicodeDecodeError):
+                  out.append("linker_script: <unreadable>")
+          out += [f"dpkg_query: {q}" for q in queries]
+          out += [f"problem: {p}" for p in problems]
+          if ok:
+              out += [f"removal_candidate: {c}" for c in dict.fromkeys(candidates)]
+          out.append(f"r1_result: {'PASS' if ok else 'FAIL'}")
+          open(os.path.join(EV, "host-libcxx.txt"), "w").write("\n".join(out) + "\n")
+          # RUNPATH observation for the probe binaries (recorded; resolution through it is checked by R-4 / R-6).
+          obs = []
+          for l in lines:
+              m = re.match(r"probe (\w+) runpath: (.*)$", l)
+              if m:
+                  for d in [x for x in m.group(2).split(":") if x]:
+                      if not d.startswith(STORE):
+                          obs.append(f"before probe {m.group(1)}: non-store RUNPATH entry {d} exists={'yes' if os.path.isdir(fs(d)) else 'no'}")
+          open(os.path.join(EV, "runpath-observation.txt"), "w").write("\n".join(obs) + ("\n" if obs else ""))
+          print("\n".join(out))
+          print("\n".join(obs))
+          if not ok:
+              open(os.path.join(EV, "HYPOTHESIS_NOT_CONFIRMED"), "w").write("; ".join(problems) + "\n")
+              raise SystemExit("::error::host-contamination causal chain NOT established; stopping before any removal or build")
+          PY
+
+      - name: Controlled removal of the host libc++ development packages (simulated and inspected first)
+        id: hostfix
+        timeout-minutes: 5
+        run: |
+          "$E2B/guard-alive.sh" "hostfix"
+          pat='^libc\+\+(abi)?(-[0-9]+)?-dev(:amd64)?$'
+          cands=()
+          while IFS= read -r p; do
+            [[ "$p" =~ $pat ]] || { echo "::error::owner '$p' is not a libc++ development package; rejecting"; exit 1; }
+            cands+=("${p%:amd64}")
+          done < <(sed -n 's/^removal_candidate: //p' "$EV/host-libcxx.txt")
+          for m in libc++-dev libc++abi-dev; do
+            if dpkg-query -W -f '${Status}' "$m" 2>/dev/null | grep -qx 'install ok installed'; then cands+=("$m"); fi
+          done
+          mapfile -t cands < <(printf '%s\n' "${cands[@]}" | sort -u)
+          (( ${#cands[@]} > 0 )) || { echo "::error::no removal candidates"; exit 1; }
+          printf '%s\n' "${cands[@]}" | tee "$EV/apt-remove-proposed.txt"
+          apt-get -s remove "${cands[@]}" > "$EV/apt-remove-simulation.txt" 2>&1 \
+            || { echo "::error::apt-get -s remove failed"; cat "$EV/apt-remove-simulation.txt"; exit 1; }
+          cat "$EV/apt-remove-simulation.txt"
+          /usr/bin/python3 -I - <<'PY'
+          # The simulated transaction may remove only libc++ / libc++abi development packages (incl. the
+          # directly associated metapackages), must include every proposed package, and may install nothing.
+          import os, re
+          EV = os.environ["EV"]
+          pat = re.compile(r"^libc\+\+(abi)?(-[0-9]+)?-dev$")
+          sim = open(os.path.join(EV, "apt-remove-simulation.txt")).read().splitlines()
+          proposed = [l.strip() for l in open(os.path.join(EV, "apt-remove-proposed.txt")) if l.strip()]
+          remv = sorted({re.sub(r":amd64$", "", l.split()[1]) for l in sim if l.startswith("Remv ")})
+          other = [l for l in sim if re.match(r"^(Inst|Purg) ", l)]
+          bad = [p for p in remv if not pat.match(p)]
+          ok = remv and not bad and not other and set(proposed) <= set(remv)
+          with open(os.path.join(EV, "apt-remove-transaction.txt"), "w") as f:
+              f.write("".join(f"removal: {p}\n" for p in remv))
+              f.write(f"rejected_unrelated_removals: {', '.join(bad) or 'none'}\n")
+              f.write(f"install_or_purge_lines: {len(other)}\n")
+              f.write(f"transaction_check: {'PASS' if ok else 'FAIL'}\n")
+          print(open(os.path.join(EV, "apt-remove-transaction.txt")).read())
+          if not ok:
+              raise SystemExit("::error::proposed apt transaction rejected; nothing removed")
+          PY
+          mapfile -t remv < <(sed -n 's/^removal: //p' "$EV/apt-remove-transaction.txt")
+          sudo DEBIAN_FRONTEND=noninteractive apt-get -o DPkg::Lock::Timeout=300 remove -y "${remv[@]}" > "$EV/apt-remove.txt" 2>&1 \
+            || { echo "::error::apt-get remove failed"; cat "$EV/apt-remove.txt"; exit 1; }
+          dpkg-query -W -f '${Package}\t${Version}\t${Status}\n' | sort > "$EV/host-packages-after.tsv"
+          grep -E '^(libc\+\+|libunwind|clang|lld|llvm)' "$EV/host-packages-after.tsv" | tee "$EV/host-cxx-packages-after.tsv"
+          /usr/bin/python3 -I - <<'PY'
+          # Before/after inventories may differ only in the removed packages, which must no longer be installed.
+          import os
+          EV = os.environ["EV"]
+          def inv(p):
+              d = {}
+              for l in open(os.path.join(EV, p)):
+                  f = l.rstrip("\n").split("\t")
+                  if len(f) == 3:
+                      d[f[0]] = (f[1], f[2])
+              return d
+          before, after = inv("host-packages-before.tsv"), inv("host-packages-after.tsv")
+          remv = {l.split(": ", 1)[1].strip() for l in open(os.path.join(EV, "apt-remove-transaction.txt")) if l.startswith("removal: ")}
+          changed = sorted(p for p in set(before) | set(after) if before.get(p) != after.get(p))
+          still = sorted(p for p in remv if after.get(p, ("", ""))[1] == "install ok installed")
+          ok = set(changed) == remv and not still
+          with open(os.path.join(EV, "host-packages.diff"), "w") as f:
+              for p in changed:
+                  f.write(f"{p}\tbefore={before.get(p, ('absent', ''))}\tafter={after.get(p, ('absent', ''))}\n")
+              f.write(f"changed_packages: {len(changed)}\nexpected_removals: {len(remv)}\nstill_installed: {', '.join(still) or 'none'}\n")
+              f.write(f"r2_result: {'PASS' if ok else 'FAIL'}\n")
+          print(open(os.path.join(EV, "host-packages.diff")).read())
+          if not ok:
+              raise SystemExit("::error::host package change differs from the approved transaction")
+          PY
+
+      - name: Runtime probes after correction (negative libc++ probe, positive GNU-runtime controls)
+        id: rprobe_after
+        timeout-minutes: 10
+        env:
+          STAGE_CAP_S: '420'
+        run: |
+          "$E2B/guarded.sh" probe-runtime-after "$OE" run -w "$WS" --build-modes release $PROJECTS \
+            -c "bash $E2B/runtime-probe.sh $EV/runtime-probe-after.txt after $E2B/probes/after"
+          "$E2B/lockcheck.sh" after-runtime-probe-after "$EV/probe-runtime-after.log"
+          if /usr/bin/python3 -I "$E2B/screen.py" "$EV/runtime-probe-after.txt"; then cat "$EV/runtime-probe-after.txt"; else echo "runtime-probe-after.txt withheld from the console by screening"; fi
+          /usr/bin/python3 -I - <<'PY'
+          # R-3: -lc++ must now fail specifically because libc++ is unavailable.
+          # R-4: default and explicit -lstdc++ probes must link and resolve libstdc++ from the pinned Nix store.
+          import os
+          EV = os.environ["EV"]
+          lines = open(os.path.join(EV, "runtime-probe-after.txt")).read().splitlines()
+          def val(key):
+              return next((l.split(": ", 1)[1] for l in lines if l.startswith(key + ": ")), "")
+          def grab(prefix):
+              return [l.split(": ", 1)[1] for l in lines if l.startswith(prefix + ": ")]
+          r3 = val("probe libcxx rc") not in ("", "0") and any("unable to find library -lc++" in t for t in grab("probe libcxx trace"))
+          out = [f"negative_libcxx_rc: {val('probe libcxx rc') or 'missing'}",
+                 f"negative_libcxx_reason: {next((t for t in grab('probe libcxx trace') if 'unable to find library' in t), 'none')}",
+                 f"r3_result: {'PASS' if r3 else 'FAIL'}"]
+          r4 = True
+          obs = []
+          for l in lines:
+              if l.startswith("probe ") and " runpath: " in l:
+                  pname = l.split()[1]
+                  for d in [x for x in l.split(": ", 1)[1].split(":") if x]:
+                      if not d.startswith("/nix/store/"):
+                          obs.append(f"after probe {pname}: non-store RUNPATH entry {d} exists={'yes' if os.path.isdir(d) else 'no'}")
+          with open(os.path.join(EV, "runpath-observation.txt"), "a") as f:
+              f.write("".join(o + "\n" for o in obs))
+          for name in ("default", "stdcxx"):
+              rc, needed = val(f"probe {name} rc"), val(f"probe {name} needed")
+              resolved = grab(f"probe {name} resolved")
+              std = next((r.split("=>", 1)[1].split()[0] for r in resolved if r.strip().startswith("libstdc++.so.6 =>")), "")
+              unres = [r for r in resolved if "not found" in r or "error" in r]
+              # every resolved library must come from the pinned store (catches resolution via a non-store RUNPATH)
+              nonstore = [r.split("=>", 1)[1].split()[0] for r in resolved if "=>" in r and not r.split("=>", 1)[1].split()[0].startswith("/nix/store/")]
+              cxx = [n for n in needed.split(",") if n.startswith(("libc++.so", "libc++abi.so"))]
+              good = (rc == "0" and "libstdc++.so.6" in needed.split(",") and not cxx and not unres
+                      and std.startswith("/nix/store/") and "-gcc-" in std and not nonstore)
+              r4 = r4 and good
+              out += [f"positive_{name}_rc: {rc or 'missing'}", f"positive_{name}_needed: {needed or 'none'}",
+                      f"positive_{name}_libstdcxx: {std or 'none'}", f"positive_{name}_unresolved: {len(unres)}",
+                      f"positive_{name}_non_store_resolutions: {', '.join(nonstore) or 'none'}",
+                      f"positive_{name}_result: {'PASS' if good else 'FAIL'}"]
+          out.append(f"r4_result: {'PASS' if r4 else 'FAIL'}")
+          open(os.path.join(EV, "runtime-gates.txt"), "w").write("\n".join(out) + "\n")
+          print("\n".join(out))
+          if not (r3 and r4):
+              raise SystemExit("::error::post-correction runtime probes failed; no framework build started")
+          PY
+
+      - name: Install build-stage helpers
+        id: buildhelpers
+        run: |
+          "$E2B/guard-alive.sh" "buildhelpers"
+          cat > "$E2B/diskgate.sh" <<'GATE'
+          #!/usr/bin/env bash
+          # usage: diskgate.sh <checkpoint>. Free space on / must be >= START_MIN_FREE_GIB; otherwise STOP (90).
+          set -u
+          a=$(df -B1 --output=avail / | tail -1 | tr -d ' ')
+          echo "$(date -u +%FT%TZ) [$1] root_avail_B=$a" >> "$EV/disk-gates.txt"
+          if (( a < START_MIN_FREE_GIB * 1073741824 )); then
+            echo "disk gate at $1: free $a B < $START_MIN_FREE_GIB GiB" > "$EV/STOP.tmp" && mv -f "$EV/STOP.tmp" "$EV/STOP"
+            echo "::error::STOP: $(cat "$EV/STOP")"; exit 90
+          fi
+          GATE
+          cat > "$E2B/stagecheck.sh" <<'STAGE'
+          #!/usr/bin/env bash
+          # usage: stagecheck.sh <stage>. Fail-fast existence check of the stage's principal release outputs.
+          set -u
+          case "$1" in
+            omnetpp) files="$WS/omnetpp-6.5.0/bin/opp_run $WS/omnetpp-6.5.0/lib/liboppsim.so $WS/omnetpp-6.5.0/lib/liboppenvir.so $WS/omnetpp-6.5.0/lib/liboppcmdenv.so" ;;
+            inet) files="$WS/inet-4.7.0/src/libINET.so" ;;
+            simu5g) files="$WS/simu5g-1.8.1/src/libsimu5g.so" ;;
+            nasctime) files="$GITHUB_WORKSPACE/src/nasctime/m2/libnasctime_m2.so" ;;
+            *) echo "unknown stage $1"; exit 2 ;;
+          esac
+          rc=0
+          for f in $files; do
+            if [[ -f "$f" ]]; then echo "$1 output present: ${f##*/} ($(stat -c %s "$f") B)"; else echo "::error::$1 output missing: ${f##*/}"; rc=1; fi
+          done
+          echo "$1 tree_bytes_after_build: $(du -sb "$( [[ $1 == nasctime ]] && echo "$GITHUB_WORKSPACE/src/nasctime/m2" || echo "$WS/$(cd "$WS" && ls -d "$1"-*)" )" | cut -f1)" >> "$EV/sizes.txt"
+          exit "$rc"
+          STAGE
+          cat > "$E2B/build-m2.sh" <<'BUILDM2'
+          #!/usr/bin/env bash
+          # usage: bash build-m2.sh <repo> <workspace>. Runs inside the opp_env session. Verifies that
+          # src/nasctime/m2/build.sh will use the freshly installed stack (never its legacy fallback defaults), then
+          # runs it unchanged. The legacy top-level make is never invoked.
+          set -euo pipefail
+          REPO=$1; WSD=$2
+          bad() { echo "build-m2 precondition failed: $*"; exit 3; }
+          [[ "${OMNETPP_ROOT:-}" == "$WSD/omnetpp-6.5.0" ]] || bad "OMNETPP_ROOT=${OMNETPP_ROOT:-unset}"
+          [[ "${INET_ROOT:-}" == "$WSD/inet-4.7.0" ]] || bad "INET_ROOT=${INET_ROOT:-unset}"
+          [[ "${SIMU5G_ROOT:-}" == "$WSD/simu5g-1.8.1" ]] || bad "SIMU5G_ROOT=${SIMU5G_ROOT:-unset}"
+          [[ "${OMNETPP_VERSION:-}" == 6.5.0 && "${INET_VERSION:-}" == 4.7.0 && "${SIMU5G_VERSION:-}" == 1.8.1 ]] \
+            || bad "opp_env project versions ${OMNETPP_VERSION:-?}/${INET_VERSION:-?}/${SIMU5G_VERSION:-?}"
+          [[ "$(cat "$OMNETPP_ROOT/Version")" == omnetpp-6.5.0 ]] || bad "OMNeT++ Version file"
+          [[ "$(cat "$SIMU5G_ROOT/Version")" == 1.8.1 ]] || bad "Simu5G Version file"
+          [[ -f "$INET_ROOT/src/libINET.so" ]] || bad "libINET.so missing"
+          [[ -f "$OMNETPP_ROOT/lib/liboppsim.so" ]] || bad "liboppsim.so missing"
+          S="$REPO/src/nasctime/m2/build.sh"
+          # build.sh only falls back to /root/stack/... when the variables are unset; require that exact form.
+          grep -qxF 'OMNETPP_ROOT=${OMNETPP_ROOT:-/root/stack/omnetpp-6.4.0}' "$S" || bad "unexpected OMNETPP_ROOT handling in build.sh"
+          grep -qxF 'INET_ROOT=${INET_ROOT:-/root/stack/inet-4.7.0}' "$S" || bad "unexpected INET_ROOT handling in build.sh"
+          [[ "$(command -v opp_makemake)" == "$OMNETPP_ROOT/bin/opp_makemake" ]] || bad "opp_makemake not from OMNETPP_ROOT"
+          echo "build-m2: OMNETPP_ROOT, INET_ROOT and SIMU5G_ROOT are the workspace trees (OMNeT++ $OMNETPP_VERSION, INET $INET_VERSION, Simu5G $SIMU5G_VERSION)"
+          export OMNETPP_ROOT INET_ROOT SIMU5G_ROOT
+          exec bash "$S"
+          BUILDM2
+          cat > "$E2B/validate.sh" <<'VALIDATE'
+          # usage: bash validate.sh <evidence dir> <workspace> <repo>. Runs inside the opp_env session.
+          # Static inspection only (sizes, hashes, ELF metadata, dynamic resolution, symbol versions) plus the approved
+          # `opp_run -v`. Writes four separate results; every component runs even if another fails.
+          set -uo pipefail
+          EVD=$1; WSD=$2; REPO=$3
+          bin_fail=0; link_fail=0; rt_fail=0; rt_ne=0; v_fail=0
+          T="$EVD/binaries.tsv"; : > "$EVD/unresolved.txt"; : > "$EVD/runtime-symbols.txt"
+          RD=$(command -v readelf || command -v llvm-readelf || true)
+          INTERP=$(patchelf --print-interpreter "$OMNETPP_ROOT/bin/opp_run" 2>/dev/null || true)
+          CTX="$OMNETPP_ROOT/lib:$INET_ROOT/src:$SIMU5G_ROOT/src"
+          {
+            echo "readelf: ${RD:-<absent>}"
+            echo "elf_interpreter_of_opp_run: ${INTERP:-<absent>}"
+            echo "resolution_context: LD_LIBRARY_PATH=OMNETPP_ROOT/lib:INET_ROOT/src:SIMU5G_ROOT/src (+ session value); no host directories"
+            echo "nix_build_cores: ${NIX_BUILD_CORES:-<unset>}"
+            echo "build_modes_session: ${BUILD_MODES:-<unset>}"
+            for t in clang++ g++ ld.lld ld make ccache python3; do echo "tool $t: $(command -v "$t") | $("$t" --version 2>&1 | head -1)"; done
+          } > "$EVD/identity-tools.txt"
+          if [[ -z "$RD" || ! -x "$INTERP" ]]; then
+            printf 'binaries_result: FAIL\noppv_result: FAIL\nlinkage_result: FAIL\nruntime_result: NOT EVALUATED\nvalidate_result: FAIL (readelf or ELF interpreter unavailable)\n' > "$EVD/validate-result.txt"
+            exit 1
+          fi
+          printf 'project\tkind\tpath\tbytes\tsha256\telf\tcompiler_comment\tneeded\trunpath\tunresolved\tcxx_runtime_violation\tlibunwind\tlibstdcxx_resolved\tunexpected_resolution\n' > "$T"
+          : > "$EVD/runpath-observation-validate.txt"
+          rel() { local p=${1#"$WSD"/}; echo "${p/#$REPO\//nascTime/}"; }
+          check() {  # project kind file
+            local proj=$1 kind=$2 f=$3 size sha elf=no comp="" needed="" runpath="" unres="n/a" lst lrc viol="n/a" unw="n/a" std="n/a" unexp="n/a" d
+            if [[ ! -f "$f" ]]; then
+              printf '%s\t%s\t%s\tMISSING\t\t\t\t\t\t\t\t\t\t\n' "$proj" "$kind" "$(rel "$f")" >> "$T"; bin_fail=1; return
+            fi
+            size=$(stat -c %s "$f"); sha=$(sha256sum "$f" | cut -c1-64)
+            if [[ "$(head -c 4 "$f" | od -An -c | tr -d ' \n')" == '177ELF' ]]; then
+              elf=yes
+              comp=$("$RD" -p .comment "$f" 2>/dev/null | sed -n 's/^ *\[ *[0-9a-f]*\] *//p' | sort -u | paste -sd ';')
+              needed=$("$RD" -d "$f" 2>/dev/null | sed -n 's/.*(NEEDED).*\[\(.*\)\]/\1/p' | paste -sd ',')
+              runpath=$("$RD" -d "$f" 2>/dev/null | sed -n 's/.*(\(RUNPATH\|RPATH\)).*\[\(.*\)\]/\1=\2/p' | paste -sd ',')
+              lst=$(LD_LIBRARY_PATH="$CTX${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}" "$INTERP" --list "$f" 2>&1); lrc=$?
+              unres=$(grep -c -E 'not found|cannot open|error while loading' <<< "$lst")
+              if (( lrc != 0 && unres == 0 )); then unres="list-failed($lrc)"; fi
+              if [[ "$unres" != 0 ]]; then
+                link_fail=1
+                { grep -E 'not found|cannot open|error while loading' <<< "$lst" || echo "list exit $lrc"; } | sed "s#^#$(rel "$f"): #" >> "$EVD/unresolved.txt"
+              fi
+              # C++ runtime: direct (NEEDED) or transitive (resolved list) libc++ / libc++abi is a violation.
+              viol=$( { tr ',' '\n' <<< "$needed"; sed -n 's/^[[:space:]]*\([^ ]*\) =>.*/\1/p' <<< "$lst"; } | grep -E '^libc\+\+(abi)?\.so' | sort -u | paste -sd ',')
+              viol=${viol:-none}
+              unw=$( { tr ',' '\n' <<< "$needed"; sed -n 's/^[[:space:]]*\([^ ]*\) =>.*/\1/p' <<< "$lst"; } | grep -E '^libunwind\.so' | sort -u | paste -sd ',')
+              unw=${unw:-none}
+              std=$(sed -n 's/^[[:space:]]*libstdc++\.so\.6 => \([^ ]*\).*/\1/p' <<< "$lst" | head -1)
+              std=${std:-absent}
+              [[ "$viol" == none ]] || rt_fail=1
+              # Every resolved library must come from /nix/store or the three workspace project library directories.
+              unexp=$(sed -n 's/^[[:space:]]*[^ ]* => \(\/[^ ]*\).*/\1/p' <<< "$lst" \
+                | grep -v -E "^(/nix/store/|$OMNETPP_ROOT/lib/|$INET_ROOT/src/|$SIMU5G_ROOT/src/)" | paste -sd ',')
+              unexp=${unexp:-none}
+              [[ "$unexp" == none ]] || rt_fail=1
+              for d in $("$RD" -d "$f" 2>/dev/null | sed -n 's/.*(\(RUNPATH\|RPATH\)).*\[\(.*\)\]/\2/p' | tr ':' ' '); do
+                case "$d" in /nix/store/*) ;; *) echo "$(rel "$f"): non-store RUNPATH entry $d exists=$([[ -d "$d" ]] && echo yes || echo no)" >> "$EVD/runpath-observation-validate.txt" ;; esac
+              done
+              if [[ "$unres" != 0 ]]; then rt_ne=1
+              elif [[ "$std" != absent && ( "$std" != /nix/store/* || "$std" != *-gcc-* ) ]]; then rt_fail=1; fi
+            fi
+            printf '%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\n' "$proj" "$kind" "$(rel "$f")" "$size" "$sha" "$elf" "$comp" "$needed" "$runpath" "$unres" "$viol" "$unw" "$std" "$unexp" >> "$T"
+          }
+          O=$OMNETPP_ROOT
+          for b in opp_run opp_run_release opp_msgtool opp_nedtool opp_scavetool opp_eventlogtool; do check omnetpp executable "$O/bin/$b"; done
+          for b in opp_msgc opp_makemake opp_featuretool; do check omnetpp tool "$O/bin/$b"; done
+          for l in oppcommon opplayout oppeventlog oppscave oppnedxml oppsim oppenvir oppcmdenv oppqtenv; do check omnetpp library "$O/lib/lib$l.so"; done
+          check omnetpp static-library "$O/lib/liboppmain.a"
+          check inet library "$INET_ROOT/src/libINET.so"
+          check simu5g library "$SIMU5G_ROOT/src/libsimu5g.so"
+          check nascTime library "$REPO/src/nasctime/m2/libnasctime_m2.so"
+          # Release-only: no debug-mode outputs may exist.
+          dbg=$(ls "$O"/lib/*_dbg.* "$O"/bin/*_dbg "$INET_ROOT"/src/*_dbg.* "$SIMU5G_ROOT"/src/*_dbg.* "$REPO"/src/nasctime/m2/*_dbg.* 2>/dev/null | wc -l)
+          echo "debug_outputs_present: $dbg" >> "$EVD/identity-tools.txt"
+          (( dbg == 0 )) || bin_fail=1
+          # Symbol-version and C++-runtime symbol evidence for the relevant objects.
+          for f in "$O/bin/opp_run" "$O/lib/liboppsim.so" "$O/lib/liboppenvir.so" "$INET_ROOT/src/libINET.so" "$SIMU5G_ROOT/src/libsimu5g.so" "$REPO/src/nasctime/m2/libnasctime_m2.so"; do
+            [[ -f "$f" ]] || continue
+            {
+              echo "== $(rel "$f")"
+              echo "dynsym_total: $("$RD" --dyn-syms -W "$f" | awk 'NF >= 8 && $1 ~ /:$/' | wc -l)  undefined: $("$RD" --dyn-syms -W "$f" | awk 'NF >= 8 && $7 == "UND"' | wc -l)"
+              "$RD" -V -W "$f" | sed -n "/Version needs section/,\$p" | grep -E 'File:|Name:' | sed 's/^ */  /' | head -80
+              echo "  undefined C++ runtime / unwinder symbols (with version):"
+              "$RD" --dyn-syms -W "$f" | awk 'NF >= 8 && $7 == "UND" {print $8}' \
+                | grep -E '^(__cxa_|_Zn[wa]|_Zd[la]|__gxx_personality|_Unwind_|_ZTISt9exception|_ZSt9terminate|__dynamic_cast)' | sort -u | head -60 | sed 's/^/    /'
+            } >> "$EVD/runtime-symbols.txt"
+          done
+          # Approved identity probe (prints version and build information and exits; no simulation).
+          opp_run -v > "$EVD/opp_run-version.txt" 2>&1; vrc=$?
+          echo "opp_run_v_exit: $vrc" >> "$EVD/opp_run-version.txt"
+          (( vrc == 0 )) || v_fail=1
+          grep -qE 'Version: 6\.5\.0|Version: 6\.5,|Build: 6\.5\.0' "$EVD/opp_run-version.txt" || v_fail=1
+          # Effective build options.
+          {
+            echo "# OMNeT++ Makefile.inc (generated by configure)"
+            grep -E '^(CC|CXX|CFLAGS_RELEASE|CFLAGS_DEBUG|CFLAGS_EXTRA|CXXFLAGS|LDFLAGS|LDFLAGS_EXTRA|LD|SHLIB_LD|SYS_LIBS|LIBS|AR|AR_CR|RANLIB|SHARED_LIBS|TOOLCHAIN_NAME|PYTHON|QMAKE|OPENMP_FLAGS|DEFINES|LDFLAG_[A-Z]+|AS_NEEDED_[A-Z]+|WITH_[A-Z_]+|PREFER_[A-Z_]+)[[:space:]]*[:+]?=' "$O/Makefile.inc"
+            for mk in "$INET_ROOT/src/Makefile" "$SIMU5G_ROOT/src/Makefile" "$REPO/src/nasctime/m2/Makefile"; do
+              echo "# $(rel "$mk"): generator invocation"
+              sed -n '1,25p' "$mk" | grep -iE 'opp_makemake|invocation|^#  ' | head -12
+            done
+            echo "# INET enabled features (.oppfeaturestate)"
+            grep -oE 'id="[^"]+" enabled="true"' "$INET_ROOT/.oppfeaturestate" | sed 's/ enabled="true"//; s/id=//; s/"//g' | paste -sd ' '
+            echo "inet_features_enabled_count: $(grep -c 'enabled="true"' "$INET_ROOT/.oppfeaturestate")"
+            echo "inet_features_disabled_count: $(grep -c 'enabled="false"' "$INET_ROOT/.oppfeaturestate")"
+            echo "inet_oppfeaturestate_sha256: $(sha256sum "$INET_ROOT/.oppfeaturestate" | cut -c1-64)"
+            echo "inet_features_h_sha256: $(sha256sum "$INET_ROOT/src/inet/features.h" 2>/dev/null | cut -c1-64)"
+          } > "$EVD/build-options.txt" 2>&1
+          r() { [[ "$1" == 0 ]] && echo PASS || echo FAIL; }
+          rt=$(r "$rt_fail"); (( rt_fail == 0 && rt_ne == 1 )) && rt="NOT EVALUATED"
+          {
+            echo "binaries_result: $(r "$bin_fail")"
+            echo "oppv_result: $(r "$v_fail")"
+            echo "linkage_result: $(r "$link_fail")"
+            echo "runtime_result: $rt"
+            echo "validate_result: $( (( bin_fail + v_fail + link_fail + rt_fail == 0 )) && [[ "$rt" == PASS ]] && echo PASS || echo FAIL)"
+          } > "$EVD/validate-result.txt"
+          grep -q '^validate_result: PASS' "$EVD/validate-result.txt"
+          VALIDATE
+          chmod +x "$E2B/diskgate.sh" "$E2B/stagecheck.sh"
+          "$E2B/diskgate.sh" "before compilation"
+
+      - name: Build OMNeT++ 6.5.0 (release only, pinned opp_env build function)
+        id: b_omnetpp
+        timeout-minutes: 80
+        env:
+          STAGE_CAP_S: '4500'
+        run: |
+          "$E2B/diskgate.sh" "before omnetpp"
+          "$E2B/guarded.sh" build-omnetpp "$OE" run -w "$WS" --build-modes release $PROJECTS -c 'build_omnetpp release'
+          "$E2B/lockcheck.sh" after-omnetpp "$EV/build-omnetpp.log"
+          "$E2B/stagecheck.sh" omnetpp
+          # R-5: SYS_LIBS must select GNU libstdc++ (exact -lstdc++ token) and must not contain -lc++; compare with the VM.
+          MI="$WS/omnetpp-6.5.0/Makefile.inc"
+          sl=$(sed -n 's/^SYS_LIBS[[:space:]]*=[[:space:]]*//p' "$MI" | head -1)
+          li=$(sed -n 's/^LIBS[[:space:]]*=[[:space:]]*//p' "$MI" | head -1)
+          read -ra HT <<< "$sl"; read -ra VT <<< "$VM_SYS_LIBS"
+          has_std=no; has_cxx=no
+          for t in "${HT[@]}"; do [[ "$t" == "-lstdc++" ]] && has_std=yes; [[ "$t" == "-lc++" ]] && has_cxx=yes; done
+          only_h=$(comm -23 <(printf '%s\n' "${HT[@]}" | sort -u) <(printf '%s\n' "${VT[@]}" | sort -u) | paste -sd ' ')
+          only_v=$(comm -13 <(printf '%s\n' "${HT[@]}" | sort -u) <(printf '%s\n' "${VT[@]}" | sort -u) | paste -sd ' ')
+          r5=$([[ "$has_std" == yes && "$has_cxx" == no ]] && echo PASS || echo FAIL)
+          {
+            echo "hosted_SYS_LIBS: $sl"
+            echo "hosted_LIBS: ${li:-<absent>}"
+            echo "vm_SYS_LIBS: $VM_SYS_LIBS"
+            echo "has_lstdcxx_token: $has_std"
+            echo "has_lcxx_token: $has_cxx"
+            echo "exact_match_vm: $([[ "$sl" == "$VM_SYS_LIBS" ]] && echo yes || echo no)"
+            echo "tokens_only_hosted: ${only_h:-none}"
+            echo "tokens_only_vm: ${only_v:-none}"
+            echo "r5_result: $r5"
+          } | tee "$EV/sys-libs.txt"
+          [[ "$r5" == PASS ]] || { echo "::error::SYS_LIBS gate failed; stopping before INET"; exit 1; }
+          "$E2B/diskgate.sh" "after omnetpp"
+
+      - name: Build INET 4.7.0 (release only, pinned opp_env build function)
+        id: b_inet
+        timeout-minutes: 135
+        env:
+          STAGE_CAP_S: '7800'
+        run: |
+          "$E2B/diskgate.sh" "before inet"
+          "$E2B/guarded.sh" build-inet "$OE" run -w "$WS" --build-modes release $PROJECTS -c 'build_inet release'
+          "$E2B/lockcheck.sh" after-inet "$EV/build-inet.log"
+          "$E2B/stagecheck.sh" inet
+          "$E2B/diskgate.sh" "after inet"
+
+      - name: Build Simu5G 1.8.1 (release only, pinned opp_env build function)
+        id: b_simu5g
+        timeout-minutes: 65
+        env:
+          STAGE_CAP_S: '3600'
+        run: |
+          "$E2B/diskgate.sh" "before simu5g"
+          "$E2B/guarded.sh" build-simu5g "$OE" run -w "$WS" --build-modes release $PROJECTS -c 'build_simu5g release'
+          "$E2B/lockcheck.sh" after-simu5g "$EV/build-simu5g.log"
+          "$E2B/stagecheck.sh" simu5g
+          "$E2B/diskgate.sh" "after simu5g"
+
+      - name: Build libnasctime_m2 (src/nasctime/m2/build.sh at the pinned baseline, release)
+        id: b_nasctime
+        timeout-minutes: 20
+        env:
+          STAGE_CAP_S: '900'
+        run: |
+          "$E2B/diskgate.sh" "before nasctime"
+          "$E2B/guarded.sh" build-nasctime "$OE" run -w "$WS" --build-modes release $PROJECTS \
+            -c "bash $E2B/build-m2.sh $GITHUB_WORKSPACE $WS"
+          "$E2B/lockcheck.sh" after-nasctime "$EV/build-nasctime.log"
+          "$E2B/stagecheck.sh" nasctime
+          "$E2B/diskgate.sh" "after nasctime"
+
+      - name: Validate binaries, linkage and C++ runtime (static inspection plus opp_run -v; no simulation)
+        id: validate
+        timeout-minutes: 15
+        env:
+          STAGE_CAP_S: '600'
+        run: |
+          set +e
+          "$E2B/guarded.sh" validate "$OE" run -w "$WS" --build-modes release $PROJECTS \
+            -c "bash $E2B/validate.sh $EV $WS $GITHUB_WORKSPACE"
+          vrc=$?
+          "$E2B/lockcheck.sh" after-validation "$EV/validate.log"
+          lrc=$?
+          {
+            echo "### E2b.3-R1 validation (screened)"
+            echo
+            echo '```'
+            cat "$EV/validate-result.txt" 2>/dev/null || echo "validate-result.txt: absent"
+            echo "guarded validate exit: $vrc"
+            echo "lock gate after-validation exit: $lrc"
+            grep -h '^opp_run_v_exit' "$EV/opp_run-version.txt" 2>/dev/null || echo "opp_run_v_exit: absent"
+            echo "--- unresolved dynamic dependencies"
+            if [[ -s "$EV/unresolved.txt" ]]; then cat "$EV/unresolved.txt"; else echo "none"; fi
+            echo "--- per-file results (path, elf, unresolved, libc++ violation, libunwind, libstdc++ resolved, unexpected resolution)"
+            cut -f3,6,10-14 "$EV/binaries.tsv" 2>/dev/null
+            echo "--- non-store RUNPATH entries"
+            sort -u "$EV/runpath-observation-validate.txt" 2>/dev/null | sed 's/^[^:]*: //' | sort | uniq -c
+            echo '```'
+          } > "$E2B/validation-summary.md"
+          if /usr/bin/python3 -I "$E2B/screen.py" "$E2B/validation-summary.md"; then
+            cat "$E2B/validation-summary.md" | tee -a "$GITHUB_STEP_SUMMARY"
+          else
+            echo "validation summary withheld by screening (see the screened artifact, if published)" | tee -a "$GITHUB_STEP_SUMMARY"
+          fi
+          if /usr/bin/python3 -I "$E2B/screen.py" "$EV/runtime-symbols.txt" 2>/dev/null; then cat "$EV/runtime-symbols.txt"; fi
+          exit $(( vrc != 0 || lrc != 0 ))
+
+      - name: Source changes caused by configuration and compilation
+        id: srcchanges
+        if: ${{ !cancelled() && steps.b_omnetpp.outcome == 'success' && steps.b_inet.outcome == 'success' && steps.b_simu5g.outcome == 'success' && steps.b_nasctime.outcome == 'success' }}
+        timeout-minutes: 10
+        run: |
+          "$E2B/guard-alive.sh" "srcchanges"
+          /usr/bin/python3 -I - <<'PY'
+          import hashlib, os, re, subprocess
+          EV, repo = os.environ["EV"], os.environ["GITHUB_WORKSPACE"]
+          roots = {}
+          for line in open(os.path.join(EV, "probe.txt")):
+              m = re.match(r"(omnetpp|inet|simu5g)_root: (\S+)$", line.strip())
+              if m:
+                  roots[m.group(1)] = m.group(2)
+          assert set(roots) == {"omnetpp", "inet", "simu5g"}, "project roots not found"
+          # Declared build-output classes. A pre-existing (manifest-tracked) file that changed is acceptable only if it
+          # is in one of these classes; any other modification, and any removal, is an unexpected upstream source edit.
+          GEN = re.compile(r"(^|/)(Makefile|Makefile\.inc|features\.h|config\.(status|log)|\.oppfeaturestate|\.nedexclusions)$"
+                           r"|_m\.(cc|h)$|\.(o|so|a|d|pyc)$|(^|/)(out|lib|bin|__pycache__)/")
+          def sha1(p):
+              h = hashlib.sha1()
+              with open(p, "rb") as f:
+                  for b in iter(lambda: f.read(1 << 20), b""):
+                      h.update(b)
+              return h.hexdigest()
+          unexpected = 0
+          rows = ["project\tchange\tpath\tclass"]
+          summary = []
+          for proj, root in sorted(roots.items()):
+              post = {}
+              for line in open(os.path.join(root, ".opp_env", "postdownload.sha")):
+                  h, p = line.rstrip("\n").split(maxsplit=1)
+                  post[p] = h
+              modified, removed = [], []
+              for p, h in post.items():
+                  fp = os.path.join(root, p)
+                  if not os.path.isfile(fp):
+                      removed.append(p)
+                  elif sha1(fp) != h:
+                      modified.append(p)
+              added = []
+              for d, dirs, files in os.walk(root):
+                  rel_d = os.path.relpath(d, root)
+                  if rel_d.split(os.sep)[0] in ("ide", ".opp_env"):
+                      continue
+                  for f in files:
+                      rp = "./" + os.path.normpath(os.path.join(rel_d, f))
+                      if rp not in post:
+                          added.append(rp)
+              for p in sorted(modified):
+                  cls = "build-generated" if GEN.search(p) else "UNEXPECTED"
+                  unexpected += cls == "UNEXPECTED"
+                  rows.append(f"{proj}\tmodified\t{p}\t{cls}")
+              for p in sorted(removed):
+                  unexpected += 1
+                  rows.append(f"{proj}\tremoved\t{p}\tUNEXPECTED")
+              cats = {"out/": 0, "lib/": 0, "bin/": 0, "generated-pattern": 0, "other": 0}
+              for p in added:
+                  c = ("out/" if "/out/" in p or p.startswith("./out/") else "lib/" if p.startswith("./lib/")
+                       else "bin/" if p.startswith("./bin/") else "generated-pattern" if GEN.search(p) else "other")
+                  cats[c] += 1
+                  if c == "other":
+                      rows.append(f"{proj}\tadded\t{p}\tbuild-output (other location)")
+              summary.append(f"{proj} manifest_entries: {len(post)}")
+              summary.append(f"{proj} modified: {len(modified)} removed: {len(removed)} added: {len(added)} added_by_class: {cats}")
+          # nascTime: the build must not modify tracked files; build outputs are gitignored.
+          st = subprocess.run(["git", "-C", repo, "status", "--porcelain=v1", "--untracked-files=all"], capture_output=True, text=True, check=True).stdout.splitlines()
+          tracked = [l for l in st if not l.startswith("??")]
+          untracked = [l[3:] for l in st if l.startswith("??")]
+          ignored = subprocess.run(["git", "-C", repo, "status", "--porcelain=v1", "--ignored=matching", "--untracked-files=all", "--", "src/nasctime/m2"],
+                                   capture_output=True, text=True, check=True).stdout.splitlines()
+          for l in tracked:
+              rows.append(f"nascTime\ttracked-change\t{l[3:]}\tUNEXPECTED")
+          for p in untracked:
+              rows.append(f"nascTime\tuntracked-not-ignored\t{p}\treported")
+          summary.append(f"nascTime tracked_changes: {len(tracked)} untracked_not_ignored: {len(untracked)} "
+                         f"ignored_build_outputs_in_m2: {sum(1 for l in ignored if l.startswith('!!'))}")
+          summary.append(f"unexpected_upstream_source_changes: {unexpected}")
+          summary.append(f"nascTime_tracked_source_changes: {len(tracked)}")
+          open(os.path.join(EV, "source-changes.tsv"), "w").write("\n".join(rows) + "\n")
+          open(os.path.join(EV, "source-changes-summary.txt"), "w").write("\n".join(summary) + "\n")
+          print("\n".join(summary))
+          assert unexpected == 0, "unexpected upstream source changes"
+          assert not tracked, "tracked nascTime files changed by the build"
+          PY
+
+      - name: Final lock gate (always)
+        id: lockend
+        if: always()
+        run: |
+          logs=()
+          for l in realise probe probe-runtime-before probe-runtime-after build-omnetpp build-inet build-simu5g build-nasctime validate; do
+            [[ -f "$EV/$l.log" ]] && logs+=("$EV/$l.log")
+          done
+          "$E2B/lockcheck.sh" final "${logs[@]}"
+
+      - name: Measure installed size and local Nix builds
+        id: measure
+        if: always()
+        timeout-minutes: 5
+        run: |
+          set +e
+          {
+            echo "nix_store_bytes_final: $(du -sb /nix/store 2>/dev/null | cut -f1)"
+            for d in "$WS"/*/; do [[ -d "$d" ]] && echo "tree_bytes_final $(basename "$d"): $(du -sb "$d" | cut -f1)"; done
+            echo "workspace_bytes_total: $(du -sb "$WS" 2>/dev/null | cut -f1)"
+            echo "root_avail_final_B: $(df -B1 --output=avail / | tail -1 | tr -d ' ')"
+          } | tee -a "$EV/sizes.txt"
+          df -B1 -T | tee "$EV/df-end.txt"
+          if nix $NIX_X path-info --all --json > "$E2B/unpublished/path-info.json" 2>/dev/null; then pi=ok; else pi=failed; fi
+          /usr/bin/python3 -I - "$E2B/unpublished/path-info.json" "$EV/nix-store-summary.txt" "$pi" <<'PY'
+          import json, re, sys
+          src, dst, status = sys.argv[1:4]
+          try:
+              if status != "ok":
+                  raise RuntimeError("nix path-info failed")
+              data = json.load(open(src))
+              items = list(data.items()) if isinstance(data, dict) else [(d.get("path"), d) for d in data]
+              if not items:
+                  raise RuntimeError("empty path-info")
+          except Exception as e:
+              open(dst, "w").write(f"path_info: NOT AVAILABLE ({type(e).__name__})\n"); sys.exit(0)
+          n = nar = 0; local = []
+          for path, info in items:
+              info = info or {}
+              n += 1; nar += info.get("narSize", 0) or 0
+              if info.get("ultimate"):
+                  local.append(path)
+          with open(dst, "w") as f:
+              f.write(f"path_info: AVAILABLE\nstore_paths: {n}\nstore_nar_bytes: {nar}\nlocally_built_or_added: {len(local)}\n")
+              for p in sorted(local):
+                  name = p.split("-", 1)[1] if "-" in p else p
+                  if name == "user-environment":
+                      tag = "expected-profile"     # Nix profile generation (installer / nix profile), not a package build
+                  elif name.endswith("-env"):
+                      tag = "expected-devshell"    # nix develop environment capture
+                  elif name.endswith("-source") or name == "source":
+                      tag = "expected-source"      # fetched flake inputs
+                  elif re.search(r"(omnetpp|inet|simu5g|nasctime)", name, re.I):
+                      tag = "FRAMEWORK-BUILD"
+                  else:
+                      tag = "LOCAL-PACKAGE-BUILD"  # a dependency package compiled locally (binary-cache miss)
+                  f.write(f"local {tag}: {name}\n")
+          PY
+          cat "$EV/nix-store-summary.txt"
+
+      - name: Terminate the guard and evaluate B-1 to B-12 and R-1 to R-6
+        id: evaluate
+        if: always()
+        env:
+          STEP_OUTCOMES: ${{ toJSON(steps) }}
+        run: |
+          set +e
+          [[ -x "$E2B/guard-alive.sh" ]] && "$E2B/guard-alive.sh" "evaluation"
+          touch "$EV/guard.off"
+          pid=$(cat "$EV/guard.pid" 2>/dev/null)
+          term=not-started
+          if [[ -n "$pid" ]]; then
+            term=no
+            for _ in $(seq 1 30); do
+              st=$(ps -o stat= -p "$pid" 2>/dev/null | tr -d ' ')
+              [[ -z "$st" || "$st" == Z* ]] && { term=yes; break; }   # exited (a zombie has exited)
+              sleep 1
+            done
+          fi
+          {
+            echo "guard_pid: ${pid:-none}"
+            echo "guard_terminated: $term"
+            echo "guard_exited_marker: $([[ -e "$EV/guard.exited" ]] && cat "$EV/guard.exited" || echo absent)"
+            echo "liveness_checks_ok: $(grep -c ' ok \[' "$EV/guard-checks.txt" 2>/dev/null)"
+            echo "liveness_checks_failed: $(grep -c ' FAIL \[' "$EV/guard-checks.txt" 2>/dev/null)"
+          } | tee "$EV/guard.txt"
+          /usr/bin/python3 -I - <<'PY'
+          import datetime, json, os, re
+          EV = os.environ["EV"]; GiB = 1073741824
+          def read(p):
+              try: return open(os.path.join(EV, p)).read()
+              except OSError: return ""
+          def kv(t):
+              d = {}
+              for line in t.splitlines():
+                  if ": " in line:
+                      k, v = line.split(": ", 1); d.setdefault(k.strip(), v.strip())
+              return d
+          runner, nix, oe, probe = kv(read("runner.txt")), kv(read("nix.txt")), kv(read("opp_env.txt")), kv(read("probe.txt"))
+          lock, adapt, guard = kv(read("lock.txt")), kv(read("adaptations-summary.txt")), kv(read("guard.txt"))
+          flk, ver, sizes = kv(read("flake-lock-check.txt")), read("postdownload-verify.txt"), kv(read("sizes.txt"))
+          src, vres = kv(read("source-changes-summary.txt")), kv(read("validate-result.txt"))
+          hl, rg, hd, tx, sl = kv(read("host-libcxx.txt")), kv(read("runtime-gates.txt")), kv(read("host-packages.diff")), kv(read("apt-remove-transaction.txt")), kv(read("sys-libs.txt"))
+          timings = {}
+          for l in read("timings.tsv").splitlines()[1:]:
+              f = l.split("\t")
+              if len(f) == 5:
+                  timings[f[0]] = {"s": int(f[1]), "rc": f[2], "t0": int(f[3]), "t1": int(f[4])}
+          outcomes = {k: v.get("outcome") for k, v in json.loads(os.environ.get("STEP_OUTCOMES") or "{}").items()}
+          def ran(*ids): return all(outcomes.get(s) in ("success", "failure") for s in ids)
+          def ok(*ids): return all(outcomes.get(s) == "success" for s in ids)
+          rows = []
+          def row(i, what, result, detail=""):
+              rows.append({"id": i, "criterion": what, "result": result, "detail": detail})
+          def pf(c): return "PASS" if c else "FAIL"
+          def gated(ids, cond):
+              """NOT EVALUATED if any prerequisite step did not run; otherwise PASS/FAIL on cond (fail-closed)."""
+              return pf(cond) if ran(*ids) else "NOT EVALUATED"
+          # B-1, B-2
+          row("B-1", "isolated branch, parent and changed-file scope", pf(ok("setup", "checkout", "commit")))
+          ref = dict(WITH_PYTHON="yes", WITH_QTENV="yes", WITH_OSG="no", WITH_OSGEARTH="no", WITH_NETBUILDER="yes",
+                     WITH_SCAVE_PYTHON_BINDINGS="yes", WITH_LIBXML="no", WITH_PARSIM="yes", WITH_SYSTEMC="no",
+                     WITH_BACKTRACE="yes", WITH_AKAROA="no")
+          def tool(t): return probe.get(f"tool {t}", "")
+          env_steps = ["capacity", "guard", "lockfile", "nix", "oppenv", "init", "assets", "realise", "lockpost", "probe",
+                       "lockfinal", "adapt", "verify"]
+          b2 = {
+              "steps": ok(*env_steps),
+              "nix": nix.get("nix_version") == "nix (Nix) " + os.environ["NIX_VERSION"] and "require-sigs = true" in read("nix.txt").splitlines(),
+              "opp_env": oe.get("opp_env_version") == os.environ["OPP_ENV_PIN"] and oe.get("opp_env_main_sha256") == os.environ["OPP_ENV_MAIN_SHA256"]
+                         and oe.get("opp_env_module", "").startswith(os.path.realpath(os.environ["VENV"]) + "/"),
+              "toolchain": probe.get("probe_result") == "PASS" and os.environ["EXPECT_CLANG"] in tool("clang++")
+                           and os.environ["EXPECT_GCC"] in tool("g++") and ("GNU Make " + os.environ["EXPECT_MAKE"]) in tool("make")
+                           and ("Python " + os.environ["EXPECT_PYTHON"]) in tool("python3"),
+              "configure.user": {k: probe.get("configure.user " + k) for k in ref} == ref,
+              "adaptations": adapt.get("unexpected_adaptations") == "0" and adapt.get("framework_build_outputs_after_download") == "0",
+              "manifests": ver.count("sha1sum_check: PASS") == 3 and all(f"{p} files_added_after_download: 0" in ver for p in ("omnetpp", "inet", "simu5g")),
+          }
+          row("B-2", "mandatory environment setup checks (E2b.1 gates repeated)", pf(all(b2.values())),
+              "failed: " + (", ".join(k for k, v in b2.items() if not v) or "none") +
+              f"; failed or skipped steps: {', '.join(s for s in env_steps if outcomes.get(s) != 'success') or 'none'}")
+          # B-3
+          phases = [l.split(" ")[0] for l in read("lock.txt").splitlines() if l.endswith(" result: PASS") or l.endswith(" result: FAIL")]
+          lock_ok = (all(lock.get(f"{p} result") == "PASS" for p in phases)
+                     and {"before-realisation", "after-realisation", "after-probe", "final"} <= set(phases)
+                     and flk.get("flake_metadata_no_update_check") == "PASS" and read("lock-enforcement.txt").count(": immutable") == 2
+                     and outcomes.get("lockend") == "success")
+          row("B-3", "both locks unchanged throughout (every gate incl. probes, builds and final)", pf(lock_ok),
+              "; ".join(f"{p}={lock.get(p + ' result')}" for p in phases))
+          # B-4 .. B-7
+          for bid, step, label, what in (("B-4", "b_omnetpp", "build-omnetpp", "OMNeT++ 6.5.0 release build"),
+                                         ("B-5", "b_inet", "build-inet", "INET 4.7.0 release build"),
+                                         ("B-6", "b_simu5g", "build-simu5g", "Simu5G 1.8.1 release build"),
+                                         ("B-7", "b_nasctime", "build-nasctime", "libnasctime_m2 release build")):
+              t = timings.get(label)
+              if t is None:
+                  row(bid, what, "NOT EVALUATED", f"not started (step {outcomes.get(step)})")
+              else:
+                  row(bid, what, pf(t["rc"] == "0" and outcomes.get(step) in ("success", "failure")), f"exit {t['rc']} after {t['s']} s; step {outcomes.get(step)}")
+          # B-8 / B-9 (separate)
+          bins = [l.split("\t") for l in read("binaries.tsv").splitlines()[1:] if l]
+          missing = [b[2] for b in bins if len(b) > 3 and b[3] == "MISSING"]
+          elf = [b for b in bins if len(b) == 14 and b[5] == "yes"]
+          unresolved = [b[2] for b in elf if b[9] != "0"]
+          idt = kv(read("identity-tools.txt"))
+          vexit = re.search(r"^opp_run_v_exit: (\d+)", read("opp_run-version.txt"), re.M)
+          b8_cond = (vres.get("binaries_result") == "PASS" and vres.get("oppv_result") == "PASS" and len(bins) == 22 and not missing
+                     and idt.get("debug_outputs_present") == "0" and vexit is not None and vexit.group(1) == "0")
+          row("B-8", "required release binaries/libraries verified (presence, size, sha256, ELF metadata, no debug outputs) and opp_run -v exit 0 with version 6.5.0",
+              gated(["validate"], b8_cond) if vres else "NOT EVALUATED",
+              f"{len(bins)} checked, missing={missing or 'none'}, debug_outputs={idt.get('debug_outputs_present')}, opp_run_v_exit={vexit.group(1) if vexit else 'absent'}")
+          row("B-9", "no unresolved required dynamic dependencies", gated(["validate"], vres.get("linkage_result") == "PASS" and len(elf) >= 18 and not unresolved) if vres else "NOT EVALUATED",
+              f"{len(elf)} ELF files; unresolved: {unresolved or 'none'}")
+          # B-10: runs whenever the four builds succeeded
+          if ran("srcchanges"):
+              b10 = pf(b2["adaptations"] and ok("adapt", "srcchanges") and src.get("unexpected_upstream_source_changes") == "0"
+                       and src.get("nascTime_tracked_source_changes") == "0")
+          else:
+              b10 = "NOT EVALUATED"
+          row("B-10", "no unexpected upstream source modifications (recipe screening before, build-change classification after)", b10,
+              f"unexpected={src.get('unexpected_upstream_source_changes', 'n/a')} nascTime_tracked={src.get('nascTime_tracked_source_changes', 'n/a')}")
+          # B-11
+          disk = []
+          for l in read("disk.tsv").splitlines()[1:]:
+              f = l.split("\t")
+              if len(f) == 5 and f[1] == "/" and f[2].isdigit():
+                  ts = datetime.datetime.strptime(f[0], "%Y-%m-%dT%H:%M:%SZ").replace(tzinfo=datetime.timezone.utc).timestamp()
+                  disk.append((ts, int(f[2]), int(f[4]) if f[4].isdigit() else None))
+          stage_lines = ["stage\tseconds\texit\troot_avail_start_B\troot_avail_min_B\tpeak_additional_use_B\tmin_mem_avail_kib\tsamples"]
+          stages_ok = True
+          for label in ("probe-runtime-before", "probe-runtime-after", "build-omnetpp", "build-inet", "build-simu5g", "build-nasctime", "validate"):
+              t = timings.get(label)
+              if not t:
+                  continue
+              w = [d for d in disk if t["t0"] - 5 <= d[0] <= t["t1"] + 5]
+              if not w:
+                  stages_ok = False; stage_lines.append(f"{label}\t{t['s']}\t{t['rc']}\t\t\t\t\t0"); continue
+              mems = [m for _, _, m in w if m is not None]
+              stage_lines.append(f"{label}\t{t['s']}\t{t['rc']}\t{w[0][1]}\t{min(a for _, a, _ in w)}\t{w[0][1] - min(a for _, a, _ in w)}\t{min(mems) if mems else ''}\t{len(w)}")
+          open(os.path.join(EV, "stage-resources.tsv"), "w").write("\n".join(stage_lines) + "\n")
+          start = int(runner.get("root_avail_start_B", "0") or 0)
+          peak_used = (start - min(a for _, a, _ in disk)) if disk and start else None
+          mem_all = [m for _, _, m in disk if m is not None]
+          final_free = int(sizes["root_avail_final_B"]) if sizes.get("root_avail_final_B", "").isdigit() else None
+          row("B-11", "resource consumption and per-stage durations recorded",
+              pf(stages_ok and peak_used is not None and bool(mem_all) and final_free is not None),
+              f"peak_used_B={peak_used} min_mem_avail_kib={min(mem_all) if mem_all else None} final_free_B={final_free}")
+          # B-12
+          stop = read("STOP").strip(); gfail = read("GUARD_FAILURE").strip()
+          guard_ok = (not gfail and guard.get("guard_terminated") == "yes" and guard.get("liveness_checks_failed") == "0"
+                      and int(guard.get("liveness_checks_ok") or 0) >= 1)
+          allowed = {"nix-install", "realise", "probe", "probe-runtime-before", "probe-runtime-after", "build-omnetpp",
+                     "build-inet", "build-simu5g", "build-nasctime", "validate"}
+          unauthorised = sorted(set(timings) - allowed)
+          budget_hit = sorted(k for k, v in timings.items() if v["rc"] in ("124", "92"))
+          sim_rx = re.compile(r"Invoking (smoke_test|test)_|Running simulation|Setting up Cmdenv|Preparing for running configuration|Calling finish\(\)")
+          sim_hits = [l for l in ("build-omnetpp", "build-inet", "build-simu5g", "build-nasctime", "validate", "realise", "probe",
+                                  "probe-runtime-before", "probe-runtime-after") if sim_rx.search(read(f"{l}.log"))]
+          modes_ok = all(("Invoking build_%s debug" % p) not in read(f"build-{p}.log") for p in ("omnetpp", "inet", "simu5g"))
+          row("B-12", "no STOP or unauthorised execution (guard healthy, declared commands only, no simulation, release only, within time budget)",
+              pf(not stop and guard_ok and not unauthorised and not budget_hit and not sim_hits and modes_ok),
+              stop or gfail or f"guard_ok={guard_ok} unauthorised={unauthorised or 'none'} budget_hit={budget_hit or 'none'} simulation_markers={sim_hits or 'none'} debug_mode_invoked={not modes_ok}")
+          # R-1 .. R-6: runtime-consistency gates
+          row("R-1", "host-contamination proof: the libc++ selected by the probe is a dpkg-owned host library outside /nix/store",
+              gated(["rprobe_before"], hl.get("r1_result") == "PASS") if hl else "NOT EVALUATED",
+              f"path={hl.get('unversioned_libcxx_path')} realpath={hl.get('unversioned_libcxx_realpath')} owners={hl.get('dpkg_owners')}")
+          row("R-2", "controlled removal: simulated transaction limited to libc++ development packages; inventory changed by exactly that set",
+              gated(["hostfix"], tx.get("transaction_check") == "PASS" and hd.get("r2_result") == "PASS") if tx else "NOT EVALUATED",
+              f"removed={[l.split(': ', 1)[1] for l in read('apt-remove-transaction.txt').splitlines() if l.startswith('removal: ')]} rejected={tx.get('rejected_unrelated_removals')} changed={hd.get('changed_packages')}")
+          row("R-3", "negative probe after removal: -lc++ fails because libc++ is unavailable",
+              gated(["rprobe_after"], rg.get("r3_result") == "PASS") if rg else "NOT EVALUATED",
+              f"rc={rg.get('negative_libcxx_rc')} reason={rg.get('negative_libcxx_reason')}")
+          row("R-4", "positive controls: default and -lstdc++ probes link and resolve libstdc++ from the pinned Nix store",
+              gated(["rprobe_after"], rg.get("r4_result") == "PASS") if rg else "NOT EVALUATED",
+              f"default={rg.get('positive_default_result')} stdcxx={rg.get('positive_stdcxx_result')} libstdc++={rg.get('positive_default_libstdcxx')}")
+          row("R-5", "SYS_LIBS reference compatibility: exact -lstdc++ token present, no -lc++ token (compared with the recovered VM value)",
+              gated(["b_omnetpp"], sl.get("r5_result") == "PASS") if sl else "NOT EVALUATED",
+              f"exact_match_vm={sl.get('exact_match_vm')} only_hosted={sl.get('tokens_only_hosted')} only_vm={sl.get('tokens_only_vm')}")
+          violations = [b[2] for b in elf if b[10] != "none"] + [f"{b[2]} resolves {b[13]}" for b in elf if b[13] != "none"]
+          unw = [f"{b[2]}={b[11]}" for b in elf if b[11] != "none"]
+          row("R-6", "single C++ runtime in validated binaries: no direct or transitive libc++/libc++abi; libstdc++ and every resolved library from the pinned Nix store or the project trees",
+              (gated(["validate"], vres.get("runtime_result") == "PASS" and not violations) if vres.get("runtime_result") != "NOT EVALUATED" else "NOT EVALUATED") if vres else "NOT EVALUATED",
+              f"violations={violations or 'none'}; libunwind (reported separately, not by itself a mixed-ABI finding)={unw or 'none'}")
+          with open(os.path.join(EV, "capacity.txt"), "w") as f:
+              f.write(f"root_free_start_B: {start}\npeak_used_B: {peak_used}\nroot_free_final_B: {final_free}\n"
+                      f"remaining_above_stop_threshold_B: {final_free - int(os.environ['STOP_FREE_GIB']) * GiB if final_free is not None else None}\n"
+                      f"min_mem_available_kib: {min(mem_all) if mem_all else None}\n"
+                      f"wall_seconds_by_guarded_step: { {k: v['s'] for k, v in timings.items()} }\n")
+          state = {"stop": bool(stop), "guard_failure": bool(gfail or not guard_ok),
+                   "hypothesis_not_confirmed": bool(read("HYPOTHESIS_NOT_CONFIRMED")), "rows": rows}
+          open(os.path.join(EV, "b-rows.json"), "w").write(json.dumps(state, indent=1) + "\n")
+          for r in rows:
+              print(f"{r['id']}: {r['result']}  {r['criterion']}  [{r['detail']}]")
+          print(read("stage-resources.tsv")); print(read("capacity.txt"))
+          PY
+
+      - name: Prepare allow-listed, screened diagnostics
+        id: publish
+        if: always()
+        run: |
+          # Control files are removed only after guard termination was confirmed.
+          if grep -qx 'guard_terminated: yes' "$EV/guard.txt" 2>/dev/null; then
+            rm -f "$EV/guard.target" "$EV/guard.off" "$EV/guard.pid" "$EV/guard.heartbeat"
+          else
+            echo "::warning::guard termination not confirmed; control files kept, diagnostics not published"; exit 1
+          fi
+          P="$E2B/publish"; rm -rf "$P"; mkdir -p "$P"
+          ALLOW="runner.txt df-start.txt df-end.txt lsblk.txt timings.tsv disk.tsv disk-gates.txt guard.txt guard-checks.txt
+                 guard-actions.txt lock.txt lock-enforcement.txt flake-lock-check.txt nix.txt opp_env.txt
+                 release-assets.sha256 workspace-admin-before.sha256 workspace-admin-after.sha256 probe.txt
+                 adaptations.tsv adaptations-summary.txt postdownload-verify.txt
+                 omnetpp-prepatch.sha omnetpp-postdownload.sha inet-prepatch.sha inet-postdownload.sha
+                 simu5g-prepatch.sha simu5g-postdownload.sha sizes.txt nix-store-summary.txt capacity.txt
+                 binaries.tsv unresolved.txt identity-tools.txt build-options.txt opp_run-version.txt validate-result.txt
+                 source-changes.tsv source-changes-summary.txt stage-resources.tsv b-rows.json STOP GUARD_FAILURE
+                 host-packages-before.tsv host-packages-after.tsv host-cxx-packages-before.tsv host-cxx-packages-after.tsv
+                 host-libcxx.txt apt-remove-proposed.txt apt-remove-simulation.txt apt-remove-transaction.txt apt-remove.txt
+                 host-packages.diff runtime-probe-before.txt runtime-probe-after.txt runtime-gates.txt sys-libs.txt
+                 runtime-symbols.txt HYPOTHESIS_NOT_CONFIRMED runpath-observation.txt runpath-observation-validate.txt"
+          for f in $ALLOW; do [[ -f "$EV/$f" ]] && cp "$EV/$f" "$P/$f"; done
+          # Tool logs are published only as screened tails.
+          for l in realise probe probe-runtime-before probe-runtime-after build-omnetpp build-inet build-simu5g build-nasctime validate; do
+            [[ -f "$EV/$l.log" ]] && tail -n 300 "$EV/$l.log" | sed 's/\x1b\[[0-9;?]*[A-Za-z]//g; s/\r/\n/g' > "$P/$l.tail.txt"
+          done
+          bad=0
+          while IFS= read -r -d '' f; do
+            case "$(file -b --mime-type "$f")" in
+              text/*|application/json|inode/x-empty) ;;
+              *) echo "non-text diagnostic: $(basename "$f")"; bad=1 ;;
+            esac
+          done < <(find "$P" -type f -print0)
+          if ! /usr/bin/python3 -I "$E2B/screen.py" "$P"/*; then bad=1; fi
+          total=$(du -sb "$P" | cut -f1); echo "diagnostics_bytes: $total"
+          (( total <= 20 * 1024 * 1024 )) || { echo "diagnostics exceed 20 MiB"; bad=1; }
+          if (( bad )); then
+            rm -rf "$P"
+            echo "::error::diagnostic screening failed; artifact publication suppressed (reasons above name files and patterns only)"
+            exit 1
+          fi
+          ls -1 "$P"
+
+      - name: Final verdict (B-13 and overall)
+        id: final
+        if: always()
+        env:
+          PUBLISH_OUTCOME: ${{ steps.publish.outcome }}
+          STEP_OUTCOMES: ${{ toJSON(steps) }}
+        run: |
+          set +e
+          /usr/bin/python3 -I - <<'PY'
+          import json, os
+          EV, P = os.environ["EV"], os.path.join(os.environ["E2B"], "publish")
+          outcomes = {k: v.get("outcome") for k, v in json.loads(os.environ.get("STEP_OUTCOMES") or "{}").items()}
+          def ran(s): return outcomes.get(s) in ("success", "failure")
+          try:
+              state = json.load(open(os.path.join(EV, "b-rows.json")))
+          except Exception:
+              state = {"stop": False, "guard_failure": True, "hypothesis_not_confirmed": False, "rows": []}
+          rows = state["rows"]
+          required = ["runner.txt", "timings.tsv", "disk.tsv", "lock.txt", "nix.txt", "opp_env.txt", "probe.txt",
+                      "adaptations-summary.txt", "postdownload-verify.txt", "stage-resources.tsv", "capacity.txt", "b-rows.json", "guard.txt"]
+          conditional = {"rprobe_before": ["host-packages-before.tsv", "runtime-probe-before.txt", "host-libcxx.txt", "runpath-observation.txt"],
+                         "hostfix": ["apt-remove-proposed.txt", "apt-remove-simulation.txt", "apt-remove-transaction.txt"],
+                         "rprobe_after": ["runtime-probe-after.txt", "runtime-gates.txt"],
+                         "b_omnetpp": ["sys-libs.txt"],
+                         "validate": ["binaries.tsv", "identity-tools.txt", "build-options.txt", "opp_run-version.txt", "runtime-symbols.txt", "validate-result.txt", "runpath-observation-validate.txt"],
+                         "srcchanges": ["source-changes-summary.txt"]}
+          for step, files in conditional.items():
+              if ran(step):
+                  required += files
+          if outcomes.get("hostfix") == "success":
+              required += ["apt-remove.txt", "host-packages-after.tsv", "host-packages.diff"]
+          present = set(os.listdir(P)) if os.path.isdir(P) else set()
+          missing = [f for f in required if f not in present]
+          b13 = os.environ.get("PUBLISH_OUTCOME") == "success" and not missing
+          b_rows = [r for r in rows if r["id"].startswith("B-")] + [{"id": "B-13", "criterion": "diagnostic evidence complete and screened",
+                    "result": "PASS" if b13 else "FAIL", "detail": f"publication={os.environ.get('PUBLISH_OUTCOME')}; missing={missing or 'none'}"}]
+          r_rows = [r for r in rows if r["id"].startswith("R-")]
+          allrows = b_rows + r_rows
+          complete = [r["id"] for r in allrows] == [f"B-{i}" for i in range(1, 14)] + [f"R-{i}" for i in range(1, 7)]
+          if state["stop"]:
+              verdict = "STOP"
+          elif state["guard_failure"]:
+              verdict = "INFRASTRUCTURE FAILURE"
+          elif state.get("hypothesis_not_confirmed"):
+              verdict = "HYPOTHESIS NOT CONFIRMED (stopped before correction and compilation)"
+          elif complete and all(r["result"] == "PASS" for r in allrows):
+              verdict = "E2b.3-R1 PASS"
+          else:
+              verdict = "E2b.3-R1 FAIL"
+          lines = [f"# E2b.3-R1 runtime-consistency full build: {verdict}", "",
+                   "Build feasibility (level 2) only: no simulation, no NED/INI loading, no scientific or VM byte-equivalence claim. "
+                   "Release-only build and the removal of host libc++ development packages are deliberate, recorded host/config "
+                   "differences. Release-asset checksums come from a separate fetch; adaptation screening is recipe consistency, not "
+                   "transformation equivalence; an in-process lock update is detected and write-blocked, not proven impossible. "
+                   "The VM ELF dependency records and apt inventory are unavailable; only the VM SYS_LIBS value is compared.", "",
+                   "| ID | Criterion | Result | Detail |", "|---|---|---|---|"]
+          lines += [f"| {r['id']} | {r['criterion']} | {r['result']} | {r['detail']} |" for r in allrows]
+          text = "\n".join(lines) + "\n"
+          open(os.environ["GITHUB_STEP_SUMMARY"], "a").write(text)
+          print(text)
+          if os.path.isdir(P):
+              open(os.path.join(P, "verdict.md"), "w").write(text)
+          raise SystemExit(0 if verdict == "E2b.3-R1 PASS" else 1)
+          PY
+          rc=$?
+          if [[ -f "$E2B/publish/verdict.md" ]] && ! /usr/bin/python3 -I "$E2B/screen.py" "$E2B/publish/verdict.md"; then
+            rm -f "$E2B/publish/verdict.md"; echo "::error::verdict.md withheld by screening"; rc=1
+          fi
+          exit "$rc"
+
+      - name: Upload screened text diagnostics (retained 7 days)
+        if: always() && steps.publish.outcome == 'success'
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: e2b3-r1-correction-diagnostics
+          path: ${{ runner.temp }}/e2b3r1/publish/
+          retention-days: 7
+          if-no-files-found: error
