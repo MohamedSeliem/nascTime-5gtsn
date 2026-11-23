@@ -71,7 +71,7 @@ void TtGateClock::resolve() const
 {
     if (resolved)
         return;
-    cModule *m = getModuleByPath(par("ttClockModule").stringValue());
+    cModule *m = findModuleByPath(par("ttClockModule").stringValue());   // nullptr if absent (OMNeT++ 6)
     ttClock = dynamic_cast<TtClock *>(m);
     if (ttClock == nullptr)
         throw cRuntimeError("TtGateClock: ttClockModule '%s' is not a nasctime::TtClock (no ideal fallback)",
