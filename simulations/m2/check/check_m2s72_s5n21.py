@@ -53,8 +53,18 @@ FIXTURE_CFG = "f3-fixture"
 FIXTURE_LABEL = "fixture (prefix of the sealed A2-V1 run); not an E0v-N run; not an A2-V1 acceptance"
 HRQ_SCHEMA = "m2s72-s5n21-hrq/1"
 EXPECT_SCHEMA = "m2s72-s5n21-expect/1"
-CODE = ("m2s72_e0vn21.py", "check_m2s72_s5n21.py", "m2s72_a21.py", "check_m2s72_a21.py", "m2s72_a2.py",
-        "m2s72_a2probe.py", "m2s72_harqx.py", "m2s72_peru.py", "m2s72_peru_adapter.py", "m2s72_a21_realchain.py")
+# I7-R2: every source of the evaluation chain, by mode. A missing required source is EVALUATION ERROR (exit 2)
+# before anything is evaluated; every local module actually loaded is hashed again at the end.
+REQUIRED_A21 = ("check_m2s72_s5n21.py", "m2s72_e0vn21.py", "m2s72_a21.py", "check_m2s72_a21.py", "check_m2s72_a2.py",
+                "m2s72_a2.py", "m2s72_a2probe.py", "m2s72_harqx.py", "m2s72_peru.py", "m2s72_peru_adapter.py",
+                "m2s72_maclog.py", "check_m2s72_s5v.py")
+REQUIRED_FIXTURE = REQUIRED_A21 + ("m2s72_a21_realchain.py",)
+REQUIRED_S5N = REQUIRED_A21 + ("check_m2s72_s5n.py", "check_m2s72_e0.py", "check_m2s72_b.py", "check_m2s72_i2h.py",
+                               "check_m2s72_f0.py", "check_m2s72_f0r2.py", "check_m2s6.py", "check_m2s5.py", "check_m2s4.py",
+                               "m2s72_runs.py", "m2s6_runs.py", "m2s72_s6.py", "m2s6_clocks.py", "slave_m2s6.py",
+                               "decomp_m2s6.py", "clock_model.py", "ttclock_model.py", "inet_model.py", "pcapng.py",
+                               "m2s71_lib.py", "m2s72_compare.py", "m2s72s5_lib.py", "diag_m2s72_dl_active.py",
+                               "gate_m2s4.py", "gate_m2s5.py", "gate_m2s71_p0.py", "gate_v0.py", "oracle_m2s3.py")
 
 
 class Usage(Exception):
@@ -242,8 +252,101 @@ def fresh_dir(recdir):
         raise W.Refused(f"the parent of the records dir {recdir} does not exist")
 
 
-def code_identity():
-    return {f: sha256_file(os.path.join(HERE, f)) for f in CODE if os.path.isfile(os.path.join(HERE, f))}
+def code_provenance_start(required):
+    """the required sources must all exist; their sha256 before the evaluation"""
+    miss = [f for f in required if not os.path.isfile(os.path.join(HERE, f))]
+    if miss:
+        raise W.EvaluationError(f"required source files missing: {miss} (code provenance, I7-R2)")
+    return {f: sha256_file(os.path.join(HERE, f)) for f in required}
+
+
+def loaded_local_modules():
+    out = {}
+    for m in list(sys.modules.values()):
+        f = getattr(m, "__file__", None)
+        if f and os.path.abspath(f).startswith(HERE + os.sep) and f.endswith(".py"):
+            out[os.path.basename(f)] = os.path.abspath(f)
+    return out
+
+
+def code_provenance_end(start):
+    """every local module loaded by the evaluation hashed now; a required source changed or vanished, or a loaded
+    module whose file is gone, is EVALUATION ERROR"""
+    loaded = loaded_local_modules()
+    probs = [f for f in start if not os.path.isfile(os.path.join(HERE, f)) or sha256_file(os.path.join(HERE, f)) != start[f]]
+    gone = [f for f, p in loaded.items() if not os.path.isfile(p)]
+    if probs or gone:
+        raise W.EvaluationError(f"source files changed or vanished during the evaluation: {sorted(probs + gone)}")
+    return {"required": dict(sorted(start.items())),
+            "loaded": {f: sha256_file(p) for f, p in sorted(loaded.items()) if not f.startswith("test_")}}
+
+
+# --- I7-R3: the inputs the evaluators actually read --------------------------------------------------------------
+class InputTracker:
+    """records, through a Python audit hook ("open" events), every regular file opened for READING under the given
+    roots while active, hashes it (sha256) at its first opening, and re-hashes it at the end: a byte-level check of
+    the inputs the accepted evaluators consumed. The hook is installed once per process; it is inert unless a tracker
+    is active."""
+    _installed = False
+    active = None
+
+    def __init__(self, roots):
+        self.roots = {k: os.path.realpath(v) for k, v in roots.items() if v and os.path.isdir(v)}
+        self.first = {}
+        self.busy = False
+
+    @classmethod
+    def _hook(cls, event, args):
+        t = cls.active
+        if t is None or t.busy or event != "open" or not args:
+            return
+        path = args[0]
+        if isinstance(path, int) or path is None:
+            return
+        try:
+            mode = args[1] if len(args) > 1 else None
+            flags = args[2] if len(args) > 2 else 0
+            if isinstance(mode, str) and any(c in mode for c in "wax+"):
+                return
+            if isinstance(flags, int) and flags & (os.O_WRONLY | os.O_RDWR):
+                return
+            rp = os.path.realpath(os.fsdecode(path))
+            if rp in t.first or not os.path.isfile(rp) or not any(rp.startswith(r + os.sep) for r in t.roots.values()):
+                return
+            t.busy = True
+            try:
+                t.first[rp] = sha256_file(rp)
+            finally:
+                t.busy = False
+        except Exception:                        # never break the evaluator; verify() re-hashes what was recorded
+            t.busy = False
+
+    def __enter__(self):
+        if not InputTracker._installed:
+            sys.addaudithook(InputTracker._hook)
+            InputTracker._installed = True
+        if InputTracker.active is not None:
+            raise W.EvaluationError("an input tracker is already active")
+        InputTracker.active = self
+        return self
+
+    def __exit__(self, *exc):
+        InputTracker.active = None
+        return False
+
+    def label(self, rp):
+        for k, r in self.roots.items():
+            if rp.startswith(r + os.sep):
+                return f"{k}:{os.path.relpath(rp, r)}"
+        return rp
+
+    def verify(self):
+        """{label: sha256} of every consumed input; EVALUATION ERROR if any changed (bytes) or vanished since its
+        first reading"""
+        changed = [self.label(p) for p, h in self.first.items() if not os.path.isfile(p) or sha256_file(p) != h]
+        if changed:
+            raise W.EvaluationError(f"an input changed during the evaluation (sha256 of consumed files): {sorted(changed)[:5]}")
+        return {self.label(p): h for p, h in sorted(self.first.items(), key=lambda kv: self.label(kv[0]))}
 
 
 # -------------------------------------------------------------------------------------------- the evaluation ----
@@ -347,7 +450,7 @@ def evaluate(ctx):
                                "a1_pu4_row": list(pu4), "a1_summary": summ},
                 "diagnostics": {"agreement": agree},
                 "inputs": {"files": before, "sca": ctx["sca"], "sca_duplicate_census": census_sca,
-                           "simu5g_root": ctx["root"], "registry_sha256": view["sha256"], "code_sha256": code_identity(),
+                           "simu5g_root": ctx["root"], "registry_sha256": view["sha256"], "code_sha256": None,
                            **({"fixture": ctx["fixture"]} if "fixture" in ctx else {})}}}
 
 
@@ -480,34 +583,40 @@ def _run(args):
     if not os.path.isdir(os.path.join(runs, cfg)):
         raise W.Refused(f"run directory {os.path.join(runs, cfg)} missing")
     _RUN_STARTED = True
-    tree0 = tree_fingerprint(os.path.join(runs, cfg))
-    hashes0 = {p: sha256_file(p) for p in (log, sca)}
+    code0 = code_provenance_start(REQUIRED_S5N)
+    tree0 = tree_fingerprint(os.path.join(runs, cfg))                    # supplementary inventory, not integrity
+    hashes0 = {p: sha256_file(p) for p in (log, sca)}                    # the declared inputs, before anything reads them
     S5N = import_s5n()
     os.mkdir(staging)
     s5dir = os.path.join(staging, "s5n")
     start = len(S5N.rows)
-    rc5, dig5 = S5N.run_one(runs, cfg, s5dir)                            # the accepted checker, unchanged
-    if rc5 == 2 or dig5 is None:
-        raise W.Refused(f"the accepted s5n checker refused {cfg} (rc {rc5})")
-    s5n_rows = list(S5N.rows[start:])
-    chk_txt = open(os.path.join(s5dir, f"{cfg}.check.txt"), encoding="utf-8").read()
-    with open(os.path.join(s5dir, f"{cfg}.digest.json"), encoding="utf-8") as fh:
-        dig5_file = json.load(fh)
-    if dig5_file != json.loads(json.dumps(W_clean_s5v(S5N, dig5))):
-        raise W.EvaluationError("the s5n digest written differs from the one returned")
-    written, s5n_vline = W.parse_s5n_check(chk_txt)
-    n = dig5_file["numUe"]
-    W.check_s5n_rows(s5n_rows, n, written, dig5_file["correctness"]["rows"])
-    pu4 = W.extract_pu4(s5n_rows)                                       # exactly one, well formed; verbatim
-    ctx = gather_hrq(args)
-    if len(ctx["node_id"]) != n:
-        raise W.EvaluationError(f"numUe {n} (s5n) vs {len(ctx['node_id'])} node ids")
-    ev = evaluate(ctx)                                                  # ONE A-2.1 replay
+    with InputTracker({"runs": runs, "simu5g": os.environ.get("SIMU5G_ROOT")}) as tracker:
+        rc5, dig5 = S5N.run_one(runs, cfg, s5dir)                        # the accepted checker, unchanged
+        if rc5 == 2 or dig5 is None:
+            raise W.Refused(f"the accepted s5n checker refused {cfg} (rc {rc5})")
+        s5n_rows = list(S5N.rows[start:])
+        chk_txt = open(os.path.join(s5dir, f"{cfg}.check.txt"), encoding="utf-8").read()
+        with open(os.path.join(s5dir, f"{cfg}.digest.json"), encoding="utf-8") as fh:
+            dig5_file = json.load(fh)
+        if dig5_file != json.loads(json.dumps(W_clean_s5v(S5N, dig5))):
+            raise W.EvaluationError("the s5n digest written differs from the one returned")
+        info, ne = W.s5n_info()
+        n = W.parse_name_n(cfg)
+        s5n_vline = W.check_s5n_rows(s5n_rows, n, cfg, chk_txt, dig5_file, info, ne)     # the accepted row contract
+        pu4 = W.extract_pu4(s5n_rows)                                   # exactly one, well formed; verbatim
+        ctx = gather_hrq(args)
+        if len(ctx["node_id"]) != n:
+            raise W.EvaluationError(f"numUe {n} (name) vs {len(ctx['node_id'])} node ids")
+        ev = evaluate(ctx)                                              # ONE A-2.1 replay
+    consumed = tracker.verify()
     out = ev["out"]
-    info, ne = W.s5n_info()
     verdict = W.compose_verdict(n, ev["wrapper"], ev["fgo"], s5n_rows, info, ne)
+    if {p: sha256_file(p) for p in (log, sca)} != hashes0:
+        raise W.EvaluationError("an input changed during the evaluation (sha256 of the log / .sca)")
+    code = code_provenance_end(code0)
     inputs = {"log_sha256": hashes0[log], "sca_sha256": hashes0[sca], "registry_sha256": ev["registry_sha256"],
-              "code": code_identity(), "c0": {"census": ev["census"], "lengths": ev["c0info"]["lengths"],
+              "consumed_sha256": consumed,
+              "code": code, "c0": {"census": ev["census"], "lengths": ev["c0info"]["lengths"],
                                               "sha256_a1": ev["c0info"]["sha256_a1"], "sha256_a21": ev["c0info"]["sha256_a21"]},
               "s5n_adapter_validated": d2}
     digest = W.composed_digest(dig5_file, s5n_vline, s5n_rows, ev["wrapper"], verdict, out["a21"], ev["per"],
@@ -516,6 +625,10 @@ def _run(args):
     if probs:
         raise W.EvaluationError(f"the composed digest fails its own schema: {probs[:5]}")
     txt_view = dict(out, mode="run", verdict={k: verdict[k] for k in W.VERDICT_KEYS}, held=verdict["held"])
+    out["inputs"]["consumed_sha256"] = consumed
+    out["inputs"]["code_sha256"] = code
+    out["inputs"]["run_tree_inventory"] = {"note": "supplementary diagnostic (path, size, mtime); NOT integrity: the "
+                                           "byte-level check is consumed_sha256", "files": len(tree0)}
     out = dict(out, mode="run", verdict={k: verdict[k] for k in W.VERDICT_KEYS}, held=verdict["held"],
                historical={"label": W.HISTORICAL_A1_LABEL, "pu4": W.pu4_report_row(pu4),
                            "a1_summary_s5n": dig5_file["performance"]["harq_attribution"],
@@ -527,8 +640,11 @@ def _run(args):
     txt = run_text(txt_view, pu4, s5n_vline)
     files = [(f"a21-{cfg}.txt", a21_txt), (f"a21-{cfg}.json", dumps(a21_js)), (f"{cfg}.s5n21.txt", txt),
              (f"{cfg}.s5n21.json", dumps(out)), (f"{cfg}.s5n21.digest.json", dumps(digest))]
-    if tree_fingerprint(os.path.join(runs, cfg)) != tree0 or {p: sha256_file(p) for p in (log, sca)} != hashes0:
-        raise W.EvaluationError("an input changed during the evaluation")
+    if {p: sha256_file(p) for p in (log, sca)} != hashes0 or tracker.verify() != consumed:
+        raise W.EvaluationError("an input changed during the evaluation (sha256)")
+    if tree_fingerprint(os.path.join(runs, cfg)) != tree0:
+        raise W.EvaluationError("the run tree inventory changed during the evaluation (supplementary check: files "
+                                "added, removed, resized or re-timed)")
     publish(staging, recdir, files)
     print(txt.rstrip())
     return verdict["exit"]
@@ -575,9 +691,15 @@ def run_text(out, pu4, s5n_vline):
 def _hrq(args):
     expect = load_expect(args["expect"], args["cfg"]) if args["expect"] else None
     fresh_dir(args["recdir"])
-    ctx = gather_hrq(args) if args["mode"] == "hrq" else gather_fixture(args)
-    ev = evaluate(ctx)
+    code0 = code_provenance_start(REQUIRED_A21 if args["mode"] == "hrq" else REQUIRED_FIXTURE)
+    roots = {"simu5g": os.environ.get("SIMU5G_ROOT")}
+    roots.update({"runs": args["runs"]} if args["mode"] == "hrq" else {"fixture": args["fixture"]})
+    with InputTracker(roots) as tracker:
+        ctx = gather_hrq(args) if args["mode"] == "hrq" else gather_fixture(args)
+        ev = evaluate(ctx)
     out, cfg = ev["out"], ctx["cfg"]
+    out["inputs"]["consumed_sha256"] = tracker.verify()
+    out["inputs"]["code_sha256"] = code_provenance_end(code0)
     a21_txt, a21_js = a21_record(cfg, ev)
     files = [(f"a21-{cfg}.txt", a21_txt), (f"a21-{cfg}.json", dumps(a21_js)), (f"hrq-{cfg}.txt", hrq_text(out)),
              (f"hrq-{cfg}.json", dumps(out))]

@@ -288,7 +288,7 @@ A21_KEYS = ("rows", "verdict_f1d_i", "verdict_full", "coverage")
 PERFORMANCE_KEYS = ("per_ue", "across", "across_harq_a21", "totals")
 HARQ_A21_GROUPS = ("counts", "occupancy", "simu5g")
 HISTORICAL_A1_KEYS = ("label", "pu4_row", "harq_attribution", "per_ue_harq")
-INPUTS_KEYS = ("log_sha256", "sca_sha256", "registry_sha256", "code", "c0", "s5n_adapter_validated")
+INPUTS_KEYS = ("log_sha256", "sca_sha256", "registry_sha256", "consumed_sha256", "code", "c0", "s5n_adapter_validated")
 ROW_KEYS = ("id", "subject", "status", "detail")
 RUN_ROWS = (ROW_MAP, ROW_C0, ROW_PU4H)
 GATE_ROW_STATUSES = (PASS, FAIL, NE)          # a wrapper gate row is never NX / NA / HR (design 4.3 - 4.6)
@@ -578,6 +578,13 @@ def validate_digest(d):
         probs.append("mac_grammar_census: must be a list")
     inp = d["inputs"]
     if _keys(inp, INPUTS_KEYS, "inputs", probs):
+        cs = inp["consumed_sha256"]
+        if not (isinstance(cs, dict) and all(isinstance(k, str) and isinstance(v, str) and re.fullmatch(r"[0-9a-f]{64}", v)
+                                             for k, v in cs.items())):
+            probs.append("inputs.consumed_sha256 must map each consumed input to its sha256")
+        cd = inp["code"]
+        if not (isinstance(cd, dict) and isinstance(cd.get("required"), dict) and isinstance(cd.get("loaded"), dict)):
+            probs.append("inputs.code must hold the required and loaded source hashes")
         if not (isinstance(inp["registry_sha256"], str) and re.fullmatch(r"[0-9a-f]{64}", inp["registry_sha256"])):
             probs.append(f"inputs.registry_sha256 {_show(inp['registry_sha256'])} is not a sha256")
     _finite_json(d, "digest", probs)
@@ -1335,56 +1342,127 @@ def check_a21_rows(rows, extra):
     return st
 
 
-S5N_DECLARED_ONCE = ("PU-1", "PU-4", "PU-5")
-S5N_DECLARED_PER_UE = ("PU-2", "PU-3", "AV-1", "AV-2", "AV-3")
-S5N_DECLARED_ANY = ("Q8-v", "SG-403", "MG-1", "EOR", "F0-1 (info)", "I-2H")
+# The row contract of the accepted check_m2s72_s5n.run_one() for an E0v-N configuration at N UEs, derived from the
+# accepted source (I7-R1). name = f"{cfg}-0" (rep 0). B.evaluate(full=True, ref=None) with the clock class "Ca"
+# (BN_BASE[cfg] = "M2S72-H-<q0|qdu>-Ca-n<N>"):
+#   f0_rows   F1.f01 -> F0-1 (renamed "F0-1 (info)" by run_one); F1.f02 -> F0-2, renamed "I-2" by f0_rows and
+#             "I-2 strict (info)" by check_m2s72_i2h.relabel; F1.f03 F0-3; F2.f04 or (session problems) F2.add F0-4;
+#             F1.f05 F0-5; F2.add F0-7d; F2.f06 F0-6; F2.f08 F0-8: each exactly once (no early return before its add;
+#             F1.f02's early return follows its own add)
+#   i_rows    I-1, I-3 once each
+#   m2_rows   M2 once per slave k in range(N), subject "<name> slave <k>" (RunEval builds ev.m2 for every k)
+#   m3_rows   M3 and M3d once each per pair (i < j) of the slaves whose M2-S6 evaluation succeeded (ev.series):
+#             CONDITIONAL. A slave whose evaluation raised has an "X k<k>" M2-S6 row, so its M2 row FAILs: when
+#             every M2 row PASSes, every pair is present; otherwise a subset (and the run already fails on M2)
+#   m4_rows   M4 "<name> GM drift" once (clk "Ca" != "ideal"); "<name> TT clocks" only with clk "Eall": never here
+#   i5_rows   not called (ref None)
+# then i2h_rows: I-2H once per DS-TT, subject "<name> DS-TT <k>"; EOR once (NOT APPLICABLE); the adapter's observe():
+# Q8 once per UE (gptp -> E.q8_rows, subject "<name> UE <k>"); validate(): PU-1, PU-4, PU-5 once ("run"), PU-2,
+# PU-3, AV-1, AV-2, AV-3 once per UE ("UE <k>"); Q8-v, SG-403, MG-1 once each. Nothing else.
+S5N_ONCE_NAME = ("F0-1 (info)", "I-2 strict (info)", "F0-3", "F0-4", "F0-5", "F0-6", "F0-7d", "F0-8", "I-1", "I-3",
+                 "EOR", "Q8-v", "SG-403", "MG-1")
+S5N_ONCE_RUN = ("PU-1", "PU-4", "PU-5")
+S5N_PER_UE = ("PU-2", "PU-3", "AV-1", "AV-2", "AV-3")
+S5N_STATUSES = (PASS, FAIL, NE, NA)
+S5N_DETAIL_WIDTH = 400                     # run_one writes str(detail)[:400]
 
 
-def check_s5n_rows(s5n_rows, n, written, digest_rows):
-    """the s5n rows of the run (design 4.9): the declared rows with their multiplicities, every row well formed, and
-    the row set equal to the rows written to s5n/<cfg>.check.txt and to the s5n digest's count. A row is never
-    silently dropped. Raises EvaluationError naming what is missing or inconsistent."""
-    if not isinstance(s5n_rows, (list, tuple)) or not all(isinstance(r, (list, tuple)) and len(r) == 4 and
-                                                          all(isinstance(x, str) for x in r[:3]) for r in s5n_rows):
+def parse_name_n(cfg):
+    """N of an E0v-N configuration name admitted by the run guard"""
+    guard(cfg, "run")
+    return int(re.search(r"-n(\d+)-f", cfg).group(1))
+
+
+def s5n_row_contract(cfg, n):
+    """(mandatory {(id, subject)}, conditional {(id, subject)}) of run_one at N"""
+    name = f"{cfg}-0"
+    mand = {(i, name) for i in S5N_ONCE_NAME} | {(i, "run") for i in S5N_ONCE_RUN}
+    mand |= {(i, f"UE {k}") for i in S5N_PER_UE for k in range(n)}
+    mand |= {("M2", f"{name} slave {k}") for k in range(n)} | {("I-2H", f"{name} DS-TT {k}") for k in range(n)}
+    mand |= {("Q8", f"{name} UE {k}") for k in range(n)} | {("M4", f"{name} GM drift")}
+    cond = {(t, f"{name} pair ({i},{j})") for t in ("M3", "M3d") for i in range(n) for j in range(i + 1, n)}
+    return mand, cond
+
+
+def s5n_written_block(rows):
+    """the CORRECTNESS lines run_one writes for these rows, exactly (its format and 400-character detail cut)"""
+    return "".join(f"  {r[2]:<15} | {r[0]} | {r[1]} | {str(r[3])[:S5N_DETAIL_WIDTH]}\n" for r in rows)
+
+
+def s5n_written_section(text):
+    """(the CORRECTNESS block, the per-run verdict line) of an s5n <cfg>.check.txt"""
+    head = "\n\nCORRECTNESS (gates)\n"
+    tail = "\nper-run verdict: "
+    if text.count(head) != 1 or text.count(tail) != 1 or text.index(head) > text.index(tail):
+        raise EvaluationError("s5n check.txt: not the accepted layout (CORRECTNESS section / per-run verdict line)")
+    block = text[text.index(head) + len(head):text.index(tail)]          # the row lines, each ending in "\n"
+    vline = text[text.index(tail) + len(tail):].split("\n", 1)[0]
+    return block, vline
+
+
+def check_s5n_rows(s5n_rows, n, cfg, check_txt, s5n_digest, info, ne):
+    """the s5n rows of the run against the accepted contract (I7-R1): mandatory identities and multiplicities, the
+    conditional M3 / M3d pairs, no duplicate or unexpected row, the CORRECTNESS lines of check.txt equal to the rows
+    rendered exactly as run_one writes them (detail cut at 400 characters), and the digest consistent with the rows
+    (count, gate lists by the accepted predicate, verdict line). Raises EvaluationError naming every defect."""
+    if not isinstance(s5n_rows, (list, tuple)) or not all(
+            isinstance(r, (list, tuple)) and len(r) == 4 and all(isinstance(x, str) for x in r[:3]) for r in s5n_rows):
         raise EvaluationError("s5n rows missing or malformed")
-    c = Counter(r[0] for r in s5n_rows)
-    probs = [f"{i} x{c[i]} (expected 1)" for i in S5N_DECLARED_ONCE if c[i] != 1]
-    probs += [f"{i} x{c[i]} (expected {n})" for i in S5N_DECLARED_PER_UE if c[i] != n]
-    for i in S5N_DECLARED_PER_UE:
-        subj = sorted(r[1] for r in s5n_rows if r[0] == i)
-        if c[i] == n and subj != sorted(f"UE {k}" for k in range(n)):
-            probs.append(f"{i} subjects {subj}")
-    probs += [f"{i} missing" for i in S5N_DECLARED_ANY if c[i] < 1]
-    if probs:
-        raise EvaluationError(f"s5n rows incomplete: {probs}")
-    got = Counter((r[2], r[0], r[1]) for r in s5n_rows)
-    if Counter(written) != got:
-        raise EvaluationError(f"s5n rows differ from those written to check.txt: {sorted((got - Counter(written)).elements())[:3]} / "
-                              f"{sorted((Counter(written) - got).elements())[:3]}")
-    if digest_rows != len(s5n_rows):
-        raise EvaluationError(f"s5n digest counts {digest_rows!r} rows, the evaluation {len(s5n_rows)}")
-
-
-def parse_s5n_check(text):
-    """(rows as (status, id, subject), verdict line) of an s5n <cfg>.check.txt, in its own layout
-    ('  <status:15> | <id> | <subject> | <detail>' under 'CORRECTNESS (gates)', then 'per-run verdict: ...')"""
-    lines = text.splitlines()
+    probs = []
+    bad_st = sorted({f"{r[0]} {r[2]}" for r in s5n_rows if r[2] not in S5N_STATUSES})
+    if bad_st:
+        probs.append(f"statuses outside {S5N_STATUSES}: {bad_st[:5]}")
+    keys = Counter((r[0], r[1]) for r in s5n_rows)
+    mand, cond = s5n_row_contract(cfg, n)
+    dup = sorted(f"{k[0]} | {k[1]}" for k, c in keys.items() if c > 1)
+    miss = sorted(f"{k[0]} | {k[1]}" for k in mand if k not in keys)
+    unexp = sorted(f"{k[0]} | {k[1]}" for k in keys if k not in mand and k not in cond)
+    if dup:
+        probs.append(f"duplicated rows {dup[:5]}")
+    if miss:
+        probs.append(f"missing mandatory rows {miss[:8]} ({len(miss)})")
+    if unexp:
+        probs.append(f"unexpected rows {unexp[:8]} ({len(unexp)})")
+    st = {(r[0], r[1]): r[2] for r in s5n_rows}
+    pairs3 = {k[1] for k in keys if k[0] == "M3"}
+    pairs3d = {k[1] for k in keys if k[0] == "M3d"}
+    if pairs3 != pairs3d:
+        probs.append(f"M3 / M3d pairs differ: {sorted(pairs3 ^ pairs3d)[:4]}")
+    m2_all_pass = all(st.get(("M2", f"{cfg}-0 slave {k}")) == PASS for k in range(n))
+    if m2_all_pass and not cond <= set(keys):
+        probs.append(f"every M2 row PASSes but M3 / M3d pairs are missing: {sorted(f'{a} | {b}' for a, b in cond - set(keys))[:4]}")
+    if st.get(("EOR", f"{cfg}-0")) not in (None, NA):
+        probs.append(f"EOR {st.get(('EOR', f'{cfg}-0'))!r} (run_one writes NOT APPLICABLE)")
     try:
-        i = lines.index("CORRECTNESS (gates)")
-    except ValueError:
-        raise EvaluationError("s5n check.txt without its CORRECTNESS section")
-    rows = []
-    for line in lines[i + 1:]:
-        if not line.strip():
-            break
-        p = line.strip().split(" | ", 3)
-        if len(p) < 3:
-            raise EvaluationError(f"s5n check.txt row unreadable: {line[:120]!r}")
-        rows.append((p[0].strip(), p[1], p[2]))
-    v = [x for x in lines if x.startswith("per-run verdict: ")]
-    if len(v) != 1:
-        raise EvaluationError("s5n check.txt: no single per-run verdict line")
-    return rows, v[0][len("per-run verdict: "):]
+        block, vline = s5n_written_section(check_txt)
+        if block != s5n_written_block(s5n_rows):
+            exp = s5n_written_block(s5n_rows).splitlines()
+            got = block.splitlines()
+            i = next((i for i, (a, b) in enumerate(zip(exp, got)) if a != b), min(len(exp), len(got)))
+            probs.append(f"check.txt rows differ from the evaluated rows at line {i}: written "
+                         f"{got[i][:160] if i < len(got) else '<end>'!r}, expected {exp[i][:160] if i < len(exp) else '<end>'!r}")
+    except EvaluationError as ex:
+        probs.append(str(ex))
+        vline = None
+    gate_fail = sorted({r[0] for r in s5n_rows if r[2] == "FAIL" and r[0] not in info})
+    ne_ = sorted({r[0] for r in s5n_rows if r[2] == ne and r[0].startswith(("PU-", "AV-"))})
+    want_v = "PASS" if not gate_fail and not ne_ else "FAIL " + " ".join(gate_fail + [f"NE:{x}" for x in ne_])
+    c = s5n_digest.get("correctness") if isinstance(s5n_digest, dict) else None
+    if not isinstance(c, dict):
+        probs.append("s5n digest without its correctness section")
+    else:
+        if c.get("rows") != len(s5n_rows):
+            probs.append(f"s5n digest counts {c.get('rows')!r} rows, the evaluation {len(s5n_rows)}")
+        if c.get("gate_failures") != gate_fail or c.get("per_ue_not_evaluated") != ne_:
+            probs.append(f"s5n digest gate lists {c.get('gate_failures')} / {c.get('per_ue_not_evaluated')} differ from the rows "
+                         f"({gate_fail} / {ne_})")
+    if vline is not None and vline != want_v:
+        probs.append(f"s5n verdict line {vline!r} differs from the rows ({want_v!r})")
+    if s5n_digest.get("numUe") != n:
+        probs.append(f"s5n digest numUe {s5n_digest.get('numUe')!r} != {n}")
+    if probs:
+        raise EvaluationError(f"s5n rows violate the accepted row contract: {probs}")
+    return vline
 
 
 # --------------------------------------------------------- current H-ARQ values and availability (design 5.3) -----

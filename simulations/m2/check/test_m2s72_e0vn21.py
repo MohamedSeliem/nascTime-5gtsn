@@ -6,7 +6,7 @@ T-unresolved, NC-no-ue-lines, NC-swap, NC-occ, T-pu4h. Increment I-4: T-agree, N
 Increment I-5: T-n3-groups, T-multinack, T-discard, NC-registry, T-a24c-review, T-verdict, T-s5n-semantics.
 Increment I-6: T-f3-hrq, T-f3-a1, T-single-replay, T-a21-record-equiv, T-expect-exit, NC-cli-inputs; T-imports-isolated
 on the functional CLI.
-Increment I-7: T-s5n-transparent, T-s5n-rows, T-digest-ownership, T-one-run-per-process, T-no-d2-bypass, NC-run. The I-2 and I-3 tests that run the accepted A-2.1 need
+Increment I-7: T-s5n-transparent, T-s5n-rows, T-digest-ownership, T-one-run-per-process, T-no-d2-bypass, NC-run. I-7 corrections: NC-provenance; T-s5n-rows on the derived row contract. The I-2 and I-3 tests that run the accepted A-2.1 need
 SIMU5G_ROOT (the Simu5G 1.8.1 sources, for A2-0s), as test_m2s72_a21.py does; tier-0 provides it. No simulation; no raw output of any run; synthetic inputs and repository files only.
 The committed registry is only read; T-registry and main() check that its sha256 is unchanged.
 
@@ -297,7 +297,8 @@ def good_digest(n=2):
                               "pu4_row": ["PU-4", "run", "FAIL", "A-1 ambiguous 768"], "harq_attribution": {},
                               "per_ue_harq": {}}},
         "diagnostics": {"agreement": {}}, "mac_grammar_census": [],
-        "inputs": {"log_sha256": "0" * 64, "sca_sha256": "0" * 64, "registry_sha256": "0" * 64, "code": {}, "c0": {},
+        "inputs": {"log_sha256": "0" * 64, "sca_sha256": "0" * 64, "registry_sha256": "0" * 64, "consumed_sha256": {"runs:x": "0" * 64},
+                   "code": {"required": {}, "loaded": {}}, "c0": {},
                    "s5n_adapter_validated": "x"}}
 
 
@@ -2297,7 +2298,7 @@ def stub_s5n(spec=None):
     spec = spec or {}
     S5N = s5n_module()
     E, I, A, S5V = S5N.E, S5N.I, S5N.A, S5N.S5V
-    saved = {(S5N, "evaluation"): S5N.evaluation, (I, "i2h_rows"): I.i2h_rows, (I, "relabel"): I.relabel,
+    saved = {(S5N, "evaluation"): S5N.evaluation, (I, "i2h_rows"): I.i2h_rows,
              (A, "observe"): A.observe, (A, "validate"): A.validate, (S5V, "sg403_row"): S5V.sg403_row,
              (S5V, "grammar"): S5V.grammar, (S5V, "mg1_row"): S5V.mg1_row}
     st = spec.get("status", {})
@@ -2315,19 +2316,36 @@ def stub_s5n(spec=None):
                 S5N.rows.append(r)
 
     def evaluation(runs, cfg, opt, full):
+        """the identities and multiplicities of the accepted B.evaluate(full=True, ref=None) at clock class Ca
+        (m2s72_e0vn21.s5n_row_contract): f0_rows (F0-2 as "I-2", relabelled by the real i2h.relabel), i_rows, M2
+        per slave, M3 / M3d per pair, M4 GM drift. One detail exceeds run_one's 400-character cut."""
         n = S5V.parse_name(cfg)[4]
         state["n"], state["name"], state["runs"], state["cfg"] = n, f"{cfg}-0", runs, cfg
         nm = state["name"]
-        emit([(i, nm, status(i, nm), "Block B stand-in") for i in ("F0-1", "F0-2", "F0-3", "I-1", "I-3", "M2", "M3", "M3d", "M4")]
-             + [("Q8", f"UE {k}", status("Q8", f"UE {k}"), "per-UE Q8 stand-in") for k in range(n)])
+        vec = os.path.join(runs, cfg, cfg, "vectors.vec")
+        if os.path.isfile(vec):                                  # a consumed run file, as Run72 reads its vectors
+            state["vec"] = open(vec, "rb").read()
+        rows = [(i, nm, status(i, nm), "F0 stand-in") for i in ("F0-1", "I-2", "F0-3", "F0-4", "F0-5", "F0-7d", "F0-6", "F0-8")]
+        rows += [("I-1", nm, status("I-1", nm), "I-1 stand-in"), ("I-3", nm, status("I-3", nm), "I-3 stand-in; " + "x" * 600)]
+        rows += [("M2", f"{nm} slave {k}", status("M2", f"{nm} slave {k}"), "M2 stand-in") for k in range(n)]
+        for i in range(n):
+            for j in range(i + 1, n):
+                rows += [(t, f"{nm} pair ({i},{j})", status(t, f"{nm} pair ({i},{j})"), f"{t} stand-in") for t in ("M3", "M3d")]
+        rows += [("M4", f"{nm} GM drift", status("M4", f"{nm} GM drift"), "M4 stand-in")]
+        emit(rows + spec.get("extra_rows", []))
         if "tamper" in spec:
             spec["tamper"](runs, cfg)
         return {}, "q0", f"M2S72-H-q0-Ca-n{n}", n
 
     def i2h_rows(ev):
-        emit([("I-2H", state["name"], status("I-2H", state["name"]), "I-2H stand-in")])
+        nm = state["name"]
+        emit([("I-2H", f"{nm} DS-TT {k}", status("I-2H", f"{nm} DS-TT {k}"), "I-2H stand-in") for k in range(state["n"])])
 
     def observe(ev, mlp, aopt, loaded, nproc=16):
+        nm = state["name"]
+        emit([("Q8", f"{nm} UE {k}", status("Q8", f"{nm} UE {k}"), "per-UE Q8 stand-in (gptp -> q8_rows)") for k in range(state["n"])])
+        if "tamper_late" in spec:
+            spec["tamper_late"](state["runs"], state["cfg"])
         events = PA.harq_events(mlp)
         per, summ = P.attribute_feedback(events, nproc)
         obs = []
@@ -2359,7 +2377,7 @@ def stub_s5n(spec=None):
         return out
 
     S5N.evaluation = evaluation
-    I.i2h_rows, I.relabel = i2h_rows, (lambda start, base: None)
+    I.i2h_rows = i2h_rows
     A.observe, A.validate = observe, validate
     S5V.sg403_row = lambda name, runs, cfg: emit([("SG-403", name, status("SG-403", name), "stand-in")])
     S5V.grammar = lambda mlp: ({("gnb", "H-ARQ TX"): 1}, {}, [], None)
@@ -2435,42 +2453,104 @@ def t_s5n_transparent():
 @named("T-s5n-rows")
 def t_s5n_rows():
     lines, node, truth = sync_run(nack=(1, 1))
-    cases = [("PU-3 of UE 1 missing", {"drop": [("PU-3", "UE 1")]}, "PU-3 x1"),
-             ("AV-2 of UE 0 missing", {"drop": [("AV-2", "UE 0")]}, "AV-2 x1"),
-             ("MG-1 missing", {"drop": [("MG-1", f"{SYN_CFG}-0")]}, "MG-1 missing"),
-             ("SG-403 missing", {"drop": [("SG-403", f"{SYN_CFG}-0")]}, "SG-403 missing"),
-             ("I-2H missing", {"drop": [("I-2H", f"{SYN_CFG}-0")]}, "I-2H missing"),
-             ("historical PU-4 missing", {"drop": [("PU-4", "run")]}, "PU-4 x0"),
-             ("historical PU-4 duplicated", {"dup": [("PU-4", "run")]}, "PU-4 x2"),
-             ("PU-1 duplicated", {"dup": [("PU-1", "run")]}, "PU-1 x2"),
-             ("PU-2 duplicated", {"dup": [("PU-2", "UE 0")]}, "PU-2 x3")]
+    N_ = f"{SYN_CFG}-0"
+    cases = [("PU-3 of UE 1 missing", {"drop": [("PU-3", "UE 1")]}, "PU-3 | UE 1"),
+             ("AV-2 of UE 0 missing", {"drop": [("AV-2", "UE 0")]}, "AV-2 | UE 0"),
+             ("MG-1 missing", {"drop": [("MG-1", N_)]}, "MG-1 |"),
+             ("SG-403 missing", {"drop": [("SG-403", N_)]}, "SG-403 |"),
+             ("I-2H of DS-TT 1 missing", {"drop": [("I-2H", f"{N_} DS-TT 1")]}, "I-2H |"),
+             ("historical PU-4 missing", {"drop": [("PU-4", "run")]}, "PU-4 | run"),
+             ("historical PU-4 duplicated", {"dup": [("PU-4", "run")]}, "duplicated rows"),
+             ("PU-1 duplicated", {"dup": [("PU-1", "run")]}, "duplicated rows"),
+             # Block B (I7-R1)
+             ("Block B F0-6 missing", {"drop": [("F0-6", N_)]}, "F0-6 |"),
+             ("Block B I-2 strict missing", {"drop": [("I-2", N_)]}, "I-2 strict (info) |"),
+             ("Block B M2 of slave 1 missing", {"drop": [("M2", f"{N_} slave 1")]}, "M2 |"),
+             ("Block B M4 GM drift missing", {"drop": [("M4", f"{N_} GM drift")]}, "M4 |"),
+             ("Q8 of UE 1 missing", {"drop": [("Q8", f"{N_} UE 1")]}, "Q8 |"),
+             ("M3 / M3d pair missing although every M2 PASSes", {"drop": [("M3", f"{N_} pair (0,1)"), ("M3d", f"{N_} pair (0,1)")]},
+              "M3 / M3d pairs are missing"),
+             ("M3d without its M3", {"drop": [("M3", f"{N_} pair (0,1)")]}, "M3 / M3d pairs differ"),
+             ("an unexpected M4 TT clocks row (clock class Ca)", {"extra_rows": [("M4", f"{N_} TT clocks", "PASS", "x")]}, "unexpected rows"),
+             ("an unexpected I-5 row (ref None)", {"extra_rows": [("I-5", N_, "PASS", "x")]}, "unexpected rows"),
+             ("a pair outside the UEs", {"extra_rows": [("M3", f"{N_} pair (0,2)", "PASS", "x"), ("M3d", f"{N_} pair (0,2)", "PASS", "x")]},
+              "unexpected rows"),
+             ("Block B F0-3 duplicated", {"dup": [("F0-3", N_)]}, "duplicated rows"),
+             ("EOR not NOT APPLICABLE", {"status": {"EOR": "PASS"}}, "EOR")]
     for what, spec, token in cases:
         with synthetic_runs(lines, node, truth) as (d, runs, log, sca), stub_s5n(spec):
+            if what == "EOR not NOT APPLICABLE":
+                S5N = s5n_module()
+                orig_add = S5N.E.add
+                S5N.E.add = lambda row, run, st_, det: orig_add(row, run, "PASS" if row == "EOR" else st_, det)
             rec = os.path.join(d, "rec")
-            rc, txt = run_inproc(runs, rec)
-            check(rc == 2 and "EVALUATION ERROR" in txt and token in txt, f"{what}: rc {rc}: {txt[:300]}")
+            try:
+                rc, txt = run_inproc(runs, rec)
+            finally:
+                if what == "EOR not NOT APPLICABLE":
+                    S5N.E.add = orig_add
+            check(rc == 2 and "EVALUATION ERROR" in txt and "row contract" in txt and token in txt, f"{what}: rc {rc}: {txt[:400]}")
             check(not os.path.exists(rec) and os.path.isdir(rec + ".incomplete"), f"{what}: a partial record must not look complete")
-    # the library check on its own: malformed rows, a row set differing from check.txt, a wrong digest count
-    rows = [("PU-1", "run", "PASS", ""), ("PU-4", "run", "FAIL", "x"), ("PU-5", "run", "PASS", "")] + \
-        [(i, f"UE {k}", "PASS", "") for i in W.S5N_DECLARED_PER_UE for k in range(2)] + \
-        [(i, "c-0", "PASS", "") for i in W.S5N_DECLARED_ANY]
-    written = [(r[2], r[0], r[1]) for r in rows]
-    W.check_s5n_rows(rows, 2, written, len(rows))
-    for what, args in (("written differs", (rows, 2, written[:-1] + [("FAIL",) + written[-1][1:]], len(rows))),
-                       ("digest count", (rows, 2, written, len(rows) + 1)), ("a malformed row", (rows + [("X", None, None)], 2, written, len(rows) + 1)),
-                       ("not a list", ("rows", 2, written, 1)), ("PU-2 subjects", ([r if r[0] != "PU-2" or r[1] != "UE 1" else ("PU-2", "UE 0", "PASS", "") for r in rows], 2,
-                                                                                     [w if w[1] != "PU-2" or w[2] != "UE 1" else ("PASS", "PU-2", "UE 0") for w in written], len(rows)))):
+    # conditional rows: a FAILing M2 (its slave's evaluation raised) may leave pairs absent; the run FAILs on M2
+    with synthetic_runs(lines, node, truth) as (d, runs, log, sca), stub_s5n({"status": {("M2", f"{N_} slave 1"): "FAIL"},
+                                                                          "drop": [("M3", f"{N_} pair (0,1)"), ("M3d", f"{N_} pair (0,1)")]}):
+        rc, txt = run_inproc(runs, os.path.join(d, "rec"))
+        dig, out = load_records(os.path.join(d, "rec"))
+        check(rc == 1 and "M2" in dig["correctness"]["verdict"]["gate_failures"], f"M2 FAIL without pairs: rc {rc}")
+    # a changed detail field in check.txt (same length): the written rows differ from the evaluated rows
+    with synthetic_runs(lines, node, truth) as (d, runs, log, sca), stub_s5n():
+        S5N = s5n_module()
+        orig = S5N.run_one
+
+        def edited(runs_, cfg_, recdir_):
+            rc_, dg_ = orig(runs_, cfg_, recdir_)
+            p_ = os.path.join(recdir_, f"{cfg_}.check.txt")
+            t_ = open(p_).read()
+            open(p_, "w").write(t_.replace("I-3 stand-in; xxxx", "I-3 stand-in; xxXx", 1))
+            return rc_, dg_
+        S5N.run_one = edited
         try:
-            W.check_s5n_rows(*args)
+            rc, txt = run_inproc(runs, os.path.join(d, "rec"))
+        finally:
+            S5N.run_one = orig
+        check(rc == 2 and "check.txt rows differ" in txt and "I-3" in txt, f"a changed detail: rc {rc}: {txt[:300]}")
+    # the library check on its own (I7-R1)
+    info, ne = W.s5n_info()
+    nm = "M2S72-E0vN-q0-one0-n2-f1-0"
+    rows = [(i, nm, "PASS", "d") for i in W.S5N_ONCE_NAME if i != "EOR"] + [("EOR", nm, W.NA, "e")]
+    rows += [(i, "run", "PASS", "d") for i in W.S5N_ONCE_RUN] + [(i, f"UE {k}", "PASS", "d") for i in W.S5N_PER_UE for k in range(2)]
+    rows += [("M2", f"{nm} slave {k}", "PASS", "d") for k in range(2)] + [("I-2H", f"{nm} DS-TT {k}", "PASS", "d") for k in range(2)]
+    rows += [("Q8", f"{nm} UE {k}", "PASS", "d") for k in range(2)] + [("M4", f"{nm} GM drift", "PASS", "d")]
+    rows += [("M3", f"{nm} pair (0,1)", "PASS", "y" * 450), ("M3d", f"{nm} pair (0,1)", "PASS", "d")]
+    txt_ok = "header\n\nCORRECTNESS (gates)\n" + W.s5n_written_block(rows) + "\nper-run verdict: PASS\n\nPERFORMANCE\n"
+    dg = {"numUe": 2, "correctness": {"rows": len(rows), "gate_failures": [], "per_ue_not_evaluated": []}}
+    check(W.check_s5n_rows(rows, 2, SYN_CFG, txt_ok, dg, info, ne) == "PASS", "the contract on a complete row set")
+    check(len(W.s5n_row_contract(SYN_CFG, 2)[0]) == 34 and len(W.s5n_row_contract(SYN_CFG, 4)[0]) == 14 + 3 + 5 * 4 + 3 * 4 + 1
+          and len(W.s5n_row_contract(SYN_CFG, 4)[1]) == 12 and W.s5n_row_contract(SYN_CFG, 1)[1] == set(), "contract sizes")
+    check("y" * 400 + "\n" in W.s5n_written_block(rows) and "y" * 401 not in W.s5n_written_block(rows), "the 400-character cut")
+    bad = {"a full-length detail written": (rows, txt_ok.replace("y" * 400, "y" * 450), dg),
+           "a detail changed": (rows, txt_ok.replace("| d\n", "| D\n", 1), dg),
+           "rows reordered": (rows[1:] + rows[:1], txt_ok, dg),
+           "digest count": (rows, txt_ok, dict(dg, correctness=dict(dg["correctness"], rows=len(rows) + 1))),
+           "digest gate list": (rows, txt_ok, dict(dg, correctness=dict(dg["correctness"], gate_failures=["F0-3"]))),
+           "verdict line": (rows, txt_ok.replace("per-run verdict: PASS", "per-run verdict: FAIL PU-4"), dg),
+           "an unknown status": ([(r[0], r[1], "OK", r[3]) if r[0] == "F0-3" else r for r in rows], txt_ok, dg),
+           "no CORRECTNESS section": (rows, "nothing", dg), "numUe": (rows, txt_ok, dict(dg, numUe=3))}
+    for what, (r_, t_, d_) in bad.items():
+        try:
+            W.check_s5n_rows(r_, 2, SYN_CFG, t_, d_, info, ne)
             raise AssertionError(f"check_s5n_rows accepted: {what}")
         except W.EvaluationError:
             pass
     # s5n gate semantics carried into the composed verdict: a Block B FAIL gates, Q8-v-like NE does not, PU-4 never
-    with synthetic_runs(lines, node, truth) as (d, runs, log, sca), stub_s5n({"status": {"F0-2": "FAIL"}}):
+    with synthetic_runs(lines, node, truth) as (d, runs, log, sca), stub_s5n({"status": {"F0-3": "FAIL", "I-2": "FAIL"}}):
         rc, txt = run_inproc(runs, os.path.join(d, "rec"))
         dig, out = load_records(os.path.join(d, "rec"))
-        check(rc == 1 and dig["correctness"]["verdict"]["status"] == "FAIL" and "F0-2" in dig["correctness"]["verdict"]["gate_failures"],
-              f"a Block B FAIL must fail the run: {dig['correctness']['verdict']}")
+        v = dig["correctness"]["verdict"]
+        check(rc == 1 and v["status"] == "FAIL" and "F0-3" in v["gate_failures"], f"a Block B FAIL must fail the run: {v}")
+        check("I-2 strict (info)" not in v["gate_failures"] and "I-2" not in v["gate_failures"],
+              f"F0-2 -> I-2 strict (info) is informational (relabelled by the accepted i2h.relabel): {v}")
+        check(any(r[0] == "I-2 strict (info)" and r[2] == "FAIL" for r in out["s5n"]["rows"]), "the relabelled row is reported")
     with synthetic_runs(lines, node, truth) as (d, runs, log, sca), stub_s5n({"status": {"F0-1": "FAIL", "AV-3": W.NE}}):
         rc, txt = run_inproc(runs, os.path.join(d, "rec"))
         dig, out = load_records(os.path.join(d, "rec"))
@@ -2639,7 +2719,7 @@ def nc_run():
     with synthetic_runs(lines, node, truth) as (d, runs, log, sca), \
             stub_s5n({"tamper": lambda runs_, cfg_: open(os.path.join(runs_, cfg_, "vector.vec"), "w").write("x")}):
         rc, txt = run_inproc(runs, os.path.join(d, "rec"))
-        check(rc == 2 and "an input changed" in txt and not os.path.exists(os.path.join(d, "rec")), f"changed run tree: rc {rc}")
+        check(rc == 2 and "inventory changed" in txt and not os.path.exists(os.path.join(d, "rec")), f"changed run tree: rc {rc}")
     # interrupted record writing: the records dir never appears; <records dir>.incomplete is left, and refused next time
     for what, target in (("digest building", ("W", "composed_digest")), ("the final rename", ("os", "rename"))):
         with synthetic_runs(lines, node, truth) as (d, runs, log, sca), stub_s5n():
@@ -2677,6 +2757,108 @@ def nc_run():
         finally:
             os.environ.pop("S5N_ADAPTER_VALIDATED", None) if old is None else os.environ.__setitem__("S5N_ADAPTER_VALIDATED", old)
         check(rc == 2, f"{args}: rc {rc}")
+    CLIM._RUN_STARTED = False
+
+
+# ----------------------------------------------------------------------- I7-R2 / I7-R3: provenance and integrity --
+def same_size_tamper(path):
+    """change bytes of a file without changing its size or its timestamps (atime, mtime restored to the ns). This is
+    an EXTERNAL modifier, not the evaluator: an active input tracker is paused so its reads are not consumption."""
+    t = CLIM.InputTracker.active
+    if t is not None:
+        t.busy = True
+    try:
+        _same_size_tamper(path)
+    finally:
+        if t is not None:
+            t.busy = False
+
+
+def _same_size_tamper(path):
+    st = os.stat(path)
+    b = bytearray(open(path, "rb").read())
+    k = next(i for i in range(len(b) - 1, -1, -1) if chr(b[i]).isdigit())
+    b[k] = ord("1") if b[k] != ord("1") else ord("2")
+    open(path, "r+b").write(bytes(b))
+    os.utime(path, ns=(st.st_atime_ns, st.st_mtime_ns))
+    st2 = os.stat(path)
+    check(st2.st_size == st.st_size and st2.st_mtime_ns == st.st_mtime_ns, "tamper keeps size and mtime")
+
+
+@named("NC-provenance")
+def nc_provenance():
+    lines, node, truth = sync_run(nack=(1, 1))
+    # R2: a normal run records every required source and every local module it loaded, hashed
+    with synthetic_runs(lines, node, truth) as (d, runs, log, sca), stub_s5n():
+        vec = os.path.join(runs, SYN_CFG, SYN_CFG, "vectors.vec")
+        open(vec, "w").write("vector 0 x\n1 2 3\n")
+        rc, txt = run_inproc(runs, os.path.join(d, "rec"))
+        dig, out = load_records(os.path.join(d, "rec"))
+    code = dig["inputs"]["code"]
+    check(sorted(code["required"]) == sorted(CLIM.REQUIRED_S5N) and all(re.fullmatch(r"[0-9a-f]{64}", h) for h in code["required"].values()),
+          "every required source hashed")
+    for f in ("check_m2s72_s5n.py", "check_m2s72_b.py", "m2s72_a21.py", "m2s72_e0vn21.py", "check_m2s72_s5n21.py"):
+        check(code["loaded"].get(f) == code["required"][f], f"loaded module {f} hashed")
+    check(set(code["loaded"]) - set(code["required"]) <= {f for f in code["loaded"] if not f.startswith("test_")}, "loaded set")
+    # R3: the consumed inputs, byte-level: the log, the .sca, a vector file the evaluation read, the Simu5G sources A2-0s read
+    cs = dig["inputs"]["consumed_sha256"]
+    check(f"runs:run-{SYN_CFG}.log.gz" in cs and f"runs:{SYN_CFG}/{SYN_CFG}/0.sca" in cs and f"runs:{SYN_CFG}/{SYN_CFG}/vectors.vec" in cs,
+          f"consumed inputs {sorted(cs)[:6]}")
+    check(any(k.startswith("simu5g:") for k in cs), "the Simu5G sources read by A2-0s are consumed inputs")
+    check(cs[f"runs:{SYN_CFG}/{SYN_CFG}/0.sca"] == dig["inputs"]["sca_sha256"], "the .sca hash")
+    check("NOT integrity" in out["inputs"]["run_tree_inventory"]["note"], "the inventory is labelled supplementary")
+    # R2: a missing required source -> exit 2 before any evaluation; nothing published, no staging
+    for mode in ("run", "hrq"):
+        with synthetic_runs(lines, node, truth) as (d, runs, log, sca), stub_s5n():
+            name = "REQUIRED_S5N" if mode == "run" else "REQUIRED_A21"
+            orig = getattr(CLIM, name)
+            setattr(CLIM, name, orig + ("m2s72_missing_source.py",))
+            try:
+                if mode == "run":
+                    rc, txt = run_inproc(runs, os.path.join(d, "rec"))
+                else:
+                    rc, txt = cli_inproc(["hrq", runs, SYN_CFG, os.path.join(d, "rec")])
+            finally:
+                setattr(CLIM, name, orig)
+            check(rc == 2 and "required source files missing" in txt and "m2s72_missing_source.py" in txt
+                  and not os.path.exists(os.path.join(d, "rec")) and not os.path.exists(os.path.join(d, "rec.incomplete")),
+                  f"{mode}: missing source: rc {rc}: {txt[:200]}")
+    # R3: a same-size, timestamp-preserving change of the .sca during the evaluation: the inventory does not see it,
+    # the byte-level hashes do
+    with synthetic_runs(lines, node, truth) as (d, runs, log, sca):
+        inv = {}
+
+        def tamper(runs_, cfg_):
+            inv["before"] = CLIM.tree_fingerprint(os.path.join(runs_, cfg_))
+            same_size_tamper(os.path.join(runs_, cfg_, cfg_, "0.sca"))
+            inv["after"] = CLIM.tree_fingerprint(os.path.join(runs_, cfg_))
+        with stub_s5n({"tamper": tamper}):
+            rc, txt = run_inproc(runs, os.path.join(d, "rec"))
+        check(inv["before"] == inv["after"], "size / mtime inventory unchanged by the tamper (it is not integrity)")
+        check(rc == 2 and "sha256" in txt and not os.path.exists(os.path.join(d, "rec")), f"same-size .sca change: rc {rc}: {txt[:300]}")
+    # R3: a consumed run file (read by the evaluation) changed later, same size and timestamps: its first-read hash
+    with synthetic_runs(lines, node, truth) as (d, runs, log, sca):
+        vec = os.path.join(runs, SYN_CFG, SYN_CFG, "vectors.vec")
+        open(vec, "w").write("vector 0 x\n1 2 3\n")
+        with stub_s5n({"tamper_late": lambda runs_, cfg_: same_size_tamper(os.path.join(runs_, cfg_, cfg_, "vectors.vec"))}) as stt:
+            rc, txt = run_inproc(runs, os.path.join(d, "rec"))
+        check("vec" in stt and rc == 2 and "consumed files" in txt and "vectors.vec" in txt and not os.path.exists(os.path.join(d, "rec")),
+              f"same-size consumed-file change: rc {rc}: {txt[:300]}")
+    # R3 in hrq: the log changed after its first reading -> exit 2, nothing written
+    with synthetic_runs(lines, node, truth) as (d, runs, log, sca):
+        orig_he = PA.harq_events
+
+        def he(path, *a, **k):
+            out_ = orig_he(path, *a, **k)
+            same_size_tamper(sca)
+            return out_
+        PA.harq_events = he
+        try:
+            rc, txt = cli_inproc(["hrq", runs, SYN_CFG, os.path.join(d, "rec")])
+        finally:
+            PA.harq_events = orig_he
+        check(rc == 2 and "changed" in txt and not os.path.exists(os.path.join(d, "rec")), f"hrq: same-size change: rc {rc}")
+    check(CLIM.InputTracker.active is None, "no tracker left active")
     CLIM._RUN_STARTED = False
 
 
