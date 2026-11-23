@@ -13,8 +13,11 @@ Increment I-2 adds MAP-UE (4.4) and A2-8u with its compatibility relation CR-1 .
 Increment I-3 adds C-0 with R-0a .. R-0e (4.1), PU-4h (4.3) and PU-4o (4.6); the censoring classes of 4.2 act through
 the unchanged A-2.1 rows.
 Increment I-4 adds the historical A-1 report (PU-4 verbatim, the A-1 summary and per-UE values under 'historical') and
-the non-gating A-1 / A-2.1 agreement diagnostic (4.10). The FGO flag, the verdict composition and the CLI modes are
-later increments (I-5 .. I-8) and are deliberately absent.
+the non-gating A-1 / A-2.1 agreement diagnostic (4.10).
+Increment I-5 adds the first-genuine-occurrence evaluation against the committed registry (4.7), the s5n gate
+predicate minus the historical PU-4 (4.8, 4.9) and the composed verdict with the precedence
+REFUSED / EVALUATION ERROR > FAIL > INCOMPLETE > HELD FOR REVIEW > PASS (exits 2, 1, 4, 3, 0; D-A1-11).
+The CLI modes are later increments (I-6 .. I-8) and are deliberately absent.
 
 Pure functions. Never writes a file. Reads only the registry and the result records the registry cites. The frozen
 and accepted modules are imported read-only and are never modified.
@@ -1119,3 +1122,153 @@ def agreement(a1_events, a1_trace, res, c0_status):
                 disagree=disagree, disagree_by_a21_class=dict(sorted(dis_cls.items())),
                 a1_attributed_without_a21_owner=dict(sorted(not_comp.items())),
                 a1_unattributed_by_a21_class=dict(sorted(unattr.items())), disagreements=examples)
+
+
+# ================================================================================================ I-5 ============
+# --------------------------------------------------------------------------- FGO evaluation (design 4.7) ---------
+FGO_A24C = "A2-4c (node-identified scheduler evidence)"
+TEST_ONLY_LABEL = "TEST ONLY (in-memory; never written; not a registry)"
+
+
+def registry_view(loaded):
+    """the part of a load_registry() result the FGO evaluation reads: known names (in order), admitted names, sha256"""
+    return {"label": f"committed registry {os.path.relpath(loaded['path'], REPO) if os.path.isabs(str(loaded['path'])) else loaded['path']}",
+            "known": list(loaded["known"]), "admitted": list(loaded["admitted"]), "sha256": loaded["sha256"]}
+
+
+def test_only_view(admitted):
+    """an in-memory registry view for tests that must reach the PASS path. Labelled TEST ONLY, never written, and it
+    has no sha256 of a file: a verdict computed with it can never be mistaken for one computed with the registry."""
+    return {"label": TEST_ONLY_LABEL, "known": coverage_names(), "admitted": list(admitted), "sha256": None}
+
+
+def fgo(coverage, rows, view):
+    """the first-genuine-occurrence evaluation (design 4.7): coverage = m2s72_a21.coverage(res, rows) of the run;
+    rows = its A-2.1 rows; view = registry_view(load_registry()) or test_only_view(...). Returns
+    {"held": [{feature, count, reason}], "exercised": {name: count}, "registry": label, "registry_sha256"}.
+    Raises EvaluationError (exit 2) on coverage schema drift or a malformed view. Reads only."""
+    names = coverage_names()
+    if not (isinstance(view, dict) and view.get("known") == names and isinstance(view.get("admitted"), list)
+            and all(isinstance(a, str) and a in names for a in view["admitted"])
+            and len(set(view["admitted"])) == len(view["admitted"])):
+        raise EvaluationError(f"FGO: registry view malformed or not the 18 coverage features: {_show(view)}")
+    if not isinstance(coverage, (list, tuple)):
+        raise EvaluationError(f"FGO: coverage output missing or malformed ({type(coverage).__name__})")
+    counts = {}
+    for e in coverage:
+        if not (isinstance(e, (list, tuple)) and len(e) == 3 and isinstance(e[0], str) and _is_int(e[1]) and e[1] >= 0):
+            raise EvaluationError(f"FGO: malformed coverage entry {_show(e)}")
+        if e[0] in counts:
+            raise EvaluationError(f"FGO: coverage feature {e[0]!r} twice")
+        counts[e[0]] = e[1]
+    missing = [n for n in names if n not in counts]
+    if missing:
+        raise EvaluationError(f"FGO: registry features absent from the run's coverage output (schema drift): {missing}")
+    held = []
+    for name in names:
+        if counts[name] > 0 and name not in view["admitted"]:
+            held.append({"feature": name, "count": counts[name], "reason": "first genuine occurrence"})
+    for name in counts:
+        if name not in names:
+            held.append({"feature": name, "count": counts[name], "reason": "unknown feature"})
+    st = {r[0]: r[2] for r in rows if isinstance(r, (list, tuple)) and len(r) == 4}
+    if "A2-4c" not in st:
+        raise EvaluationError("FGO: the A-2.1 rows hold no A2-4c row")
+    if st["A2-4c"] in (PASS, FAIL):
+        held.append({"feature": FGO_A24C, "count": 1, "reason": f"A2-4c exercised ({st['A2-4c']}): never genuine before"})
+    return {"held": held, "exercised": {n: c for n, c in counts.items() if c > 0}, "registry": view["label"],
+            "registry_sha256": view["sha256"]}
+
+
+# ---------------------------------------------------------------- s5n gates minus PU-4 (design 4.8, 4.9) ----------
+def s5n_info():
+    """check_m2s72_s5n's E.INFO (the rows whose FAIL is information only), from the accepted modules, imported with
+    the sys.argv isolation check_m2s72_s5n.py itself uses"""
+    argv = sys.argv
+    sys.argv = [argv[0]]
+    try:
+        import check_m2s72_s5v as S5V      # accepted; brings check_m2s72_e0 as E
+    finally:
+        sys.argv = argv
+    return tuple(S5V.E.INFO), S5V.E.NE
+
+
+def s5n_gates(s5n_rows, info=None, ne=None):
+    """(gate failures, gate not-evaluated) of the unchanged s5n rows: the two expressions of check_m2s72_s5n.py:140-141,
+    verbatim, then the historical PU-4 removed - the only change (DR-07b)"""
+    if info is None or ne is None:
+        info, ne = s5n_info()
+    if not isinstance(s5n_rows, (list, tuple)) or not all(isinstance(r, (list, tuple)) and len(r) == 4 and
+                                                          all(isinstance(x, str) for x in r[:3]) for r in s5n_rows):
+        raise EvaluationError(f"s5n rows missing or malformed ({type(s5n_rows).__name__})")
+    mine = s5n_rows
+    gate_fail = sorted({r[0] for r in mine if r[2] == "FAIL" and r[0] not in info})
+    ne_ = sorted({r[0] for r in mine if r[2] == ne and r[0].startswith(("PU-", "AV-"))})
+    return [x for x in gate_fail if x != HISTORICAL_PU4_ID], [x for x in ne_ if x != HISTORICAL_PU4_ID]
+
+
+# ------------------------------------------------------------------------- composed verdict (design 4.8) ----------
+def check_wrapper_rows(n, rows):
+    """every wrapper gate row present exactly once (MAP-UE, C-0, PU-4h; PU-4o and A2-8u for UE 0 .. n-1), each
+    schema-valid; raises EvaluationError otherwise: a gate is never silently absent from the verdict"""
+    if not _is_int(n) or n < 1 or not isinstance(rows, (list, tuple)):
+        raise EvaluationError(f"wrapper rows: numUe {_show(n)} / rows {type(rows).__name__}")
+    seen = {}
+    for i, r in enumerate(rows):
+        probs = validate_row(r, f"wrapper row {i}")
+        if probs:
+            raise EvaluationError(f"wrapper row malformed: {probs[:3]}")
+        key = (r["id"], r["subject"])
+        if key in seen:
+            raise EvaluationError(f"wrapper row {r['id']} {r['subject']} twice")
+        seen[key] = r["status"]
+    want = {(rid, "run") for rid in RUN_ROWS} | {(rid, f"UE {k}") for rid in PER_UE_ROWS for k in range(n)}
+    if set(seen) != want:
+        raise EvaluationError(f"wrapper rows incomplete or unexpected: missing {sorted(want - set(seen))}, "
+                              f"unexpected {sorted(set(seen) - want)}")
+    return seen
+
+
+def compose_verdict(n, rows, fgo_result, s5n_rows=None, info=None, ne=None):
+    """the composed per-run verdict (design 4.8): wrapper gates (FAIL and NE both gate), the s5n gates minus the
+    historical PU-4 (None in hrq, where s5n is not run), and the held features. Precedence FAIL > INCOMPLETE >
+    HELD FOR REVIEW > PASS; held features are listed whatever the outcome. Takes no historical value and no
+    diagnostic. Raises EvaluationError (-> error_verdict) when a gate or the FGO result is missing or malformed."""
+    st = check_wrapper_rows(n, rows)
+    if not (isinstance(fgo_result, dict) and isinstance(fgo_result.get("held"), list)):
+        raise EvaluationError(f"FGO result missing or malformed: {_show(fgo_result)}")
+    held = []
+    for h in fgo_result["held"]:
+        if not (isinstance(h, dict) and _text(h.get("feature")) and _text(h.get("reason"))):
+            raise EvaluationError(f"malformed held feature {_show(h)}")
+        if h["feature"] not in held:
+            held.append(h["feature"])
+    fails = {rid for (rid, _), s in st.items() if s == FAIL}
+    nes = {rid for (rid, _), s in st.items() if s == NE}
+    if s5n_rows is not None:
+        f5, n5 = s5n_gates(s5n_rows, info, ne)
+        clash = (set(f5) | set(n5)) & set(WRAPPER_ROWS)
+        if clash:
+            raise EvaluationError(f"s5n rows use wrapper row ids {sorted(clash)}")
+        fails |= set(f5)
+        nes |= set(n5)
+    status = V_FAIL if fails else V_INCOMPLETE if nes else V_HELD if held else V_PASS
+    return {"status": status, "exit": EXIT[status], "gate_failures": sorted(fails), "gate_not_evaluated": sorted(nes),
+            "held_features": held, "held": copy.deepcopy(fgo_result["held"])}
+
+
+def error_verdict(reason, refused=False):
+    """REFUSED / EVALUATION ERROR (exit 2): never accompanied by a PASS of anything"""
+    status = V_REFUSED if refused else V_ERROR
+    return {"status": status, "exit": EXIT[status], "reason": str(reason), "gate_failures": [], "gate_not_evaluated": [],
+            "held_features": [], "held": []}
+
+
+def run_verdict(fn, *args, **kwargs):
+    """compose_verdict at the boundary: Refused -> REFUSED, any other exception -> EVALUATION ERROR (exit 2)"""
+    try:
+        return fn(*args, **kwargs)
+    except Refused as ex:
+        return error_verdict(ex, refused=True)
+    except Exception as ex:                      # includes EvaluationError
+        return error_verdict(f"{type(ex).__name__}: {ex}")

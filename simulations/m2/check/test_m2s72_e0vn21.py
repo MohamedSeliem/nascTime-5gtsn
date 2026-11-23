@@ -2,7 +2,8 @@
 """Tests of the WP-A1 wrapper (design revision 2.1, 57a80ca, section 7). Increment I-1: T-name-guard, T-registry,
 T-schema, T-imports-isolated. Increment I-2: T-map, T-a28-compat, NC-scalar-ue1, NC-scalar-missing-ue1.
 Increment I-3: T-c0, NC-c0, T-n2-same-tti, T-n2-a2v1-like, T-n4-independent, T-n4-overlap-nack, T-censor-*,
-T-unresolved, NC-no-ue-lines, NC-swap, NC-occ, T-pu4h. Increment I-4: T-agree, NC-pu4-relabel. The I-2 and I-3 tests that run the accepted A-2.1 need
+T-unresolved, NC-no-ue-lines, NC-swap, NC-occ, T-pu4h. Increment I-4: T-agree, NC-pu4-relabel.
+Increment I-5: T-n3-groups, T-multinack, T-discard, NC-registry, T-a24c-review, T-verdict, T-s5n-semantics. The I-2 and I-3 tests that run the accepted A-2.1 need
 SIMU5G_ROOT (the Simu5G 1.8.1 sources, for A2-0s), as test_m2s72_a21.py does; tier-0 provides it. No simulation; no raw output of any run; synthetic inputs and repository files only.
 The committed registry is only read; T-registry and main() check that its sha256 is unchanged.
 
@@ -1605,6 +1606,306 @@ def nc_pu4_relabel():
     h = W.historical_a1(("PU-4", "run", "FAIL", "x"), {"a1a": 1}, {0: {"f": 1}})
     h["harq_attribution"]["a1a"] = 2
     check(W.historical_a1(("PU-4", "run", "FAIL", "x"), {"a1a": 1}, {0: {"f": 1}})["harq_attribution"] == {"a1a": 1}, "copies")
+
+
+# ================================================================================================ I-5 ============
+COMMITTED = None
+
+
+def committed_view():
+    global COMMITTED
+    if COMMITTED is None:
+        COMMITTED = W.registry_view(W.load_registry())
+    return COMMITTED
+
+
+def truth_sca_values(node, truth):
+    """Simu5G-like per-UE statistics from the GENERATOR TRUTH (independent of A-2.1): error rate = NACK / feedback,
+    tx attempts = mean ntx of the ACKed PDUs"""
+    per = {}
+    for x in truth:
+        e = per.setdefault(x["node"], {"fb": 0, "nack": 0, "ntx": []})
+        e["fb"] += 1
+        e["nack"] += x["res"] == "NACK"
+        if x["res"] == "ACK":
+            e["ntx"].append(x["ntx"])
+    return {k: {ER: repr(per[n]["nack"] / per[n]["fb"]), TX: repr(sum(per[n]["ntx"]) / len(per[n]["ntx"]))}
+            for k, n in node.items() if n in per and per[n]["ntx"]}
+
+
+def pipe_full(lines, node, truth, view=None, nproc=16, t0=1000 * MS):
+    """the complete library composition of one synthetic run (as I-7 will wire it): log + truth .sca written, A-1
+    events, census, ONE A-2.1 replay, MAP-UE, C-0, PU-4h, PU-4o, A2-8u, FGO and the composed verdict"""
+    d = tempfile.mkdtemp(prefix="e0vn21-i5-")
+    try:
+        p = os.path.join(d, "run.log.gz")
+        with gzip.open(p, "wt") as fh:
+            fh.writelines(lines)
+        sca = write_sca(d, node, truth_sca_values(node, truth))
+        a1 = PA.harq_events(p)
+        with gzip.open(p, "rt") as fh:
+            census = W.token_census(fh.read().splitlines(True))
+        res, rows, per, cov, extra, window = A21.evaluate(A21.load(p), nproc, t0, node, TA.grants_of(lines), sca, simu5g_root())
+        r = compose(len(node), node, a1, census, res, rows, per, cov, extra)
+        a8, locs8 = W.a28u_rows(len(node), dict(node), PR.scalars(sca), A2.sca_nodes(sca), res,
+                                W.scalar_record_counts(open(sca).read().splitlines(True)), r["map"]["status"], r["pu4h"]["status"])
+    finally:
+        shutil.rmtree(d)
+    r["a28u"], r["coverage"] = a8, cov
+    r["wrapper_rows"] = [r["map"], r["c0"], r["pu4h"]] + r["pu4o"] + a8
+    r["fgo"] = W.fgo(cov, rows, view or committed_view())
+    r["verdict"] = W.compose_verdict(len(node), r["wrapper_rows"], r["fgo"])
+    return r
+
+
+def HELD(r):
+    return set(r["verdict"]["held_features"])
+
+
+def nonadmitted_exercised(r, view):
+    return {n for n, c, _ in r["coverage"] if c > 0 and n not in view["admitted"]}
+
+
+def all_but(*names):
+    return W.test_only_view([n for n in W.coverage_names() if n not in names])
+
+
+# -------------------------------------------------------------------------------- T-n3-groups / multinack / discard
+@named("T-n3-groups")
+def t_n3_groups():
+    lines, node, truth = G.make(3, 30, lambda tti: [0, 1, 2], tail=40)
+    r = pipe_full(lines, node, truth)
+    check(r["cov"]["exchangeable groups of 3 or more"] > 0 and r["st"]["A2-5"] == "PASS", f"groups of 3: {r['cov']}")
+    check(r["pu4h"]["status"] == "PASS" and S(r) == ["PASS"] * 3 and [x["status"] for x in r["a28u"]] == ["PASS"] * 3,
+          f"gates: PU-4h {r['pu4h']['status']}, PU-4o {S(r)}, A2-8u {[x['status'] for x in r['a28u']]}")
+    check("exchangeable groups of 3 or more" in HELD(r) and r["verdict"]["status"] == W.V_HELD and r["verdict"]["exit"] == 3,
+          f"committed registry: {r['verdict']}")
+    check(HELD(r) == nonadmitted_exercised(r, committed_view()), f"held {HELD(r)} = the exercised non-admitted features")
+    for x in r["fgo"]["held"]:
+        check(x["reason"] == "first genuine occurrence", f"reason {x}")
+    # TEST ONLY: everything admitted except groups of 3 -> exactly that feature held; everything admitted -> PASS
+    r2 = W.compose_verdict(3, r["wrapper_rows"], W.fgo(r["coverage"], r["rows"], all_but("exchangeable groups of 3 or more")))
+    check(r2["status"] == W.V_HELD and r2["held_features"] == ["exchangeable groups of 3 or more"], f"TEST ONLY minus groups of 3: {r2}")
+    f_all = W.fgo(r["coverage"], r["rows"], W.test_only_view(W.coverage_names()))
+    check(f_all["registry"] == W.TEST_ONLY_LABEL and f_all["registry_sha256"] is None, "TEST ONLY label, no file digest")
+    check(W.compose_verdict(3, r["wrapper_rows"], f_all)["status"] == W.V_PASS, "TEST ONLY all admitted: PASS")
+
+
+@named("T-multinack")
+def t_multinack():
+    s = lambda tti: [0, 1]
+    _, _, t0 = G.make(2, 30, s, tail=40)
+    by_t = {}
+    for x in t0:
+        by_t.setdefault(x["t"], []).append(x)
+    pair = next(v for t, v in sorted(by_t.items()) if len(v) == 2 and t // MS > 1010)
+    lines, node, truth = G.make(2, 30, s, nack={(pair[0]["pid"], 1), (pair[1]["pid"], 1)}, tail=40)
+    r = pipe_full(lines, node, truth)
+    check(r["cov"]["multi-NACK groups (handle relations kept ambiguous)"] > 0, f"multi-NACK {r['cov']}")
+    check_counts_truth(r, truth)                                   # counts exact (as multisets)
+    check("multi-NACK groups (handle relations kept ambiguous)" in HELD(r), f"held {HELD(r)}")
+    check(HELD(r) == nonadmitted_exercised(r, committed_view()), "held = the exercised non-admitted features")
+    check(r["verdict"]["status"] == W.V_HELD and r["verdict"]["exit"] == 3 and not r["verdict"]["gate_failures"]
+          and not r["verdict"]["gate_not_evaluated"], f"every gate PASS, held for review: {r['verdict']}")
+
+
+@named("T-discard")
+def t_discard():
+    s = lambda tti: [0] + ([1] if tti % 4 == 1 else [])
+    _, _, t0 = G.make(2, 30, s, tail=60)
+    pid = [x["pid"] for x in t0 if x["node"] == 2050][1]
+    lines, node, truth = G.make(2, 30, s, nack={(pid, a) for a in (1, 2, 3, 4)}, max_rtx=3, tail=60)
+    disc = {x["pid"] for x in truth if x["outcome"] == "discard"}
+    check(disc == {pid}, f"truth discards {disc}")
+    r = pipe_full(lines, node, truth)
+    check(r["cov"]["discard after maxHarqRtx + 1 transmissions"] == 1, f"discard {r['cov']}")
+    check(r["per"][2050]["discarded"] == 1 and r["per"][2049]["discarded"] == 0, "per-UE discarded = truth")
+    check("discard after maxHarqRtx + 1 transmissions" in HELD(r) and HELD(r) == nonadmitted_exercised(r, committed_view()),
+          f"held {HELD(r)}")
+    check(r["verdict"]["status"] == W.V_HELD and not r["verdict"]["gate_failures"] and not r["verdict"]["gate_not_evaluated"],
+          f"every gate PASS, held for review: {r['verdict']}")
+
+
+# ----------------------------------------------------------------------------------------------- NC-registry ----
+@named("NC-registry")
+def nc_registry():
+    lines, node, truth, T = nack_run(2, lambda tti: [0] + ([1] if tti % 3 == 0 else []), 1, 1)
+    r = pipe_full(lines, node, truth)
+    reg_sha = hashlib.sha256(open(W.REGISTRY_PATH, "rb").read()).hexdigest()
+    check(r["fgo"]["registry_sha256"] == reg_sha and r["fgo"]["registry"].startswith("committed registry"), "committed view")
+    base_held = HELD(r)
+    check(r["cov"]["retransmissions"] > 0 and "retransmissions" not in base_held, "admitted retransmissions are not held")
+    # genuinely unexercised features never trigger review
+    for n_, c, _ in r["coverage"]:
+        if c == 0:
+            check(n_ not in base_held, f"an unexercised feature is held: {n_}")
+    check(base_held == nonadmitted_exercised(r, committed_view()), f"held {base_held}")
+    # NC-registry: 'retransmissions' no longer admitted (in memory) -> now held
+    v = dict(committed_view(), admitted=[a for a in committed_view()["admitted"] if a != "retransmissions"])
+    f = W.fgo(r["coverage"], r["rows"], v)
+    check("retransmissions" in {h["feature"] for h in f["held"]}, "NC-registry: a de-admitted exercised feature is held")
+    # NC-registry-unknown: a coverage name unknown to the registry -> held with its own reason (also with count 0)
+    for cnt in (3, 0):
+        f = W.fgo(list(r["coverage"]) + [("exchangeable groups of 5 or more", cnt, "x")], r["rows"], committed_view())
+        u = [h for h in f["held"] if h["feature"] == "exchangeable groups of 5 or more"]
+        check(len(u) == 1 and u[0]["reason"] == "unknown feature", f"NC-registry-unknown ({cnt}): {f['held']}")
+        v_ = W.compose_verdict(2, r["wrapper_rows"], f)
+        check("exchangeable groups of 5 or more" in v_["held_features"] and v_["status"] != W.V_PASS, f"{v_}")
+    # NC-registry-missing: a registry name absent from the coverage output -> EVALUATION ERROR (exit 2)
+    cov = [e for e in r["coverage"] if e[0] != "retransmissions"]
+    v_ = W.run_verdict(lambda: W.compose_verdict(2, r["wrapper_rows"], W.fgo(cov, r["rows"], committed_view())))
+    check(v_["status"] == W.V_ERROR and v_["exit"] == 2 and "schema drift" in v_["reason"], f"NC-registry-missing: {v_}")
+    # NC-registry-uncited: an inferred feature admitted -> the registry is refused at load (EVALUATION ERROR)
+    reg = json.load(open(W.REGISTRY_PATH, encoding="utf-8"))
+    _by(reg, "single-candidate ACK attribution")["admitted"] = True
+    _must_fail(reg, "NC-registry-uncited")
+    # malformed coverage entries and views -> EVALUATION ERROR, never a silent pass
+    for cov in (None, "x", [("a", 1)], list(r["coverage"]) + [r["coverage"][0]], [(n_, -1, "") for n_, _, _ in r["coverage"]],
+                [(n_, True, "") for n_, _, _ in r["coverage"]]):
+        check(W.run_verdict(W.fgo, cov, r["rows"], committed_view())["status"] == W.V_ERROR, f"coverage {str(cov)[:60]}")
+    for view in (None, {}, dict(committed_view(), known=W.coverage_names()[:-1]),
+                 dict(committed_view(), admitted=["not a feature"]), dict(committed_view(), admitted=["retransmissions"] * 2)):
+        check(W.run_verdict(W.fgo, r["coverage"], r["rows"], view)["status"] == W.V_ERROR, f"view {str(view)[:60]}")
+    check(W.run_verdict(W.fgo, r["coverage"], [x for x in r["rows"] if x[0] != "A2-4c"], committed_view())["status"] == W.V_ERROR,
+          "no A2-4c row")
+    # the admissions are exactly the nine of revision 2.1
+    check(committed_view()["admitted"] == ADMITTED, "committed admissions")
+
+
+@named("T-a24c-review")
+def t_a24c_review():
+    """A2-4c exercised (scheduler logging on: never genuine) is held; an A2-4c FAIL also fails PU-4h (NOT VALID)"""
+    lines, node, truth, T = nack_run(2, lambda tti: [0] + ([1] if tti % 3 == 0 else []), 1, 1, sched_log=True)
+    r = pipe_full(lines, node, truth)
+    check(r["st"]["A2-4c"] == "PASS" and W.FGO_A24C in HELD(r), f"A2-4c {r['st']['A2-4c']}, held {HELD(r)}")
+    rows_fail = [(k, s_, "FAIL" if k == "A2-4c" else st, d_) for k, s_, st, d_ in r["rows"]]
+    ph, _ = W.pu4h_row(r["map"], r["c0"], rows_fail, r["res"])
+    check(ph["status"] == "FAIL", "an A2-4c FAIL fails PU-4h")
+    f = W.fgo(r["coverage"], rows_fail, committed_view())
+    check(W.FGO_A24C in {h["feature"] for h in f["held"]}, "an A2-4c FAIL is also held")
+    rows_w = [r["map"], r["c0"], ph] + [W.pu4o_row(k, x, "PASS", "FAIL", "PASS") for k, x in enumerate(r["locs"])] + \
+        [W.a28u_row(k, x, "PASS", "FAIL") for k, x in enumerate(W.a28u_rows(2, dict(node), None, None, r["res"], {}, "PASS", "FAIL")[1])]
+    v = W.compose_verdict(2, rows_w, f)
+    check(v["status"] == W.V_FAIL and W.FGO_A24C in v["held_features"], f"FAIL with the review item listed: {v}")
+    lines, node, truth, T = nack_run(2, lambda tti: [0] + ([1] if tti % 3 == 0 else []), 1, 1)
+    r = pipe_full(lines, node, truth)
+    check(r["st"]["A2-4c"] == W.NE and W.FGO_A24C not in HELD(r), "no scheduler logging: A2-4c NE, not held")
+
+
+# -------------------------------------------------------------------------------------------------- T-verdict ----
+def _wrows(n=2, **status):
+    """synthetic wrapper rows: every row PASS unless overridden, e.g. PU4h='NOT EVALUATED', PU4o1='FAIL'"""
+    def st(key, local=False):
+        s_ = status.get(key, "PASS")
+        return s_, (W.EQUAL if s_ == "PASS" else (W.DIFFERENT if s_ == "FAIL" else W.NOT_COMPARED)) if local else None
+    rows = []
+    for rid, key in ((W.ROW_MAP, "MAP"), (W.ROW_C0, "C0"), (W.ROW_PU4H, "PU4h")):
+        rows.append({"id": rid, "subject": "run", "status": st(key)[0], "detail": "synthetic"})
+    for rid, key in ((W.ROW_PU4O, "PU4o"), (W.ROW_A28U, "A28u")):
+        for k in range(n):
+            s_, loc = st(f"{key}{k}", True)
+            rows.append({"id": rid, "subject": f"UE {k}", "status": s_, "local": loc, "detail": "synthetic"})
+    return rows
+
+
+def _held(*names):
+    return {"held": [{"feature": n, "count": 1, "reason": "first genuine occurrence"} for n in names]}
+
+
+@named("T-verdict")
+def t_verdict():
+    info, ne = W.s5n_info()
+    NONE = _held()
+    H = _held("exchangeable groups of 3 or more")
+    s5 = lambda *rs: list(rs)
+    table = [
+        ("all PASS, nothing held", _wrows(), NONE, None, W.V_PASS, [], []),
+        ("held only", _wrows(), H, None, W.V_HELD, [], []),
+        ("wrapper NE", _wrows(PU4h=W.NE), NONE, None, W.V_INCOMPLETE, [], ["PU-4h"]),
+        ("wrapper NE + held: INCOMPLETE wins", _wrows(A28u1=W.NE), H, None, W.V_INCOMPLETE, [], ["A2-8u"]),
+        ("wrapper FAIL + NE + held: FAIL wins", _wrows(C0="FAIL", PU4o0=W.NE), H, None, W.V_FAIL, ["C-0"], ["PU-4o"]),
+        ("every wrapper row FAIL", _wrows(MAP="FAIL", C0="FAIL", PU4h="FAIL", PU4o0="FAIL", PU4o1="FAIL", A28u0="FAIL", A28u1="FAIL"),
+         NONE, None, W.V_FAIL, ["A2-8u", "C-0", "MAP-UE", "PU-4h", "PU-4o"], []),
+        ("s5n gate FAIL", _wrows(), NONE, s5(("SG-403", "run", "FAIL", "")), W.V_FAIL, ["SG-403"], []),
+        ("s5n info FAIL is not a gate", _wrows(), NONE, s5(("F0-1 (info)", "run", "FAIL", ""), ("H-cov (diagnostic)", "run", "FAIL", "")),
+         W.V_PASS, [], []),
+        ("s5n non-PU NE is not a gate", _wrows(), NONE, s5(("Q8-v", "run", ne, ""), ("EOR", "x", "NOT APPLICABLE", "")), W.V_PASS, [], []),
+        ("s5n AV NE gates", _wrows(), H, s5(("AV-2", "UE 1", ne, "")), W.V_INCOMPLETE, [], ["AV-2"]),
+        ("s5n PU-5 NE gates", _wrows(), NONE, s5(("PU-5", "run", ne, "")), W.V_INCOMPLETE, [], ["PU-5"]),
+        ("historical PU-4 FAIL is not a gate", _wrows(), NONE, s5(("PU-4", "run", "FAIL", "A-1 ambiguous 768")), W.V_PASS, [], []),
+        ("historical PU-4 NE is not a gate", _wrows(), NONE, s5(("PU-4", "run", ne, "no MAC log")), W.V_PASS, [], []),
+        ("historical PU-4 FAIL with held", _wrows(), H, s5(("PU-4", "run", "FAIL", "x")), W.V_HELD, [], []),
+        ("s5n FAIL + wrapper NE + held", _wrows(PU4o1=W.NE), H, s5(("MG-1", "run", "FAIL", ""), ("PU-4", "run", "FAIL", "")),
+         W.V_FAIL, ["MG-1"], ["PU-4o"]),
+    ]
+    for what, rows, f, s5rows, want, wf, wn in table:
+        v = W.compose_verdict(2, rows, f, s5rows, info, ne)
+        check((v["status"], v["exit"], v["gate_failures"], v["gate_not_evaluated"]) == (want, W.EXIT[want], wf, wn),
+              f"{what}: {v}")
+        check(v["held_features"] == [h["feature"] for h in f["held"]], f"{what}: held features listed whatever the outcome")
+        # the composed verdict is consistent with the digest schema of I-1
+        x = good_digest()
+        x["correctness"]["rows"] = rows
+        x["correctness"]["verdict"] = {k: v[k] for k in W.VERDICT_KEYS}
+        x["correctness"]["s5n"]["gate_failures"] = sorted({r_[0] for r_ in (s5rows or []) if r_[2] == "FAIL" and r_[0] not in info})
+        x["correctness"]["s5n"]["per_ue_not_evaluated"] = sorted({r_[0] for r_ in (s5rows or []) if r_[2] == ne and r_[0].startswith(("PU-", "AV-"))})
+        if any(r_["status"] != "PASS" for r_ in rows if r_["id"] in (W.ROW_MAP, W.ROW_C0, W.ROW_PU4H)):
+            continue                                   # the digest also checks the global rules between rows
+        check(W.validate_digest(x) == [], f"{what}: digest {W.validate_digest(x)[:3]}")
+    # precedence exits: 2 > 1 > 4 > 3 > 0
+    check([W.EXIT[s_] for s_ in W.PRECEDENCE] == [2, 2, 1, 4, 3, 0], "exit codes")
+    # REFUSED / EVALUATION ERROR: missing, duplicated or malformed gates, a bad FGO result, s5n rows using wrapper ids
+    bad = [("a missing PU-4h", lambda: W.compose_verdict(2, [x for x in _wrows() if x["id"] != W.ROW_PU4H], NONE)),
+           ("a missing UE 1 row", lambda: W.compose_verdict(2, [x for x in _wrows() if x["subject"] != "UE 1"], NONE)),
+           ("UE 2 rows with numUe 2", lambda: W.compose_verdict(2, _wrows(3), NONE)),
+           ("a duplicated row", lambda: W.compose_verdict(2, _wrows() + [_wrows()[0]], NONE)),
+           ("a malformed row", lambda: W.compose_verdict(2, _wrows()[:-1] + [dict(_wrows()[-1], status="OK")], NONE)),
+           ("an NX wrapper row", lambda: W.compose_verdict(2, [dict(x, status=W.NX) if x["id"] == W.ROW_C0 else x for x in _wrows()], NONE)),
+           ("no FGO result", lambda: W.compose_verdict(2, _wrows(), None)),
+           ("a malformed held entry", lambda: W.compose_verdict(2, _wrows(), {"held": [{"feature": ""}]})),
+           ("malformed s5n rows", lambda: W.compose_verdict(2, _wrows(), NONE, [("PU-1",)], info, ne)),
+           ("s5n row with a wrapper id", lambda: W.compose_verdict(2, _wrows(), NONE, [("PU-4h", "run", "FAIL", "")], info, ne)),
+           ("numUe 0", lambda: W.compose_verdict(0, [], NONE))]
+    for what, fn in bad:
+        v = W.run_verdict(fn)
+        check(v["status"] == W.V_ERROR and v["exit"] == 2 and not v["gate_failures"] and not v["held_features"], f"{what}: {v}")
+    v = W.run_verdict(lambda: (_ for _ in ()).throw(W.Refused("name guard")))
+    check(v["status"] == W.V_REFUSED and v["exit"] == 2, f"REFUSED {v}")
+    # historical values and the diagnostic cannot influence the verdict: compose_verdict takes neither
+    import inspect
+    params = list(inspect.signature(W.compose_verdict).parameters)
+    check(params == ["n", "rows", "fgo_result", "s5n_rows", "info", "ne"], f"compose_verdict parameters {params}")
+
+
+@named("T-s5n-semantics")
+def t_s5n_semantics():
+    """s5n_gates() equals the two expressions of the accepted check_m2s72_s5n.py:140-141, executed verbatim on the same
+    rows, minus PU-4 only"""
+    src = open(os.path.join(HERE, "check_m2s72_s5n.py")).read().splitlines()
+    exprs = [l_.strip() for l_ in src[139:141]]
+    check(exprs[0].startswith("gate_fail = sorted({r[0] for r in mine if r[2] == \"FAIL\" and r[0] not in E.INFO})") and
+          exprs[1].startswith("ne = sorted({r[0] for r in mine if r[2] == E.NE and r[0].startswith((\"PU-\", \"AV-\"))})"),
+          f"the accepted s5n predicate moved or changed: {exprs}")
+    info, ne = W.s5n_info()
+    argv = sys.argv
+    sys.argv = [argv[0]]
+    try:
+        import check_m2s72_s5n as S5N
+    finally:
+        sys.argv = argv
+    check(tuple(S5N.E.INFO) == info and S5N.E.NE == ne, "INFO / NE from the same accepted module")
+    import random
+    rnd = random.Random(7)
+    ids = ["PU-1", "PU-2", "PU-3", "PU-4", "PU-5", "AV-1", "AV-2", "AV-3", "Q8-v", "SG-403", "MG-1", "EOR", "F0-1 (info)",
+           "F0-2", "I-2H", "I-2 strict (info)", "H-cov (diagnostic)", "M3d", "Q8 UE 0"]
+    sts = ["PASS", "FAIL", ne, "NOT APPLICABLE", "NOT EXERCISED"]
+    for _ in range(400):
+        rows = [(rnd.choice(ids), "run", rnd.choice(sts), "x") for _ in range(rnd.randint(0, 25))]
+        ns = {"mine": rows, "E": S5N.E}
+        exec(exprs[0] + "\n" + exprs[1], {}, ns)
+        f, n_ = W.s5n_gates(rows, info, ne)
+        check(f == [x for x in ns["gate_fail"] if x != "PU-4"] and n_ == [x for x in ns["ne"] if x != "PU-4"],
+              f"s5n semantics differ on {rows}")
 
 
 # --------------------------------------------------------------------------------------- T-imports-isolated ----
