@@ -9,6 +9,7 @@
 #   (b) the suite's final summary line equals the declared expected line exactly;
 #   (c) every non-success count in that line is zero.
 # Expected lines are declared in h4-first-task.md §5 and must not be edited to make CI pass.
+# M2B-1 (step 145, C3): test_tsnaf_compile.py added; its line is declared in docs/migration/m2b-1-compatibility-report.md §4.
 
 name: tier0-python
 
@@ -250,6 +251,10 @@ jobs:
         if: ${{ !cancelled() && steps.runner.outcome == 'success' && steps.fixture_gate.outcome == 'success' && steps.simu5g_gate.outcome == 'success' }}
         run: '"$RUNNER_TEMP/tier0/run_suite.sh" test_m2s72_a21_fixture.py "A-2.1 fixture-extractor tests: 14 / 14 PASS, 0 FAIL"'
 
+      - name: Suite test_tsnaf_compile.py (M2B-1)
+        if: ${{ !cancelled() && steps.runner.outcome == 'success' && steps.fixture_gate.outcome == 'success' && steps.simu5g_gate.outcome == 'success' }}
+        run: '"$RUNNER_TEMP/tier0/run_suite.sh" test_tsnaf_compile.py "TSN AF compiler tests: 147 / 147 PASS, 0 FAIL; 37 compatibility cases reproduced"'
+
       - name: Not run in tier 0
         if: ${{ always() }}
         run: |
@@ -292,9 +297,9 @@ jobs:
                 echo "| \`$suite\` | **$verdict** | $rc | $dur | \`$(esc "$actual")\` | \`$(esc "$expected")\` |"
               done < "$R/results.tsv"
             fi
-            if [[ "$ran" -ne 10 ]]; then
+            if [[ "$ran" -ne 11 ]]; then
               echo
-              echo "**Only $ran of 10 declared suites produced a result; the rest were not run (see the gates and step logs).**"
+              echo "**Only $ran of 11 declared suites produced a result; the rest were not run (see the gates and step logs).**"
             fi
             echo
             echo "### NOT RUN in tier 0"
