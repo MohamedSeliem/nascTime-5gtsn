@@ -1,0 +1,53 @@
+{
+ "config": "M2S72-E0vN-q0-one0-n2-f1",
+ "expect": {
+  "a1.pu4_status": "FAIL",
+  "a1.summary.a1a": 9718,
+  "a1.summary.a1b": 2476,
+  "a1.summary.ambiguous": 768,
+  "a1.summary.orphan": 0,
+  "a1.summary.reinsert": 768,
+  "a21.exchangeable_groups": 384,
+  "a21.lines_by_class.exchangeable": 768,
+  "a21.rows.A2-4a": "NOT EXERCISED",
+  "a21.rows.A2-4b": "NOT EXERCISED",
+  "a21.rows.A2-4c": "NOT EXERCISED",
+  "a21.rows.A2-5": "PASS",
+  "a21.rows.A2-7": "PASS",
+  "a21.rows.A2-8": "PASS",
+  "a21.verdict_f1d_i": "A-2.1 VALID",
+  "a21.verdict_full": "A-2.1 VALID",
+  "agreement.a1_attributed": 12194,
+  "agreement.a1_unattributed_by_a21_class": {
+   "ambiguous -> exchangeable": 768
+  },
+  "agreement.agree": 12194,
+  "agreement.computed": true,
+  "agreement.disagree": 0,
+  "c0.status": "PASS",
+  "coverage.exchangeable ACK groups (2 candidates)": 384,
+  "coverage.single-candidate ACK attribution": 12194,
+  "rows.A2-8u.UE 0": "PASS",
+  "rows.A2-8u.UE 1": "PASS",
+  "rows.C-0": "PASS",
+  "rows.MAP-UE": "PASS",
+  "rows.PU-4h": "PASS",
+  "rows.PU-4o.UE 0": "PASS",
+  "rows.PU-4o.UE 0.local": "EQUAL",
+  "rows.PU-4o.UE 1": "PASS",
+  "rows.PU-4o.UE 1.local": "EQUAL",
+  "verdict.exit": 3,
+  "verdict.gate_failures": [],
+  "verdict.gate_not_evaluated": [],
+  "verdict.held_features": [
+   "single-candidate ACK attribution",
+   "exchangeable ACK groups (2 candidates)"
+  ],
+  "verdict.held_features_if_exercised": [
+   "end-of-run censoring: inserted in the last TTI"
+  ],
+  "verdict.status": "HELD FOR REVIEW"
+ },
+ "note": "Declared before execution from the approved WP-A1 design revision 2.1 (57a80ca), section 8.3, and the accepted records it cites. NOT EXECUTED in WP-A1: the genuine run is private evidence, evaluated only by the independent executor (DR-07c). A deviation is a finding (exit 5), never a reason to change a declared value. The A-2.1 line counts (12 194 single lines, 384 exchangeable groups / 768 lines) are the declared expectations of PC-A2-N2 (predicted), never confirmed on genuine output: a deviation is a finding. A2-8 per UE is declared as A2-8u PASS.",
+ "schema": "m2s72-s5n21-expect/1"
+}

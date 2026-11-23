@@ -4,7 +4,7 @@
     python3 -I -B check_m2s72_s5n21.py hrq         <runs> <cfg> <records dir> [--t0 <s>] [--expect <file>]
     python3 -I -B check_m2s72_s5n21.py hrq-fixture <fixture dir> <records dir> [--expect <file>]
     python3 -I -B check_m2s72_s5n21.py run         <runs> <cfg> <records dir> [--t0 <s>]
-    python3 -I -B check_m2s72_s5n21.py controls    <runs> <cfg> <records dir> [--t0 <s>]      (I-8: not implemented)
+    python3 -I -B check_m2s72_s5n21.py controls    <runs> <cfg> <records dir> [--t0 <s>]
 
 hrq          the H-ARQ rows of one run: ONE A-2.1 replay (F1-d(i) and full verdicts from the same rows), MAP-UE, C-0,
              PU-4h, PU-4o, A2-8u, the first-genuine-occurrence review (committed registry only), the composed verdict,
@@ -18,6 +18,13 @@ run          the E0v-N per-run evaluation: REFUSED unless S5N_ADAPTER_VALIDATED 
              A-2.1 replay gives MAP-UE, C-0, PU-4h, PU-4o, A2-8u, FGO and the current per-UE H-ARQ values. One run per
              process. The records are written into <records dir>.incomplete and renamed to <records dir> only when
              complete: <records dir> exists only for a completed evaluation.
+controls     the negative controls of design 7.3 that need a run (synthetic or the public fixture's run layout; never a
+             private run in this work package): each mutation is applied to a COPY of the run's evidence in a
+             temporary directory (the inputs are only read), and the copy is evaluated exactly as hrq evaluates.
+             A control counts only if its declared rows PASS on the unmutated copy (else NOT BUILDABLE, with the
+             reason); a mutation that changes nothing is a FAIL. Per control: PASS (as declared), FAIL (not as
+             declared) or NOT BUILDABLE, with the before / after evidence. Records controls-<cfg>.txt / .json.
+             Exit 0 every buildable control as declared, 1 any FAIL, 4 no mutation control buildable, 2 refused / error.
 hrq-fixture  the same on the committed real-chain fixture (m2s72_a21_realchain.load_fixture: pinned sha256), t0 = 0,
              no .sca; SIMU5G_ROOT required. "fixture (prefix of the sealed A2-V1 run); not an E0v-N run; not an A2-V1
              acceptance".
@@ -95,13 +102,11 @@ def parse_args(argv):
             raise Usage(f"unknown option {a}")
         else:
             pos.append(a)
-    if mode == "controls":
-        raise W.Refused(f"mode '{mode}' is not implemented in this increment (design revision 2.1, section 9: I-8)")
-    if mode in ("hrq", "run"):
+    if mode in ("hrq", "run", "controls"):
         if len(pos) != 3:
             raise Usage(f"{mode} <runs> <cfg> <records dir>")
-        if mode == "run" and opts["expect"] is not None:
-            raise Usage("run has no --expect (expectations are compared by hrq)")
+        if mode in ("run", "controls") and opts["expect"] is not None:
+            raise Usage(f"{mode} has no --expect (expectations are compared by hrq)")
         args = {"mode": mode, "runs": pos[0], "cfg": pos[1], "recdir": pos[2]}
     else:
         if len(pos) != 2:
@@ -129,7 +134,10 @@ FLAT = {"verdict.status", "verdict.exit", "verdict.gate_failures", "verdict.gate
         "a1.pu4_status", "touched_nodes"}
 PATTERNS = [r"rows\.(MAP-UE|C-0|PU-4h)", r"rows\.(PU-4o|A2-8u)\.UE \d+(\.local)?", r"a21\.rows\.A2-[0-9a-z]+",
             r"coverage\..+", r"a1\.summary\.[a-z0-9_]+", r"per_ue\.\d+\.(inserts|transmissions|retransmissions|feedback|ack|nack|discarded)",
-            r"agreement\.(computed|agree|disagree|a1_attributed)"]
+            r"agreement\.(computed|agree|disagree|a1_attributed|a1_unattributed_by_a21_class)",
+            r"a21\.(exchangeable_groups|handles_by_state)", r"a21\.lines_by_class\.[a-z-]+",
+            r"a28u\.UE \d+\.(harqErrorRateDl|harqTxAttemptsDl):mean"]
+TOLERANT = r"a28u\.UE \d+\.(harqErrorRateDl|harqTxAttemptsDl):mean"      # Simu5G statistics: REL_TOL as A2-8
 
 
 def known_key(k):
@@ -202,6 +210,17 @@ def evaluated_value(key, out):
         if key.startswith("per_ue."):
             _, node, field = key.split(".")
             return out["a21"]["per_ue"][node][field]
+        if key == "a21.exchangeable_groups":
+            cov = {n: c for n, c, _ in out["a21"]["coverage"]}
+            return cov["exchangeable ACK groups (2 candidates)"] + cov["exchangeable groups of 3 or more"]
+        if key == "a21.handles_by_state":
+            return out["a21"]["handles_by_state"]
+        if key.startswith("a21.lines_by_class."):
+            cls = key.split(".", 2)[2]
+            return sum(o["lines_by_class"].get(cls, 0) for o in out["a21"]["per_ue"].values())
+        if key.startswith("a28u."):
+            _, ue, stat = key.split(".", 2)
+            return out["a28u_stats"][ue][stat]["rec"]
         if key.startswith("agreement."):
             return out["diagnostics"]["agreement"][key.split(".", 1)[1]]
     except (KeyError, StopIteration, TypeError, IndexError):
@@ -219,9 +238,18 @@ def compare_expect(e, out):
         base = list(exp["verdict.held_features"])
         exp["verdict.held_features"] = base + [f for f in cond if cov.get(f, 0) > 0]
     table = []
+    import re
     for k in sorted(exp):
         want = exp[k]
         got = evaluated_value(k, out)
+        if isinstance(want, dict) and set(want) == {"any_of"} and isinstance(want["any_of"], list):
+            table.append((k, want, got, "MATCH" if got in want["any_of"] else "MISMATCH"))
+            continue
+        if re.fullmatch(TOLERANT, k) and isinstance(want, (int, float)) and isinstance(got, (int, float)) \
+                and not isinstance(want, bool) and not isinstance(got, bool):
+            ok = abs(got - want) <= W.A21.REL_TOL * max(1.0, abs(want))
+            table.append((k, want, got, "MATCH" if ok else "MISMATCH"))
+            continue
         if isinstance(want, list) and isinstance(got, list) and k in ("verdict.held_features", "verdict.gate_failures",
                                                                        "verdict.gate_not_evaluated", "touched_nodes"):
             want, got = sorted(map(str, want)), sorted(map(str, got))
@@ -399,10 +427,14 @@ def evaluate(ctx):
     before = {p: sha256_file(p) for p in ctx["watch"]}
     node_id, n = ctx["node_id"], len(ctx["node_id"])
     a1_events = PA.harq_events(ctx["log"])
+    if ctx.get("hook_a1") is not None:                                # controls only: a mutated A-1 event list
+        a1_events = ctx["hook_a1"](list(a1_events))
     census = W.token_census(raw_lines(ctx["log"]))
     res, rows, per, cov, extra, window = W.A21.evaluate(ctx["lines21"], ctx["nproc"], ctx["t0"], node_id, ctx["grants"],
                                                         ctx["sca"], ctx["root"])
     W.check_a21_rows(rows, extra)                                     # I-7: the complete accepted row set
+    if ctx.get("hook_replay") is not None:                            # controls only: corrupted replay output
+        per, extra = ctx["hook_replay"](per, extra)
     x7 = extra["xa"]                                                  # IG-3: passed through, never constructed
     v_f1di, v_full = W.A21.verdict(rows, "f1d-i")[0], W.A21.verdict(rows, "full")[0]
     if ctx["sca"]:
@@ -445,7 +477,10 @@ def evaluate(ctx):
                 "a21": {"rows": [list(r) for r in rows], "verdict_f1d_i": v_f1di, "verdict_full": v_full,
                         "coverage": [list(c) for c in cov], "run_level_a2_8": list(next(r for r in rows if r[0] == "A2-8")),
                         "a2_7": x7, "touched_nodes": sorted(W.A21.touched_nodes(res)), "end_states": res["end_states"],
-                        "unresolved": res["unresolved"], "per_ue": {str(k): v for k, v in per.items()}},
+                        "unresolved": res["unresolved"], "per_ue": {str(k): v for k, v in per.items()},
+                        "handles_by_state": dict(sorted(Counter(h["st"] for h in res["handles"].values()).items()))},
+                "a28u_stats": {f"UE {k}": {name: {f: _finite_or_text(st[f]) for f in ("outcome", "step", "rec", "val")}
+                                           for name, st in x["stats"].items()} for k, x in enumerate(a8_loc)},
                 "historical": {"label": "A-1 rule, computed by the frozen m2s72_peru on the same log; reported, not a gate (DR-07b)",
                                "a1_pu4_row": list(pu4), "a1_summary": summ},
                 "diagnostics": {"agreement": agree},
@@ -534,6 +569,418 @@ def dumps(x):
     import check_m2s72_a2 as C
     return json.dumps(C._clean(x), indent=1, sort_keys=True, allow_nan=False) + "\n"
 
+
+
+def _finite_or_text(v):
+    """a JSON value: a non-finite float (a Simu5G 'nan') is recorded as its text, never dropped or replaced"""
+    import math
+    return repr(v) if isinstance(v, float) and not math.isfinite(v) else v
+
+
+# ------------------------------------------------------------------------------------------------- controls -----
+class NotBuildable(Exception):
+    pass
+
+
+def _lt(line):
+    """the time of a raw log line in ps, or None for a line without a time stamp"""
+    p = line.split("|", 2)
+    if len(p) < 3 or not p[0][:1].isdigit():
+        return None
+    try:
+        return W.A21.PR.t_ps(p[0])
+    except Exception:
+        return None
+
+
+def _mod(line):
+    p = line.split("|", 2)
+    return p[1] if len(p) >= 3 else None
+
+
+def _median(xs, what):
+    if not xs:
+        raise NotBuildable(f"no {what} in this run")
+    return xs[len(xs) // 2]
+
+
+def _variant(ctx, raw, sca_lines, node_id, hook_a1=None, hook_replay=None):
+    """evaluate a COPY of the run's evidence (in a fresh temporary directory) exactly as hrq evaluates; the inputs
+    are never written. Returns a summary {key: status}, the details, the local outcomes and the verdicts."""
+    import shutil
+    import tempfile
+    import m2s72_maclog as ML
+    d = tempfile.mkdtemp(prefix="s5n21-control-")
+    try:
+        log = os.path.join(d, "run.log.gz")
+        with gzip.open(log, "wt", encoding="utf-8") as fh:
+            fh.writelines(raw)
+        sca = None
+        if sca_lines is not None:
+            sca = os.path.join(d, "0.sca")
+            with open(sca, "w", encoding="utf-8") as fh:
+                fh.writelines(sca_lines)
+        c = dict(ctx, log=log, sca=sca, lines21=W.A21.load(log), grants=ML.MacLog(log).grants, node_id=dict(node_id),
+                 watch=[log] + ([sca] if sca else []), hook_a1=hook_a1, hook_replay=hook_replay)
+        ev = evaluate(c)
+    finally:
+        shutil.rmtree(d, ignore_errors=True)
+    out = ev["out"]
+    st, det, loc = {}, {}, {}
+    for r in out["rows"]:
+        k = r["id"] if r["subject"] == "run" else f"{r['id']} {r['subject']}"
+        st[k], det[k] = r["status"], r["detail"]
+        if "local" in r:
+            loc[k] = r["local"]
+    for r in out["a21"]["rows"]:
+        st[f"a21:{r[0]}"], det[f"a21:{r[0]}"] = r[2], r[3]
+    return {"st": st, "det": det, "loc": loc, "f1d_i": out["a21"]["verdict_f1d_i"], "full": out["a21"]["verdict_full"],
+            "verdict": out["verdict"]["status"], "res": ev["res"], "a28u_steps": out["local_steps"]["A2-8u"],
+            "retransmissions": next(c for nm, c, _ in out["a21"]["coverage"] if nm == "retransmissions"),
+            "sched_lines": bool(ev["res"].get("sched_lines"))}
+
+
+def control_specs(n, node_id, raw, sca_lines, base):
+    """the negative controls of design 7.3 that need a run: (id, mechanism, baseline rows, build, check, declared).
+    build() returns (raw, sca_lines, node_id, hook_a1, hook_replay, mutation text) or raises NotBuildable;
+    check(after) returns (ok, observed)."""
+    G = W.GNB_MODULE
+    n0, n1 = node_id[0], node_id.get(1)
+    gnb = [i for i, x in enumerate(raw) if _mod(x) == G]
+    ins = [i for i in gnb if W.TOKEN_INS in raw[i]]
+    fbl = [i for i in gnb if W.TOKEN_FB in raw[i]]
+    ins0 = [i for i in ins if f"for node with id {n0}" in raw[i]]
+    pu4o = [f"PU-4o UE {k}" for k in range(n)]
+    a28u = [f"A2-8u UE {k}" for k in range(n)]
+
+    def need2():
+        if n1 is None:
+            raise NotBuildable("needs N >= 2 (a second UE)")
+
+    def edit(i, new_line):
+        out = list(raw)
+        out[i] = new_line
+        return out
+
+    def st(a, keys):
+        return ", ".join(f"{k} {a['st'].get(k)}" + (f" [local {a['loc'][k]}]" if k in a["loc"] else "") for k in keys)
+
+    specs = []
+
+    def spec(cid, mech, baseline, build, check, declared):
+        specs.append({"id": cid, "mechanism": mech, "baseline": baseline, "build": build, "check": check, "declared": declared})
+
+    # --- the attribution and its independent reference
+    def b_swap():
+        need2()
+        i = _median(ins0, f"insert line of node {n0}")
+        return edit(i, raw[i].replace(f"for node with id {n0}", f"for node with id {n1}")), sca_lines, node_id, None, None, \
+            f"line {i}: the gNB insert of node {n0} relabelled to node {n1}"
+    spec("NC-swap", "cross-UE misattribution invisible to sums: A2-7 (UE-side reference) must disagree",
+         ["PU-4h", "a21:A2-7"] + pu4o, b_swap,
+         lambda a: (a["st"]["PU-4h"] == "FAIL" and a["st"]["a21:A2-7"] == "FAIL" and all(a["st"][k] == "FAIL" for k in pu4o),
+                    st(a, ["a21:A2-7", "PU-4h"] + pu4o)), "A2-7 FAIL, PU-4h FAIL, PU-4o FAIL for every UE")
+
+    def b_ue_relabel():
+        need2()
+        m0 = f"{W.PR.NET}.ue[0].cellularNic"
+        rx = [i for i, x in enumerate(raw) if (_mod(x) or "").startswith(m0) and "H-ARQ RX" in x]
+        i = _median(rx, "UE 0 H-ARQ RX line")
+        return edit(i, raw[i].replace(f"{W.PR.NET}.ue[0].", f"{W.PR.NET}.ue[1].", 1)), sca_lines, node_id, None, None, \
+            f"line {i}: a UE 0 H-ARQ RX line moved to UE 1's module"
+    spec("NC-ue-relabel", "a corrupted independent reference must never confirm: A2-7 FAIL", ["PU-4h", "a21:A2-7"] + pu4o, b_ue_relabel,
+         lambda a: (a["st"]["a21:A2-7"] == "FAIL" and a["st"]["PU-4h"] == "FAIL" and all(a["st"][k] == "FAIL" for k in pu4o),
+                    st(a, ["a21:A2-7", "PU-4h"] + pu4o)), "A2-7 FAIL, PU-4h FAIL, PU-4o FAIL (global)")
+
+    def b_occ_one():
+        need2()
+        i = _median(ins0, f"insert line of node {n0}")
+        return raw[:i] + raw[i + 1:], sca_lines, node_id, None, None, f"line {i}: one insert of node {n0} removed, its feedback kept"
+    spec("NC-occ-one-ue", "a damaged UE 0 lifecycle FAILs UE 0 and, by the global rule, UE 1 (local outcome reported)",
+         ["PU-4h"] + pu4o, b_occ_one,
+         lambda a: (a["f1d_i"] == "A-2.1 NOT VALID" and a["st"]["PU-4h"] == "FAIL" and a["st"]["PU-4o UE 0"] == "FAIL"
+                    and a["st"]["PU-4o UE 1"] == "FAIL" and "global" in a["det"]["PU-4o UE 1"],
+                    f"F1-d(i) {a['f1d_i']}; " + st(a, ["PU-4h"] + pu4o)),
+         "F1-d(i) NOT VALID, PU-4h FAIL, PU-4o UE 0 FAIL, PU-4o UE 1 FAIL by the global rule")
+
+    def b_dropfb():
+        i = _median(fbl, "gNB feedback line")
+        return raw[:i] + raw[i + 1:], sca_lines, node_id, None, None, f"line {i}: one gNB feedback line removed"
+    spec("NC-dropfb", "lost feedback evidence: the lifecycle accounting must break",
+         ["PU-4h", "a21:A2-1", "a21:A2-2", "a21:A2-6"], b_dropfb,
+         lambda a: (a["st"]["PU-4h"] == "FAIL" and any(a["st"][f"a21:{r}"] == "FAIL" for r in ("A2-1", "A2-2", "A2-6")),
+                    st(a, ["PU-4h", "a21:A2-1", "a21:A2-2", "a21:A2-6"])), "A2-1, A2-2 or A2-6 FAIL; PU-4h FAIL")
+
+    def b_dupins():
+        i = _median(ins, "gNB insert line")
+        return raw[:i + 1] + [raw[i]] + raw[i + 1:], sca_lines, node_id, None, None, f"line {i}: one gNB insert line duplicated"
+    spec("NC-dupins", "duplicated evidence: A-2.1 loses one unit (repeated PDU id), C-0 R-0a must see it",
+         ["C-0", "PU-4h", "a21:A2-2"], b_dupins,
+         lambda a: (a["st"]["C-0"] == "FAIL" and "R-0a" in a["det"]["C-0"] and a["st"]["a21:A2-2"] == "FAIL" and a["st"]["PU-4h"] == "FAIL",
+                    st(a, ["C-0", "a21:A2-2", "PU-4h"])), "C-0 FAIL (R-0a), A2-2 FAIL, PU-4h FAIL")
+
+    def b_shift():
+        import check_m2s72_a2 as C
+        res = base["res"]
+        cand = [x for x in res["fb"] if x["cls"] == "single" and x["res"] == "ACK"]
+        x = _median(cand, "single-candidate ACK feedback line")
+        t = x["t"]
+        idx = [i for i in fbl if _lt(raw[i]) == t and f"process {x['p']} codeword" in raw[i] and "result is ACK" in raw[i]]
+        if len(idx) != 1:
+            raise NotBuildable(f"the feedback line at {t} ps process {x['p']} is not unique in the raw log")
+        j = idx[0]
+        k = max((i for i in gnb if i <= j and _lt(raw[i]) == t and "receiveHarqFeedback - start" in raw[i]), default=None)
+        if k is None:
+            raise NotBuildable("no feedback event block start before the line")
+        block = [i for i in gnb if k <= i <= j]
+        moved = [C._retime(raw[i], t + W.A21.MS) for i in block]
+        rest = [y for i, y in enumerate(raw) if i not in set(block)]
+        at = next((i for i, y in enumerate(rest) if _lt(y) is not None and _lt(y) >= t + W.A21.MS), len(rest))
+        return rest[:at] + moved + rest[at:], sca_lines, node_id, None, None, \
+            f"lines {k}..{j}: one single ACK's feedback event ({len(block)} gNB lines) moved one TTI later"
+    spec("NC-shift", "timing corruption: the single feedback delay d* must break (A2-3)", ["PU-4h", "a21:A2-3"], b_shift,
+         lambda a: (a["st"]["a21:A2-3"] == "FAIL" and a["st"]["PU-4h"] == "FAIL", st(a, ["a21:A2-3", "PU-4h"])), "A2-3 FAIL, PU-4h FAIL")
+
+    def b_node_map():
+        need2()
+        perm = {k: node_id[(k + 1) % n] for k in range(n)}
+        return raw, sca_lines, perm, None, None, f"node-id map permuted to {perm}"
+    spec("NC-node-map", "wrong UE identity: MAP-UE (with the .sca) or the node-identified rows must FAIL", ["MAP-UE", "PU-4h"], b_node_map,
+         lambda a: (a["st"]["PU-4h"] == "FAIL" and (a["st"]["MAP-UE"] == "FAIL" or a["st"]["a21:A2-4b"] == "FAIL"
+                                                     or a["st"]["a21:A2-7"] == "FAIL"), st(a, ["MAP-UE", "a21:A2-4b", "a21:A2-7", "PU-4h"])),
+         "PU-4h FAIL through MAP-UE FAIL or A2-4b / A2-7 FAIL")
+
+    def b_no_ue():
+        rx = [i for i, x in enumerate(raw) if W.PR.R_UE_MOD.match(_mod(x) or "") and "H-ARQ RX" in x]
+        if not rx:
+            raise NotBuildable("no UE-side H-ARQ RX line in this run")
+        drop = set(rx)
+        return [y for i, y in enumerate(raw) if i not in drop], sca_lines, node_id, None, None, f"{len(rx)} UE-side H-ARQ RX lines removed"
+    spec("NC-no-ue-lines", "absence of the independent reference is NOT EVALUATED, never PASS", ["PU-4h", "a21:A2-7"] + pu4o, b_no_ue,
+         lambda a: (a["st"]["a21:A2-7"] == "NOT EVALUATED" and a["st"]["PU-4h"] == "NOT EVALUATED"
+                    and all(a["st"][k] == "NOT EVALUATED" for k in pu4o), st(a, ["a21:A2-7", "PU-4h"] + pu4o)),
+         "A2-7 NE, PU-4h NE, PU-4o NE for every UE")
+
+    # --- C-0: the two parsers and the raw census
+    def b_dup_pid():
+        import re
+        if len(ins) < 6:
+            raise NotBuildable("fewer than 6 insert lines")
+        first = re.search(r"\(id (\d+) \)", raw[ins[0]]).group(1)
+        i = ins[len(ins) // 2]
+        return edit(i, re.sub(r"\(id \d+ \)", f"(id {first} )", raw[i])), sca_lines, node_id, None, None, \
+            f"line {i}: the insert reuses the PDU id {first} of line {ins[0]}"
+    spec("NC-c0-dup-pid", "an insert lost by reconstruction (pdus keyed by PDU id) must be seen (R-0a)", ["C-0", "PU-4h"], b_dup_pid,
+         lambda a: (a["st"]["C-0"] == "FAIL" and "R-0a" in a["det"]["C-0"] and a["st"]["PU-4h"] == "FAIL", st(a, ["C-0", "PU-4h"])),
+         "C-0 FAIL naming R-0a; PU-4h FAIL")
+
+    def b_mal(sel_idx, pat, rep_, what):
+        import re
+
+        def b():
+            pool = [i for i in sel_idx if re.search(pat, raw[i])]
+            i = _median(pool, what)
+            new = re.sub(pat, rep_, raw[i], count=1)
+            return edit(i, new), sca_lines, node_id, None, None, f"line {i}: {what} corrupted"
+        return b
+    for cid, idx, pat, rp, what in (("NC-c0-malformed-ins", ins, r"\(id (\d)(\d*) \)", r"(id \1x\2 )", "an insert line's PDU id"),
+                                    ("NC-c0-malformed-fb", fbl, r"result is ACK", "result is ACX", "a feedback line's result"),
+                                    ("NC-c0-malformed-timestamp", ins, r"^(\d)", r"x\1", "an insert line's time stamp")):
+        spec(cid, "a malformed line both regexes skip must be seen by the raw token census (R-0e)", ["C-0", "PU-4h"],
+             b_mal(idx, pat, rp, what),
+             lambda a: (a["st"]["C-0"] == "FAIL" and "R-0e" in a["det"]["C-0"] and a["st"]["PU-4h"] == "FAIL", st(a, ["C-0", "PU-4h"])),
+             "C-0 FAIL naming R-0e; PU-4h FAIL")
+
+    def a1_hook(kind):
+        state = {}
+
+        def hook(ev):
+            if kind == "same-count":
+                fb = [i for i, e in enumerate(ev) if e[0] == "fb"]
+                pair = next(((i, j) for i in fb for j in fb if ev[i][2] != ev[j][2]), None)
+                if pair is None:
+                    return ev
+                i, j = pair
+                ev[i], ev[j] = ev[i][:2] + (ev[j][2],) + ev[i][3:], ev[j][:2] + (ev[i][2],) + ev[j][3:]
+            elif kind == "reorder":
+                # two adjacent inserts of different UEs where they exist (N >= 2), else any two adjacent distinct events
+                k = next((k for k in range(len(ev) - 1) if ev[k][0] == ev[k + 1][0] == "ins" and ev[k][2] != ev[k + 1][2]),
+                         next((k for k in range(len(ev) - 1) if ev[k] != ev[k + 1]), None))
+                if k is None:
+                    return ev
+                ev[k], ev[k + 1] = ev[k + 1], ev[k]
+            else:
+                k = next((k for k, e in enumerate(ev) if e[0] == "ins"), None)
+                if k is None:
+                    return ev
+                ev[k] = ev[k][:2] + (ev[k][2] + 1,) + ev[k][3:]
+            state["applied"] = True
+            return ev
+
+        def b():
+            return raw, sca_lines, node_id, hook, None, f"A-1 events: {kind} (in memory; counts unchanged)"
+        return b, state
+    for kind in ("same-count", "reorder", "node"):
+        b, stt = a1_hook(kind)
+        spec(f"NC-c0-{kind}", "C-0 compares the canonical event sequences, not counts", ["C-0", "PU-4h"], b,
+             (lambda stt_: lambda a: (stt_.get("applied", False) and a["st"]["C-0"] == "FAIL" and "parser divergence" in a["det"]["C-0"]
+                                      and a["st"]["PU-4h"] == "FAIL", f"applied {stt_.get('applied', False)}; " + st(a, ["C-0", "PU-4h"])))(stt),
+             "C-0 FAIL (parser divergence); PU-4h FAIL")
+
+    # --- PU-4o on corrupted replay output (fail-closed)
+    def occ_hook(kind):
+        import copy
+
+        def hook(per, extra):
+            per, extra = copy.deepcopy(per), dict(extra)
+            if kind == "entry-missing":
+                x7 = copy.deepcopy(extra["xa"])
+                x7["occupancy_equal"].pop(n1, None)
+                extra["xa"] = x7
+            else:
+                per[n1]["occupancy"] = {"error": "negative occupancy: a feedback before its insert"}
+            return per, extra
+
+        def b():
+            need2()
+            return raw, sca_lines, node_id, None, hook, f"in memory: {'no occupancy comparison entry for UE 1' if kind == 'entry-missing' else 'an invalid A-2.1 occupancy for UE 1'}"
+        return b
+    for kind in ("entry-missing", "invalid"):
+        spec(f"NC-occ-{kind}", "a missing or invalid occupancy comparison never reaches PASS", ["PU-4o UE 1"] if n1 is not None else pu4o,
+             occ_hook(kind),
+             lambda a: (a["st"].get("PU-4o UE 1") == "FAIL" and a["loc"].get("PU-4o UE 1") == "DIFFERENT", st(a, pu4o)),
+             "PU-4o UE 1 FAIL, local DIFFERENT")
+
+    # --- A2-8u against Simu5G's statistics (.sca copy)
+    ue1 = f"{W.PR.NET}.ue[1].cellularNic.nrMac"
+
+    def sca_needed():
+        need2()
+        if sca_lines is None:
+            raise NotBuildable("no .sca in this run")
+
+    def b_scalar():
+        sca_needed()
+        out, hit = [], False
+        for x in sca_lines:
+            p = x.split()
+            if not hit and len(p) >= 4 and p[0] == "scalar" and p[1] == ue1 and p[2] == "harqErrorRateDl:mean":
+                try:
+                    x = f"scalar {p[1]} {p[2]} {float(p[3]) + 1e-3!r}\n"
+                    hit = True
+                except ValueError:
+                    pass
+            out.append(x)
+        if not hit:
+            raise NotBuildable("no parsable harqErrorRateDl:mean of UE 1")
+        return raw, out, node_id, None, None, "UE 1 harqErrorRateDl:mean + 1e-3 (beyond the relative tolerance 1e-9)"
+    spec("NC-scalar-ue1", "per-UE isolation of the Simu5G cross-check and its global effect", a28u + ["a21:A2-8", "PU-4h"], b_scalar,
+         lambda a: (a["st"]["A2-8u UE 1"] == "FAIL" and a["loc"]["A2-8u UE 1"] == "DIFFERENT" and a["st"]["a21:A2-8"] == "FAIL"
+                    and a["st"]["PU-4h"] == "FAIL", st(a, ["a21:A2-8", "PU-4h"] + a28u)),
+         "A2-8u UE 1 FAIL (local DIFFERENT), run-level A2-8 FAIL, PU-4h FAIL")
+
+    def b_scalar_missing():
+        sca_needed()
+        out = [x for x in sca_lines if not (x.startswith("scalar ") and x.split()[1:2] == [ue1])]
+        if len(out) == len(sca_lines):
+            raise NotBuildable("no scalar of UE 1")
+        return raw, out, node_id, None, None, "UE 1's scalar records removed (its macNodeId kept)"
+    spec("NC-scalar-missing-ue1", "the frozen run-level A2-8 PASSes on UE 0 alone; the per-UE gate must not",
+         a28u + ["a21:A2-8"], b_scalar_missing,
+         lambda a: (a["st"]["a21:A2-8"] == "PASS" and a["st"]["A2-8u UE 1"] == "NOT EVALUATED" and a["loc"]["A2-8u UE 1"] == "NOT COMPARED",
+                    st(a, ["a21:A2-8"] + a28u)), "run-level A2-8 PASS (frozen), A2-8u UE 1 NE (local NOT COMPARED)")
+
+    def b_scalar_dup():
+        sca_needed()
+        dup = [x for x in sca_lines if x.startswith(f"scalar {ue1} harqErrorRateDl:mean ")]
+        if not dup:
+            raise NotBuildable("no harqErrorRateDl:mean of UE 1")
+        return raw, list(sca_lines) + dup[:1], node_id, None, None, "UE 1 harqErrorRateDl:mean record duplicated"
+    spec("NC-scalar-duplicate", "IG-2: a duplicated scalar record is ambiguous (V-1), never compared", a28u, b_scalar_dup,
+         lambda a: (a["st"]["A2-8u UE 1"] == "NOT EVALUATED" and "ambiguous: 2 records" in a["det"]["A2-8u UE 1"], st(a, a28u)),
+         "A2-8u UE 1 NE (V-1, ambiguous: 2 records)")
+    return specs
+
+
+def _controls(args):
+    """design 5.1 / 7.3: the negative controls on a COPY of one run's evidence"""
+    fresh_dir(args["recdir"])
+    code0 = code_provenance_start(REQUIRED_A21)
+    with InputTracker({"runs": args["runs"], "simu5g": os.environ.get("SIMU5G_ROOT")}) as tracker:
+        ctx = gather_hrq(dict(args, mode="hrq"))
+        ctx["mode"] = "controls"
+        raw = raw_lines(ctx["log"])
+        sca_lines = raw_lines(ctx["sca"]) if ctx["sca"] else None
+        node_id = ctx["node_id"]
+        direct = evaluate(ctx)                                            # the run itself, as hrq
+    consumed = tracker.verify()
+    base = _variant(ctx, raw, sca_lines, node_id)                       # the unmodified COPY
+    direct_st = {(r["id"] if r["subject"] == "run" else f"{r['id']} {r['subject']}"): r["status"] for r in direct["out"]["rows"]}
+    results = []
+    pc_ok = all(base["st"][k] == v for k, v in direct_st.items())
+    results.append({"id": "PC-unmodified", "mechanism": "the evaluated copy reproduces the run's own evaluation", "mutation": "none",
+                    "baseline": direct_st, "after": {k: base["st"][k] for k in direct_st}, "declared": "every wrapper row status reproduced",
+                    "result": "PASS" if pc_ok else "FAIL", "observed": "reproduced" if pc_ok else "differs"})
+    # PC-full-masquerade: the contract labels (design 7.3 NC-full-masquerade): observation, no mutation
+    if base["retransmissions"] > 0 and not base["sched_lines"]:
+        ok = base["full"] == "A-2.1 INCOMPLETE" and base["f1d_i"] == W.A21.verdict(
+            [tuple(r) for r in direct["out"]["a21"]["rows"]], "f1d-i")[0] and "full contract (reported" in base["det"]["PU-4h"]
+        results.append({"id": "NC-full-masquerade", "mechanism": "PU-4h uses F1-d(i) only; full is reported and labelled",
+                        "mutation": "none (observation on a run with retransmissions and no scheduler lines)",
+                        "baseline": {}, "after": {"full": base["full"], "f1d-i": base["f1d_i"], "PU-4h": base["st"]["PU-4h"]},
+                        "declared": "full INCOMPLETE; PU-4h derived from F1-d(i); the record labels the contract",
+                        "result": "PASS" if ok else "FAIL", "observed": f"full {base['full']}, F1-d(i) {base['f1d_i']}"})
+    else:
+        results.append({"id": "NC-full-masquerade", "mechanism": "PU-4h uses F1-d(i) only", "mutation": "none", "baseline": {},
+                        "after": {}, "declared": "full INCOMPLETE with retransmissions", "result": "NOT BUILDABLE",
+                        "observed": "no retransmission in this run" if base["retransmissions"] == 0 else "scheduler lines present"})
+    for sp in control_specs(len(node_id), node_id, raw, sca_lines, base):
+        rec = {"id": sp["id"], "mechanism": sp["mechanism"], "declared": sp["declared"],
+               "baseline": {k: base["st"].get(k) for k in sp["baseline"]}}
+        notpass = {k: v for k, v in rec["baseline"].items() if v != "PASS"}
+        if notpass:
+            rec.update(result="NOT BUILDABLE", mutation="not applied",
+                       observed=f"declared row(s) not PASS before the mutation {notpass} (would not isolate the defect)")
+            results.append(rec)
+            continue
+        try:
+            r2, s2, n2, h1, h2, text = sp["build"]()
+        except NotBuildable as ex:
+            rec.update(result="NOT BUILDABLE", mutation="not applied", observed=str(ex))
+            results.append(rec)
+            continue
+        rec["mutation"] = text
+        if r2 == raw and s2 == sca_lines and n2 == node_id and h1 is None and h2 is None:
+            rec.update(result="FAIL", observed="MUTATION NOT APPLIED (the copy is identical to the run)")
+            results.append(rec)
+            continue
+        a = _variant(ctx, r2, s2, n2, hook_a1=h1, hook_replay=h2)
+        ok, observed = sp["check"](a)
+        rec.update(result="PASS" if ok else "FAIL", observed=observed,
+                   after={k: a["st"].get(k) for k in sorted(set(sp["baseline"]) | {"PU-4h", "C-0", "MAP-UE"})},
+                   details={k: a["det"][k][:300] for k in ("C-0", "PU-4h") if k in a["det"]})
+        results.append(rec)
+    code = code_provenance_end(code0)
+    n_fail = sum(1 for r in results if r["result"] == "FAIL")
+    n_pass = sum(1 for r in results if r["result"] == "PASS")
+    n_nb = sum(1 for r in results if r["result"] == "NOT BUILDABLE")
+    # exit 4 when no MUTATION control could be built: the positive control and the observation alone prove nothing
+    n_mut_pass = sum(1 for r in results if r["result"] == "PASS" and r["id"].startswith("NC-") and r["id"] != "NC-full-masquerade")
+    rc = 1 if n_fail else (4 if n_mut_pass == 0 else 0)
+    cfg = ctx["cfg"]
+    out = {"schema": "m2s72-s5n21-controls/1", "config": cfg, "numUe": len(node_id), "nodes": {str(k): v for k, v in node_id.items()},
+           "controls": results, "summary": {"PASS": n_pass, "FAIL": n_fail, "NOT BUILDABLE": n_nb, "exit": rc},
+           "inputs": {"consumed_sha256": consumed, "code_sha256": code, "registry_sha256": direct["registry_sha256"],
+                      "note": "every mutation is applied to a copy in a temporary directory; the inputs are only read"}}
+    lines = [f"M2-S7.2a WP-A1 negative controls on {cfg} (N = {len(node_id)}): each on a COPY of the run's evidence; a control "
+             f"counts only if its declared rows PASS before the mutation\n\n"]
+    for r in results:
+        lines.append(f"  {r['result']:<13} | {r['id']} | {r['mechanism']}\n      mutation: {r.get('mutation')}\n"
+                     f"      baseline: {r.get('baseline')}\n      declared: {r['declared']}\n      observed: {r.get('observed')}\n")
+    lines.append(f"\n{n_pass} PASS, {n_fail} FAIL, {n_nb} NOT BUILDABLE (exit {rc})\n")
+    write_records(args["recdir"], [(f"controls-{cfg}.txt", "".join(lines)), (f"controls-{cfg}.json", dumps(out))])
+    print("".join(lines).rstrip())
+    return rc
 
 # ------------------------------------------------------------------------------------------------------ run ------
 _RUN_STARTED = False          # one run per process: the accepted checkers accumulate rows in a module-global list
@@ -726,6 +1173,8 @@ def _dispatch(argv):
     except Usage as ex:
         print(f"usage error: {ex}\n\n{__doc__}")
         return W.EXIT[W.V_REFUSED]
+    if args["mode"] == "controls":
+        return _controls(args)
     return _run(args) if args["mode"] == "run" else _hrq(args)
 
 

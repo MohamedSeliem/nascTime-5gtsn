@@ -6,7 +6,9 @@ T-unresolved, NC-no-ue-lines, NC-swap, NC-occ, T-pu4h. Increment I-4: T-agree, N
 Increment I-5: T-n3-groups, T-multinack, T-discard, NC-registry, T-a24c-review, T-verdict, T-s5n-semantics.
 Increment I-6: T-f3-hrq, T-f3-a1, T-single-replay, T-a21-record-equiv, T-expect-exit, NC-cli-inputs; T-imports-isolated
 on the functional CLI.
-Increment I-7: T-s5n-transparent, T-s5n-rows, T-digest-ownership, T-one-run-per-process, T-no-d2-bypass, NC-run. I-7 corrections: NC-provenance; T-s5n-rows on the derived row contract. The I-2 and I-3 tests that run the accepted A-2.1 need
+Increment I-7: T-s5n-transparent, T-s5n-rows, T-digest-ownership, T-one-run-per-process, T-no-d2-bypass, NC-run. I-7 corrections: NC-provenance; T-s5n-rows on the derived row contract.
+Increment I-8: T-controls (the controls mode, design 7.3), T-n1-identity, T-a1-frozen, T-a1-a21-pinned, T-a1-s5n-pinned,
+T-registry-immutable, T-expect-files. The I-2 and I-3 tests that run the accepted A-2.1 need
 SIMU5G_ROOT (the Simu5G 1.8.1 sources, for A2-0s), as test_m2s72_a21.py does; tier-0 provides it. No simulation; no raw output of any run; synthetic inputs and repository files only.
 The committed registry is only read; T-registry and main() check that its sha256 is unchanged.
 
@@ -2198,7 +2200,7 @@ def nc_cli_inputs():
             ("no mode", [], {}),
             ("unknown mode", ["evaluate", "x"], {}),
             ("run without S5N_ADAPTER_VALIDATED", ["run", d, SYN_CFG, rec("r")], {"drop": ("S5N_ADAPTER_VALIDATED",)}),
-            ("controls not implemented", ["controls", d, SYN_CFG, rec("c")], {}),
+            ("controls: no log", ["controls", d, SYN_CFG, rec("c")], {}),
             ("hrq: wrong arity", ["hrq", d, SYN_CFG], {}),
             ("hrq: extra positional", ["hrq", d, SYN_CFG, rec("x"), "y"], {}),
             ("hrq: name refused", ["hrq", d, "M2S72-E0vNL-q0-f1", rec("n1")], {}),
@@ -2860,6 +2862,189 @@ def nc_provenance():
         check(rc == 2 and "changed" in txt and not os.path.exists(os.path.join(d, "rec")), f"hrq: same-size change: rc {rc}")
     check(CLIM.InputTracker.active is None, "no tracker left active")
     CLIM._RUN_STARTED = False
+
+
+# ================================================================================================ I-8 ============
+import m2s72_harqfix as F  # noqa: E402  (frozen generator, ACK only; synthetic, labelled)
+
+CONTROL_IDS = ["PC-unmodified", "NC-full-masquerade", "NC-swap", "NC-ue-relabel", "NC-occ-one-ue", "NC-dropfb", "NC-dupins",
+               "NC-shift", "NC-node-map", "NC-no-ue-lines", "NC-c0-dup-pid", "NC-c0-malformed-ins", "NC-c0-malformed-fb",
+               "NC-c0-malformed-timestamp", "NC-c0-same-count", "NC-c0-reorder", "NC-c0-node", "NC-occ-entry-missing",
+               "NC-occ-invalid", "NC-scalar-ue1", "NC-scalar-missing-ue1", "NC-scalar-duplicate"]
+
+
+def run_controls(lines, node, truth, sca=True):
+    with synthetic_runs(lines, node, truth, sca=sca) as (d, runs, log, scap):
+        files = [log] + ([scap] if scap else [])
+        before = file_digests(files)
+        rc, txt = cli_inproc(["controls", runs, SYN_CFG, os.path.join(d, "ctl"), "--t0", "1"])
+        out = json.load(open(os.path.join(d, "ctl", f"controls-{SYN_CFG}.json")))
+        check(file_digests(files) == before, "the controls modified an input")
+        check(sorted(os.listdir(os.path.join(d, "ctl"))) == [f"controls-{SYN_CFG}.json", f"controls-{SYN_CFG}.txt"], "records")
+        check(os.listdir(runs) == [f"run-{SYN_CFG}.log.gz", SYN_CFG] or sorted(os.listdir(runs)) == sorted([f"run-{SYN_CFG}.log.gz", SYN_CFG]),
+              "nothing written beside the inputs")
+    return rc, txt, out, {r["id"]: r for r in out["controls"]}
+
+
+@named("T-controls")
+def t_controls():
+    # every control on a run where each is buildable: PASS, with its before / after evidence
+    lines, node, truth = sync_run(nack=(1, 1))
+    rc, txt, out, by = run_controls(lines, node, truth)
+    check([r["id"] for r in out["controls"]] == CONTROL_IDS, f"control set {[r['id'] for r in out['controls']]}")
+    bad = {k: (r["result"], r.get("observed")) for k, r in by.items() if r["result"] != "PASS"}
+    check(rc == 0 and not bad, f"rc {rc}; not PASS: {bad}")
+    for k, r in by.items():
+        if k.startswith("NC-") and k != "NC-full-masquerade":
+            check(r["mutation"] and r["mutation"] != "none" and all(v == "PASS" for v in r["baseline"].values()) and r["after"],
+                  f"{k}: baseline / mutation / after evidence {r}")
+    check(by["NC-c0-malformed-ins"]["after"]["C-0"] == "FAIL" and "R-0e" in by["NC-c0-malformed-ins"]["details"]["C-0"], "evidence")
+    check(out["inputs"]["consumed_sha256"] and out["inputs"]["code_sha256"]["required"], "provenance recorded")
+    # NOT BUILDABLE with a reason: N = 1 (no second UE) and no .sca
+    l1, n1_, t1 = G.make(1, 40, lambda tti: [0], tail=40)
+    with synthetic_runs(l1, n1_, t1, cfg="M2S72-E0vN-q0-one0-n1-f1") as (d, runs, log, scap):
+        rc, txt = cli_inproc(["controls", runs, "M2S72-E0vN-q0-one0-n1-f1", os.path.join(d, "ctl"), "--t0", "1"])
+        out = json.load(open(os.path.join(d, "ctl", "controls-M2S72-E0vN-q0-one0-n1-f1.json")))
+    by = {r["id"]: r for r in out["controls"]}
+    for k in ("NC-swap", "NC-ue-relabel", "NC-occ-one-ue", "NC-node-map", "NC-occ-entry-missing", "NC-scalar-ue1"):
+        check(by[k]["result"] == "NOT BUILDABLE" and "N >= 2" in by[k]["observed"], f"N = 1: {k} {by[k]}")
+    check(by["NC-full-masquerade"]["result"] == "NOT BUILDABLE" and by["NC-c0-malformed-ins"]["result"] == "PASS"
+          and by["NC-shift"]["result"] == "PASS" and rc == 0, f"N = 1 buildable controls: rc {rc}")
+    check(out["summary"] == {"PASS": 12, "FAIL": 0, "NOT BUILDABLE": 10, "exit": 0}, f"N = 1 summary {out['summary']}")
+    rc, txt, out, by = run_controls(lines, node, truth, sca=False)
+    for k in ("NC-scalar-ue1", "NC-scalar-missing-ue1", "NC-scalar-duplicate"):
+        check(by[k]["result"] == "NOT BUILDABLE" and ("not PASS before the mutation" in by[k]["observed"] or ".sca" in by[k]["observed"]),
+              f"no .sca: {k} {by[k]}")
+    # a control counts only on a PASSing baseline: without UE lines, the A2-7-dependent controls are NOT BUILDABLE
+    l2, n2_, t2 = sync_run(nack=(1, 1), ue_log=False)
+    rc, txt, out, by = run_controls(l2, n2_, t2)
+    for k in ("NC-swap", "NC-ue-relabel", "NC-no-ue-lines", "NC-occ-entry-missing", "NC-c0-malformed-ins"):
+        check(by[k]["result"] == "NOT BUILDABLE" and "not PASS before the mutation" in by[k]["observed"], f"baseline guard {k}: {by[k]}")
+    check(rc == 4 and out["summary"]["FAIL"] == 0, f"no mutation control buildable -> exit 4 (not a pass): rc {rc}")
+    # sensitivity: each control FAILs when the mechanism it guards is broken (the controls are not vacuous)
+    breaks = {
+        "NC-c0-malformed-ins": (W, "token_census", lambda lines_: {"insert": sum(1 for x in lines_ if isinstance(x, str) and PR.R_INSERT.search(x)
+                                                                                   and x.split("|")[1:2] == [W.GNB_MODULE]),
+                                                                    "feedback": sum(1 for x in lines_ if isinstance(x, str) and PR.R_FB.search(x)
+                                                                                    and x.split("|")[1:2] == [W.GNB_MODULE])}),
+        "NC-scalar-duplicate": (W, "scalar_record_counts", lambda lines_: {}),
+        "NC-occ-entry-missing": (W, "pu4o_local", (lambda orig: lambda k, n_k, per, x7: orig(k, n_k, per, dict(x7, occupancy_equal={
+            **x7["occupancy_equal"], n_k: True})) if isinstance(x7, dict) and isinstance(x7.get("occupancy_equal"), dict) else orig(k, n_k, per, x7))(W.pu4o_local)),
+        "NC-c0-same-count": (W, "c0_row", (lambda orig: lambda a1, res, cen: (dict(orig(a1, res, cen)[0], status="PASS", detail="patched"),
+                                                                                orig(a1, res, cen)[1]))(W.c0_row)),
+    }
+    for cid, (mod, name, fake) in breaks.items():
+        orig = getattr(mod, name)
+        setattr(mod, name, fake)
+        try:
+            rc, txt, out, by = run_controls(lines, node, truth)
+        finally:
+            setattr(mod, name, orig)
+        check(by[cid]["result"] == "FAIL" and rc == 1, f"{cid} did not detect a broken {name}: {by[cid]['result']} rc {rc}")
+
+
+@named("T-n1-identity")
+def t_n1_identity():
+    """N = 1, ACK only, the FROZEN generator; (a) with UE lines, (b) without; .sca from the generator truth"""
+    for with_ue in (True, False):
+        lines, node, truth = F.make(1, 40, lambda tti: [0], ue_log=with_ue)
+        r = pipe_full(lines, node, truth)
+        a1_per, summ = P.attribute_feedback(r["a1"], 16, window=(1000 * MS, (r["res"]["t_end"] // MS + 1) * MS))
+        pu4 = next(x for x in P.structural_rows([], [], summ, None) if x[0] == "PU-4")
+        check(pu4[2] == "PASS" and summ["ambiguous"] == summ["orphan"] == summ["reinsert"] == 0, f"A-1 PU-4 {pu4}")
+        o, h = r["per"][2049], a1_per[2049]
+        check((o["inserts"], o["feedback"], o["nack"]) == (h["inserts"], h["feedback"], h["nack"]), f"A-2.1 counts = A-1's: {o} {h}")
+        if with_ue:
+            check(r["pu4h"]["status"] == "PASS" and S(r) == ["PASS"] and r["a28u"][0]["status"] == "PASS", "(a) gates PASS")
+            check(o["occupancy"] == h["occupancy"] and r["x7"]["occupancy_equal"][2049] is True, "(a) occupancy = A-1's = the XA truth")
+            check(r["verdict"]["status"] == "HELD FOR REVIEW" and HELD(r) == {"single-candidate ACK attribution"}, f"(a) {r['verdict']}")
+        else:
+            check(r["st"]["A2-7"] == W.NE and r["v"]["verdict_f1d_i"] == "A-2.1 INCOMPLETE" and r["pu4h"]["status"] == W.NE, "(b) PU-4h NE")
+            check(S(r) == [W.NE] and r["locs"][0]["step"] == "1", "(b) PU-4o NE: no reference")
+            check(r["a28u"][0]["status"] == W.NE and r["a28u"][0]["local"] == W.EQUAL and "global" in r["a28u"][0]["detail"],
+                  f"(b) A2-8u NE by the global rule, local EQUAL: {r['a28u'][0]}")
+            check(r["verdict"]["status"] == "INCOMPLETE" and r["verdict"]["exit"] == 4, f"(b) {r['verdict']}")
+
+
+def git_unchanged(pin, paths):
+    r = subprocess.run(["git", "-C", W.REPO, "cat-file", "-e", f"{pin}^{{commit}}"], capture_output=True)
+    check(r.returncode == 0, f"pin {pin} not in this clone (tier-0 checks out the full history)")
+    r = subprocess.run(["git", "-C", W.REPO, "diff", "--quiet", pin, "--"] + paths, capture_output=True)
+    check(r.returncode == 0, f"{paths} differ from {pin}")
+
+
+CHK_REL = "simulations/m2/check/"
+
+
+@named("T-a1-frozen")
+def t_a1_frozen():
+    git_unchanged("fbee202", [CHK_REL + f for f in ("m2s72_a2.py", "check_m2s72_a2.py", "m2s72_a2probe.py", "m2s72_harqfix.py",
+                                                    "m2s72_harqx.py", "m2s72_peru.py", "test_m2s72_a2.py")])
+    git_unchanged("39a6434", [CHK_REL + "check_m2s72_a2v1.py"])
+
+
+@named("T-a1-a21-pinned")
+def t_a1_a21_pinned():
+    git_unchanged("d920125", [CHK_REL + f for f in ("m2s72_a21.py", "check_m2s72_a21.py", "m2s72_harqfix21.py",
+                                                    "m2s72_a21_fixture.py", "m2s72_a21_realchain.py")])
+
+
+@named("T-a1-s5n-pinned")
+def t_a1_s5n_pinned():
+    git_unchanged("7bb0e3a", [CHK_REL + f for f in ("check_m2s72_s5n.py", "m2s72_peru_adapter.py", "check_m2s72_s5v.py",
+                                                    "check_m2s72_s5n2.py", "m2s72s5_lib.py", "check_m2s72_e0.py", "check_m2s72_b.py",
+                                                    "check_m2s72_i2h.py", "check_m2s72_f0.py", "check_m2s72_f0r2.py", "m2s72_maclog.py")]
+                  + ["simulations/m2/m2s72s5.sh", "simulations/m2/m2s72s5.ini", "simulations/m2/m2s72a2v.ini", ".github",
+                     CHK_REL + "fixtures"])
+
+
+@named("T-registry-immutable")
+def t_registry_immutable():
+    """the committed registry is the one of increment I-1 (7e5c169): no admission was added since; the suite never
+    writes it (main() also compares its sha256 before and after the whole suite)"""
+    git_unchanged("7e5c169", [CHK_REL + "m2s72_fgo_registry.json"])
+    check(W.load_registry()["admitted"] == ADMITTED, "nine admissions")
+
+
+@named("T-expect-files")
+def t_expect_files():
+    """the declared expectation files (design 8): schema, configuration, known keys, the conditional forms preserved,
+    and every key resolvable on a real record of the same shape. NO genuine run is evaluated here."""
+    files = {"vn1.expect.json": ("M2S72-E0v-q0-f1", 1), "vn2.expect.json": ("M2S72-E0vN-q0-one0-n2-f1", 2),
+             "vv1.expect.json": ("M2S72-E0vN-q0-one0-n2-f1_A2V1", 2), "f3.expect.json": ("f3-fixture", 2)}
+    docs = {}
+    for f, (cfg, n) in files.items():
+        p = os.path.join(HERE, "expect", f)
+        e = CLIM.load_expect(p, cfg)
+        docs[f] = e
+        check("never" in e["note"] or "deviation is a finding" in e["note"], f"{f}: note")
+        check(e["expect"].get("verdict.status") in ("HELD FOR REVIEW", "INCOMPLETE"), f"{f}: declared verdict")
+        try:
+            CLIM.load_expect(p, "M2S72-E0vN-q0-one0-n4-f1")
+            raise AssertionError(f"{f} accepted for another configuration")
+        except CLIM.ExpectationError:
+            pass
+    v1, v2, vv = (docs[f]["expect"] for f in ("vn1.expect.json", "vn2.expect.json", "vv1.expect.json"))
+    check(v1["a21.rows.A2-5"] == {"any_of": ["PASS", "NOT EXERCISED"]} and v1["verdict.held_features_if_exercised"] ==
+          ["end-of-run censoring: inserted in the last TTI"], "V-N1 conditional forms (design 8.2)")
+    check(v1["a1.summary.a1a"] == 11697 and v2["a1.summary.a1a"] == 9718 and v2["a1.summary.a1b"] == 2476
+          and v2["a1.summary.ambiguous"] == 768 and v2["a1.pu4_status"] == "FAIL", "A-1 values of the records")
+    check(v2["coverage.single-candidate ACK attribution"] == 12194 and v2["a21.exchangeable_groups"] == 384, "V-N2 declared A-2 counts")
+    check(vv["per_ue.2050.nack"] == 144 and vv["per_ue.2049.inserts"] == 11702 and vv["a21.exchangeable_groups"] == 371
+          and vv["a21.handles_by_state"] == {"retired": 129} and vv["a28u.UE 1.harqTxAttemptsDl:mean"] == 1.1139240506329113
+          and vv["a21.verdict_full"] == "A-2.1 INCOMPLETE" and vv["verdict.held_features_if_exercised"] == ["NACK resolved: single candidate"],
+          "V-V1 = S1 closure tables (design 8.4)")
+    check(not any(k.startswith("a1.") for k in vv), "V-V1 declares no A-1 value")
+    # every declared key resolves on a real hrq record of the same shape (synthetic run; values naturally differ)
+    for f, (lines, node, truth, cfg) in {"vn1.expect.json": (*G.make(1, 30, lambda tti: [0], tail=40), "M2S72-E0v-q0-f1"),
+                                         "vn2.expect.json": (*sync_run(sched=lambda tti: [0, 1]), "M2S72-E0vN-q0-one0-n2-f1"),
+                                         "vv1.expect.json": (*sync_run(nack=(1, 1)), "M2S72-E0vN-q0-one0-n2-f1_A2V1")}.items():
+        with synthetic_runs(lines, node, truth, cfg=cfg) as (d, runs, log, sca):
+            rc, txt = cli_inproc(["hrq", runs, cfg, os.path.join(d, "rec"), "--t0", "1"])
+            out = json.load(open(os.path.join(d, "rec", f"hrq-{cfg}.json")))
+        unresolved = [k for k in docs[f]["expect"] if k != "verdict.held_features_if_exercised"
+                      and CLIM.evaluated_value(k, out) == CLIM.ABSENT]
+        check(not unresolved, f"{f}: keys without a value on a real record: {unresolved}")
 
 
 # --------------------------------------------------------------------------------------- T-imports-isolated ----
