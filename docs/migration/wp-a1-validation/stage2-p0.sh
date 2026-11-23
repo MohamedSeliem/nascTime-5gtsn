@@ -16,10 +16,9 @@ b73410549c6ac085b0cd82b3255307174153cb1fc8b6737a15bfb2c978a5b97b  expect/vn1.exp
 fe68ab9855e1574ca26709be12359c23be45f114dcc3f6eecc4d1c1683c31a8d  expect/vv1.expect.json
 2bb539cd99bdd622e843cacc68a8ea9faa6989b925bca5ee701179e3a470b3ae  m2s72_fgo_registry.json
 EOF
-# gate A references (written from the approved records, out of band): well-formed, or NO-GO
-for k in g0ro_record_sha256 image_digest; do is_hex64 "$(ref "$Z/refs/equivalence-ref.txt" "$k")" || stop "equivalence-ref: $k"; done
-is_hex64 "$(ref "$Z/refs/dr13-ref.txt" dr13_record_sha256)" || stop "dr13-ref: dr13_record_sha256"
-[ "${IMG_DIGEST:-}" = "$(ref "$Z/refs/equivalence-ref.txt" image_digest)" ] \
+# gate A: the signed statements A (A-1, A-2, A-3, A-6), A-4 and A-5, with the approved DR-13 and G0-RO records
+gate_a; gate_a45
+[ "${IMG_DIGEST:-}" = "$(aval a5-g0ro.txt image_digest)" ] \
   || stop "this container's image digest (IMG_DIGEST, from the host) is not the one the G0-RO record covers"
 test ! -e "$E" && mkdir "$E" && echo "P-0 fresh evidence dir" || stop "E exists or cannot be created"           # B-6
 mkdir "$E/p0" "$E/environment" "$E/gate" || stop "cannot create E subdirectories"
@@ -35,8 +34,8 @@ mkdir "$E/p0" "$E/environment" "$E/gate" || stop "cannot create E subdirectories
   git --version; sha256sum --version | head -1
   echo "nascTime commit $C"; (cd "$CHK" && sha256sum expect/vn1.expect.json expect/vn2.expect.json expect/vv1.expect.json m2s72_fgo_registry.json)
 } > "$E/environment/identity.txt" 2>&1 || stop "identity record"
-cp "$Z/refs/equivalence-ref.txt" "$E/environment/equivalence-ref.txt" && cp "$Z/refs/dr13-ref.txt" "$E/environment/dr13-ref.txt" \
-  || stop "reference copies"
+cp -rp "$APPROVALS" "$E/environment/approvals" && cp -rp "$Z/records" "$E/environment/records" || stop "approval copies"
+ssh-keygen -lf <(cut -d' ' -f2- "$APPROVALS/allowed_signers") > "$E/environment/approver-key-fingerprint.txt" 2>&1 || stop "key fingerprint"
 
 suite() {   # <suite> <expected final line> <isolated|plain>: real exit code, non-empty output, exact final line   # B-5
   local t=$1 exp=$2 mode=$3 out="$E/p0/$1.out" err="$E/p0/$1.err" rc last

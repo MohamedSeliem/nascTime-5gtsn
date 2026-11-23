@@ -1,12 +1,12 @@
 # WP-A1 — Remote execution plan for the independent validations V-N1, V-N2, V-V1
 
-**Status: revision 2, 23 November 2026, for independent review (step 139).**
+**Status: revision 3, 23 November 2026, for independent review (step 141).** Revision 2 is `151e164`.
 - Revision 1 is `e2523f8` (step 137).
 - **Option C** (an independent, executor-operated, ephemeral environment) was approved at step 139 as the preferred architecture.
 - **Genuine validation remains NO-GO** (§4).
 
 **Supersession:**
-- The executable procedure is now `docs/migration/wp-a1-validation-runbook.md` **revision 3** and the scripts in `docs/migration/wp-a1-validation/`.
+- The executable procedure is now `docs/migration/wp-a1-validation-runbook.md` **revision 4** and the scripts in `docs/migration/wp-a1-validation/`.
 - They replace the phase commands H-1 … H-5 of revision 1 §6. Those commands contained a fail-open point: `script` without `-e` returns 0 (runbook §11, FO-1).
 
 **Restrictions observed in this step:**
@@ -32,8 +32,8 @@
 | A2-V1 seal (33 records, `3d00ef8e…`) | **verified** (maintainer) | Stage 3 also requires **exactly** the 33 sealed files under `a2-nack-1/{p0,records,eval}` (extractor E-2) |
 | Original prefix `/mnt/nasctime-results` | **verified** (maintainer); consistent with the committed records | e.g. `fixtures/a2v1-first-chain.meta.json` |
 | `.ini` files | **not needed** | no reviewed evaluator opens one (runbook §8.1) |
-| The PCAP and NW-TT CSV files that `Run72` opens to derive the node ids | **not yet confirmed** | They are raw outputs, so they should be manifest entries. The maintainer's check covered the manifests, logs and `.sca`. Stage 3 checks them before any evaluation; if they are absent, `hrq` refuses (exit 2). |
-| Every manifest entry at its exact name, uncompressed | **not yet confirmed** | Stage 3 strict presence. The smoke outputs were "held uncompressed" by the runner, and the A2-V1 extractor already requires exact names. |
+| The PCAP and NW-TT CSV files that `Run72` opens to derive the node ids | **verified** (independent inspection, step 141) | present at their expected paths in all three archives. Stage 3 still re-checks them mechanically. |
+| Every manifest entry at its exact name, uncompressed | re-checked mechanically by Stage 3 (strict presence) | no further investigation needed (step 141) |
 | Smoke evidence seals (`s5-smoke-1-` / `s5-n2-1-evidence.sha256`) | unknown; optional | verified if archived, recorded either way |
 | Archive format and stored prefix | to be read by `extract_checked.py` | supported: tar (plain / gz / xz / bz2), zip; stored prefix none or `mnt/nasctime-results/` |
 | Sealed S1 archive (`3fa12389…`) | **not required** | only for the optional, informational G0RO-H |
@@ -86,7 +86,8 @@
 | P-4 | After session Q: approve the DR-13 validation record | A-4 |
 | P-5 | After session Q: approve the G0-RO record for one image digest | A-5 |
 | P-6 | Approve the stop, mismatch and retry rules (runbook §9) | A-6 |
-| P-7 | Confirm that every manifest entry, in particular the PCAP and NW-TT CSV files `Run72` needs, is in the archives under its exact name. Otherwise Stage 3 stops, as designed. | readiness |
+| P-7 | (closed at step 141: the manifests, logs, `.sca`, PCAP and NW-TT CSV files are present) | — |
+| P-9 | The maintainer's SSH public key for `wpa1-approval`, handed to the executor out of band; the maintainer signs `gate-a.txt` (session Q), then `a4-dr13.txt` and `a5-g0ro.txt` (session V) | A-1 … A-6 |
 | P-8 | `xa` non-gating (M-7); X-7's applicability (M-8) | — |
 
 ### Missing records and infrastructure
@@ -97,7 +98,7 @@
 | M-2 | The **G0-RO environment-equivalence record**: not yet produced (session Q) |
 | M-3 | The **ephemeral host**: a container runtime (Docker or Podman, `--mount type=bind`, `--network none`); network for H-1 only; ≈ 2.2 GB for one extraction plus the evidence directory, per session |
 | M-4 | The **container image**: Python ≥ 3.11 with git, coreutils, `awk` and `findmnt`, pulled and pinned by digest |
-| M-5 | `docker run` through `host-stage.sh` has not been executed anywhere: no container daemon was available here. Its first execution is session Q's H-3 on the executor's host. |
+| M-5 | (closed at step 141: `docker run` through `host-stage.sh` was exercised end to end on dummy data, see `wp-a1-validation-test-report.md`) |
 
 **Assessment: NO-GO.**
 - Session Q may start once P-1, P-2 and P-3 are given and M-3 and M-4 exist.

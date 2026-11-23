@@ -13,22 +13,22 @@ case "${1:-}" in
   validation) gate_b_go ;;
   *) stop "usage: h3-release.sh qualification|validation" ;;
 esac
+gate_a
 ro_path "$REL"
 O="$Z/release-record"
 [ ! -e "$O" ] || stop "$O exists (single attempt)"
 mkdir "$O" || stop "cannot create $O"
 
 # 1. the release checksum list is the approved one (its sha256 comes from the maintainer's approval record, out of band)
-REF="$Z/refs/release-ref.txt"
-want=$(ref "$REF" release_sums_sha256); is_hex64 "$want" || stop "release_sums_sha256 is not 64 hex digits"
+want=$(aval gate-a.txt release_sums_sha256); is_hex64 "$want" || stop "release_sums_sha256 is not 64 hex digits"
 [ -f "$REL/SHA256SUMS" ] || stop "$REL/SHA256SUMS missing"
 got=$(sha256sum "$REL/SHA256SUMS" | cut -d' ' -f1)
 echo "SHA256SUMS sha256 $got (approved $want)" | tee "$O/sums-identity.txt"
 [ "$got" = "$want" ] || stop "SHA256SUMS is not the approved one"
 
 # 2. exactly the three approved archives; each listed exactly once; verified without --ignore-missing
-mapfile -t ARCH < <(grep '^archive=' "$REF" | cut -d= -f2-)
-[ "${#ARCH[@]}" -eq 3 ] || stop "release-ref.txt must name exactly 3 archives, names ${#ARCH[@]}"
+mapfile -t ARCH < <(grep '^archive=' "$APPROVALS/gate-a.txt" | cut -d= -f2-)
+[ "${#ARCH[@]}" -eq 3 ] || stop "the signed gate-A statement must name exactly 3 archives, names ${#ARCH[@]}"
 : > "$O/selected.sha256"
 for a in "${ARCH[@]}"; do
   case "$a" in */*|.*|"") stop "archive name '$a' is not a plain file name";; esac

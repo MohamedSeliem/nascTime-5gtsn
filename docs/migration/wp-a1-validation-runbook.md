@@ -1,16 +1,21 @@
 # WP-A1 — Independent validation runbook: V-N1, V-N2, V-V1 (prepared, not executed)
 
-**Status: revision 3, 23 November 2026, for independent review (step 139). Nothing has been executed against genuine evidence.**
+**Status: revision 4, 23 November 2026, for independent review (step 141). Nothing has been executed against genuine evidence.**
 
 **Revision history:**
 - Revision 1: `e1b5a76`.
 - Revision 2: `bb39906`, the step-135 corrections R1 – R5.
-- Revision 3 (this one) closes the step-137 / step-139 gaps:
+- Revision 3 (`151e164`) closes the step-137 / step-139 gaps:
   - the procedure is now committed, fail-closed scripts in `docs/migration/wp-a1-validation/`, so the stop rules no longer depend on the operator;
   - exact release SHA-256 verification and extraction commands (§5);
   - the DR-13 validation protocol (§6) and the G0-RO comparison against D-2 (§7), each with its approval record;
   - the readiness of the archived inputs as derived from the reviewed code (§8.1);
   - the resolution of every fail-open point found (§11).
+- Revision 4 (this one), the step-141 corrections:
+  - Stage 6 gives an explicit integrity and acceptance-eligibility result; failed evidence is preserved, never eligible (§8);
+  - tests of that behaviour, the approvals, the extractor and the comparator, plus a Docker integration test of the whole host / container sequence on dummy data (§13);
+  - the G0-RO references are reviewed against the committed D-2 records, with source classes and an explicit coverage record (§7);
+  - the gate-A references are now signed approval statements verified against the maintainer's key, not populated text files (§3).
 
 **Unchanged:**
 - the design (`wp-a1-a21-e0vn-wrapper-design.md`, revision 2.1, `57a80ca`);
@@ -39,26 +44,33 @@
 | Original results prefix `R` | `/mnt/nasctime-results` |
 | A2-V1 seal; F3 fixture | `3d00ef8e…49ca0` (33 records); `cfb05ff7…6e65b` |
 | A2-V1 public pins, from `fixtures/a2v1-first-chain.meta.json` at `C` | manifest `3e7a78f5…3f41`, log `84320fb5…3873`, `0.sca` `3bdcc9fc…7db1`, node ids {0: 2049, 1: 2050} |
-| Container image | Python ≥ 3.11 with git, coreutils, `awk`, `findmnt`. **Pinned by digest.** The digest is the one the approved G0-RO record covers. |
+| Container image | Python ≥ 3.11 with git, coreutils, `awk`, `findmnt`, `ssh-keygen` (OpenSSH ≥ 8.2, for `-Y verify`). **Pinned by digest.** The digest is the one the approved G0-RO record covers. The Docker integration test used `python:3.13@sha256:9ffe84122ce74ebdffe2e0e6b946c9dd95d0bf3463f6eb1006b4dc6fefe36d01` (Python 3.13.18, the tier-0 version); that is a test choice, not an approval. |
 
 **Script pins at `D`** (sha256; `h1-setup.sh` exports the scripts from `D`, so these are for the reviewer):
 
 | File | sha256 |
 |---|---|
-| `common.sh` | `f5659436f636b49df78d41c7203645f79c833f0da4e6b6976fc4fb15f35316b5` |
-| `dr13-validate.sh` | `465f12533d839f1a331d15f6b1a874ec28af3ec24d2fcc18bfaeb0c396a51f0b` |
+| `common.sh` | `5212807ab3ad3c3d74a46db3596e8fd7bff25b65dc1c66700627a3e9e2421ea6` |
+| `dr13-validate.sh` | `1362175d3bcd357f2591965a86bf9fe4c1a987cf9f30e6db5f76f5fccb6d8683` |
 | `extract_checked.py` | `00190e4e9d0a9cb0da25d9ea9fdd23d9490d9770f53dd853a1f6ededec257b2d` |
-| `g0ro-run.sh` | `586e1304ddf92841f6aa8333f79d284d0f02e648e30fc69a4659f152584e7d33` |
-| `g0ro_compare.py` | `02109c328c7d9cec1767711fbb77cf2fa4adfdbb8475159030ec20476855b021` |
-| `h1-setup.sh` | `5f2aed83a848bbe788d619a181de2868ba599bc16f98afff44af3e371eecda10` |
-| `h3-release.sh` | `a0694e0c56de16b92f5c884f3b03037fccbe02bd6ff315464f908cfa048f7ecd` |
+| `g0ro-run.sh` | `6d65c2df53175bfb2dee3c4bffb5802323363152a401e1cced6b038f01a72a6b` |
+| `g0ro_compare.py` | `9641108c5237b4d74d5ac43ba9e51248004e03e81fd25270cdf1adbae2e0c270` |
+| `h1-setup.sh` | `c93f4b63dc21b2f648baeb428b31ca2f47830d74f2fa5bfe00c53cbdd17ec763` |
+| `h3-release.sh` | `24aea1edb475ae8983796a55fda23c49d927fdb81b384cff21d3255804ff221a` |
 | `host-stage.sh` | `7ef9309f1ed3882e631bc84a5a8da17434b187e7bc4177db37a13e110cd79551` |
-| `stage2-p0.sh` | `6f4f3f8ab092d5bfac7a933e7d43196ab8c9556648de66f3686ecc2c4749aab9` |
+| `stage2-p0.sh` | `ed7981e2aab797ea131946f54f636079c15c705fdd7f6c86383f0bfd280688b5` |
 | `stage3-x2a.sh` | `f4fcf74b1fe78462085f69e95f71c22251983fa8c3e1dec323944f80f0529827` |
 | `stage4-mount.sh` | `c47295bb5257f66ea5aea115748d6ec3a9d7305e338d3af73b9455c91ab34a8f` |
 | `stage5-validate.sh` | `a03097c89a4b354f69511c8c6e66739ea4e70335c1f76c8e1c61e19ba649ce9e` |
-| `stage6-finalise.sh` | `5a5251133380a912b0657a4ba052403b339b8bbffb2df63f7344230f95a61a8b` |
+| `stage6-finalise.sh` | `939e0e9aa0d2c93eb1eb0d863231ded4cd21cf2d7b563e03ac66a3a32b8226fb` |
 | `vars.env.template` | `c98fd08c97077b0e5bf663b89cf9cf0ae62fdf5bb027427d311ac77f3611934a` |
+| `tests/docker-integration.sh` | `497cb0652a1e5bc39380cc2b576d485160ba7c4fee98a5b9a75e527dfcaa207a` |
+| `tests/lib.sh` | `8426124082888566b66483e0717509fd439886ddf61442fe7d6a29088e0e8cbc` |
+| `tests/run-all.sh` | `a63ee53a1b85fe1b1d627fbfe317527bd5859dcb3023721947834cca2ff030d2` |
+| `tests/test-approvals.sh` | `ed5d20585a10ff9ef711a53b372e21ef547e2363cde8affc4e6b67bfcda5da3e` |
+| `tests/test-extract.sh` | `63fe47c412fce2dadd9291de695fdc1748a736725cea14c7ce410ce3019b3d2a` |
+| `tests/test-g0ro-compare.sh` | `b79b64007577c0a4a81eba5f0a577b59da93b580770329fc57a49ce43a07438e` |
+| `tests/test-stage6.sh` | `3161fa1c523ed11b51bc713ecea5ef0de3b224ebca143124f99ed3abc0021534` |
 
 ## 2. Two sessions, one order
 
@@ -92,18 +104,39 @@ Every step's exit code is the script's own: `host-stage.sh` uses `script -e`. **
 
 GO requires every item. **Any unmet item is NO-GO.**
 
-### Gate A: administrative, before session V
+### Gate A: administrative, before session V — signed approval statements
 
-| # | Item | Evidence | Reference file in `$Z/refs/` |
+Every gate-A item is a **statement signed by the maintainer**. Verification is mechanical, by `ssh-keygen -Y verify` against `$Z/approvals/allowed_signers`: principal `wpa1-maintainer`, namespace `wpa1-approval`.
+- The executor obtains the maintainer's public key **out of band**, for example from the maintainer's published SSH keys, confirmed through a second channel. Its fingerprint is recorded in the evidence (`environment/approver-key-fingerprint.txt`).
+- **The development agent never holds the signing key.**
+
+A statement is refused if any of these hold:
+- it is unsigned, or signed by another key or in another namespace;
+- it was altered after signing;
+- it is malformed, has a duplicate key, or is not `decision=APPROVED`;
+- it is for another gate.
+
+For A-4 and A-5:
+- the approved record itself must be in `$Z/records/` with the signed sha256;
+- both must name the same procedure commit as statement A.
+
+**A populated text file can no longer satisfy a gate.**
+
+| # | Item | Signed statement (`$Z/approvals/`) | Checked by |
 |---|---|---|---|
-| A-1 | Designated independent executor | the maintainer's written designation | `gate-a.txt`: `executor=` |
-| A-2 | Fixed reviewed commit, procedure commit and expectation files | the maintainer's confirmation of `C`, of `D` and of the four sha256 values | `gate-a.txt`: `docs_commit=<D>` (checked by `h1-setup.sh`) |
-| A-3 | Authorised access to the three archives, for this executor | the maintainer's authorisation | `release-ref.txt`: `release_sums_sha256=` and the three `archive=` names (checked by H-3) |
-| A-4 | DR-13 procedure approved **and validated** | the DR-13 validation record (§6), approved | `dr13-ref.txt`: `dr13_record_sha256=` (checked by Stage 2) |
-| A-5 | Environment equivalence (X-4) | the G0-RO record (§7) for **this image digest**, approved. **An identity statement or the regression suites alone are not sufficient.** | `equivalence-ref.txt`: `g0ro_record_sha256=`, `image_digest=`. Stage 2 checks the running image digest equals it. |
-| A-6 | Agreed stop, mismatch and retry rules | the maintainer's approval of §9 | `gate-a.txt`: `rules=approved` |
+| A-1 | Designated independent executor | `gate-a.txt`: `executor=` | `gate_a` (H-1, H-3, DR-13-V, G0-RO, Stage 2) |
+| A-2 | Reviewed commit, procedure commit, expectation files | `gate-a.txt`: `reviewed_commit=C`, `docs_commit=D`, `vn1_sha256`, `vn2_sha256`, `vv1_sha256`, `registry_sha256`. These must equal the fixed values. | `gate_a`; `h1-setup.sh` (D) |
+| A-3 | Access to the three archives | `gate-a.txt`: `access=authorised`, `release_sums_sha256=`, three `archive=` lines | `gate_a`; H-3 |
+| A-4 | DR-13 approved and validated | `a4-dr13.txt`: `gate=A-4`, `subject_file`, `subject_sha256`, `docs_commit=D` + the record in `$Z/records/` | `gate_a45` (Stage 2) |
+| A-5 | Environment equivalence (X-4) | `a5-g0ro.txt`: `gate=A-5`, `subject_file`, `subject_sha256`, `image_digest`, `docs_commit=D` + the record. **An identity statement or the regression suites alone are not sufficient.** | `gate_a45`; Stage 2 checks the running image digest |
+| A-6 | Stop, mismatch and retry rules | `gate-a.txt`: `rules=approved` | `gate_a` |
 
-The reference files only carry values out of the approval records. They cannot create an approval: the approval is the maintainer's dated record.
+**Statement format:**
+- the first line is `format=wpa1-approval/1`;
+- then one `key=value` per line;
+- `gate=`, `decision=APPROVED`, `docs_commit=` and `date=` are required.
+
+The maintainer signs it with `ssh-keygen -Y sign -f <private key> -n wpa1-approval <statement>`. Session Q needs `gate-a.txt` only; session V needs all three.
 
 ### Gate B: technical, decided by `stage2-p0.sh`
 
@@ -117,7 +150,7 @@ The same checks as revision 2:
 
 Additionally:
 - the evidence must not be visible;
-- the gate-A reference files must be well-formed;
+- the three signed gate-A statements (and the two approved records) must verify;
 - the image digest must be the one the G0-RO record covers.
 
 **GO is only the script's exit 0**, together with the line `GATE B: GO (B-1 ... B-6 met)` in `$E/gate/gate-b.txt`.
@@ -127,7 +160,8 @@ Additionally:
 ```bash
 export Z="$(mktemp -d)"                                    # fresh for each session
 git clone https://github.com/MohamedSeliem/nascTime-5gtsn.git "$Z/nasctime-src"
-mkdir "$Z/refs"        # write gate-a.txt, release-ref.txt, dr13-ref.txt, equivalence-ref.txt from the approval records
+mkdir "$Z/approvals" "$Z/records"   # allowed_signers (the maintainer's public key, out of band); the signed statements
+                                    # and their .sig files; session V: the approved DR-13 and G0-RO records
 D=<the approved procedure commit, 40 hex>
 git -C "$Z/nasctime-src" show "$D:docs/migration/wp-a1-validation/vars.env.template" > "$Z/vars.env"
 #   edit $Z/vars.env: replace the two <...> placeholders (X, REL); every other line stays as given
@@ -138,7 +172,7 @@ export IMG="<image>@sha256:<digest>"
 ```
 
 **What `h1-setup.sh` and `common.sh` refuse:**
-- a `D` other than the approved one;
+- a gate-A statement that does not verify (§3), and a `D` other than the one it approves;
 - a clone without the history the pin tests need;
 - an existing worktree or Simu5G tree;
 - a Simu5G HEAD other than the pin;
@@ -204,7 +238,7 @@ bash "$Z/scripts/host-stage.sh" dr13-validate.sh mounted "$Z/console.log" a
 - the `results.txt` of both modes and each mode's `SHA256SUMS` hash;
 - any deviation, as found.
 
-It is stored in the private evidence repository with checksums. **The maintainer approves it with a dated decision line.** That approval also closes the DR-13 condition "validated before any independent evaluation". Its sha256 becomes `dr13_record_sha256` (gate A-4). A dated entry in `migration-decisions-register.md` under DR-13 records the approval; that is a later documentation change by the maintainer, not part of this step.
+It is stored in the private evidence repository with checksums. **The maintainer approves it by signing the statement `a4-dr13.txt`** (§3), which names the record and its sha256. That approval also closes the DR-13 condition "validated before any independent evaluation". A dated entry in `migration-decisions-register.md` under DR-13 records the approval; that is a later documentation change by the maintainer, not part of this step.
 
 ## 7. G0-RO: environment equivalence against D-2 (session Q) and its approval record
 
@@ -216,21 +250,44 @@ It is stored in the private evidence repository with checksums. **The maintainer
 bash "$Z/scripts/host-stage.sh" g0ro-run.sh mounted "$Z/console.log"    # runs g0ro_compare.py; exit 0 only if all items pass
 ```
 
-| ID | Evaluator and invocation (unchanged code at `C`) | D-2 reference (committed) | Compared |
+**Review of the reference values against the committed D-2 records (step 141).** Each value carries a source class, and only R and D items decide equivalence:
+
+| Class | Meaning |
+|---|---|
+| **R** | a D-2 result recorded in a committed record |
+| **D** | derived from R values by the accepted code at `C` |
+| **P** | a declared protocol expectation, executed on D-2 but **not** in a committed record. Reported as information only. |
+
+The review found that revision 3 had treated the N = 1 XA row statuses, δ, A-1b and exit code as D-2 records. They are declared expectations of `M2-S7.2a-s5-n2-protocol.md` step C. **They are now class P.**
+
+| ID | Evaluator and invocation (unchanged code at `C`) | Compared | Class and source |
 |---|---|---|---|
-| G0RO-P | the 11 suites, exact lines | tier-0 / runbook | precondition only |
-| G0RO-1a | `check_m2s72_a21.py a21 <A2-V1 runs> <cfg> … --contract full` (S1 protocol E-1) | S1 closure §2 S-5: rc 4, `A-2.1 INCOMPLETE`; §3 rows | exit code, verdict, the 13 row statuses (A2-4c NOT EVALUATED, others PASS) |
-| G0RO-1b | the same, `--contract f1d-i` (E-2) | S-5: rc 0, `A-2.1 VALID` | as 1a |
-| G0RO-1c | per-node accounting of 1a and 1b | S1 §3: node 2049 11 702 / 11 702 / 11 697 / 11 697 / 0 / 0; node 2050 1 265 / 1 409 / 1 408 / 1 264 / 144 / 0; 129 handles, all retired; unresolved `[]`; end states `{censored: awaiting feedback: 6}` | exact integers |
-| G0RO-1d | `check_m2s72_a21.py a21-controls` (E-3) | S-6: rc 0, 22 / 22 as declared, 0 not buildable | exit code, counts |
-| G0RO-2a | `check/check_m2s72_s5n2.py xa <N1 runs> M2S72-E0v-q0-f1` (from `simulations/m2`, as on the VM) | `M2-S7.2a-s5-n2-protocol.md` step C: rc 0; XA-pre … XA-6 PASS; A-1a 11 697, A-1b 0, ambiguous / orphan / re-insert 0; δ 1 000 000 000 ps | exit code, row statuses, counts |
-| G0RO-2b | the same on the N = 2 smoke | the N = 2 acceptance (N2-A1, N2-A4 … N2-A6, P-N2-4) and DR-07c: rc 0; XA-pre … XA-5 PASS, XA-6 NOT EVALUATED; A-1 9 718 / 2 476 / 768 / 0 / 768 | as 2a |
-| G0RO-I | identity: image digest, Python, OS, Simu5G HEAD | the D-2 column of G0 §1 | recorded and compared in the record; differences listed, not a pass criterion |
-| G0RO-H | byte identity with D-2 record files | the S1 archive (`3fa12389…f0e34`), if the maintainer provides it | **informational only** |
+| G0RO-P | the 11 suites, exact lines | precondition only | — |
+| G0RO-1a / 1b | `check_m2s72_a21.py a21 <A2-V1 runs> <cfg> … --contract full` / `f1d-i` (S1 protocol E-1 / E-2) | exit code (4 / 0); verdict (`A-2.1 INCOMPLETE` / `A-2.1 VALID`) with the contract; window `[2000000000000, 12001000000000]`; the 13 row statuses (A2-4c NOT EVALUATED, others PASS); per-node inserts, transmissions, feedback, ACK, NACK, discarded (2049: 11 702 / 11 702 / 11 697 / 11 697 / 0 / 0; 2050: 1 265 / 1 409 / 1 408 / 1 264 / 144 / 0); 129 handles, all retired; unresolved `[]`; end states `{censored: awaiting feedback: 6}` | **R**: S1 closure §1, §2 S-5 / S-7, §3 |
+| G0RO-1d | `check_m2s72_a21.py a21-controls` (E-3) | exit code 0; 22 / 22 as declared; 0 not buildable | **R**: S1 S-6 |
+| G0RO-2b | `check/check_m2s72_s5n2.py xa <N2 runs> M2S72-E0vN-q0-one0-n2-f1` (from `simulations/m2`) | XA-pre … XA-5 PASS, XA-6 NOT EVALUATED; A-1a 9 718, A-1b 2 476, ambiguous 768, re-insert 768, orphan 0; UE-sent NACK 0; retransmitted PDUs 0 | **R**: `M2-S7.2a-a2-design-review.md` §1 |
+| | | exit code 0 | **D**: `xa` returns 0 iff `xa_ok` (XA-pre … XA-5 PASS, XA-6 NE because A-1 is not exact) |
+| G0RO-2a | the same on the N = 1 smoke | A-1a 11 697; ambiguous, orphan, re-insert 0; UE-sent NACK 0 | **R**: a2-design-review §1 ("neither run … contains a DL NACK") |
+| | | XA-pre … XA-6 PASS; A-1b 0; δ 1 000 000 000 ps; exit code 0 | **P**: protocol step C (declared; information only) |
+| G0RO-I | identity: image digest, Python, OS, Simu5G HEAD, against the D-2 column of G0 §1 | recorded in the record, differences listed | not a criterion |
+| G0RO-H | byte identity with the S1 archive (`3fa12389…`), if provided | — | informational only |
+
+**Coverage record: not compared, with reason.** This list is also printed in every `compare.txt`.
+
+| Field | Reason |
+|---|---|
+| a21 per-UE `lines_by_class`, and the S1 totals 371 groups / 742 exchangeable lines / 40 resolved by retransmission / 15 bound | recorded in S1 §3, but the mapping from the JSON class keys to these totals is not verified |
+| the A2-8 Simu5G scalar values (S1 §4) | `.sca` inputs (byte-identical by the manifest). The A-2.1 side is implied by the compared counts and the A2-8 row status. |
+| A2-7 details, per-UE occupancy equality, coverage section, d*, t_end | row statuses only |
+| per-control observed / declared rows | exit code and counts only |
+| S1 S-1 (integrity) and S-2 (original A2-V1 rows, `check_m2s72_a2v1`) | S-1 is the DR-13 validation; S-2's evaluator is not re-run |
+| run times | not a criterion |
+| XA overlap census, truth / A-1 aggregates, d* | not recorded for the smokes |
+| N = 1 retransmitted PDUs | declared only |
 
 **Expected limit, recorded rather than hidden:** G0RO-1 and G0RO-2 exercise the same read-only evaluation stack the WP-A1 wrapper builds on (A-2.1, A-1, XA, the MAC-log and `.sca` readers). They do not exercise the wrapper itself; that is what V-N1, V-N2 and V-V1 do.
 
-**Exercised here:** `g0ro_compare.py` on synthetic outputs shaped like the tools' real JSON. Matching gave 63 / 63 PASS, exit 0; one changed count gave exit 1; missing outputs gave FAILs.
+**Exercised here:** `tests/test-g0ro-compare.sh` (§13).
 
 **The approval record: "G0-RO environment-equivalence record (WP-A1)".** It holds:
 - the image digest;
@@ -239,7 +296,7 @@ bash "$Z/scripts/host-stage.sh" g0ro-run.sh mounted "$Z/console.log"    # runs g
 - the G0RO-I table against G0 §1;
 - deviations.
 
-It is approved by the maintainer with a dated decision line. Its sha256 and the image digest become `equivalence-ref.txt` (gate A-5). It covers **only that image digest**; another image needs a new record.
+It is approved by the maintainer **signing `a5-g0ro.txt`** (§3), naming the record, its sha256 and the image digest. It covers **only that image digest**; another image needs a new record.
 
 ## 8. Session V: Stages 2 – 6
 
@@ -273,14 +330,33 @@ bash "$Z/scripts/host-stage.sh" stage6-finalise.sh final "$Z/finalisation.log"  
 
 Each design suffix `; echo "… rc=$?"` is replaced by `; rc=$?; note "… rc=$rc"`. The script then applies §9 itself. An `hrq` exit 0 counts only if `hrq-<cfg>.expect.txt` ends `ALL EXPECTATIONS MET`.
 
-**Stage 6** (F-2 … F-9 of revision 2, as a script):
-- the post-checks;
-- copies of the procedure, references and console transcript;
-- the inventory of every file except the two top-level records, including the nested `fx-*/SHA256SUMS`;
-- a completeness check and verification, top level and nested;
-- `SHA256SUMS.final`, then `chmod -R a-w`. The containers run as the executor's user; root would bypass `chmod`.
+**Stage 6: finalisation with an explicit result (step 141).** Every outcome is finalised and preserved; a failed check never prevents the inventory or the final record.
 
-It prints the `SHA256SUMS.final` line for F-10. It refuses a second finalisation.
+**Integrity checks** (each failure is recorded as `integrity_failure:` in `RESULT.txt`):
+
+| Check | Fails when |
+|---|---|
+| I-1 | the expectation files or the registry differ from the reviewed sha256 values |
+| I-2 | the worktree is not at `C` |
+| I-3 | the worktree is not clean (tracked change or untracked file) |
+| I-4 | Simu5G is not at its pin, or not clean |
+| I-5 | the evidence directory holds a non-regular entry (listed; not followed or inventoried) |
+| F-3 | the procedure or console-transcript copy failed |
+
+**Completeness checks** (`not_eligible:`): gate B GO; Stage 5 completed with every `hrq --expect` exit 0; no `findings.md`; the required records present.
+
+**`RESULT.txt`** states `integrity: PASS|FAILED` and `acceptance_eligible: YES|NO`. It is written **before** the inventory, so `SHA256SUMS` covers it.
+
+**The inventory's own verification** (F-7: count, `sha256sum -c`, nested `fx-*/SHA256SUMS`) is written to `F7-verification.txt`. A failure there overrides eligibility to NO. `SHA256SUMS.final` covers both `SHA256SUMS` and `F7-verification.txt`.
+
+| Exit | Meaning |
+|---|---|
+| 0 | integrity PASS, acceptance-eligible: a precondition of VG-1 … VG-3, never an acceptance |
+| **4** | **integrity FAILED: preserved as failed evidence, never acceptance-eligible** |
+| 5 | integrity PASS, not eligible (NO-GO, stop, incomplete or findings) |
+| 1 | not finalised (no evidence directory, already finalised, records not writable) |
+
+`chmod -R a-w` follows. It is effective for the non-root container user; root bypasses it. Stage 6 prints the `SHA256SUMS.final` lines for F-10, and refuses a second finalisation.
 
 ### 8.1 Inputs the reviewed evaluators read (from the code at `C`; no configuration file)
 
@@ -312,6 +388,7 @@ On a dummy tree, `Run72` took the node ids from the `.sca` while only requiring 
 | `hrq` exit 0 without `ALL EXPECTATIONS MET`, or any other exit | P-3 and `cmp`, then stop; Stage 6 |
 | `xa` exit ≠ 0 | finding (non-gating, M-7); continue |
 | P-3 ≠ 0, `cmp` differs, or the fixture not reproduced at P-3 | integrity failure; stop; Stage 6 |
+| Stage 6 exit 4 (integrity FAILED) or 5 (not eligible) | the evidence is preserved and reported, and is never acceptance-eligible. A new session V needs the maintainer's approval. |
 | Any failure | no retry, no clean-up, no relabelling (X-6). Each stage refuses an existing output (single attempt). |
 | A fresh attempt | only with the maintainer's written approval, as a new session V (new `$Z`, new `X`). The failed one is preserved, finalised and reported. |
 
@@ -319,7 +396,7 @@ On a dummy tree, `Run72` took the node ids from the `.sca` while only requiring 
 
 | Gate | Evidence |
 |---|---|
-| VG-0 | `gate/gate-b.txt`; `p0/*`; `release/*` (`sums-identity`, `selected.sha256`, `verify-before` / `-after`, `members-*`); `x2a/*` (method, manifests, presence, verify, public pins, seal and seal set, Run72 readiness, `mount.txt`, `mount-vs-x.txt`); the integrity files of each validation; `vv1/fx-{before,after}/`; `environment/*` (identity, the two gate-A references); `console.log`; `SHA256SUMS`, `SHA256SUMS.final`; the approved DR-13 and G0-RO records cited |
+| VG-0 | `RESULT.txt` with `integrity: PASS` and `acceptance_eligible: YES`, and `F7-verification.txt` PASS (Stage 6 exit 0); `gate/gate-b.txt`; `p0/*`; `release/*` (`sums-identity`, `selected.sha256`, `verify-before` / `-after`, `members-*`); `x2a/*` (method, manifests, presence, verify, public pins, seal and seal set, Run72 readiness, `mount.txt`, `mount-vs-x.txt`); the integrity files of each validation; `vv1/fx-{before,after}/`; `environment/*` (identity, the signed approvals with the approver key fingerprint, the approved records); `console.log`; `SHA256SUMS`, `SHA256SUMS.final`; the approved DR-13 and G0-RO records cited |
 | VG-1 | `stage5-summary.txt`: `hrq rc 0: ALL EXPECTATIONS MET` for all three, and Stage 5 exit 0 |
 | VG-2 | the A-1 PU-4 row verbatim under `historical` (PASS for V-N1, **FAIL** for V-N2) and never a gate; no output restating the A2-V1 verdict |
 | VG-3 | the maintainer's acceptance of the validation record (X-9) |
@@ -344,6 +421,9 @@ On a dummy tree, `Run72` took the node ids from the `.sca` while only requiring 
 | FO-14 | re-runs into existing outputs | every stage refuses an existing output (single attempt) |
 | FO-15 | `bind()` stopping inside `$(…)` would only end a subshell | sources checked before any substitution |
 | FO-16 | the `map` stream could silently drop an unprefixed line (found in the draft DR-13 script) | an explicit prefix check of every line first; the stream maps every line |
+| FO-17 | Stage 6 only **warned** on a changed expectation file and ignored a dirty worktree, then finalised normally with exit 0 (step 141) | an explicit `integrity: FAILED` result, exit 4, never acceptance-eligible, still preserved (tests S6-3 … S6-9, S6-12) |
+| FO-18 | gate-A references were populated text files that anyone could write (step 141) | maintainer-signed statements verified with `ssh-keygen -Y verify`; approved records hash-bound (tests AP-1 … AP-16) |
+| FO-19 | G0-RO counted declared protocol expectations as D-2 records (step 141) | source classes R / D / P; only R and D decide (test GC-5) |
 
 ## 12. Decisions requiring the maintainer
 
@@ -352,29 +432,31 @@ On a dummy tree, `Run72` took the node ids from the `.sca` while only requiring 
 | M-1 | Executor and host | A-1 |
 | M-2 | `C`, `D` and the four sha256 values | A-2 |
 | M-3 | Access for the executor; the `SHA256SUMS` hash and the three archive names (the release check already passed for the maintainer) | A-3 |
-| M-4 | Approve the DR-13 validation record (§6) | A-4 |
-| M-5 | Approve the G0-RO record (§7) for one image digest; decide whether G0RO-H (the S1 archive) is wanted | A-5 |
+| M-3a | Publish or hand over the maintainer's SSH public key for `wpa1-approval` and sign the statements (§3) | A-1 … A-6 |
+| M-4 | Approve the DR-13 validation record (§6) by signing `a4-dr13.txt` | A-4 |
+| M-5 | Approve the G0-RO record (§7) for one image digest by signing `a5-g0ro.txt`; decide whether G0RO-H (the S1 archive) is wanted | A-5 |
 | M-6 | Approve §9 | A-6 |
 | M-7 | `xa` non-gating in V-N1 / V-N2 (proposed) | §9 |
 | M-8 | X-7: not applicable to read-only evaluations, or define its form | — |
 | M-9 | A later design revision carrying C-1 / C-2 and this procedure | — |
 | M-10 | After VG-3: S5-2-D2; registry admissions | — |
 
-## 13. What was exercised while preparing
+## 13. Tests of the procedure (TEST ONLY: dummy data and public code; never genuine archives)
 
-Nothing touched genuine evidence. Mount profiles were emulated with private mount namespaces; no container daemon was available, so `docker run` itself is untested here.
-- **Stage 2** on public code (real worktree at `C`, real Simu5G, TEST-ONLY gate references): 11 / 11 suites, GO.
-- **H-3** on dummy archives:
-  - verified and extracted (78 files);
-  - refused: an unapproved `SHA256SUMS`, a second attempt, a qualification run with `E` present, and a validation run without gate B.
-- **Stage 3** on the dummy extraction:
-  - the manifest, presence and mapped-verification checks passed;
-  - it stopped at the A2-V1 public pins, as it must on dummy data;
-  - a TEST-ONLY copy without the two pin comparisons passed the seal-set, smoke-seal and `Run72` readiness checks.
-- **Stage 4:** passed.
-- **Stage 5** on dummy data:
-  - V-N1 / V-N2: `hrq` exit 5 → findings, P-3 identical, continued;
-  - V-V1: stopped at P-1, extractor exit 11 (seal gate), before evaluation.
-- **Stage 6:** finalised, nested sums included, re-verified, a second run refused.
-- **DR-13-V and G0-RO:** see §6 and §7.
-- **`host-stage.sh`:** refused an unpinned image, an absent image and an unknown script.
+| Test (`docs/migration/wp-a1-validation/tests/`) | What it covers |
+|---|---|
+| `test-stage6.sh` (S6-1 … S6-12) | Stage 6 on synthetic evidence with a real worktree at `C` and real Simu5G:<br>• clean → exit 0, eligible;<br>• **changed expectation file**, **dirty worktree** (untracked file; modified evaluator), worktree off `C`, dirty Simu5G, symlink in the evidence, a nested `SHA256SUMS` that no longer verifies, a missing transcript → exit 4, integrity FAILED, never eligible, and **preserved** (final record and inventory verify);<br>• findings, NO-GO → exit 5;<br>• second finalisation → exit 1 |
+| `test-approvals.sh` (AP-1 … AP-16) | the signed gate-A statements with a throwaway key: valid; altered; another key; another namespace; unsigned; not APPROVED; duplicate key; another gate; malformed; another reviewed commit or expectation hash; no `allowed_signers`; A-4 / A-5 record changed or absent; another procedure commit |
+| `test-extract.sh` (EX-1 … EX-8 + refusals) | `extract_checked.py` on crafted tar / tar.gz / zip archives: prefix handling; traversal; absolute; symlink; hardlink; outside the layout; mixed prefix; duplicates; overwrite; unknown format |
+| `test-g0ro-compare.sh` (GC-1 … GC-8) | the comparator: equivalence; coverage record; source classes; R, D and P differences; window; missing output |
+| `run-all.sh` | the four above |
+| `docker-integration.sh <D>` | the whole sequence through `host-stage.sh` and a real Docker daemon, in a pinned image:<br>• session Q: H-1, H-3, DR-13-V (b) and (a), G0-RO;<br>• session V: H-1, refusals before gate B and on an altered A-5 statement, Stage 2 GO, H-3, Stages 3 – 6;<br>• `run-all.sh` inside the image.<br>Dummy-data stops are asserted. A TEST-ONLY copy of Stage 3 without its two real-hash comparisons drives Stages 4 – 6 in that session only, and is preserved in the evidence as such. |
+
+**Running them:**
+
+```bash
+NASCTIME_SRC=<full clone> SIMU5G_SRC=<Simu5G clone with v1.8.1> bash docs/migration/wp-a1-validation/tests/run-all.sh
+NASCTIME_SRC=<full clone> SIMU5G_SRC=<…> IMG=<image>@sha256:<digest> bash docs/migration/wp-a1-validation/tests/docker-integration.sh <D>
+```
+
+The results at the procedure commit are in `docs/migration/wp-a1-validation-test-report.md`.

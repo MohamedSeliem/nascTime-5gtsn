@@ -7,6 +7,7 @@
 STAGE=dr13-validate
 . "$(dirname "$0")/common.sh"
 load_vars
+gate_a                                                        # an authorised executor, the approved procedure
 [ $# -eq 1 ] && { [ "$1" = a ] || [ "$1" = b ]; } || stop "usage: dr13-validate.sh a|b"
 mode=$1
 [ -d "$X" ] || stop "X missing"

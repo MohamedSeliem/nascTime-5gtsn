@@ -7,6 +7,7 @@
 STAGE=g0ro-run
 . "$(dirname "$0")/common.sh"
 load_vars
+gate_a                                                        # an authorised executor, the approved procedure
 ro_path "$R"; ro_path "$X"
 G="$Z/g0ro"; [ ! -e "$G" ] || stop "$G exists (single attempt)"; mkdir "$G" "$G/p0"
 note() { echo "$*" | tee -a "$G/runs.txt"; }
