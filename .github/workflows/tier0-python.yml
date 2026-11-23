@@ -9,6 +9,12 @@
 #   (b) the suite's final summary line equals the declared expected line exactly;
 #   (c) every non-success count in that line is zero.
 # Expected lines are declared in h4-first-task.md §5 and must not be edited to make CI pass.
+#
+# WP-A1 I-9 (decision D-A1-6; design docs/migration/wp-a1-a21-e0vn-wrapper-design.md rev. 2.1, §9): an eleventh
+# suite, test_m2s72_e0vn21.py, with its declared line. It runs isolated, exactly as verified locally:
+# python3 -I -B <absolute path> from a directory outside the repository, with SIMU5G_ROOT = the gated Simu5G
+# checkout below and the full git history (its source-pin tests resolve fbee202, 39a6434, d920125, 7bb0e3a, 7e5c169).
+# The ten original suites keep their invocation and expected lines unchanged.
 
 name: tier0-python
 
@@ -83,10 +89,13 @@ jobs:
           # Written to the runner's temporary directory at run time; not a repository file.
           cat > "$RUNNER_TEMP/tier0/run_suite.sh" <<'RUNNER'
           #!/usr/bin/env bash
-          # usage: run_suite.sh <suite.py> <expected final line>
+          # usage: run_suite.sh <suite.py> <expected final line> [isolated]
+          #   default:  cd <suite dir>; python3 -B <suite>            (the ten original suites, unchanged)
+          #   isolated: cd $RUNNER_TEMP; python3 -I -B <absolute path>  (WP-A1, as verified locally)
           set -uo pipefail
           suite="$1"
           expected="$2"
+          mode="${3:-default}"
           R="$RUNNER_TEMP/tier0"
           out="$R/$suite.stdout"
           err="$R/$suite.stderr"
@@ -98,8 +107,14 @@ jobs:
 
           # Output goes straight to files (no pipeline), so $? is the Python process's own exit code.
           start=$(date +%s.%N)
-          python3 -B "$suite" >"$out" 2>"$err"
-          rc=$?
+          if [[ "$mode" == isolated ]]; then
+            echo "Invocation: (cd \$RUNNER_TEMP) python3 -I -B $GITHUB_WORKSPACE/$SUITE_DIR/$suite"
+            (cd "$RUNNER_TEMP" && python3 -I -B "$GITHUB_WORKSPACE/$SUITE_DIR/$suite") >"$out" 2>"$err"
+            rc=$?
+          else
+            python3 -B "$suite" >"$out" 2>"$err"
+            rc=$?
+          fi
           end=$(date +%s.%N)
           dur=$(awk -v a="$start" -v b="$end" 'BEGIN { printf "%.1f", b - a }')
 
@@ -250,6 +265,10 @@ jobs:
         if: ${{ !cancelled() && steps.runner.outcome == 'success' && steps.fixture_gate.outcome == 'success' && steps.simu5g_gate.outcome == 'success' }}
         run: '"$RUNNER_TEMP/tier0/run_suite.sh" test_m2s72_a21_fixture.py "A-2.1 fixture-extractor tests: 14 / 14 PASS, 0 FAIL"'
 
+      - name: Suite test_m2s72_e0vn21.py (WP-A1, isolated)
+        if: ${{ !cancelled() && steps.runner.outcome == 'success' && steps.fixture_gate.outcome == 'success' && steps.simu5g_gate.outcome == 'success' }}
+        run: '"$RUNNER_TEMP/tier0/run_suite.sh" test_m2s72_e0vn21.py "WP-A1 e0vn21 tests: 52 / 52 PASS, 0 FAIL" isolated'
+
       - name: Not run in tier 0
         if: ${{ always() }}
         run: |
@@ -281,7 +300,7 @@ jobs:
             echo "| Simu5G commit gate | $(esc "$(gate_val simu5g_gate)") |"
             echo "| Fixture gate | $(esc "$(gate_val fixture_gate)") |"
             echo
-            echo "### Suites (\`$SUITE_DIR\`, \`python3 -B\`)"
+            echo "### Suites (\`$SUITE_DIR\`; \`python3 -B\`, WP-A1: \`python3 -I -B\` from \`\$RUNNER_TEMP\`)"
             echo
             echo "| Suite | Verdict | Exit code | Duration (s) | Final summary line | Expected |"
             echo "|---|---|---|---|---|---|"
@@ -292,9 +311,9 @@ jobs:
                 echo "| \`$suite\` | **$verdict** | $rc | $dur | \`$(esc "$actual")\` | \`$(esc "$expected")\` |"
               done < "$R/results.tsv"
             fi
-            if [[ "$ran" -ne 10 ]]; then
+            if [[ "$ran" -ne 11 ]]; then
               echo
-              echo "**Only $ran of 10 declared suites produced a result; the rest were not run (see the gates and step logs).**"
+              echo "**Only $ran of 11 declared suites produced a result; the rest were not run (see the gates and step logs).**"
             fi
             echo
             echo "### NOT RUN in tier 0"
