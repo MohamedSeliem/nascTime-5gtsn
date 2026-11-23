@@ -1,9 +1,10 @@
 # WP-A1 — Integration of A-2.1 into the E0v-N per-run evaluation (design)
 
-**Status: revision 2, 23 November 2026. Design for independent review. Nothing is implemented.**
+**Status: revision 2.1, 23 November 2026. Design for independent review. Nothing is implemented.**
 - Baseline: `m2/continuation` at `7bb0e3a7145602ae556239c8667362203d9294b5`; branch `wp/a1-a21-e0vn-wrapper`.
 - Revision 1: commit `bd6de62` (18 November 2026). Reviewed; revision 2 required (findings C1–C6).
-- Revision 2 resolves C1–C6 and records the reviewer's rulings on D-A1-1 … D-A1-10. The resolution table is §0.
+- Revision 2 (`16676c3`) resolves C1–C6 and records the reviewer's rulings on D-A1-1 … D-A1-10. The resolution table is §0.
+- Revision 2.1 applies the three final checks of the step-112c review (§0.1): C-0 event preservation, A2-8u scalar robustness, registry provenance. D-A1-11 is approved.
 - Level: design only. No code, configuration, record, fixture, workflow or evidence is changed.
 - No simulation was run and no private evidence was read.
 - Every source fact below was read from the repository at the baseline. File references are `simulations/m2/check/…` unless stated otherwise.
@@ -38,10 +39,18 @@
 | **C1** run-level vs per-UE A2-8 | T-a28-agg asserted that the per-UE rows aggregate *exactly* to `scalar_row`. That is false: `scalar_row` can PASS while some comparisons are unavailable. | • The run-level A2-8 row of A-2.1 is preserved verbatim and keeps its frozen effect: a FAIL makes A-2.1 NOT VALID, so PU-4h FAILs.<br>• A new, separately named per-UE gate **A2-8u UE k** requires **both** statistics for **every** expected UE.<br>• The exact invariant is replaced by the compatibility relation CR-1 … CR-4.<br>• T-a28-compat tests every intentional difference.<br>• The tolerance formula and `REL_TOL = 1e-9` are quoted exactly; a `ValueError` gives NE; a non-finite value is handled explicitly. | §4.5, §7.1 |
 | **C2** censoring vs frozen contract | Censored NE was non-gating, which contradicts A2-7 (NE whenever `touched_nodes` is non-empty) and its required status under F1-d(i). | • No non-gating exception remains. Uncertainty NE gates (D-A1-3 ruling).<br>• Attributable unit-level end states never populate `censored_nodes`; they are distinguished from uncertain group-level censoring: §4.2 table.<br>• Uncertain group-level censoring → A2-7 NE → F1-d(i) INCOMPLETE → PU-4h NE → run **INCOMPLETE**.<br>• The verdict tables, the tests (T-censor-*) and D-A1-3 are reconciled. | §4.2, §4.3, §4.8, §7, §11 |
 | **C3** fail-closed occupancy | PU-4o fell through to PASS; a missing `occupancy_equal` entry could reach PASS; there was no mapping validation; NC-occ-one-ue claimed "UE 1 rows unchanged". | • PU-4o PASS requires all of: an explicit `occupancy_equal[n_k] is True`; a valid A-2.1 occupancy; a valid reference; A2-7 PASS; PU-4h PASS.<br>• Every other path is FAIL or NE; a missing entry is FAIL.<br>• A new gate row **MAP-UE** validates the complete bijective UE-to-node mapping.<br>• The *local comparison* is separated from the *row status*, which also applies the global rules.<br>• NC-occ-one-ue is corrected: UE 1's local comparison is reported unchanged, but its row FAILs by the global rule. | §4.4, §4.6, §7.3 |
-| **C4** FGO registry | The registry was incomplete; it included rows supported only by inference or prediction; unknown features and known-but-unexercised features were not distinguished. | • All 18 `coverage()` features are enumerated with their exact names, genuine-exercise status, accepted record and contract, evidence strength and admission.<br>• Only 10 are admitted.<br>• Excluded: single-candidate ACK and NACK (not stated in any accepted record; inferred only) and the 6 known-unexercised features.<br>• Predicted N = 2 counts are never evidence. F3 and S1 support coverage only within their scope and accept nothing about A2-V1.<br>• Unknown, known-unexercised and missing features have distinct outcomes.<br>• Synthetic tests never write the registry. | §4.7 |
+| **C4** FGO registry | The registry was incomplete; it included rows supported only by inference or prediction; unknown features and known-but-unexercised features were not distinguished. | • All 18 `coverage()` features are enumerated with their exact names, genuine-exercise status, accepted record and contract, evidence strength and admission.<br>• Only 9 are admitted (rev. 2.1; rev. 2 had 10).<br>• Excluded: single-candidate ACK and NACK, and exchangeable 2-candidate ACK groups (rev. 2.1): no accepted record states them; they are inferred only. Also excluded: the 6 known-unexercised features.<br>• Predicted N = 2 counts are never evidence. F3 and S1 support coverage only within their scope and accept nothing about A2-V1.<br>• Unknown, known-unexercised and missing features have distinct outcomes.<br>• Synthetic tests never write the registry. | §4.7 |
 | **C5** digest and downstream | There was no field-level ownership, and A-1-derived per-UE H-ARQ values could appear as current results. | • The s5n digest is preserved byte-identical.<br>• A new composed digest has a field-by-field ownership map. Per-UE H-ARQ values come from A-2.1 only, each with an availability status. A-1 values are confined to `historical`.<br>• Across-UE aggregates are all-or-nothing.<br>• The A3 batch interface and the A5 comparator interface are documented, not implemented. | §5.3, §5.4, §5.5 |
 | **C6** commands and tests | • T-n1-identity was wrong without UE logs.<br>• The fixture interface was implicit.<br>• C-0 compared totals only.<br>• Historical rows could be dropped.<br>• The name guard was unverified.<br>• Each contract was replayed separately.<br>• The `-I` import was unverified.<br>• Commands were abbreviated.<br>• The batch boundary was unspecified.<br>• An expectation mismatch could exit 0. | • T-n1-identity: PU-4h NE without UE lines.<br>• New `hrq-fixture` mode with an explicit interface.<br>• C-0 is canonical event-sequence equality, with negative controls that keep the counts identical but change the events.<br>• Required s5n row presence, with exact s5n gate semantics (PU-4 is the only change).<br>• The name guard was checked against all 459 configurations: 294 E0v-N accepted, 0 others.<br>• One replay; both contract verdicts are derived from the same rows.<br>• `-I`: every script inserts its own directory; verified.<br>• Complete command blocks, including the extractor.<br>• The A3 boundary and the S5-2-D2 enforcement.<br>• Expectation mismatch exits 5. | §3.3, §4.9, §5, §7, §8 |
 | **N ≥ 2 claim** | "PU-4 FAILs by construction at N ≥ 2" | Qualified: the demonstrated mechanism is same-process, same-instant overlapping feedback of two UEs (384 pairs on the N = 2 smoke). It is a property of the schedule, not of N alone. | §2 L-1, L-3; §12 |
+
+### 0.1 Revision 2.1: final checks (step-112c review)
+
+| Check | Finding against the accepted code / records | Correction |
+|---|---|---|
+| **F-1** C-0 event preservation | The reconstruction from `res["pdus"]` / `res["fb"]` is lossless **only** under conditions that revision 2 did not all state:<br>• `pdus` is a dict keyed by PDU id (`m2s72_a21.py:568`). A repeated id overwrites the earlier unit, so one insert silently disappears from `pdus`. Every insert match increments `counts["insert lines"]` and then writes `pdus[pid]`, with no branch in between (`:550-570`), so the loss is exactly visible as `len(pdus) < counts["insert lines"]`.<br>• No unit's identity fields (`pid`, `node`, `p`, `cw`, `t_ins`, `ins_gi`) are reassigned after creation; the only unit `update` is `st` / `last_tx` / `ntx` (`:607`). Nothing is deleted from `pdus` or `fb`. Every feedback match appends to `fb` (`:610-621`), and the feedback fields `t`, `p`, `cw`, `res` are never reassigned.<br>• A gNB line that A-2.1's replay consumes in an earlier branch (for example a line also containing `T_DROPPED`, `T_NOTADDR`, `LteSchedulerEnb` or a unit RTX / discard pattern) is not an insert for A-2.1, but A-1 still extracts it. C-0's length or element check catches it.<br>• **Not caught by revision 2:** a *malformed* insert or feedback line. A-1 (`m2s72_peru_adapter.R_INSERT` / `R_FB`) and A-2.1 (`m2s72_a2probe.R_INSERT` / `R_FB`) use **textually identical** regexes, so both parsers skip the same malformed line, and the two sequences agree. | §4.1 extended:<br>• (a) explicit reconstruction preconditions, each a C-0 FAIL;<br>• (b) a **regex-free token census** of the raw gNB lines, as a third, independent count;<br>• (c) the reconstruction never deduplicates, sorts by anything other than the line index, or repairs.<br>New negative controls: NC-c0-dup-pid, NC-c0-recon-drop, NC-c0-recon-dup, NC-c0-malformed-ins and NC-c0-malformed-fb (§7.3).<br>Token census on the committed F3 fixture (read-only): gNB "H-ARQ TX: new pdu" 99 = 99 insert matches; "H-ARQ TX: feedback received" 96 = 96 feedback matches. |
+| **F-2** A2-8u scalar robustness | `m2s72_a2probe.scalars` returns `str` values and keeps the **last** of duplicated `(module, name)` records without notice. `float()` accepts `"nan"`, `"inf"` and overflowing literals (`"1e999"` → `inf`). The A-2.1 value is finite only if the per-node counts are well formed. | §4.5 step 5 is replaced by a fail-closed type and value procedure:<br>• duplicate records → NE;<br>• a non-`str` / `bool` value → NE;<br>• `ValueError`, `TypeError` or `OverflowError` → NE;<br>• a non-finite recorded value → DIFFERENT;<br>• malformed counts or a non-finite computed value → DIFFERENT.<br>CR-1 is qualified for duplicate records. The run-level A2-8 is untouched and still reported verbatim. New cases (11)–(15) in T-a28-compat. |
+| **F-3** registry provenance | Each of the 10 revision-2 admissions was re-read against the cited CLOSED ACCEPTED record and the accepted class assignment (§4.7.1):<br>• **9 are directly supported.**<br>• **#2 `exchangeable ACK groups (2 candidates)` is not.** S1 §3 states "371 certified exchangeable groups, with 742 exchangeable lines" and "2 × 371 = 742". It states neither the group size nor that the groups are ACK groups; "2 candidates" follows only by deduction. | #2 is **excluded** (strength I). 9 features are admitted. No feature is added by inference. The held sets of T-n2-same-tti, T-f3-hrq, V-N2 and V-V1 now include #2. T-registry is updated. |
 
 **Rulings recorded** (reviewer, revision 1):
 
@@ -386,9 +395,23 @@ A-1 and A-2.1 must have parsed **the same gNB H-ARQ events, in the same order**.
 
 **C-0 FAIL:**
 - otherwise, reporting the first differing index, both events there, both lengths and the sha256 of each sequence's canonical JSON encoding;
-- also when the A-2.1 sequence cannot be built: the `res["pdus"]` count differs from `res["counts"]["insert lines"]`, for example on a duplicated PDU id.
+- also when the A-2.1 sequence cannot be built exactly (below).
 
-Both sha256 values are recorded in every case. The gNB module name of the two parsers is asserted equal at import (T-c0-module: `m2s72_peru_adapter.harq_events` default `gnb` == `m2s72_a2probe.GNB`).
+**Reconstruction preconditions** (rev. 2.1; each violation is C-0 FAIL, naming the precondition):
+
+| ID | Precondition | What it excludes |
+|---|---|---|
+| R-0a | `len(res["pdus"]) == res["counts"]["insert lines"]` | **an insert lost by reconstruction**: a repeated PDU id overwrites `pdus[pid]` (`m2s72_a21.py:568`); every counted insert line writes `pdus` (`:550-570`), so equality ⇔ no overwrite |
+| R-0b | the `ins_gi` of the units are pairwise distinct, and the `gi` of the `fb` lines are pairwise distinct and disjoint from them | two events claiming one log line |
+| R-0c | `[x["j"] for x in res["fb"]] == list(range(len(res["fb"])))`, and the `gi` values are strictly increasing | a repeated, dropped or reordered feedback entry |
+| R-0d | every reconstructed field is an `int` (the result a `str` in {ACK, NACK}); no `None` | a malformed unit or line passed through |
+| R-0e | **token census** (regex-free, from the raw log; computed by the CLI beside `harq_events`, never by the library): the number of lines whose module is exactly `M2S72Bridge.gnb1.cellularNic.mac` and whose message contains `H-ARQ TX: new pdu`, and likewise `H-ARQ TX: feedback received`, equals both the A-1 and the A-2.1 insert and feedback counts | **a malformed insert or feedback line**. A-1 and A-2.1 use textually identical regexes (`m2s72_peru_adapter.py:33-34`, `m2s72_a2probe.py:39-40`), so both would skip it silently; the census counts it. |
+
+The reconstruction **never** deduplicates, repairs, filters or re-sorts by anything other than the log line index. A violation is reported, never compensated. R-0a, R-0b and R-0e make an equal-length comparison impossible after a silent loss. R-0c and the element-wise comparison make it impossible after a repeat or a reorder.
+
+On the committed F3 fixture (read-only check, §0.1), the census gives 99 inserts and 96 feedback lines on the gNB module, equal to the regex matches. The same tokens also appear in UE-module lines, which is why the census is restricted to the exact gNB module.
+
+Both sha256 values, and the census counts, are recorded in every case. The gNB module name of the two parsers is asserted equal at import (T-c0-module: `m2s72_peru_adapter.harq_events` default `gnb` == `m2s72_a2probe.GNB`).
 
 ### 4.2 Censoring classes and their effect (C2, D-A1-3)
 
@@ -453,10 +476,25 @@ Both sha256 values are recorded in every case. The gNB module name of the two pa
 | 2 | no scalar record for the module | NOT COMPARED ("no statistics for ue[k]") |
 | 3 | `n_k ∈ touched_nodes(res)` | NOT COMPARED ("uncertain attribution: censored or pending group") |
 | 4 | no feedback attributed to n_k (`feedback == 0`) | NOT COMPARED ("no feedback") |
-| 5 | for **each** of `harqErrorRateDl:mean` (val = nack / feedback) and `harqTxAttemptsDl:mean` (val = mean `ntx` of the ACKed units of n_k; `None` if there is none):<br>• name absent, or val `None` → that statistic NOT COMPARED ("absent" / "no ACKed lifecycle");<br>• `rec = float(s[name])` raises `ValueError` → NOT COMPARED ("unparsable");<br>• `not math.isfinite(rec)` → DIFFERENT ("non-finite Simu5G value against a finite A-2.1 value"), checked explicitly;<br>• otherwise equal iff `abs(rec - val) <= REL_TOL * max(1.0, abs(val))`, `REL_TOL = 1e-9` (`m2s72_a21.REL_TOL`), else DIFFERENT | |
+| 5 | for **each** of `harqErrorRateDl:mean` and `harqTxAttemptsDl:mean`, the value procedure V-1 … V-7 below | |
 | 6 | either statistic DIFFERENT | **DIFFERENT** |
 | 7 | else either statistic NOT COMPARED | **NOT COMPARED** (both statistics are required) |
 | 8 | both equal | **EQUAL** |
+
+**Value procedure for one statistic** (rev. 2.1, fail-closed; first applicable step wins):
+
+| Step | Condition | Statistic outcome |
+|---|---|---|
+| V-1 | the `(module, name)` scalar record occurs more than once in the `.sca` (the CLI's duplicate census; the frozen `scalars()` keeps the last one silently) | NOT COMPARED ("ambiguous: n records") |
+| V-2 | name absent | NOT COMPARED ("absent") |
+| V-3 | the A-2.1 inputs are malformed: `feedback` or `nack` is not an `int` (`bool` excluded), or `feedback <= 0`, or `nack < 0`, or `nack > feedback`; for `harqTxAttemptsDl`, an `ntx` of an ACKed unit is not an `int` ≥ 1 | **DIFFERENT** ("A-2.1 value not computable: <reason>"): an evidence defect, never a pass |
+| V-4 | the A-2.1 value: `nack / feedback`, or the mean `ntx` of the ACKed units; `None` if there is none → NOT COMPARED ("no ACKed lifecycle"). A computed value that is not finite → **DIFFERENT** ("non-finite A-2.1 value") | |
+| V-5 | the recorded value `s[name]` is not a `str`, or is a `bool` (in `run` it is always a `str`; other types arise only from injected inputs) | NOT COMPARED ("unexpected scalar type <type>") |
+| V-6 | `rec = float(s[name])` raises `ValueError`, `TypeError` or `OverflowError` | NOT COMPARED ("unparsable") |
+| V-7 | `not math.isfinite(rec)` (`nan`, `-nan`, `inf`, or an overflowing literal such as `1e999`) | **DIFFERENT** ("non-finite Simu5G value") |
+| V-8 | `abs(rec - val) <= REL_TOL * max(1.0, abs(val))`, `REL_TOL = m2s72_a21.REL_TOL` (1e-9) | equal; otherwise **DIFFERENT** |
+
+The run-level A2-8 (`scalar_row`) is not called differently, not wrapped and not re-derived. Its row is reported verbatim with its frozen semantics (§1.3), including where the frozen code and V-1 … V-8 differ (duplicate records; an A-2.1 value the frozen code cannot compute, which raises inside `evaluate` and therefore gives EVALUATION ERROR, exit 2).
 
 **Row status A2-8u UE k:**
 
@@ -472,12 +510,12 @@ Both sha256 values are recorded in every case. The gNB module name of the two pa
 
 | ID | Relation |
 |---|---|
-| CR-1 | R = FAIL ⇔ ∃k: L_k = DIFFERENT |
+| CR-1 | R = FAIL ⇒ ∃k: L_k ∈ {DIFFERENT, NOT COMPARED by V-1}; and ∃k: L_k = DIFFERENT by V-7 or V-8 ⇒ R = FAIL. Without duplicate records (V-1 never applies), R = FAIL ⇔ ∃k: L_k = DIFFERENT. |
 | CR-2 | R = PASS ⇒ (∀k: L_k ∈ {EQUAL, NOT COMPARED}) ∧ (∃k: at least one statistic of UE k compared equal) ∧ (∀k: n_k ∉ touched) |
 | CR-3 | R = NE ⇒ (∀k: L_k ≠ DIFFERENT) ∧ ((∃k: n_k ∈ touched) ∨ (no statistic of any UE compared)) |
 | CR-4 | (∀k: L_k = EQUAL) ⇒ R = PASS |
 
-**Under MAP-UE FAIL**, no relation is asserted. R is reported as computed; the A2-8u rows are FAIL by the global rule.
+With duplicate records, R (computed on the last record) may FAIL where L_k is NE. The run is FAIL in either case, through PU-4h (NOT VALID). **Under MAP-UE FAIL**, no relation is asserted. R is reported as computed; the A2-8u rows are FAIL by the global rule.
 
 **Intentional differences** (R and A2-8u disagree in strength, by design):
 
@@ -490,6 +528,8 @@ Both sha256 values are recorded in every case. The gNB module name of the two pa
 | missing node mapping for UE k (in `run`: REFUSED by Run72; library: injected) | PASS on the mapped nodes | MAP-UE FAIL → FAIL |
 | censored or pending group touching UE k | NE | NE; other UEs: local EQUAL reported, row NE (PU-4h NE) |
 | non-finite Simu5G value | FAIL (comparison false) | FAIL (explicit `isfinite`): **same outcome** |
+| duplicate scalar record for UE k | as computed on the last record (PASS or FAIL) | NE (V-1) |
+| unexpected scalar type (injected only) | not reachable in `run` | NE (V-5) |
 
 ### 4.6 PU-4o UE k: per-UE H-ARQ occupancy, gate, one row per expected UE (C3)
 
@@ -554,7 +594,7 @@ Steps 3 and 6 together guarantee a valid reference occupancy. The reference valu
 | # | Feature (exact name) | Genuine exercise | Accepted record and contract | Strength | Initial registry |
 |---|---|---|---|---|---|
 | 1 | `single-candidate ACK attribution` | Almost certainly occurred (S1: 12 961 ACK lines, 742 exchangeable), but **no accepted record states the class count**. The N = 1 / N = 2 counts (11 697 / 12 194) are A-2 predictions (`-a2-implementation.md` §4, "(predicted)"), not records. | — | I | **excluded** |
-| 2 | `exchangeable ACK groups (2 candidates)` | yes | S1 closure §3 (F1-d(i)): "371 certified exchangeable groups, with 742 exchangeable lines" and "Exchangeable lines are twice the groups: 2 × 371 = 742". Every group therefore has exactly 2 candidates. | E1 | **admitted** |
+| 2 | `exchangeable ACK groups (2 candidates)` | almost certainly, but **not stated**. S1 §3 states "371 certified exchangeable groups, with 742 exchangeable lines" and "2 × 371 = 742". It states neither the candidate count of a group nor that the groups are ACK groups; "2 candidates" is a deduction (rev. 2.1, F-3). | — | I | **excluded** |
 | 3 | `exchangeable groups of 3 or more` | no: 742 = 2 × 371 leaves none; S1 §5 "more than two UEs in a genuine run: not covered" | S1 closure §3, §5 | N | excluded (known, not exercised) |
 | 4 | `NACK resolved: single candidate` | **unstated**: S1 gives 144 NACKs, 40 by retransmission evidence and 15 bound, but not the class of the rest | — | I | **excluded** |
 | 5 | `NACK resolved: bound handle` | yes | S1 closure §3 (F1-d(i)): "15 by bound handles". Supported by F3 closure §2: "Handle 54326 is bound at 366 ms". | E1 | **admitted** |
@@ -573,13 +613,33 @@ Steps 3 and 6 together guarantee a valid reference occupancy. The reference valu
 | 18 | `Simu5G per-UE statistics (A2-8)` | yes | S1 closure §4 (genuine whole-run scalars): "All four values are equal within … 1e-9" | E1 | **admitted** |
 
 **Totals:**
-- 10 admitted: #2, 5, 6, 8, 10, 11, 15, 16, 17 and 18.
-- 2 excluded as inferred only: #1 and #4.
+- 9 admitted: #5, 6, 8, 10, 11, 15, 16, 17 and 18.
+- 3 excluded as inferred only: #1, #2 and #4.
 - 6 excluded as known but not exercised: #3, 7, 9, 12, 13 and 14.
+
+#### 4.7.1 Provenance of the 9 admitted features (rev. 2.1, verified against the records and the accepted code)
+
+Both records are CLOSED ACCEPTED:
+- `simulations/m2/results/M2-S7.2a-a21-s1-closure.md`, line 3: "**Status: A2-V1-S1 CLOSED. ACCEPTED under contract F1-d(i)**";
+- `simulations/m2/results/M2-S7.2a-a21-f3-closure.md`, line 3: "**Status: CLOSED. ACCEPTED**".
+
+| # | Feature | Source section | Supporting statement (verbatim) | Link to the coverage definition (`m2s72_a21.coverage`) |
+|---|---|---|---|---|
+| 5 | `NACK resolved: bound handle` | S1 §3 "Whole-run rows and accounting" | "40 lines resolved by retransmission evidence and 15 by bound handles;" | the count of NACK lines of class `bound`. The class `bound` is assigned only to NACK lines: `apply_nack(…, "bound", …)` (`m2s72_a21.py:280, 291`) and discard lines (`:432`). |
+| 6 | `NACK resolved by retransmission evidence (deferred)` | S1 §3; F3 §2 "Phase 2: targeted validation" | S1: "40 lines resolved by retransmission evidence"; F3: "A-2.1 resolves the mixed 366 ms group: the NACK is `resolved-by-rtx`, bound to node 2050 / 145933." | NACK lines of class `resolved-by-rtx`, assigned only to RTX (NACK) lines (`:409`) |
+| 8 | `retransmissions` | S1 §3 (accounting table) | "Retransmissions \| 0 \| 144 \| 144 (on 129 PDUs)" | `counts["retransmissions"]` |
+| 10 | `mixed ACK / NACK groups` | F3 §2 | "A-2.1 resolves the mixed 366 ms group: the NACK is `resolved-by-rtx` …" | groups with `nacks` and `acks`. The project term "mixed groups (ACK + NACK at the same t, p)" is defined in `M2-S7.2a-a2-design-review.md` (GA-4); that document serves only as the glossary for the word. Scope: the one stated instance, on the F3 prefix. |
+| 11 | `end-of-run censoring: awaiting feedback` | S1 §3 (accounting table); S1 §2 S-7 | "Censored (awaiting feedback at the end) \| 5 \| 1 \| 6"; "end states `{'censored: awaiting feedback': 6}`" | `ends["censored: awaiting feedback"]` |
+| 15 | `per-UE occupancy confirmed by the independent reference` | S1 §3 | "XA (UE side, unchanged) agrees for both UEs, including per-UE occupancy." | counted when A2-7 PASS (row table, below) |
+| 16 | `independent UE-side reference (A2-7)` | S1 §3 (row table) | "A2-7 … PASS" in the "Result" row of the A2-0 … A2-9 table | A2-7 status PASS |
+| 17 | `retransmission node identity from the UE side (A2-4b)` | S1 §2 S-3; S1 §3 (row table) | "every row PASS, with A2-4a and A2-4b exercised"; "A2-4b … PASS" | A2-4b status PASS |
+| 18 | `Simu5G per-UE statistics (A2-8)` | S1 §2 S-4; S1 §4 "A2-8: genuine whole-run scalars" | "A2-8 against the genuine whole-run scalars \| **PASS** (§4)"; "All four values are equal within the declared relative tolerance of 1e-9." | A2-8 status PASS |
+
+**Not admitted on re-reading:** #2 (above). No other feature was added: #1, #3, #4, #7, #9, #12, #13 and #14 stay excluded, and nothing was admitted by inference.
 
 **Consequence, stated plainly.** Until a maintainer-accepted record states the genuine count of `single-candidate ACK attribution`, every run in which it occurs is **HELD FOR REVIEW**. That is every realistic run.
 - This is intended: the campaign is in any case blocked by S5-2-D2 until V-N1 and V-N2 are accepted.
-- The `hrq` records of V-N1, V-N2 and V-V1 print the coverage counts explicitly. Their acceptance (VG-3) is the natural admission record for #1, and for #4 if V-V1 shows it.
+- The `hrq` records of V-N1, V-N2 and V-V1 print the coverage counts explicitly. Their acceptance (VG-3) is the natural admission record for #1 and #2, and for #4 if V-V1 shows it.
 - Admission is a separate, reviewed registry change citing those records. It is never part of an implementation commit and never derived from a test.
 
 **FGO evaluation** (the coverage of the run against the registry):
@@ -607,7 +667,7 @@ Steps 3 and 6 together guarantee a valid reference occupancy. The reference valu
 | **HELD FOR REVIEW** `<features>` | no gate FAIL, no gate NE; FGO non-empty | 3 |
 | **PASS** | every gate PASS (or NX where allowed); FGO empty | 0 |
 
-**Precedence:** 2 > 1 > 4 > 3 > 0.
+**Precedence:** 2 > 1 > 4 > 3 > 0 (D-A1-11, approved).
 - An INCOMPLETE run is never shown as HELD FOR REVIEW. A review cannot make missing evidence acceptable.
 - The held features are still listed.
 
@@ -841,7 +901,7 @@ Every test states its inputs, its expected outputs, and the defect its failure d
 
 | ID | Input | Expected | Detects |
 |---|---|---|---|
-| T-n2-same-tti | N = 2, both UEs scheduled every TTI on the same process (ACK only), UE lines, `.sca` | • A-1: ambiguous > 0, re-insert > 0; **PU-4 FAIL reported verbatim**.<br>• A-2.1 `f1d-i` and `full` VALID (A2-4a/b/c NX); exchangeable groups = same-TTI pairs.<br>• MAP-UE, C-0, PU-4h PASS; PU-4o PASS ×2 (occupancy = truth); A2-8u PASS ×2.<br>• Committed registry: **HELD FOR REVIEW** {single-candidate ACK attribution}.<br>• TEST ONLY registry: PASS. | A-1 limitation masking; PU-4 still gating |
+| T-n2-same-tti | N = 2, both UEs scheduled every TTI on the same process (ACK only), UE lines, `.sca` | • A-1: ambiguous > 0, re-insert > 0; **PU-4 FAIL reported verbatim**.<br>• A-2.1 `f1d-i` and `full` VALID (A2-4a/b/c NX); exchangeable groups = same-TTI pairs.<br>• MAP-UE, C-0, PU-4h PASS; PU-4o PASS ×2 (occupancy = truth); A2-8u PASS ×2.<br>• Committed registry: **HELD FOR REVIEW** {single-candidate ACK attribution, exchangeable ACK groups (2 candidates)}.<br>• TEST ONLY registry: PASS. | A-1 limitation masking; PU-4 still gating |
 | T-n3-groups | N = 3, three UEs on one process in one TTI | exchangeable groups of 3 (certified); PU-4h PASS; held ⊇ {"exchangeable groups of 3 or more"} → HR (also with the TEST ONLY registry minus that feature) | synthetic-only path silently accepted |
 | T-n4-independent | N = 4, NACK chains on UEs 1 and 3 (different processes), ACK on 0 and 2 | per-UE counts / occupancy = truth for each UE; PU-4o PASS ×4; A2-8u PASS ×4 | cross-UE leakage of counts |
 | T-n4-overlap-nack | N = 4, a NACK on UE 2 in a TTI where UEs 0 and 2 share the process (mixed group) | resolved by retransmission evidence; PU-4h PASS; per-UE = truth; "mixed ACK / NACK groups" not held (admitted) | mixed-group regressions |
@@ -854,9 +914,9 @@ Every test states its inputs, its expected outputs, and the defect its failure d
 | T-censor-pending-unresolved | as above, but a complete main loop follows (not structural) | A2-7 NE and A2-9 NE; PU-4h NE → **INCOMPLETE** | the same |
 | T-unresolved | NACK followed by a main loop but no retransmission | A2-9 NE → PU-4h NE → **INCOMPLETE** | unresolved evidence passing |
 | T-n1-identity | N = 1 ACK only (frozen generator), `.sca` present; **(a)** with UE lines, **(b)** without | A-1 PU-4 PASS; A-2.1 per-UE counts = A-1's.<br>**(a)** A2-7 PASS → `f1d-i` VALID → PU-4h PASS; PU-4o PASS with occupancy = A-1's = truth; A2-8u PASS; committed registry → HR {single-candidate ACK}.<br>**(b)** A2-7 NE → `f1d-i` **INCOMPLETE** → **PU-4h NE**; PU-4o NE (local NOT COMPARED: no reference); A2-8u NE (global; local EQUAL reported); composed **INCOMPLETE** | N = 1 behaviour change; absence read as pass |
-| T-a28-compat | per case: run-level R (the accepted `scalar_row`) and L_k / A2-8u UE k:<br>(1) all equal;<br>(2) the scalars of one UE missing;<br>(3) one of the two statistics missing for UE 1;<br>(4) no ACKed lifecycle for UE 1;<br>(5) no feedback for UE 1;<br>(6) missing node mapping for UE 1 (injected map);<br>(7) a `nan` and an `inf` value for UE 1;<br>(8) an unparsable value for UE 1;<br>(9) a group-censored UE 1;<br>(10) a value mismatch on UE 1 | (1) R PASS, A2-8u PASS ×2.<br>(2)(3)(4)(5)(8) R PASS, UE 1 NE: **intentional difference**.<br>(6) R PASS, MAP-UE FAIL → A2-8u FAIL ×2.<br>(7) R FAIL, UE 1 FAIL (same outcome; explicit `isfinite`).<br>(9) R NE, UE 1 NE, UE 0 local EQUAL / row NE.<br>(10) R FAIL, UE 1 FAIL, UE 0 local EQUAL / row FAIL (global: PU-4h FAIL through NOT VALID).<br>**CR-1 … CR-4 hold in every case with MAP-UE PASS.**<br>The tolerance formula is the quoted `abs(rec - val) <= REL_TOL * max(1.0, abs(val))`; boundary cases at ±(1 ± 1e-3)·tolerance. | per-UE A2-8 weaker than declared, or a false exact invariant (C1) |
+| T-a28-compat | per case: run-level R (the accepted `scalar_row`) and L_k / A2-8u UE k:<br>(1) all equal;<br>(2) the scalars of one UE missing;<br>(3) one of the two statistics missing for UE 1;<br>(4) no ACKed lifecycle for UE 1;<br>(5) no feedback for UE 1;<br>(6) missing node mapping for UE 1 (injected map);<br>(7) a `nan` and an `inf` value for UE 1;<br>(8) an unparsable value for UE 1;<br>(9) a group-censored UE 1;<br>(10) a value mismatch on UE 1;<br>(11) a duplicate `harqErrorRateDl:mean` record for UE 1 (equal values, then differing values);<br>(12) `"1e999"` and `"-nan"` for UE 1;<br>(13) an injected `float`, `int`, `bool` and `None` value;<br>(14) injected malformed counts (`nack > feedback`, a `bool` count, an `ntx` of 0);<br>(15) a non-finite computed value (injected) | (1) R PASS, A2-8u PASS ×2.<br>(2)(3)(4)(5)(8) R PASS, UE 1 NE: **intentional difference**.<br>(6) R PASS, MAP-UE FAIL → A2-8u FAIL ×2.<br>(7) R FAIL, UE 1 FAIL (same outcome; explicit `isfinite`).<br>(9) R NE, UE 1 NE, UE 0 local EQUAL / row NE.<br>(10) R FAIL, UE 1 FAIL, UE 0 local EQUAL / row FAIL (global: PU-4h FAIL through NOT VALID).<br>(11) UE 1 NE (V-1); R as computed on the last record; with differing values the run FAILs or is INCOMPLETE, never PASS.<br>(12) R FAIL, UE 1 FAIL (V-7).<br>(13) UE 1 NE (V-5); R not called with injected types.<br>(14)(15) UE 1 FAIL (V-3 / V-4).<br>**CR-1 … CR-4, as qualified for V-1, hold in every case with MAP-UE PASS.** The wrapper never calls `scalar_row` itself; the run-level row comes only from the single `evaluate`.<br>The tolerance formula is the quoted `abs(rec - val) <= REL_TOL * max(1.0, abs(val))`; boundary cases at ±(1 ± 1e-3)·tolerance. | per-UE A2-8 weaker than declared, or a false exact invariant (C1) |
 | T-map | N = 2: (a) a duplicate node id; (b) an extra `ue[2]` module in `.sca`; (c) a `.sca` id differing from `node_id`; (d) a PDU for an unmapped node; (e) `node_id` `None` in the CLI | (a)–(d) MAP-UE FAIL → PU-4h, PU-4o and A2-8u FAIL; (e) REFUSED (exit 2) | wrong or partial UE identity (C3) |
-| T-c0 | the inputs above | C-0 PASS; the two canonical sequences are equal; their digests are recorded | parser divergence undetected |
+| T-c0 | the inputs above | C-0 PASS; R-0a … R-0e hold; the two canonical sequences are equal; their digests and the census are recorded | parser divergence undetected |
 | T-agree | T-n2-same-tti, T-n2-a2v1-like | ACK-only: disagree = 0; NACK input: disagreements reported by class; the verdict is identical with and without the diagnostic | the diagnostic changing a verdict |
 | T-name-guard | every `[Config …]` of `m2s72s5.ini`; `…_A2V1`; `M2S72-E0v-q0-f1`; the four `E0vNL`; malformed names | exactly the 294 E0v-N accepted by `run`, equal to `parse_name` kind `E0vN`; the others REFUSED; `hrq` additionally accepts exactly `M2S72-E0v-q0-f1` and `M2S72-E0vN-q0-one0-n2-f1_A2V1` | L-7 |
 | T-s5n-semantics | synthetic s5n row sets: a PU-4 FAIL; a PU-4 NE; a Q8-v NE; an F0-1 (info) FAIL; an AV-2 NE; a Block B FAIL | gate sets = s5n's minus PU-4 exactly (Q8-v NE non-gating, F0-1 (info) non-gating, AV-2 NE gating, Block B FAIL gating) | s5n semantics silently changed |
@@ -865,7 +925,7 @@ Every test states its inputs, its expected outputs, and the defect its failure d
 | T-a21-record-equiv | synthetic run, both contracts | the wrapper's a21 rows / coverage / per-UE sections equal those of `check_m2s72_a21.a21()` for each contract | record drift from the accepted writer |
 | T-digest-ownership | synthetic N = 2 run | §5.3: no A-1 value outside `historical`; `per_ue[k]` has no `harq`; an unavailable `harq_a21` group has no value; `across_harq_a21` is unavailable with `missing_ues` when one UE is unavailable; the s5n digest is byte-identical | A-1 values exposed as current (C5) |
 | T-one-run-per-process | two evaluations in one Python process | the second refused (exit 2) | L-11 row mixing |
-| T-registry | the committed registry | exactly 18 names, equal to the names `coverage()` returns; the admitted set is exactly {#2, 5, 6, 8, 10, 11, 15, 16, 17, 18}; every admitted citation exists and is CLOSED ACCEPTED; no citation to a test, fixture generator or prediction | registry drift (C4) |
+| T-registry | the committed registry | exactly 18 names, equal to the names `coverage()` returns; the admitted set is exactly {#5, 6, 8, 10, 11, 15, 16, 17, 18}; each admitted entry's `statement` occurs verbatim in its cited record; every admitted citation exists and is CLOSED ACCEPTED; no citation to a test, fixture generator or prediction | registry drift (C4) |
 | T-registry-immutable | the whole suite | registry sha256 unchanged afterwards | tests extending the registry |
 | T-imports-isolated | `subprocess.run([sys.executable, "-I", "-B", <abs path>, "--help"], cwd=<temp dir>)` for the CLI and the suite | the import succeeds (rc 2 with usage, no `ModuleNotFoundError`) | a command that cannot import under `-I` (C6) |
 | T-expect-exit | `hrq` with a matching expectation file, a mismatching one (one count changed), and a malformed one | exits 0 / **5** / 2 | expectation mismatch exiting 0 (C6) |
@@ -876,7 +936,7 @@ Every test states its inputs, its expected outputs, and the defect its failure d
 
 | ID | Input | Expected (`check/expect/f3.expect.json`, committed before implementation runs it) | Detects |
 |---|---|---|---|
-| T-f3-hrq | `hrq-fixture simulations/m2/check/fixtures <fresh dir> --expect check/expect/f3.expect.json`, `SIMU5G_ROOT` = the tier-0 Simu5G 1.8.1 checkout | • A-2.1 rows = those of `m2s72_a21_realchain` (R-1 … R-10): A2-0s PASS (root set); A2-4a/b PASS; A2-4c NE; A2-8 NE; all others PASS.<br>• `f1d-i` VALID, `full` INCOMPLETE (same rows).<br>• MAP-UE PASS (nodes {0: 2049, 1: 2050}); C-0 PASS; PU-4h PASS.<br>• PU-4o PASS ×2 (`occupancy_equal` {2049: True, 2050: True}).<br>• A2-8u NE ×2 (no `.sca`; local NOT COMPARED).<br>• Coverage counts as observed in §1.6:<br>  – single ACK 83; exchangeable (2) 5; bound 2; resolved-by-rtx 1;<br>  – retransmissions 3; mixed 3; awaiting feedback 6;<br>  – occupancy 2; A2-7 1; A2-4b 1; others 0.<br>• Held = {single-candidate ACK attribution}.<br>• Composed **INCOMPLETE** (exit 4; A2-8u NE takes precedence over HR).<br>• With `--expect`: exit 0. | the wrapper diverging from the accepted F3 validation |
+| T-f3-hrq | `hrq-fixture simulations/m2/check/fixtures <fresh dir> --expect check/expect/f3.expect.json`, `SIMU5G_ROOT` = the tier-0 Simu5G 1.8.1 checkout | • A-2.1 rows = those of `m2s72_a21_realchain` (R-1 … R-10): A2-0s PASS (root set); A2-4a/b PASS; A2-4c NE; A2-8 NE; all others PASS.<br>• `f1d-i` VALID, `full` INCOMPLETE (same rows).<br>• MAP-UE PASS (nodes {0: 2049, 1: 2050}); C-0 PASS; PU-4h PASS.<br>• PU-4o PASS ×2 (`occupancy_equal` {2049: True, 2050: True}).<br>• A2-8u NE ×2 (no `.sca`; local NOT COMPARED).<br>• Coverage counts as observed in §1.6:<br>  – single ACK 83; exchangeable (2) 5; bound 2; resolved-by-rtx 1;<br>  – retransmissions 3; mixed 3; awaiting feedback 6;<br>  – occupancy 2; A2-7 1; A2-4b 1; others 0.<br>• Held = {single-candidate ACK attribution, exchangeable ACK groups (2 candidates)}.<br>• Token census: 99 inserts, 96 feedback lines (R-0e).<br>• Composed **INCOMPLETE** (exit 4; A2-8u NE takes precedence over HR).<br>• With `--expect`: exit 0. | the wrapper diverging from the accepted F3 validation |
 | T-f3-a1 | the same fixture | the A-1 report equals a direct call of the frozen `attribute_feedback` on `harq_events(fixture)`: no hard-coded number (A-1 on this NACK chain is not an accepted quantity) | the A-1 report being altered |
 
 ### 7.3 Negative controls (baseline guard: the declared rows PASS before the mutation, otherwise NOT BUILDABLE)
@@ -893,6 +953,11 @@ Every test states its inputs, its expected outputs, and the defect its failure d
 | NC-c0-same-count | in memory: the process ids of two A-1 feedback events exchanged (counts and kinds unchanged) | C-0 FAIL at the first changed index → PU-4h FAIL | a totals-only consistency check (C6) |
 | NC-c0-reorder | in memory: two adjacent A-1 events of different UEs swapped | C-0 FAIL → PU-4h FAIL | order-insensitive consistency |
 | NC-c0-node | in memory: one A-1 insert event's node changed | C-0 FAIL | identity-insensitive consistency |
+| NC-c0-dup-pid | log mutation: a later insert line reuses an earlier PDU id (other fields valid). Both parsers count the line; A-2.1's `pdus` overwrites the earlier unit. | C-0 FAIL by R-0a (`len(pdus)` = insert lines − 1) **before** the element comparison, and by the element comparison. A2-2 FAIL is reported too. Never PASS. | **event loss during reconstruction** (F-1) |
+| NC-c0-recon-drop | in memory, after the replay: one entry removed from a copy of `res["pdus"]`; and separately one entry from a copy of `res["fb"]` | C-0 FAIL (R-0a / R-0c and length); the original `res` is unchanged | reconstruction loss concealed by a count taken elsewhere |
+| NC-c0-recon-dup | in memory: one `res["fb"]` entry duplicated; and one unit's `ins_gi` set to another unit's | C-0 FAIL (R-0c / R-0b) | repeated events in the reconstruction |
+| NC-c0-malformed-ins | log mutation: one gNB insert line's text corrupted (`(id 1x2 )`) so that neither regex matches it | C-0 FAIL by R-0e (census 1 above both parsers); never PASS, although A-1 and A-2.1 agree with each other | a malformed insert hidden by identical regexes |
+| NC-c0-malformed-fb | the same for a feedback line (`result is ACKK`) | C-0 FAIL by R-0e | the same for feedback |
 | NC-dropfb | one feedback event removed from the log | A2-1 or A2-2 FAIL → PU-4h FAIL | lost evidence |
 | NC-dupins | one insert duplicated | A2-2 / A2-6 FAIL and C-0 FAIL; A-1 re-insert + 1 (reported) | duplicated evidence |
 | NC-shift | one feedback one TTI late | A2-3 FAIL → PU-4h FAIL | timing corruption |
@@ -1011,7 +1076,7 @@ cmp "$E/vn2/integrity-before.txt" "$E/vn2/integrity-after.txt" && echo "P-3 iden
 | per-UE occupancy | A-2.1 = XA truth occupancy for both UEs |
 | PU-4h / PU-4o ×2 / A2-8u ×2 | PASS / PASS ×2 / PASS ×2 |
 | agreement | the 12 194 A-1-attributed lines: disagree = 0; the 768 A-1-unattributed lines, all `exchangeable` in A-2.1 |
-| held features | {single-candidate ACK attribution}, plus "inserted in the last TTI" iff its count > 0 |
+| held features | {single-candidate ACK attribution, exchangeable ACK groups (2 candidates)}, plus "inserted in the last TTI" iff its count > 0 |
 | `hrq` verdict | **HELD FOR REVIEW** |
 
 ### 8.4 V-V1: A2-V1 run `M2S72-E0vN-q0-one0-n2-f1_A2V1` (sealed; genuine NACKs on ue[1])
@@ -1038,7 +1103,7 @@ grep -q "^$FXSHA  a2v1-first-chain.log.gz$" "$E/vv1/fx-after/a2v1-first-chain.lo
 | A2-8u | node 2049: 0 / 1; node 2050: 0.10227272727272728 / 1.1139240506329113 → PASS ×2 |
 | MAP-UE / C-0 / PU-4h / PU-4o ×2 | PASS / PASS / PASS / PASS ×2 |
 | A-1 (reported) | values as computed. No expectation is declared, because A-1 on genuine NACK input is not an accepted quantity (L-2). Disagreements are listed by class. |
-| held features | {single-candidate ACK attribution}, plus "NACK resolved: single candidate" iff its count > 0. S1 does not state that count; V-V1's record will. |
+| held features | {single-candidate ACK attribution, exchangeable ACK groups (2 candidates)}, plus "NACK resolved: single candidate" iff its count > 0. S1 does not state that count; V-V1's record will. |
 | `hrq` verdict | **HELD FOR REVIEW** |
 | original A2-V1 verdict | **NOT ACCEPTED, unchanged.** V-V1 is a consistency check of the wrapper, not an acceptance of A2-V1. |
 
@@ -1053,7 +1118,7 @@ grep -q "^$FXSHA  a2v1-first-chain.log.gz$" "$E/vv1/fx-after/a2v1-first-chain.lo
 
 **After VG-3:**
 - **For V-N1 and V-N2:** the maintainer decides **S5-2-D2** (DR-07c), which sets `S5N_ADAPTER_VALIDATED` for E0v-N campaign runs.
-- **For any of the three:** the maintainer may admit "single-candidate ACK attribution", and, on V-V1, "NACK resolved: single candidate" if shown. This is a separate, reviewed registry change citing the accepted record (§4.7).
+- **For any of the three:** the maintainer may admit "single-candidate ACK attribution" and "exchangeable ACK groups (2 candidates)", and, on V-V1, "NACK resolved: single candidate" if shown. This is a separate, reviewed registry change citing the accepted record (§4.7).
 - Only after both can a campaign run reach PASS.
 
 **None of these validations is executed by WP-A1.**
@@ -1104,16 +1169,14 @@ WP-A1 closes at level 2 with AC-1 … AC-4. Level 3 needs AC-5 and AC-6, which a
 | D-A1-1 | PU-4h / PU-4o definitions | approved subject to C1–C3 | §4.3–§4.6 rewritten fail-closed; MAP-UE and C-0 added |
 | D-A1-2 | Campaign contract | F1-d(i) approved | PU-4h uses `verdict(rows, "f1d-i")`; `full` is reported |
 | D-A1-3 | Scope of censoring NE | uncertainty-related NE stays gating | §4.2: no non-gating NE; group-level censoring → INCOMPLETE; an absent UE (no PDU) → NE, gating |
-| D-A1-4 | Registry | complete registry and evidence review required | §4.7: 18 rows; 10 admitted; inferred and predicted evidence excluded |
+| D-A1-4 | Registry | complete registry and evidence review required | §4.7: 18 rows; 9 admitted (rev. 2.1, verified in §4.7.1); inferred and predicted evidence excluded |
 | D-A1-5 | PU-5 | retain | unchanged gate |
 | D-A1-6 | Tier-0 suite | approved in principle; separate CI review | I-9 |
 | D-A1-7 | HELD FOR REVIEW | stop the batch | §5.4: rc 3 stops |
 | D-A1-8 | Name guard | wrapper-local | §5.2 |
 | D-A1-9 | Contract evaluation | single replay, verdicts derived | §3.3; T-single-replay |
 | D-A1-10 | Agreement | diagnostic only | §4.10 |
-
-**New point for the reviewer (no ruling yet):**
-- **D-A1-11.** The composed-verdict precedence INCOMPLETE (4) over HELD FOR REVIEW (3), so that a review never covers missing evidence. **Recommendation:** adopt.
+| D-A1-11 | Composed-verdict precedence INCOMPLETE (4) over HELD FOR REVIEW (3) | **approved** (step 112c), with every held feature still reported | §4.8 |
 
 ### 11.2 Risks
 
@@ -1137,14 +1200,14 @@ WP-A1 closes at level 2 with AC-1 … AC-4. Level 3 needs AC-5 and AC-6, which a
 - **Problem.** Under rule A-1, PU-4 FAILs whenever two UEs' feedback on the same process arrives at the same instant. This was demonstrated on the N = 2 smoke (384 pairs). It is a property of the schedule, not of N alone, and it blocks the E0v-N campaign.
 - **Change.** A-2.1, accepted on genuine output within stated limits, becomes the per-UE H-ARQ source through gates that fail closed:
   - **MAP-UE**: a bijective UE-to-node mapping;
-  - **C-0**: identical canonical event sequences for A-1 and A-2.1;
+  - **C-0**: identical canonical event sequences for A-1 and A-2.1, lossless reconstruction (R-0a … R-0d) and a regex-free token census (R-0e);
   - **PU-4h**: run attribution under F1-d(i);
   - **PU-4o UE k**: per-UE occupancy, PASS only on explicit equality with a valid reference and valid global rows;
   - **A2-8u UE k**: both Simu5G statistics, for every expected UE.
 
   The run-level A2-8 is preserved verbatim. The compatibility relation CR-1 … CR-4 replaces the false exact invariant.
 - **Censoring.** Attributable unit-level end states do not affect the rows. Uncertain group-level censoring makes the run INCOMPLETE. No NE is non-gating.
-- **Review gate.** The FGO registry covers all 18 features, with 10 admitted on explicit accepted evidence. Inferred, predicted and synthetic evidence never admits a feature. Until "single-candidate ACK attribution" is admitted from an accepted validation, runs are HELD FOR REVIEW.
+- **Review gate.** The FGO registry covers all 18 features, with 9 admitted, each verified verbatim against a CLOSED ACCEPTED record (§4.7.1). Inferred, predicted and synthetic evidence never admits a feature. Until "single-candidate ACK attribution" is admitted from an accepted validation, runs are HELD FOR REVIEW.
 - **Preservation.**
   - The s5n records and digest are byte-identical. The s5n gate semantics are unchanged, except that PU-4 is not a gate.
   - The historical A-1 PU-4 is verbatim, and A-1 values appear only under `historical`.
