@@ -9,8 +9,9 @@ This file holds increment I-1 only:
   - the initial schema definitions and their validation (5.3);
   - isolated import handling: this directory is put on sys.path before any local import, so the module imports
     under `python3 -I` (which does not add the script directory to sys.path).
-MAP-UE, C-0, PU-4h, PU-4o, A2-8u, the FGO flag, the verdict composition and the CLI modes are later increments
-(I-2 .. I-8) and are deliberately absent.
+Increment I-2 adds MAP-UE (4.4) and A2-8u with its compatibility relation CR-1 .. CR-4 (4.5).
+C-0, PU-4h, PU-4o, the FGO flag, the verdict composition and the CLI modes are later increments (I-3 .. I-8) and are
+deliberately absent.
 
 Pure functions. Never writes a file. Reads only the registry and the result records the registry cites. The frozen
 and accepted modules are imported read-only and are never modified.
@@ -26,6 +27,7 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 if HERE not in sys.path:
     sys.path.insert(0, HERE)
 import m2s72_a21 as A21  # noqa: E402  (accepted, d920125; read-only)
+import m2s72_a2probe as PR  # noqa: E402  (frozen, fbee202; read-only: NET, R_UE_MOD, HARQ_SCALARS)
 
 REPO = os.path.normpath(os.path.join(HERE, "..", "..", ".."))
 REGISTRY_PATH = os.path.join(HERE, "m2s72_fgo_registry.json")
@@ -550,3 +552,240 @@ def validate_digest(d):
             probs.append(f"inputs.registry_sha256 {_show(inp['registry_sha256'])} is not a sha256")
     _finite_json(d, "digest", probs)
     return probs
+
+
+# ================================================================================================ I-2 ============
+def _is_int(x):
+    return isinstance(x, int) and not isinstance(x, bool)
+
+
+def ue_module(k):
+    """the UE NR MAC module of UE k, as the frozen sca_nodes() / R_UE_MOD read it"""
+    return f"{PR.NET}.ue[{k}].cellularNic.nrMac"
+
+
+# ------------------------------------------------------------------------------------- MAP-UE (design 4.4) ------
+def evidence_nodes(res, per, x7):
+    """the nodes the A-2.1 evidence refers to, by source (design 4.4 inputs): res["pdus"], the keys of per, and the
+    keys of x7["occupancy_equal"] and x7["skipped"] when x7 is not None. Reads only."""
+    out = {"pdus": set(), "per": set(), "occupancy_equal": set(), "skipped": set()}
+    pdus = res.get("pdus") if isinstance(res, dict) else None
+    if isinstance(pdus, dict):
+        out["pdus"] = {u.get("node") for u in pdus.values() if isinstance(u, dict)}
+    if isinstance(per, dict):
+        out["per"] = set(per)
+    if isinstance(x7, dict):
+        if isinstance(x7.get("occupancy_equal"), dict):
+            out["occupancy_equal"] = set(x7["occupancy_equal"])
+        if isinstance(x7.get("skipped"), (list, tuple, set)):
+            out["skipped"] = {n for n in x7["skipped"] if not isinstance(n, (list, dict, set))}
+    return out
+
+
+def map_ue(n, node_id, sca_map, evidence):
+    """MAP-UE (design 4.4): the complete bijective UE-to-node mapping.
+    n: numUe (from the name, checked by s5n); node_id: {k: n_k} from Run72 via inputs(), or None when it could not be
+    obtained; sca_map: sca_nodes(sca) {module: n}, or None when the run has no .sca; evidence: evidence_nodes(...).
+    Raises Refused when node_id is None (nothing is guessed). Returns the run-level row (PASS or FAIL). Reads only."""
+    if node_id is None:
+        raise Refused("UE-to-node mapping unavailable (Run72: a missing or duplicate macNodeId); nothing is guessed")
+    if not _is_int(n) or n < 1:
+        raise EvaluationError(f"MAP-UE: numUe {_show(n)} is not an integer >= 1")
+    probs = []
+    if not isinstance(node_id, dict):
+        probs.append(f"node map is not a mapping: {_show(node_id)}")
+    else:
+        keys = list(node_id)
+        if not all(_is_int(k) for k in keys) or set(keys) != set(range(n)):
+            probs.append(f"node map UEs {sorted(map(str, keys))} != 0 .. {n - 1}")
+        vals = list(node_id.values())
+        if not all(_is_int(v) and v >= 0 for v in vals):
+            probs.append(f"node ids not non-negative integers: {_show(node_id)}")
+        elif len(set(vals)) != len(vals):
+            probs.append(f"duplicate node ids {sorted(v for v in set(vals) if vals.count(v) > 1)}")
+    if probs:
+        return {"id": ROW_MAP, "subject": "run", "status": FAIL, "detail": "; ".join(probs)}
+    image = set(node_id.values())
+    if sca_map is not None:
+        want = {ue_module(k): node_id[k] for k in range(n)}
+        if not isinstance(sca_map, dict):
+            probs.append(f".sca module map is not a mapping: {_show(sca_map)}")
+        elif sca_map != want:
+            extra = sorted(str(m) for m in sca_map if m not in want)
+            miss = sorted(m for m in want if m not in sca_map)
+            diff = sorted(f"{m}: .sca {sca_map[m]!r}, run {want[m]}" for m in want if m in sca_map and sca_map[m] != want[m])
+            probs.append(f".sca macNodeId records differ from the run's mapping: extra {extra}, missing {miss}, different {diff}")
+    for src in ("pdus", "per", "occupancy_equal", "skipped"):
+        out = sorted(map(str, {x for x in evidence.get(src, set()) if x not in image}))
+        if out:
+            probs.append(f"evidence for an unmapped node in {src}: {out[:5]}")
+    if probs:
+        return {"id": ROW_MAP, "subject": "run", "status": FAIL, "detail": "; ".join(probs)}
+    return {"id": ROW_MAP, "subject": "run", "status": PASS,
+            "detail": f"UE k -> node bijective for k = 0 .. {n - 1}: {dict(sorted(node_id.items()))}; "
+                      + ("consistent with the .sca macNodeId records" if sca_map is not None else "no .sca (mapping from node ids alone)")
+                      + "; every A-2.1 evidence node mapped"}
+
+
+# ------------------------------------------------------------------------------------- A2-8u (design 4.5) -------
+A28_STATS = ("harqErrorRateDl:mean", "harqTxAttemptsDl:mean")   # the two statistics m2s72_a21.scalar_row compares
+STAT_EQUAL = "equal"
+
+
+def a28u_counts(res):
+    """per node, the inputs of the two statistics, exactly as m2s72_a21.scalar_row derives them: feedback and NACK
+    lines attributed to the node (res["fb"] owner), and the ntx of its ACKed lifecycles (res["pdus"] end == "ack").
+    Reads only; returns new objects."""
+    per = {}
+    for x in res["fb"]:
+        if x["owner"] is not None:
+            d = per.setdefault(x["owner"], {"feedback": 0, "nack": 0, "ntx": []})
+            d["feedback"] += 1
+            d["nack"] += x["res"] == "NACK"
+    for u in res["pdus"].values():
+        if u["end"] == "ack":
+            per.setdefault(u["node"], {"feedback": 0, "nack": 0, "ntx": []})["ntx"].append(u["ntx"])
+    return per
+
+
+def scalar_record_counts(lines):
+    """the duplicate census of V-1: {(module, name): number of 'scalar' records} for the H-ARQ statistics, parsed
+    exactly as the frozen m2s72_a2probe.scalars() parses them (which keeps the last of duplicates silently). Pure:
+    the caller reads the .sca."""
+    out = {}
+    for line in lines:
+        if isinstance(line, str) and line.startswith("scalar "):
+            parts = line.split()
+            if len(parts) >= 4 and parts[2] in PR.HARQ_SCALARS:
+                out[(parts[1], parts[2])] = out.get((parts[1], parts[2]), 0) + 1
+    return out
+
+
+def _stat(name, rec_raw, c, dup_count):
+    """the value procedure V-1 .. V-8 for one statistic of one UE (design 4.5). Returns {outcome, step, reason,
+    rec, val}; outcome: "equal", DIFFERENT or NOT_COMPARED."""
+    def out(outcome, step, reason, rec=None, val=None):
+        return {"outcome": outcome, "step": step, "reason": reason, "rec": rec, "val": val}
+    if _is_int(dup_count) and dup_count > 1:
+        return out(NOT_COMPARED, "V-1", f"ambiguous: {dup_count} records")
+    if rec_raw is _ABSENT:
+        return out(NOT_COMPARED, "V-2", "absent")
+    fb, nk = c.get("feedback"), c.get("nack")
+    if not (_is_int(fb) and _is_int(nk)):
+        return out(DIFFERENT, "V-3", f"A-2.1 value not computable: feedback {_show(fb)}, nack {_show(nk)} not integers")
+    if fb <= 0 or nk < 0 or nk > fb:
+        return out(DIFFERENT, "V-3", f"A-2.1 value not computable: feedback {fb}, nack {nk}")
+    if name == "harqTxAttemptsDl:mean":
+        ntx = c.get("ntx")
+        if not isinstance(ntx, list) or not all(_is_int(v) and v >= 1 for v in ntx):
+            return out(DIFFERENT, "V-3", f"A-2.1 value not computable: ntx of ACKed lifecycles {_show(ntx)}")
+        if not ntx:
+            return out(NOT_COMPARED, "V-4", "no ACKed lifecycle")
+    try:
+        val = nk / fb if name == "harqErrorRateDl:mean" else sum(ntx) / len(ntx)
+    except OverflowError:                            # integers too large for a float: never a finite value
+        return out(DIFFERENT, "V-4", "non-finite A-2.1 value (overflow)")
+    if not math.isfinite(val):
+        return out(DIFFERENT, "V-4", f"non-finite A-2.1 value {val!r}", val=val)
+    if not isinstance(rec_raw, str):
+        return out(NOT_COMPARED, "V-5", f"unexpected scalar type {type(rec_raw).__name__}", val=val)
+    try:
+        rec = float(rec_raw)
+    except (ValueError, TypeError, OverflowError):
+        return out(NOT_COMPARED, "V-6", f"unparsable {rec_raw!r}", val=val)
+    if not math.isfinite(rec):
+        return out(DIFFERENT, "V-7", f"non-finite Simu5G value {rec_raw!r}", rec=rec, val=val)
+    if abs(rec - val) <= A21.REL_TOL * max(1.0, abs(val)):
+        return out(STAT_EQUAL, "V-8", f"Simu5G {rec_raw}, A-2.1 {val:.12g}", rec=rec, val=val)
+    return out(DIFFERENT, "V-8", f"Simu5G {rec_raw}, A-2.1 {val:.12g} (relative tolerance {A21.REL_TOL})", rec=rec, val=val)
+
+
+class _Absent:
+    def __repr__(self):
+        return "<absent>"
+
+
+_ABSENT = _Absent()
+
+
+def a28u_local(k, n_k, sc, sca_map, counts, touched, dups):
+    """the local comparison of UE k (design 4.5 steps 1 .. 8). sc: m2s72_a2probe.scalars(sca) (None / {} without
+    scalars); sca_map: sca_nodes(sca); counts: a28u_counts(res); touched: m2s72_a21.touched_nodes(res); dups:
+    scalar_record_counts(<.sca lines>). Returns {local, step, detail, stats: {name: _stat()}}. Reads only."""
+    mod = ue_module(k)
+
+    def done(local, step, detail, stats=None):
+        return {"local": local, "step": step, "detail": f"ue[{k}] node {n_k}: {detail}", "stats": stats or {}}
+    if not isinstance(sc, dict) or not sc or not isinstance(sca_map, dict) or not sca_map:
+        return done(NOT_COMPARED, "1", "no Simu5G per-UE H-ARQ scalars")
+    s = sc.get(mod)
+    if not isinstance(s, dict) or not s:
+        return done(NOT_COMPARED, "2", "no statistics for this UE")
+    if n_k in (touched or ()):
+        return done(NOT_COMPARED, "3", "uncertain attribution: censored or pending group")
+    c = counts.get(n_k) if isinstance(counts, dict) else None
+    if c is None or (isinstance(c, dict) and _is_int(c.get("feedback")) and c["feedback"] == 0):
+        return done(NOT_COMPARED, "4", "no feedback")
+    if not isinstance(c, dict):
+        c = {}                                       # malformed counts: V-3 reports them as DIFFERENT
+    dups = dups if isinstance(dups, dict) else {}
+    stats = {name: _stat(name, s[name] if name in s else _ABSENT, c, dups.get((mod, name), 0)) for name in A28_STATS}
+    detail = "; ".join(f"{name} {v['outcome']} ({v['step']}: {v['reason']})" for name, v in stats.items())
+    if any(v["outcome"] == DIFFERENT for v in stats.values()):
+        return done(DIFFERENT, "6", detail, stats)
+    if any(v["outcome"] == NOT_COMPARED for v in stats.values()):
+        return done(NOT_COMPARED, "7", detail + " (both statistics are required)", stats)
+    return done(EQUAL, "8", detail, stats)
+
+
+def a28u_row(k, local, map_status, pu4h_status):
+    """the row status of A2-8u UE k (design 4.5): the global rules (MAP-UE, PU-4h) over the local outcome"""
+    loc = local["local"]
+    if map_status == FAIL or pu4h_status == FAIL:
+        st, why = FAIL, f"global: MAP-UE {map_status}, PU-4h {pu4h_status}"
+    elif loc == DIFFERENT:
+        st, why = FAIL, "local DIFFERENT"
+    elif loc == NOT_COMPARED:
+        st, why = NE, "local NOT COMPARED"
+    elif map_status == PASS and pu4h_status == PASS:
+        st, why = PASS, "local EQUAL, MAP-UE PASS, PU-4h PASS"
+    else:
+        st, why = NE, f"global: local EQUAL but MAP-UE {map_status}, PU-4h {pu4h_status} (counts not established)"
+    return {"id": ROW_A28U, "subject": f"UE {k}", "status": st, "local": loc, "detail": f"{why}; {local['detail']}"}
+
+
+def a28u_rows(n, node_id, sc, sca_map, res, dups, map_status, pu4h_status):
+    """A2-8u for every expected UE 0 .. n-1: (rows, locals). The frozen run-level A2-8 is not called, wrapped or
+    re-derived here; it stays in the A-2.1 rows verbatim. Reads only."""
+    counts = a28u_counts(res)
+    touched = A21.touched_nodes(res)
+    locs = [a28u_local(k, node_id.get(k) if isinstance(node_id, dict) else None, sc, sca_map, counts, touched, dups)
+            for k in range(n)]
+    return [a28u_row(k, locs[k], map_status, pu4h_status) for k in range(n)], locs
+
+
+def cr_violations(r_status, locals_, node_ids, touched):
+    """the compatibility relation CR-1 .. CR-4 (design 4.5) between the frozen run-level A2-8 status R and the local
+    outcomes L_k, under MAP-UE PASS. Returns the violated relations (empty = compatible).
+    'compared' = a statistic whose outcome came from V-7 or V-8 (the comparisons the frozen code also makes)."""
+    out = []
+    L = [x["local"] for x in locals_]
+    stats = [s_ for x in locals_ for s_ in x["stats"].values()]
+    v1 = any(s_["step"] == "V-1" for s_ in stats)
+    diff78 = any(s_["outcome"] == DIFFERENT and s_["step"] in ("V-7", "V-8") for s_ in stats)
+    equal_any = any(s_["outcome"] == STAT_EQUAL for s_ in stats)
+    compared_any = any(s_["step"] in ("V-7", "V-8") for s_ in stats)
+    t = set(touched or ()) & set(node_ids)
+    if r_status == FAIL and not (DIFFERENT in L or v1):
+        out.append("CR-1: R FAIL without a DIFFERENT or a V-1 statistic")
+    if diff78 and r_status != FAIL:
+        out.append(f"CR-1: a statistic DIFFERENT by V-7 / V-8 but R {r_status}")
+    if not v1 and (r_status == FAIL) != (DIFFERENT in L):
+        out.append(f"CR-1: without duplicate records, R {r_status} but L {L}")
+    if r_status == PASS and not (all(x in (EQUAL, NOT_COMPARED) for x in L) and equal_any and not t):
+        out.append(f"CR-2: R PASS with L {L}, any equal statistic {equal_any}, touched {sorted(t)}")
+    if r_status == NE and not (DIFFERENT not in L and (t or not compared_any)):
+        out.append(f"CR-3: R NE with L {L}, touched {sorted(t)}, compared {compared_any}")
+    if L and all(x == EQUAL for x in L) and r_status != PASS:
+        out.append(f"CR-4: every L EQUAL but R {r_status}")
+    return out

@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """Tests of the WP-A1 wrapper (design revision 2.1, 57a80ca, section 7). Increment I-1: T-name-guard, T-registry,
-T-schema, T-imports-isolated. No simulation; no raw output of any run; synthetic inputs and repository files only.
+T-schema, T-imports-isolated. Increment I-2: T-map, T-a28-compat, NC-scalar-ue1, NC-scalar-missing-ue1. No simulation; no raw output of any run; synthetic inputs and repository files only.
 The committed registry is only read; T-registry and main() check that its sha256 is unchanged.
 
     python3 -I -B test_m2s72_e0vn21.py [<test name prefix> ...]
@@ -633,6 +633,370 @@ def _digest_consistency():
         x = base()
         mut(x)
         check(W.validate_digest(x), f"inconsistent digest accepted: {what}")
+
+
+# ================================================================================================ I-2 ============
+import m2s72_a2 as A2  # noqa: E402  (frozen; read-only: sca_nodes)
+import m2s72_a2probe as PR  # noqa: E402  (frozen; read-only: scalars)
+import m2s72_harqfix21 as G  # noqa: E402  (accepted corrected generator; synthetic, labelled)
+
+NODES2 = {0: 2049, 1: 2050}
+ER, TX = W.A28_STATS
+TOL = A21.REL_TOL
+
+
+def named(name):
+    def deco(f):
+        TESTS.append((name, f))
+        return f
+    return deco
+
+
+def mkres(spec, censored=()):
+    """a synthetic A-2.1 replay result holding only the fields A2-8 reads: spec {node: (feedback results, ntx of the
+    ACKed lifecycles)}; censored: nodes of a group censored at the end (touched_nodes)"""
+    fb, pdus, pid = [], {}, 1000
+    for n, (results, ntx) in spec.items():
+        fb += [{"owner": n, "res": r} for r in results]
+        for x in ntx:
+            pid += 1
+            pdus[pid] = {"node": n, "end": "ack", "ntx": x}
+    groups = [{"censored_nodes": sorted(censored)}] if censored else []
+    return {"fb": fb, "pdus": pdus, "groups": groups}
+
+
+BASE = {2049: (["ACK"] * 10, [1] * 10), 2050: (["ACK"] * 9 + ["NACK"] * 3, [1] * 6 + [2] * 3)}   # UE 1: 0.25 / 4/3
+
+
+def truth_values(spec):
+    return {n: (sum(r == "NACK" for r in res) / len(res) if res else None, sum(ntx) / len(ntx) if ntx else None)
+            for n, (res, ntx) in spec.items()}
+
+
+def write_sca(d, nodes, values, extra=(), drop_par=(), name="0.sca"):
+    """values: {k: {stat: text}} (a stat missing from the dict is not written); par macNodeId for every k not in drop_par"""
+    rows = ["version 3\n", "run M2S72-synthetic-0\n"]
+    for k, n in nodes.items():
+        if k not in drop_par:
+            rows.append(f"par {W.ue_module(k)} macNodeId {n}\n")
+        for stat, v in values.get(k, {}).items():
+            rows.append(f"scalar {W.ue_module(k)} {stat} {v}\n")
+    rows += list(extra)
+    p = os.path.join(d, name)
+    with open(p, "w") as fh:
+        fh.writelines(rows)
+    return p
+
+
+def std_values(spec, nodes=NODES2, override=None):
+    tv = truth_values(spec)
+    vals = {k: {ER: repr(tv[n][0]), TX: repr(tv[n][1])} for k, n in nodes.items() if n in tv and tv[n][0] is not None and tv[n][1] is not None}
+    for k, upd in (override or {}).items():
+        vals.setdefault(k, {}).update(upd)
+        vals[k] = {s_: v for s_, v in vals[k].items() if v is not None}
+    return vals
+
+
+def evaluate_case(d, spec, values, censored=(), nodes=NODES2, extra=(), drop_par=(), map_status=None, pu4h="PASS"):
+    """returns (R row, locals, rows, map row): R = the frozen run-level A2-8 (m2s72_a21.scalar_row, called here only
+    to obtain the reference status; the wrapper never calls it), the local outcomes and the A2-8u rows"""
+    sca = write_sca(d, nodes, values, extra=extra, drop_par=drop_par)
+    res = mkres(spec, censored)
+    lines = open(sca).read().splitlines(True)
+    sc, smap, dups = PR.scalars(sca), A2.sca_nodes(sca), W.scalar_record_counts(lines)
+    before = (copy.deepcopy(res), copy.deepcopy(sc), copy.deepcopy(smap), hashlib.sha256(open(sca, "rb").read()).hexdigest())
+    r_frozen, _ = A21.scalar_row(copy.deepcopy(res), sca)
+    mrow = W.map_ue(len(nodes), dict(nodes), smap, W.evidence_nodes(res, None, None))
+    rows, locs = W.a28u_rows(len(nodes), dict(nodes), sc, smap, res, dups, map_status or mrow["status"], pu4h)
+    after = (res, sc, smap, hashlib.sha256(open(sca, "rb").read()).hexdigest())
+    check(before == after, "the wrapper modified its inputs or the .sca")
+    check(A21.scalar_row(copy.deepcopy(res), sca)[0] == r_frozen, "the frozen run-level A2-8 changed after the wrapper ran")
+    for r in rows:
+        check(W.validate_row(r) == [], f"row schema {W.validate_row(r)}")
+    return r_frozen, locs, rows, mrow
+
+
+def L(locs):
+    return [x["local"] for x in locs]
+
+
+def ST(rows):
+    return [r["status"] for r in rows]
+
+
+def steps(locs, k):
+    return {n: v["step"] for n, v in locs[k]["stats"].items()}
+
+
+# ---------------------------------------------------------------------------------------------------- T-map -----
+@named("T-map")
+def t_map():
+    ev = lambda **kw: dict({"pdus": set(), "per": set(), "occupancy_equal": set(), "skipped": set()}, **kw)
+    good_sca = {W.ue_module(0): 2049, W.ue_module(1): 2050}
+    check(W.map_ue(2, dict(NODES2), dict(good_sca), ev(pdus={2049, 2050}))["status"] == "PASS", "valid N = 2 with .sca")
+    check(W.map_ue(2, dict(NODES2), None, ev(pdus={2049}))["status"] == "PASS", "valid N = 2 without .sca (hrq-fixture)")
+    fails = {
+        "duplicate node id": (2, {0: 2049, 1: 2049}, None, ev()),
+        "UE 1 without a node (incomplete map)": (2, {0: 2049}, None, ev()),
+        "an extra UE 2 in the map": (2, {0: 2049, 1: 2050, 2: 2051}, None, ev()),
+        "a string UE key": (2, {"0": 2049, 1: 2050}, None, ev()),
+        "a boolean node id": (2, {0: True, 1: 2050}, None, ev()),
+        "a negative node id": (2, {0: -1, 1: 2050}, None, ev()),
+        "a float node id": (2, {0: 2049.0, 1: 2050}, None, ev()),
+        "the map is a list": (2, [2049, 2050], None, ev()),
+        ".sca: an extra ue[2] module": (2, dict(NODES2), dict(good_sca, **{W.ue_module(2): 2051}), ev()),
+        ".sca: ue[1] module missing": (2, dict(NODES2), {W.ue_module(0): 2049}, ev()),
+        ".sca: ue[1] with a different id": (2, dict(NODES2), {W.ue_module(0): 2049, W.ue_module(1): 2060}, ev()),
+        ".sca: ids swapped between modules": (2, dict(NODES2), {W.ue_module(0): 2050, W.ue_module(1): 2049}, ev()),
+        ".sca: an empty module map": (2, dict(NODES2), {}, ev()),
+        ".sca: not a mapping": (2, dict(NODES2), [1], ev()),
+        "a PDU for an unmapped node": (2, dict(NODES2), dict(good_sca), ev(pdus={2049, 2051})),
+        "per-UE output for an unmapped node": (2, dict(NODES2), dict(good_sca), ev(per={2052})),
+        "an occupancy entry for an unmapped node": (2, dict(NODES2), dict(good_sca), ev(occupancy_equal={2049, 9})),
+        "a skipped unmapped node": (2, dict(NODES2), dict(good_sca), ev(skipped={7})),
+        "a None node in the evidence": (2, dict(NODES2), dict(good_sca), ev(pdus={None})),
+    }
+    for what, (n, nid, smap, e) in fails.items():
+        args = copy.deepcopy((n, nid, smap, e))
+        r = W.map_ue(n, nid, smap, e)
+        check(r["status"] == "FAIL" and r["detail"] and W.validate_row(r) == [], f"MAP-UE not FAIL for {what}: {r}")
+        check((n, nid, smap, e) == args, f"map_ue modified its inputs ({what})")
+    for nid in (None,):
+        try:
+            W.map_ue(2, nid, None, ev())
+            raise AssertionError("an unavailable mapping was not REFUSED")
+        except W.Refused:
+            pass
+    for n in (0, -1, True, "2", None, 2.0):
+        try:
+            W.map_ue(n, dict(NODES2), None, ev())
+            raise AssertionError(f"numUe {n!r} accepted")
+        except W.EvaluationError:
+            pass
+    # the real readers: the frozen sca_nodes() of a written .sca, and the evidence of a genuine replay (synthetic log)
+    d = tempfile.mkdtemp(prefix="e0vn21-map-")
+    try:
+        nodes4 = {k: 2049 + k for k in range(4)}
+        sca = write_sca(d, nodes4, {})
+        check(W.map_ue(4, nodes4, A2.sca_nodes(sca), ev())["status"] == "PASS", "sca_nodes() of a 4-UE .sca")
+        sca = write_sca(d, nodes4, {}, drop_par=(3,), name="drop.sca")
+        check(W.map_ue(4, nodes4, A2.sca_nodes(sca), ev())["status"] == "FAIL", "a .sca without ue[3]'s macNodeId")
+        sca = write_sca(d, nodes4, {}, extra=[f"par {W.ue_module(4)} macNodeId 2053\n"], name="extra.sca")
+        check(W.map_ue(4, nodes4, A2.sca_nodes(sca), ev())["status"] == "FAIL", "a .sca with an extra ue[4]")
+        lines, node, truth = G.make(4, 30, lambda tti: [k for k in range(4) if (tti + k) % 2 == 0], tail=40)
+        res, rows, per, cov, extra, window = A21.evaluate(lines, 16, 0, node, None, None, None)
+        evn = W.evidence_nodes(res, per, extra["xa"])
+        check(evn["pdus"] == set(node.values()) and evn["per"] == set(node.values()), f"evidence nodes {evn}")
+        check(W.map_ue(4, dict(node), None, evn)["status"] == "PASS", "a genuine replay's evidence")
+        bad = dict(node)
+        bad[3] = 4000
+        check(W.map_ue(4, bad, None, evn)["status"] == "FAIL", "replay evidence for a node outside a wrong map")
+    finally:
+        shutil.rmtree(d)
+    for junk in (None, [], "x", 1, {"pdus": None}):
+        W.evidence_nodes(junk, junk, junk)          # never raises
+
+
+# -------------------------------------------------------------------------------------------- T-a28-compat ------
+@named("T-a28-compat")
+def t_a28_compat():
+    d = tempfile.mkdtemp(prefix="e0vn21-a28-")
+    tv = truth_values(BASE)
+    check(tv[2050] == (0.25, 4 / 3), f"base values {tv}")
+    try:
+        def case(what, spec=BASE, values=None, censored=(), want_r=None, want_l=None, want_rows=None, pu4h="PASS",
+                 cr=True, **kw):
+            r, locs, rows, mrow = evaluate_case(d, spec, std_values(spec) if values is None else values, censored, pu4h=pu4h, **kw)
+            check(want_r is None or r[2] == want_r, f"{what}: R {r[2]} (expected {want_r}): {r[3][:200]}")
+            check(want_l is None or L(locs) == want_l, f"{what}: L {L(locs)} (expected {want_l}); {[x['detail'] for x in locs]}")
+            check(want_rows is None or ST(rows) == want_rows, f"{what}: rows {ST(rows)} (expected {want_rows})")
+            if cr and mrow["status"] == "PASS":
+                v = W.cr_violations(r[2], locs, list(NODES2.values()), A21.touched_nodes(mkres(spec, censored)))
+                check(not v, f"{what}: {v}")
+            return r, locs, rows, mrow
+        E, D, N = W.EQUAL, W.DIFFERENT, W.NOT_COMPARED
+        # (1) all equal
+        case("(1) all equal", want_r="PASS", want_l=[E, E], want_rows=["PASS", "PASS"])
+        # (2) - (5), (8): R PASS, UE 1 NOT COMPARED -> NE: the intentional differences
+        _, locs, _, _ = case("(2) no statistics for ue[1]", values=std_values(BASE, override={1: {ER: None, TX: None}}),
+                             want_r="PASS", want_l=[E, N], want_rows=["PASS", "NOT EVALUATED"])
+        check(locs[1]["step"] == "2", "step 2")
+        _, locs, _, _ = case("(3) harqTxAttemptsDl missing for ue[1]", values=std_values(BASE, override={1: {TX: None}}),
+                             want_r="PASS", want_l=[E, N], want_rows=["PASS", "NOT EVALUATED"])
+        check(steps(locs, 1) == {ER: "V-8", TX: "V-2"} and locs[1]["step"] == "7", f"(3) steps {steps(locs, 1)}")
+        spec4 = {2049: BASE[2049], 2050: (["NACK"] * 4, [])}
+        _, locs, _, _ = case("(4) no ACKed lifecycle for ue[1]", spec=spec4,
+                             values=std_values(BASE, override={1: {ER: "1", TX: "4"}}),
+                             want_r="PASS", want_l=[E, N], want_rows=["PASS", "NOT EVALUATED"])
+        check(steps(locs, 1) == {ER: "V-8", TX: "V-4"}, f"(4) steps {steps(locs, 1)}")
+        spec5 = {2049: BASE[2049]}
+        _, locs, _, _ = case("(5) no feedback for ue[1]", spec=spec5, values=std_values(BASE),
+                             want_r="PASS", want_l=[E, N], want_rows=["PASS", "NOT EVALUATED"])
+        check(locs[1]["step"] == "4", "step 4")
+        # (6) missing node mapping: injected map / a .sca without ue[1]'s macNodeId -> MAP-UE FAIL -> FAIL x 2
+        r, locs, rows, mrow = case("(6a) .sca without ue[1] macNodeId", drop_par=(1,), cr=False, want_rows=["FAIL", "FAIL"])
+        check(mrow["status"] == "FAIL" and r[2] == "PASS", f"(6a) MAP-UE {mrow['status']}, R {r[2]}")
+        sc_ = PR.scalars(write_sca(d, NODES2, std_values(BASE)))
+        rows6, _ = W.a28u_rows(2, {0: 2049}, sc_, {W.ue_module(0): 2049, W.ue_module(1): 2050}, mkres(BASE), {}, "FAIL", "PASS")
+        check(ST(rows6) == ["FAIL", "FAIL"], f"(6b) injected incomplete map: {ST(rows6)}")
+        # (7) / (12) non-finite Simu5G values: R FAIL, UE 1 DIFFERENT by V-7 (same outcome)
+        for v in ("nan", "-nan", "inf", "-inf", "1e999", "NaN"):
+            _, locs, _, _ = case(f"(7) {v} for ue[1]", values=std_values(BASE, override={1: {ER: v}}), pu4h="FAIL",
+                                 want_r="FAIL", want_l=[E, D], want_rows=["FAIL", "FAIL"])
+            check(steps(locs, 1)[ER] == "V-7", f"(7) {v}: {steps(locs, 1)}")
+        # (8) unparsable: R PASS (the other statistic compared), UE 1 NE by V-6
+        for v in ("abc", "0x10", "1,5", "--1"):
+            _, locs, _, _ = case(f"(8) unparsable {v!r}", values=std_values(BASE, override={1: {ER: v}}),
+                                 want_r="PASS", want_l=[E, N], want_rows=["PASS", "NOT EVALUATED"])
+            check(steps(locs, 1)[ER] == "V-6", f"(8) {v}")
+        # (9) group-censored ue[1]: R NE, UE 1 NOT COMPARED (step 3), UE 0 local EQUAL but row NE (PU-4h NE)
+        _, locs, rows, _ = case("(9) censored ue[1]", censored=(2050,), pu4h="NOT EVALUATED",
+                                want_r="NOT EVALUATED", want_l=[E, N], want_rows=["NOT EVALUATED", "NOT EVALUATED"])
+        check(locs[1]["step"] == "3", "step 3")
+        # (10) value mismatch on ue[1]: R FAIL, UE 1 DIFFERENT, UE 0 local EQUAL / row FAIL (PU-4h FAIL through NOT VALID)
+        _, locs, rows, _ = case("(10) mismatch ue[1]", values=std_values(BASE, override={1: {ER: "0.3"}}), pu4h="FAIL",
+                                want_r="FAIL", want_l=[E, D], want_rows=["FAIL", "FAIL"])
+        check(rows[0]["local"] == E and "global" in rows[0]["detail"], f"(10) UE 0 row {rows[0]}")
+        # (11) duplicate records for ue[1]: NOT COMPARED by V-1, whatever the last record says
+        dup_line = lambda v: [f"scalar {W.ue_module(1)} {ER} {v}\n"]
+        _, locs, _, _ = case("(11a) duplicate, equal values", extra=dup_line("0.25"), want_r="PASS", want_l=[E, N],
+                             want_rows=["PASS", "NOT EVALUATED"])
+        check(steps(locs, 1)[ER] == "V-1", f"(11a) {steps(locs, 1)}")
+        _, locs, _, _ = case("(11b) duplicate, a wrong first record", values=std_values(BASE, override={1: {ER: "0.9"}}),
+                             extra=dup_line("0.25"), want_r="PASS", want_l=[E, N])
+        _, locs, _, _ = case("(11c) duplicate, a wrong last record", extra=dup_line("0.9"), pu4h="FAIL",
+                             want_r="FAIL", want_l=[E, N], want_rows=["FAIL", "FAIL"])
+        # tolerance boundary (V-8), both statistics, both sides: (1 - 1e-3) x tolerance equal, (1 + 1e-3) x different
+        for stat, val in ((ER, 0.25), (TX, 4 / 3)):
+            tol = TOL * max(1.0, abs(val))
+            for sign in (1, -1):
+                inside = repr(val + sign * tol * (1 - 1e-3))
+                outside = repr(val + sign * tol * (1 + 1e-3))
+                case(f"tolerance {stat} {sign:+d} inside", values=std_values(BASE, override={1: {stat: inside}}),
+                     want_r="PASS", want_l=[E, E])
+                case(f"tolerance {stat} {sign:+d} outside", values=std_values(BASE, override={1: {stat: outside}}),
+                     pu4h="FAIL", want_r="FAIL", want_l=[E, D])
+        big = {2049: BASE[2049], 2050: (["ACK"] * 3, [5, 5, 6])}          # tx 16/3 > 1: tolerance scales with |val|
+        tv_big = 16 / 3
+        case("tolerance scales: inside", spec=big,
+             values=std_values(big, override={1: {TX: repr(tv_big * (1 + TOL * (1 - 1e-3)))}}), want_r="PASS", want_l=[E, E])
+        case("tolerance scales: outside", spec=big, pu4h="FAIL",
+             values=std_values(big, override={1: {TX: repr(tv_big * (1 + TOL * (1 + 1e-3)))}}), want_r="FAIL", want_l=[E, D])
+        # (13) injected scalar types (not reachable in run: scalars() yields text): V-5, and the other step order
+        counts = W.a28u_counts(mkres(BASE))
+        smap = {W.ue_module(0): 2049, W.ue_module(1): 2050}
+        for junk in (0.25, 1, True, None, ["0.25"], {"v": 1}, b"0.25"):
+            sc = {W.ue_module(0): {ER: "0", TX: "1"}, W.ue_module(1): {ER: junk, TX: repr(4 / 3)}}
+            loc = W.a28u_local(1, 2050, sc, smap, counts, set(), {})
+            check(loc["local"] == N and loc["stats"][ER]["step"] == "V-5", f"(13) {junk!r}: {loc['local']} {loc['stats'][ER]}")
+        # (14) malformed counts (V-3: DIFFERENT, never a pass)
+        sc = {W.ue_module(1): {ER: "0.25", TX: "1"}}
+        for c in ({"feedback": 3, "nack": 4, "ntx": [1]}, {"feedback": True, "nack": 0, "ntx": [1]},
+                  {"feedback": -2, "nack": 0, "ntx": [1]}, {"feedback": 4, "nack": -1, "ntx": [1]},
+                  {"feedback": 4.0, "nack": 1, "ntx": [1]}, {"feedback": 4, "nack": 1, "ntx": [0]},
+                  {"feedback": 4, "nack": 1, "ntx": [True]}, {"feedback": 4, "nack": 1, "ntx": "1"},
+                  {"feedback": 4, "nack": 1}, {"nack": 1, "ntx": [1]}, "4 feedbacks", [4, 1]):
+            loc = W.a28u_local(1, 2050, sc, smap, {2050: c}, set(), {})
+            check(loc["local"] == D and "V-3" in [v["step"] for v in loc["stats"].values()], f"(14) {c!r}: {loc}")
+        # (15) a non-finite computed value (V-4): integers beyond the float range
+        loc = W.a28u_local(1, 2050, {W.ue_module(1): {ER: "0", TX: "1"}}, smap,
+                           {2050: {"feedback": 1, "nack": 0, "ntx": [10 ** 400]}}, set(), {})
+        check(loc["local"] == D and loc["stats"][TX]["step"] == "V-4", f"(15) {loc}")
+        # step 1: no scalars at all; R NE; both NE
+        case("no H-ARQ scalars", values={}, want_r="NOT EVALUATED", want_l=[N, N], want_rows=["NOT EVALUATED", "NOT EVALUATED"])
+        for sc_bad in (None, {}, [], "x"):
+            check(W.a28u_local(0, 2049, sc_bad, smap, counts, set(), {})["step"] == "1", f"step 1 for {sc_bad!r}")
+        check(W.a28u_local(0, 2049, {W.ue_module(0): {ER: "0"}}, {}, counts, set(), {})["step"] == "1", "step 1: empty module map")
+        # missing measurements are never zero: a UE with no statistics stays NOT COMPARED even when its true values are 0
+        zero = {2049: (["ACK"] * 5, [1] * 5), 2050: (["ACK"] * 5, [1] * 5)}
+        case("zero-valued UE without statistics", spec=zero, values=std_values(zero, override={1: {ER: None, TX: None}}),
+             want_r="PASS", want_l=[E, N], want_rows=["PASS", "NOT EVALUATED"])
+        # row status table (design 4.5)
+        Ld = {"local": D, "detail": "x"}
+        Le = {"local": E, "detail": "x"}
+        Ln = {"local": N, "detail": "x"}
+        table = [(Le, "FAIL", "PASS", "FAIL"), (Le, "PASS", "FAIL", "FAIL"), (Ld, "PASS", "PASS", "FAIL"),
+                 (Ln, "PASS", "PASS", "NOT EVALUATED"), (Le, "PASS", "NOT EVALUATED", "NOT EVALUATED"),
+                 (Le, "PASS", "PASS", "PASS"), (Ln, "FAIL", "PASS", "FAIL"), (Ld, "PASS", "NOT EVALUATED", "FAIL"),
+                 (Ln, "PASS", "NOT EVALUATED", "NOT EVALUATED")]
+        for loc, ms, ps, want in table:
+            r = W.a28u_row(1, loc, ms, ps)
+            check(r["status"] == want and r["local"] == loc["local"], f"row status for {loc['local']}, MAP {ms}, PU-4h {ps}: {r}")
+        # the CR checker itself detects incompatible pairs
+        bad = [("PASS", [E, D]), ("FAIL", [E, E]), ("NOT EVALUATED", [E, E])]
+        for r_st, ls in bad:
+            fake = [{"local": x, "stats": {ER: {"outcome": "equal" if x == E else x, "step": "V-8"}}} for x in ls]
+            check(W.cr_violations(r_st, fake, [2049, 2050], set()), f"CR checker accepted R {r_st} with L {ls}")
+    finally:
+        shutil.rmtree(d)
+
+
+# ------------------------------------------------------------------- NC-scalar-ue1, NC-scalar-missing-ue1 ------
+def genuine_like_run(d):
+    """a corrected-generator N = 2 run with NACKs on UE 1 (synthetic, labelled), evaluated by the accepted A-2.1, and a
+    .sca written from the GENERATOR TRUTH (independent of A-2.1's attribution)"""
+    lines, node, truth = G.make(2, 60, lambda tti: [0, 1] if tti % 3 == 0 else [0], nack={(805, 1), (813, 1), (813, 2)}, tail=40)
+    per_node = {}
+    for x in truth:
+        e = per_node.setdefault(x["node"], {"fb": 0, "nack": 0, "ntx": []})
+        e["fb"] += 1
+        e["nack"] += x["res"] == "NACK"
+        if x["res"] == "ACK":
+            e["ntx"].append(x["ntx"])
+    vals = {k: {ER: repr(per_node[n]["nack"] / per_node[n]["fb"]), TX: repr(sum(per_node[n]["ntx"]) / len(per_node[n]["ntx"]))}
+            for k, n in node.items()}
+    check(any(per_node[n]["nack"] for n in node.values()), "the generated run has NACKs")
+    return lines, node, vals
+
+
+def run_genuine_like(d, vals, node, lines, name):
+    sca = write_sca(d, node, vals, name=name)
+    res, rows, per, cov, extra, window = A21.evaluate(lines, 16, 0, node, None, sca, None)
+    r = {x[0]: x for x in rows}["A2-8"]
+    raw = open(sca).read().splitlines(True)
+    before = (copy.deepcopy(res), copy.deepcopy(rows), hashlib.sha256(open(sca, "rb").read()).hexdigest())
+    smap = A2.sca_nodes(sca)
+    mrow = W.map_ue(2, dict(node), smap, W.evidence_nodes(res, per, extra["xa"]))
+    pu4h = "FAIL" if A21.verdict(rows, "f1d-i")[1] == 1 else "PASS"     # stand-in for I-3: NOT VALID -> PU-4h FAIL
+    rws, locs = W.a28u_rows(2, dict(node), PR.scalars(sca), smap, res, W.scalar_record_counts(raw), mrow["status"], pu4h)
+    check(before == (res, rows, hashlib.sha256(open(sca, "rb").read()).hexdigest()),
+          "the wrapper modified the frozen evaluator results or the .sca")
+    check(not W.cr_violations(r[2], locs, list(node.values()), A21.touched_nodes(res)), "CR on the genuine-like run")
+    return r, mrow, rws, locs, pu4h
+
+
+@named("NC-scalar-ue1")
+def nc_scalar_ue1():
+    d = tempfile.mkdtemp(prefix="e0vn21-nc1-")
+    try:
+        lines, node, vals = genuine_like_run(d)
+        r, mrow, rws, locs, pu4h = run_genuine_like(d, vals, node, lines, "base.sca")
+        check(mrow["status"] == "PASS" and r[2] == "PASS" and L(locs) == [W.EQUAL, W.EQUAL] and ST(rws) == ["PASS", "PASS"],
+              f"baseline guard: MAP-UE {mrow['status']}, R {r[2]}, L {L(locs)}, rows {ST(rws)}")
+        v = copy.deepcopy(vals)
+        v[1][ER] = repr(float(v[1][ER]) + 1e-3)               # beyond the tolerance
+        r, mrow, rws, locs, pu4h = run_genuine_like(d, v, node, lines, "perturbed.sca")
+        check(r[2] == "FAIL" and pu4h == "FAIL", f"run-level A2-8 {r[2]}, A-2.1 NOT VALID -> PU-4h {pu4h}")
+        check(L(locs) == [W.EQUAL, W.DIFFERENT] and ST(rws) == ["FAIL", "FAIL"], f"L {L(locs)}, rows {ST(rws)}")
+        check("global" in rws[0]["detail"] and rws[0]["local"] == W.EQUAL, f"UE 0 fails by the global rule only: {rws[0]}")
+    finally:
+        shutil.rmtree(d)
+
+
+@named("NC-scalar-missing-ue1")
+def nc_scalar_missing_ue1():
+    d = tempfile.mkdtemp(prefix="e0vn21-nc2-")
+    try:
+        lines, node, vals = genuine_like_run(d)
+        v = copy.deepcopy(vals)
+        del v[1]                                              # ue[1]'s two statistics removed; its macNodeId kept
+        r, mrow, rws, locs, pu4h = run_genuine_like(d, v, node, lines, "missing.sca")
+        check(mrow["status"] == "PASS", f"MAP-UE {mrow}")
+        check(r[2] == "PASS", f"the frozen run-level A2-8 PASSes with ue[0] alone (frozen behaviour): {r[2]}")
+        check(L(locs) == [W.EQUAL, W.NOT_COMPARED] and locs[1]["step"] == "2", f"L {L(locs)}")
+        check(ST(rws) == ["PASS", "NOT EVALUATED"], f"A2-8u rows {ST(rws)}: the run-level PASS is never per-UE coverage")
+    finally:
+        shutil.rmtree(d)
 
 
 # --------------------------------------------------------------------------------------- T-imports-isolated ----
