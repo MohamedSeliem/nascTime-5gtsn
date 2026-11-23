@@ -82,6 +82,47 @@ with tempfile.TemporaryDirectory() as d:
             check(f"BD-negative {name}", want in str(ex), str(ex))
     check("BD-7 the same frame at two different egress translators (DL flooding) is two observations, not a double count",
           BD.observe(run([[row(tt=2, fid=1)], [row(tt=3, fid=1)]], d))["classes"]["residence"] == 2)
+    # ---- C1 (step 148): strict picosecond parsing - no rounding, no non-finite values, controlled errors
+    STRICT = [
+        ("fractional ps in ingressTime", dict(t1="0.0010000000005", res="0.0049999999995"), "not an exact number of picoseconds"),
+        ("fractional ps in egressTime / tTxEnd", dict(t12="0.0060000000001", res="0.0050000000001"), "not an exact number of picoseconds"),
+        ("fractional ps in residence only", dict(res="0.0050000010000001"), "not an exact number of picoseconds"),
+        ("sub-ps exponent 1e-13", dict(t1="1e-13", res="0.006"), "not an exact number of picoseconds"),
+        ("NaN ingressTime", dict(t1="NaN", res="0.005"), "not a finite decimal"),
+        ("sNaN egressTime", dict(t12="sNaN", res="0.005"), "not a finite decimal"),
+        ("Infinity egressTime", dict(t12="Infinity", res="Infinity"), "not a finite decimal"),
+        ("-Infinity ingressTime", dict(t1="-Infinity", res="0.005"), "not a finite decimal"),
+        ("NaN residence", dict(res="nan"), "not a finite decimal"),
+        ("beyond the simtime_t range", dict(t12="1e999999999", res="0.005"), "outside the simtime_t range"),
+        ("whitespace / underscore spelling", dict(t1="0.001_0", res="0.005"), "not a finite decimal"),
+    ]
+    for name, kw, want in STRICT:
+        try:
+            BD.observe(run([[row(**kw)]], d))
+            check(f"BD-strict {name}: rejected", False, "accepted")
+        except BD.LogError as ex:
+            check(f"BD-strict {name}: rejected", want in str(ex), str(ex))
+    check("BD-strict exact ps values still accepted, also in exponent form (1e-12 s = 1 ps)",
+          BD.ps("0.006000000001", "t") == 6000000001 and BD.ps("1e-12", "t") == 1 and BD.ps("5000000001E-12", "t") == 5000000001
+          and BD.observe(run([[row(t1="0.001", t12="0.006000000001", res="0.005000000001")]], d))["pairs"][0]["min_ps"] == 5000000001)
+    check("BD-strict no huge-power evaluation for extreme exponents (0e999999999 = 0; 1e-999999999 rejected)",
+          BD.ps("0e999999999", "t") == 0)
+    bad_nan = run([[row(t1="NaN", res="0.005")]], d)[0]
+    r = subprocess.run([sys.executable, "-I", "-B", TOOL, bad_nan], capture_output=True, text=True)
+    check("BD-strict CLI NaN log: exit 1, no traceback, nothing on stdout",
+          r.returncode == 1 and r.stdout == "" and "Traceback" not in r.stderr and "not a finite decimal" in r.stderr, r.stderr[-200:])
+    frac = run([[row(t1="0.0010000000005", res="0.0049999999995")]], d)[0]
+    good = os.path.join(d, "good.egress.port.csv")
+    with open(good, "w") as fh:
+        fh.write(",".join(BD.COLUMNS) + "\n" + ",".join(row()) + "\n")
+    r = subprocess.run([sys.executable, "-I", "-B", TOOL, good, frac], capture_output=True, text=True)
+    check("BD-strict CLI valid log then fractional-ps log: exit 1, no partial stdout, no traceback",
+          r.returncode == 1 and r.stdout == "" and "Traceback" not in r.stderr and "not an exact number of picoseconds" in r.stderr, r.stderr[-200:])
+    binf = os.path.join(d, "binary.egress.port.csv")
+    with open(binf, "wb") as fh:
+        fh.write(b"\xff\xfe\x00garbage\n")
+    r = subprocess.run([sys.executable, "-I", "-B", TOOL, binf], capture_output=True, text=True)
+    check("BD-strict CLI undecodable log: exit 1, no traceback", r.returncode == 1 and r.stdout == "" and "Traceback" not in r.stderr, r.stderr[-200:])
     r = subprocess.run([sys.executable, "-I", "-B", TOOL, os.path.join(d, "bad.csv")], capture_output=True, text=True)
     check("BD-cli invalid log: exit 1, nothing on stdout", r.returncode == 1 and r.stdout == "" and "error:" in r.stderr)
     r = subprocess.run([sys.executable, "-I", "-B", TOOL] + run([rows], d), capture_output=True, text=True)

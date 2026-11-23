@@ -16,7 +16,8 @@ Classification of every "tx" row (every row is counted in exactly one class; not
                    transparent-clock path (correctionField), never mixed into the data-plane R
     untagged       no TtTimestampTag at egress (no ingress metadata): counted, no R (no value is inferred)
     not-bridged    tagged by the same translator that transmits it: not a 5G-system bridge crossing
-Errors (exit 1, nothing printed on stdout): a malformed log; egressTime not the M2-S1 t12 (transmissionEnded); a
+Errors (exit 1, nothing printed on stdout): a malformed log; a time that is not an exact, finite number of
+picoseconds (no rounding; NaN / Infinity rejected); egressTime not the M2-S1 t12 (transmissionEnded); a
 residence that is not egressTime - ingressTime; the same (ingress translator, frame id) transmitted twice by one
 egress translator (double counting); an egress before its ingress.
 Output (stdout, JSON, deterministic): per (ingressTtId, egressTtId, pcp, vid): count, min / max / sum in integer ps
@@ -24,6 +25,7 @@ and mean as a decimal string; the class counts. Statistics only - no claim beyon
 """
 import csv
 import json
+import re
 import sys
 from decimal import Decimal, InvalidOperation
 
@@ -37,11 +39,42 @@ class LogError(Exception):
     pass
 
 
+TIME = re.compile(r"-?[0-9]+(\.[0-9]+)?([eE][+-]?[0-9]+)?")
+MAX_PS = 2 ** 63 - 1                                     # the OMNeT++ simtime_t range (int64 raw at ps resolution)
+
+
 def ps(text, what):
+    """an exact integer number of picoseconds; anything else is a LogError: a fractional picosecond, NaN or
+    Infinity, a non-decimal spelling (whitespace, '_', '+', hex), or a value outside the simtime_t range.
+    No rounding: the value must be exactly representable at ps resolution."""
+    if not isinstance(text, str) or TIME.fullmatch(text) is None:
+        raise LogError(f"{what}: {text!r} is not a time (not a finite decimal)")
     try:
-        return int((Decimal(text) * 10 ** 12).to_integral_exact())
+        d = Decimal(text)
     except (InvalidOperation, ArithmeticError):
-        raise LogError(f"{what}: {text!r} is not a time with ps resolution")
+        raise LogError(f"{what}: {text!r} is not a time (not a finite decimal)")
+    if not d.is_finite():
+        raise LogError(f"{what}: {text!r} is not a time (not a finite decimal)")
+    sign, digits, exp = d.as_tuple()
+    e = exp + 12                                         # value in ps = coefficient * 10**e
+    coeff = int("".join(map(str, digits))) if digits else 0
+    if coeff == 0:
+        return 0
+    if e > 19:
+        raise LogError(f"{what}: {text!r} is outside the simtime_t range")
+    if -e > len(digits):                                 # 0 < coeff < 10**-e: a fraction of a picosecond remains
+        raise LogError(f"{what}: {text!r} is not an exact number of picoseconds")
+    if e >= 0:
+        value = coeff * 10 ** e
+    else:
+        q, r = divmod(coeff, 10 ** -e)
+        if r != 0:
+            raise LogError(f"{what}: {text!r} is not an exact number of picoseconds")
+        value = q
+    value = -value if sign else value
+    if abs(value) > MAX_PS:
+        raise LogError(f"{what}: {text!r} is outside the simtime_t range")
+    return value
 
 
 def integer(text, what):
@@ -54,8 +87,11 @@ def integer(text, what):
 def observe(paths):
     groups, classes, seen = {}, {"residence": 0, "gptp": 0, "untagged": 0, "not-bridged": 0}, set()
     for path in paths:
-        with open(path, newline="", encoding="utf-8") as fh:
-            rows = list(csv.reader(fh))
+        try:
+            with open(path, newline="", encoding="utf-8") as fh:
+                rows = list(csv.reader(fh))
+        except (csv.Error, UnicodeDecodeError) as ex:
+            raise LogError(f"{path}: not a readable CSV log ({ex.__class__.__name__})")
         if not rows or rows[0] != COLUMNS:
             raise LogError(f"{path}: not an M2-S1 port log (header differs)")
         for n, row in enumerate(rows[1:], 2):
