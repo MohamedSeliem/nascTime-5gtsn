@@ -1,470 +1,380 @@
 # WP-A1 — Independent validation runbook: V-N1, V-N2, V-V1 (prepared, not executed)
 
-**Status: revision 2, 23 November 2026, prepared for review.** Revision 1 (`e1b5a76`) was reviewed at step 135, and this revision applies the corrections R1 … R5. **Nothing in this runbook has been executed.**
+**Status: revision 3, 23 November 2026, for independent review (step 139). Nothing has been executed against genuine evidence.**
 
-**Procedure and corrections:**
-- The procedure is design §8 (`docs/migration/wp-a1-a21-e0vn-wrapper-design.md`, revision 2.1, `57a80ca`). **The design is not modified.**
-- The V-N1, V-N2 and V-V1 commands (§8.2 – §8.4) are used verbatim.
-- Two design commands are **corrected** under step 135 (table below). The corrected forms replace the design text for this execution. A later design revision is maintainer decision M-9.
+**Revision history:**
+- Revision 1: `e1b5a76`.
+- Revision 2: `bb39906`, the step-135 corrections R1 – R5.
+- Revision 3 (this one) closes the step-137 / step-139 gaps:
+  - the procedure is now committed, fail-closed scripts in `docs/migration/wp-a1-validation/`, so the stop rules no longer depend on the operator;
+  - exact release SHA-256 verification and extraction commands (§5);
+  - the DR-13 validation protocol (§6) and the G0-RO comparison against D-2 (§7), each with its approval record;
+  - the readiness of the archived inputs as derived from the reviewed code (§8.1);
+  - the resolution of every fail-open point found (§11).
 
-| Correction | Design §8.1 text | Defect | Replaced by |
-|---|---|---|---|
-| **C-1** (R1) | the P-0 loop `(cd "$CHK" && python3 -B "$t" \| tail -1); echo "… rc=${PIPESTATUS[0]}"` | `${PIPESTATUS[0]}` after the subshell is the exit code of `tail`, so a failing suite prints `rc=0`. Reproduced in Bash with a dummy command. Nothing stops on failure. | the gated P-0 script of §5: each suite's real exit code, exact final line and non-empty output are checked, and the session stops before any access to evidence |
-| **C-2** (R2) | P-4 `find . -type f ! -name SHA256SUMS` | the extractor's nested `vv1/fx-*/SHA256SUMS` are left out of the inventory, and nothing covers the inventory itself | the finalisation sequence of §9: every file except the two top-level checksum records, followed by a final checksum record |
+**Unchanged:**
+- the design (`wp-a1-a21-e0vn-wrapper-design.md`, revision 2.1, `57a80ca`);
+- the reviewed implementation `C`, the expectation files and the registry;
+- every V-N1 / V-N2 / V-V1 argument vector of design §8.2 – §8.4;
+- the corrections C-1 (gated P-0) and C-2 (corrected P-4) of revision 2.
 
-**Roles and limits:**
-- **Executor:** an independent executor designated by the maintainer (`remote-execution-feasibility.md` §4, X-1). Never the development agent.
-- **Read-only evaluations only.** No simulation is run.
-- No evaluator, source pin, FGO registry or expectation file is changed.
-- `S5N_ADAPTER_VALIDATED` is never set. P-0 requires it to be unset, and `run` is not used.
+**Architecture:** option C, approved at step 139.
+- An independent, executor-operated, ephemeral host.
+- Each stage runs in a fresh **network-less** container from an image pinned by digest, with exactly the mounts of its profile, through `host-stage.sh`.
+- No GitHub Actions, no secret in any workflow, no publication of evidence.
 
-**Contents:**
-- §1 fixed identities;
-- §2 the GO / NO-GO gate;
-- §3 prerequisites;
-- §4 – §9 the stages, in this order:
+**Roles and restrictions:**
+- The executor is designated by the maintainer (X-1); it is never the development agent.
+- Read-only evaluations only. No simulation.
+- `S5N_ADAPTER_VALIDATED` is never set, and every stage refuses to run if it is set.
 
-| Stage | Content | Touches genuine evidence |
-|---|---|---|
-| 0 | gate A (administrative), §2 | no |
-| 1 | set-up and environment identity, §4 | no |
-| 2 | P-0 (corrected) and gate B, §5 | **no**: the session stops here on any failure |
-| 3 | X-2a integrity of the extraction, DR-13 method (b), §6 | yes, read-only |
-| 4 | read-only mount at the original prefix, DR-13 method (a), §6 | yes, read-only |
-| 5 | V-N1, V-N2, V-V1 (design §8.2 – §8.4 verbatim), §7 | yes, read-only |
-| 6 | evidence finalisation (corrected P-4), §9 | no |
-
-## 1. Fixed identities (recorded in every validation record)
+## 1. Fixed identities
 
 | Item | Value |
 |---|---|
-| Reviewed implementation commit `C` | `f3f68be696777e42b0717f949625855ddb475435` |
-| Simu5G | 1.8.1, `HEAD` `7477d2663644bbf78604267cba4fc113b4871ede` (tag `v1.8.1`, `https://github.com/Unipisa/Simu5G`), unmodified |
-| `expect/vn1.expect.json` at `C` | sha256 `b73410549c6ac085b0cd82b3255307174153cb1fc8b6737a15bfb2c978a5b97b` (blob `cb666562…`; 35 keys) |
-| `expect/vn2.expect.json` at `C` | sha256 `5821d0e57adb352d8a68c8e11441e4f76467ed41a89c7bc025a4a74ca95a47e3` (blob `883abdf5…`; 39 keys) |
-| `expect/vv1.expect.json` at `C` | sha256 `fe68ab9855e1574ca26709be12359c23be45f114dcc3f6eecc4d1c1683c31a8d` (blob `f6507bac…`; 56 keys) |
-| `m2s72_fgo_registry.json` at `C` | sha256 `2bb539cd99bdd622e843cacc68a8ea9faa6989b925bca5ee701179e3a470b3ae` (blob `648506e5…`; 18 features, 9 admitted) |
-| A2-V1 seal | `3d00ef8ebc2bd03e18e2d4a986a75771b3bcac8e54fae402d742fd19c5749ca0` |
-| F3 fixture | `cfb05ff78e63e056f512bdea9fdc568d555dba71ffd884675fc46f905bc6e65b` |
-| Python | ≥ 3.11 (`-I` implies `-P`). The reviewed CI used 3.13.18. |
+| Reviewed implementation `C` | `f3f68be696777e42b0717f949625855ddb475435` |
+| Procedure commit `D` | the commit of this runbook revision, **approved by the maintainer in gate A**. The scripts are taken from `D` by `h1-setup.sh`. |
+| Simu5G | 1.8.1, `7477d2663644bbf78604267cba4fc113b4871ede`, unmodified |
+| Expectation files and registry (sha256) | `vn1` `b7341054…a97b`, `vn2` `5821d0e5…47e3`, `vv1` `fe68ab98…1a8d`, registry `2bb539cd…b3ae`. Full values in `stage2-p0.sh`. |
+| Original results prefix `R` | `/mnt/nasctime-results` |
+| A2-V1 seal; F3 fixture | `3d00ef8e…49ca0` (33 records); `cfb05ff7…6e65b` |
+| A2-V1 public pins, from `fixtures/a2v1-first-chain.meta.json` at `C` | manifest `3e7a78f5…3f41`, log `84320fb5…3873`, `0.sca` `3bdcc9fc…7db1`, node ids {0: 2049, 1: 2050} |
+| Container image | Python ≥ 3.11 with git, coreutils, `awk`, `findmnt`. **Pinned by digest.** The digest is the one the approved G0-RO record covers. |
 
-## 2. GO / NO-GO gate (R5)
+**Script pins at `D`** (sha256; `h1-setup.sh` exports the scripts from `D`, so these are for the reviewer):
 
-**Rule:** GO requires every item in both parts to be met, with the evidence named. **Any unmet item is NO-GO.**
-- On NO-GO, nothing further is done. Genuine evidence is not accessed, and the NO-GO is reported to the maintainer with the failed item.
-- Gate A is decided before Stage 1. Gate B is decided by the Stage 2 script, after P-0 and before Stage 3.
+| File | sha256 |
+|---|---|
+| `common.sh` | `f5659436f636b49df78d41c7203645f79c833f0da4e6b6976fc4fb15f35316b5` |
+| `dr13-validate.sh` | `465f12533d839f1a331d15f6b1a874ec28af3ec24d2fcc18bfaeb0c396a51f0b` |
+| `extract_checked.py` | `00190e4e9d0a9cb0da25d9ea9fdd23d9490d9770f53dd853a1f6ededec257b2d` |
+| `g0ro-run.sh` | `586e1304ddf92841f6aa8333f79d284d0f02e648e30fc69a4659f152584e7d33` |
+| `g0ro_compare.py` | `02109c328c7d9cec1767711fbb77cf2fa4adfdbb8475159030ec20476855b021` |
+| `h1-setup.sh` | `5f2aed83a848bbe788d619a181de2868ba599bc16f98afff44af3e371eecda10` |
+| `h3-release.sh` | `a0694e0c56de16b92f5c884f3b03037fccbe02bd6ff315464f908cfa048f7ecd` |
+| `host-stage.sh` | `7ef9309f1ed3882e631bc84a5a8da17434b187e7bc4177db37a13e110cd79551` |
+| `stage2-p0.sh` | `6f4f3f8ab092d5bfac7a933e7d43196ab8c9556648de66f3686ecc2c4749aab9` |
+| `stage3-x2a.sh` | `f4fcf74b1fe78462085f69e95f71c22251983fa8c3e1dec323944f80f0529827` |
+| `stage4-mount.sh` | `c47295bb5257f66ea5aea115748d6ec3a9d7305e338d3af73b9455c91ab34a8f` |
+| `stage5-validate.sh` | `a03097c89a4b354f69511c8c6e66739ea4e70335c1f76c8e1c61e19ba649ce9e` |
+| `stage6-finalise.sh` | `5a5251133380a912b0657a4ba052403b339b8bbffb2df63f7344230f95a61a8b` |
+| `vars.env.template` | `c98fd08c97077b0e5bf663b89cf9cf0ae62fdf5bb027427d311ac77f3611934a` |
 
-### Gate A: administrative (before Stage 1)
+## 2. Two sessions, one order
 
-| # | Item | Evidence required | Met when |
+| Session | Purpose | Steps |
+|---|---|---|
+| **Q, qualification** | Produce the two records gate A needs. No WP-A1 validation. | H-1 → H-3 `qualification` → DR-13-V (§6) → G0-RO (§7) → the maintainer approves both records |
+| **V, validation** | V-N1, V-N2 and V-V1 | **a fresh `$Z` and a fresh `X`** → H-1 → **Stage 2 (P-0, gate B)** → H-3 `validation` → Stage 3 → Stage 4 → Stage 5 → Stage 6 |
+
+In session V, nothing reads the evidence before gate B is GO:
+- Stage 2 refuses to run if `R`, `X` or `REL` is visible.
+- H-3 `validation` refuses to run without gate B GO.
+
+Every stage is single-attempt: each refuses an existing output directory.
+
+| Step | Script | `host-stage.sh` profile | Network | Evidence visible |
+|---|---|---|---|---|
+| H-1 | `h1-setup.sh <D>` (on the host) | — | **yes** (clone only) | no |
+| Stage 2 | `stage2-p0.sh` | `p0` | no | **no (checked)** |
+| H-3 | `h3-release.sh qualification\|validation` | `release` | no | archives read-only, extraction into a fresh `X` |
+| DR-13-V (b) | `dr13-validate.sh b` | `mapped` | no | `X` read-only; **no mount at `R` (checked)** |
+| DR-13-V (a) | `dr13-validate.sh a` | `mounted` | no | `X` read-only at `X` and at `R` |
+| G0-RO | `g0ro-run.sh` | `mounted` | no | read-only |
+| Stage 3 | `stage3-x2a.sh` | `mapped` | no | `X` read-only; **no mount at `R` (checked)** |
+| Stage 4 | `stage4-mount.sh` | `mounted` | no | read-only |
+| Stage 5 | `stage5-validate.sh` | `mounted` | no | read-only |
+| Stage 6 | `stage6-finalise.sh` | `final` | no | no |
+
+Every step's exit code is the script's own: `host-stage.sh` uses `script -e`. **Only exit 0 continues.** The one exception is Stage 5 exit 3 (completed with findings), which continues to Stage 6 only.
+
+## 3. GO / NO-GO gate
+
+GO requires every item. **Any unmet item is NO-GO.**
+
+### Gate A: administrative, before session V
+
+| # | Item | Evidence | Reference file in `$Z/refs/` |
 |---|---|---|---|
-| A-1 | Designated independent executor (X-1) | the maintainer's written designation, naming the executor and who records and transfers the evidence | designation exists, and the executor is not the development agent |
-| A-2 | Fixed reviewed commit and expectation files (X-2) | the maintainer's confirmation of `C` and of the four sha256 values of §1 | confirmed. The values are re-checked mechanically in gate B. |
-| A-3 | Authorised access to the original evidence | the maintainer's authorisation for the N = 1 smoke, N = 2 smoke and A2-V1 archives, for this executor and this purpose | authorisation exists |
-| A-4 | Approved **and validated** DR-13 procedure | DR-13 (approved 17 Nov 2026), **plus** a record that methods (a) and (b) were validated before this independent evaluation (DR-13 decision; `authoritative-migration-status.md` §0.4) | the validation record exists and is approved. Stages 3 – 4 apply the method; they **do not** validate it. |
-| A-5 | Required environment-equivalence evidence (X-4) | an **approved G0-style verdict-equivalence record** for the executor's environment against the D-2 environment, unless the maintainer records that this environment already has one | approved record identified by name and hash. An identity statement alone is **not** sufficient (§4.2). |
-| A-6 | Agreed stop, mismatch and retry rules | the maintainer's approval of §8 as proposed or amended | approved |
+| A-1 | Designated independent executor | the maintainer's written designation | `gate-a.txt`: `executor=` |
+| A-2 | Fixed reviewed commit, procedure commit and expectation files | the maintainer's confirmation of `C`, of `D` and of the four sha256 values | `gate-a.txt`: `docs_commit=<D>` (checked by `h1-setup.sh`) |
+| A-3 | Authorised access to the three archives, for this executor | the maintainer's authorisation | `release-ref.txt`: `release_sums_sha256=` and the three `archive=` names (checked by H-3) |
+| A-4 | DR-13 procedure approved **and validated** | the DR-13 validation record (§6), approved | `dr13-ref.txt`: `dr13_record_sha256=` (checked by Stage 2) |
+| A-5 | Environment equivalence (X-4) | the G0-RO record (§7) for **this image digest**, approved. **An identity statement or the regression suites alone are not sufficient.** | `equivalence-ref.txt`: `g0ro_record_sha256=`, `image_digest=`. Stage 2 checks the running image digest equals it. |
+| A-6 | Agreed stop, mismatch and retry rules | the maintainer's approval of §9 | `gate-a.txt`: `rules=approved` |
 
-### Gate B: technical (decided by the Stage 2 script, before any access to evidence)
+The reference files only carry values out of the approval records. They cannot create an approval: the approval is the maintainer's dated record.
 
-| # | Item | Checked by | Met when |
+### Gate B: technical, decided by `stage2-p0.sh`
+
+The same checks as revision 2:
+- B-1 environment identity;
+- B-2 clean worktree at `C` and Simu5G at its pin;
+- B-3 the four sha256 values;
+- B-4 `S5N_ADAPTER_VALIDATED` unset;
+- B-5 11 suites with real exit code, non-empty output and exact line;
+- B-6 a fresh `E`.
+
+Additionally:
+- the evidence must not be visible;
+- the gate-A reference files must be well-formed;
+- the image digest must be the one the G0-RO record covers.
+
+**GO is only the script's exit 0**, together with the line `GATE B: GO (B-1 ... B-6 met)` in `$E/gate/gate-b.txt`.
+
+## 4. H-1: set-up on the host (network, no evidence)
+
+```bash
+export Z="$(mktemp -d)"                                    # fresh for each session
+git clone https://github.com/MohamedSeliem/nascTime-5gtsn.git "$Z/nasctime-src"
+mkdir "$Z/refs"        # write gate-a.txt, release-ref.txt, dr13-ref.txt, equivalence-ref.txt from the approval records
+D=<the approved procedure commit, 40 hex>
+git -C "$Z/nasctime-src" show "$D:docs/migration/wp-a1-validation/vars.env.template" > "$Z/vars.env"
+#   edit $Z/vars.env: replace the two <...> placeholders (X, REL); every other line stays as given
+git -C "$Z/nasctime-src" show "$D:docs/migration/wp-a1-validation/h1-setup.sh" > "$Z/h1-setup.sh"
+bash "$Z/h1-setup.sh" "$D"                                 # exports the scripts from D, worktree at C, Simu5G at its pin
+docker pull "<image>@sha256:<digest>"                      # the digest of the approved G0-RO record (session V)
+export IMG="<image>@sha256:<digest>"
+```
+
+**What `h1-setup.sh` and `common.sh` refuse:**
+- a `D` other than the approved one;
+- a clone without the history the pin tests need;
+- an existing worktree or Simu5G tree;
+- a Simu5G HEAD other than the pin;
+- a `vars.env` with a placeholder;
+- a relative path;
+- overlapping `X` / `REL` / `$Z`;
+- an `R` other than `/mnt/nasctime-results`;
+- a `C` other than the reviewed commit.
+
+## 5. H-3: release SHA-256 verification and extraction layout (exact, fail-closed)
+
+```bash
+bash "$Z/scripts/host-stage.sh" h3-release.sh release "$Z/console.log" qualification   # session Q
+bash "$Z/scripts/host-stage.sh" h3-release.sh release "$Z/console.log" validation      # session V, after gate B
+```
+
+`h3-release.sh` runs in a container with `REL` read-only and the parent of `X` read-write. It does, in order:
+1. **Checksum list identity.** `sha256(REL/SHA256SUMS)` must equal `release_sums_sha256` from the approval record.
+2. **Exactly the three approved archives.** Each name is listed **exactly once** in `SHA256SUMS`, is a plain file name and is a regular file. The three lines are verified with `sha256sum -c --strict`. There is no `--ignore-missing`, and a missing, extra or duplicated name is a stop.
+3. **Extraction** into a **fresh** `X` by `extract_checked.py`, archive by archive. Formats: `.tar`, `.tar.gz`, `.tgz`, `.tar.xz`, `.tar.bz2`, `.zip`; anything else is refused.
+   - **Layout rule:** after removing one optional stored prefix `mnt/nasctime-results/` (all members or none), every member is one of the evidence seals or lies under `s5-smoke-1/`, `s5-n2-1/` or `a2-nack-1/`. Then `X/<rel>` holds what was `/mnt/nasctime-results/<rel>`.
+   - **Refused:** absolute or `..` names, links, devices, members outside the layout, duplicates, and any member that would overwrite an existing file (`open(…, "x")`).
+   - **Each member's bytes** are hashed while written and re-hashed from disk, with a size or zip CRC check. They are recorded in `members-<archive>.txt` (sha256, size, path), and the member's mtime is kept.
+4. **Afterwards:** the archives are verified again (unchanged), `X` is made read-only, and `X` is checked to hold only regular files and directories.
+
+**Retaining the originals:**
+- The archives are never written: they are mounted read-only and re-verified.
+- No manifest is rewritten.
+- The extracted bytes equal the members, and the original manifests then verify them (Stage 3).
+
+**Exercised here on dummy archives only:**
+- valid tar, tar.gz and zip, with and without the stored prefix: extracted;
+- refused (1): traversal, absolute name, tar symlink, zip symlink, member outside the layout, mixed prefix, a member overwriting another archive's file;
+- refused (2): unknown format;
+- in H-3: an unapproved `SHA256SUMS`, a second attempt, a qualification run with `E` present, and a validation run without gate B were each refused.
+
+## 6. DR-13 validation protocol (session Q) and its approval record
+
+**Purpose:** validate both approved methods on the recovered archives before any independent evaluation (DR-13 decision, X-2a). No WP-A1 code runs. Output goes to `$Z/dr13-validation/mode-{b,a}/`.
+
+```bash
+bash "$Z/scripts/host-stage.sh" dr13-validate.sh mapped  "$Z/console.log" b
+bash "$Z/scripts/host-stage.sh" dr13-validate.sh mounted "$Z/console.log" a
+```
+
+| ID | Method | Check | Pass condition |
 |---|---|---|---|
-| B-1 | Environment identity recorded | Stage 1 (§4.1) | `$E/environment/identity.txt` complete, and the approved A-5 record referenced in `$E/environment/equivalence-ref.txt` |
-| B-2 | Clean worktree at `C` and pinned Simu5G | P-0 (§5) | `HEAD` = `C`; Simu5G `HEAD` = `7477d266…`; both `git status --porcelain --untracked-files=all` empty, before and after the suites |
-| B-3 | Fixed expectation files and registry | P-0 | the four sha256 values equal §1 |
-| B-4 | `S5N_ADAPTER_VALIDATED` unset | P-0 | unset |
-| B-5 | Passing prerequisite suites | P-0 | all 11 suites: exit 0, non-empty output, exact final line |
-| B-6 | Fresh evidence directory | P-0 | `$E` did not exist and was created by P-0 |
+| DV-b1 | (b) in-memory mapping, **no mount at `R` (checked)** | each of the three original manifests: every line `<sha256>  <size>  /mnt/nasctime-results/…`; verified by the accepted `m2s72s5_lib.py verify-manifest` on the prefix-substituted **stream** (process substitution; no manifest written) | exit 0 and `manifest verified`, ×3 |
+| DV-b2 | (b) | negative control on a **copy**: the smallest entry of the N = 1 manifest is copied to a scratch tree. The unmodified copy verifies through a one-line mapped stream; after one byte is changed it does not. The copy is then deleted. | 0, then 1 |
+| DV-b3 | (b) vs (a) | a fail-closed tool refuses a mapped root: the accepted extractor with `--results-root X` must **not** succeed (E-3: the manifest entries lie under `/mnt/nasctime-results`) | exit ≠ 0. The tool is not weakened; method (a) is used for it. |
+| DV-a1 | (a) read-only mount | `findmnt` shows `ro`; not writable (`test ! -w`, nothing created); `find` of the mount equals `find` of `X` (type, size, path) | all hold |
+| DV-a2 | (a) | the three **original** manifests verify through the mount with the accepted tool, unchanged | exit 0 ×3 |
+| DV-a3 | (a) | the accepted extractor on `--results-root /mnt/nasctime-results` with the seal: E-0 … E-7 pass, and the F3 fixture `cfb05ff7…` is reproduced | exit 0, fixture pin |
+| DV-x | both | `X` unchanged by the validation: type, mode, size, mtime and path, before and after each mode | identical |
 
-**GO** is printed by the Stage 2 script only when B-1 … B-6 all hold. That script's exit code 0 is the only GO signal; any other exit code is NO-GO.
+**Exercised here on dummy data only:**
+- DV-b1, DV-b2, DV-b3, DV-a1 and DV-a2 behaved as declared;
+- DV-a3 stopped at the extractor's seal gate, as it must on dummy data.
 
-## 3. Prerequisites
+**The approval record: "DR-13 validation record (WP-A1)"**, written by the executor. It holds:
+- executor, host, image digest, date, `D`, `C`;
+- `release_sums_sha256` and the three archive names;
+- the `results.txt` of both modes and each mode's `SHA256SUMS` hash;
+- any deviation, as found.
 
-| # | Prerequisite | Status | Notes |
+It is stored in the private evidence repository with checksums. **The maintainer approves it with a dated decision line.** That approval also closes the DR-13 condition "validated before any independent evaluation". Its sha256 becomes `dr13_record_sha256` (gate A-4). A dated entry in `migration-decisions-register.md` under DR-13 records the approval; that is a later documentation change by the maintainer, not part of this step.
+
+## 7. G0-RO: environment equivalence against D-2 (session Q) and its approval record
+
+**What D-2 is.** The reference environment of the G0 record revision 3 (`archive/m2/s72a-g0-closed`, `04657b4`): the reviewer's VM with OMNeT++ 6.5.0 / INET 4.7.0 / Simu5G 1.8.1, clang 21.1.8 and Python 3.13.13. The accepted A2-V1-S1 and smoke evaluations were executed there.
+
+**What equivalence means.** As in G0: **verdict equivalence**, not hash identity. In the proposed container, the accepted read-only evaluators whose D-2 results are recorded are re-run, unchanged and with the D-2 invocation, on the same archived inputs. Their exit codes, verdicts, row statuses and exact counts must equal the D-2 record. **Regression-suite success is a precondition only (G0RO-P), never equivalence evidence by itself.** No WP-A1 code takes part in the comparison.
+
+```bash
+bash "$Z/scripts/host-stage.sh" g0ro-run.sh mounted "$Z/console.log"    # runs g0ro_compare.py; exit 0 only if all items pass
+```
+
+| ID | Evaluator and invocation (unchanged code at `C`) | D-2 reference (committed) | Compared |
 |---|---|---|---|
-| PR-1 | A-1 executor | **missing** | M-1 |
-| PR-2 | A-2 confirmation of `C` and the expectation files | **missing** | M-2 |
-| PR-3 | A-3 access authorisation | **missing / not authorised here** | M-3. The development agent has not read the private archives. |
-| PR-4 | A-4 DR-13 validation record | **missing** | No such record is cited in the WP-A1 documents. M-4. |
-| PR-5 | A-5 approved G0-style equivalence record for the executor's environment | **missing** | M-5 |
-| PR-6 | A-6 agreed rules | **missing** | M-6 |
-| PR-7 | Full git clone with history containing `7bb0e3a`, `fbee202`, `39a6434`, `d920125`, `7e5c169` and `C` | available | The pin tests in P-0 need it. A shallow clone fails them. |
-| PR-8 | Simu5G 1.8.1 checkout at `7477d266…` | available (public) | Sources only; not built. |
-| PR-9 | The three archives with their archive checksum manifests (N = 1 smoke: 41 files; N = 2 smoke: 58; A2-V1: 58) | **missing** | Private. The format of the archive checksum manifests is to be confirmed by the maintainer: the Stage 3 command for them is the one distributed with the archives. |
-| PR-10 | Extraction at `$X` mirroring the original results prefix `$RR`, i.e. `$X/<rel>` holds what was `$RR/<rel>` | to confirm | `$RR` is read from the manifests (§6), never guessed. |
-| PR-11 | A read-only bind mount facility (for example a container `-v "$X":"$RR":ro`) | to confirm | Needed for Stage 4. |
-| PR-12 | Per run, the inputs `hrq` reads: `<runs>/run-<cfg>.log.gz`, `<runs>/<cfg>/<cfg>/0.sca`, and the configuration files for the node ids | to confirm | A missing `.sca` makes A2-8u NE, and the expectation fails with exit 5. |
-| PR-13 | Bash, coreutils (`sha256sum`, `find`, `sort -z`, `xargs -0`), `awk`, `git`, `script`, `findmnt` | available (standard) | |
+| G0RO-P | the 11 suites, exact lines | tier-0 / runbook | precondition only |
+| G0RO-1a | `check_m2s72_a21.py a21 <A2-V1 runs> <cfg> … --contract full` (S1 protocol E-1) | S1 closure §2 S-5: rc 4, `A-2.1 INCOMPLETE`; §3 rows | exit code, verdict, the 13 row statuses (A2-4c NOT EVALUATED, others PASS) |
+| G0RO-1b | the same, `--contract f1d-i` (E-2) | S-5: rc 0, `A-2.1 VALID` | as 1a |
+| G0RO-1c | per-node accounting of 1a and 1b | S1 §3: node 2049 11 702 / 11 702 / 11 697 / 11 697 / 0 / 0; node 2050 1 265 / 1 409 / 1 408 / 1 264 / 144 / 0; 129 handles, all retired; unresolved `[]`; end states `{censored: awaiting feedback: 6}` | exact integers |
+| G0RO-1d | `check_m2s72_a21.py a21-controls` (E-3) | S-6: rc 0, 22 / 22 as declared, 0 not buildable | exit code, counts |
+| G0RO-2a | `check/check_m2s72_s5n2.py xa <N1 runs> M2S72-E0v-q0-f1` (from `simulations/m2`, as on the VM) | `M2-S7.2a-s5-n2-protocol.md` step C: rc 0; XA-pre … XA-6 PASS; A-1a 11 697, A-1b 0, ambiguous / orphan / re-insert 0; δ 1 000 000 000 ps | exit code, row statuses, counts |
+| G0RO-2b | the same on the N = 2 smoke | the N = 2 acceptance (N2-A1, N2-A4 … N2-A6, P-N2-4) and DR-07c: rc 0; XA-pre … XA-5 PASS, XA-6 NOT EVALUATED; A-1 9 718 / 2 476 / 768 / 0 / 768 | as 2a |
+| G0RO-I | identity: image digest, Python, OS, Simu5G HEAD | the D-2 column of G0 §1 | recorded and compared in the record; differences listed, not a pass criterion |
+| G0RO-H | byte identity with D-2 record files | the S1 archive (`3fa12389…f0e34`), if the maintainer provides it | **informational only** |
 
-## 4. Stage 1: set-up and environment identity (no evidence)
+**Expected limit, recorded rather than hidden:** G0RO-1 and G0RO-2 exercise the same read-only evaluation stack the WP-A1 wrapper builds on (A-2.1, A-1, XA, the MAC-log and `.sca` readers). They do not exercise the wrapper itself; that is what V-N1, V-N2 and V-V1 do.
 
-### 4.1 Set-up
+**Exercised here:** `g0ro_compare.py` on synthetic outputs shaped like the tools' real JSON. Matching gave 63 / 63 PASS, exit 0; one changed count gave exit 1; missing outputs gave FAILs.
 
-```bash
-export Z="$(mktemp -d)"              # executor's work dir: outside the worktree, the evidence dir and the mount
-cd "$Z"
-script -q "$Z/console.log"           # complete console transcript of Stages 1-5 (kept outside $E until §9)
-git clone https://github.com/MohamedSeliem/nascTime-5gtsn.git nasctime-src          # full history (PR-7)
-git -C nasctime-src worktree add --detach "$Z/wpa1-validate" f3f68be696777e42b0717f949625855ddb475435
-git clone --branch v1.8.1 https://github.com/Unipisa/Simu5G.git simu5g-1.8.1
-cat > "$Z/vars.env" <<'EOF'
-W="$Z/wpa1-validate"
-C=f3f68be696777e42b0717f949625855ddb475435
-R=<the original results prefix RR; the mount point of Stage 4>
-X=<the extraction root (Stage 3); not the mount>
-E=<a fresh evidence directory outside $Z/wpa1-validate and outside $X; must not exist>
-export SIMU5G_ROOT="$Z/simu5g-1.8.1"
-CHK="$W/simulations/m2/check"
-PY="python3 -I -B"
-EOF
-```
+**The approval record: "G0-RO environment-equivalence record (WP-A1)".** It holds:
+- the image digest;
+- `compare.txt`;
+- the `SHA256SUMS` hash of `$Z/g0ro/`;
+- the G0RO-I table against G0 §1;
+- deviations.
 
-`vars.env` holds the design §8.1 variables, plus `X`. Every stage script reads it and contains nothing else variable. The stage scripts are copied from this runbook into `$Z` unchanged and run with `bash`.
+It is approved by the maintainer with a dated decision line. Its sha256 and the image digest become `equivalence-ref.txt` (gate A-5). It covers **only that image digest**; another image needs a new record.
 
-### 4.2 Environment identity and equivalence (X-4, R4)
-
-X-4 has two parts, and both are required:
-
-1. **The identity record** below.
-2. **Before the first acceptance-bearing validation on a new environment: an approved G0-style verdict-equivalence record against the D-2 environment** (gate A-5).
-   - Like the original G0, it is verdict equivalence, not a hash-identity claim.
-   - This runbook does not define, produce or replace that record. Its scope for a read-only evaluation environment is the maintainer's decision (M-5).
-   - **The identity record is not a substitute for it.**
-
-The identity record follows the X-4 list. It is written by the Stage 2 script into `$E/environment/identity.txt`, after `$E` is created, as part of the same script:
-- Python: version, `sys.executable`, and the sha256 of the resolved interpreter binary;
-- OS: `uname -srm` and `/etc/os-release`;
-- compiler: `cc --version`, or "not installed";
-- OMNeT++ build id and INET version: from `opp_run -v` and the INET tree if present, otherwise "not installed (not used by these evaluations)";
-- Simu5G: tag and `HEAD`;
-- `git --version` and the coreutils version;
-- for the reviewed code, the `C` commit and the four sha256 values of §1. These are the hashes of the libraries actually executed, which are pure Python at `C`.
-
-`$E/environment/equivalence-ref.txt` names the approved A-5 record and gives its sha256.
-
-## 5. Stage 2: P-0 (corrected, C-1) and gate B, before any access to evidence (R1)
-
-Run as `bash "$Z/stage2-p0.sh"`. **Only exit 0 is GO.** Any other exit code stops the validation, and Stage 3 is not started.
+## 8. Session V: Stages 2 – 6
 
 ```bash
-#!/usr/bin/env bash
-# Stage 2 - P-0 (design 8.1, corrected by C-1) and gate B. Reads only the worktree, Simu5G and $Z; never $R or $X.
-set -u
-. "$Z/vars.env"
-stop() { echo "P-0 NO-GO: $*"; exit 1; }
-
-test -z "${S5N_ADAPTER_VALIDATED+x}" || stop "S5N_ADAPTER_VALIDATED is set"                               # B-4
-test "$(git -C "$W" rev-parse HEAD)" = "$C" && echo "P-0 commit OK" || stop "worktree HEAD is not C"       # B-2
-test -z "$(git -C "$W" status --porcelain --untracked-files=all)" || stop "worktree not clean"
-test "$(git -C "$SIMU5G_ROOT" rev-parse HEAD)" = 7477d2663644bbf78604267cba4fc113b4871ede && echo "P-0 Simu5G OK" || stop "Simu5G HEAD"
-test -z "$(git -C "$SIMU5G_ROOT" status --porcelain --untracked-files=all)" || stop "Simu5G tree not clean"
-(cd "$CHK" && sha256sum -c --strict --quiet) <<'EOF' || stop "expectation files or registry differ from the runbook"   # B-3
-b73410549c6ac085b0cd82b3255307174153cb1fc8b6737a15bfb2c978a5b97b  expect/vn1.expect.json
-5821d0e57adb352d8a68c8e11441e4f76467ed41a89c7bc025a4a74ca95a47e3  expect/vn2.expect.json
-fe68ab9855e1574ca26709be12359c23be45f114dcc3f6eecc4d1c1683c31a8d  expect/vv1.expect.json
-2bb539cd99bdd622e843cacc68a8ea9faa6989b925bca5ee701179e3a470b3ae  m2s72_fgo_registry.json
-EOF
-test ! -e "$E" && mkdir "$E" && echo "P-0 fresh evidence dir" || stop "E exists or cannot be created"     # B-6
-mkdir "$E/p0" "$E/environment" "$E/gate" || stop "cannot create E subdirectories"
-
-# B-1: environment identity (4.2); the equivalence reference is written by the executor before this script
-{ python3 -c 'import sys; print("python", sys.version.replace("\n", " ")); print("executable", sys.executable)'
-  echo "python binary sha256 $(sha256sum "$(readlink -f "$(command -v python3)")" | cut -d' ' -f1)"
-  echo "uname $(uname -srm)"; cat /etc/os-release
-  { cc --version 2>/dev/null | head -1; } || true; command -v cc >/dev/null || echo "cc not installed"
-  command -v opp_run >/dev/null && opp_run -v 2>&1 | head -3 || echo "OMNeT++ not installed (not used by these evaluations)"
-  echo "simu5g HEAD $(git -C "$SIMU5G_ROOT" rev-parse HEAD) tag $(git -C "$SIMU5G_ROOT" describe --tags --exact-match 2>/dev/null)"
-  git --version; sha256sum --version | head -1
-  echo "nascTime commit $C"; (cd "$CHK" && sha256sum expect/vn1.expect.json expect/vn2.expect.json expect/vv1.expect.json m2s72_fgo_registry.json)
-} > "$E/environment/identity.txt" 2>&1 || stop "identity record"
-test -s "$Z/equivalence-ref.txt" || stop "no approved G0-style equivalence record referenced (gate A-5)"
-cp "$Z/equivalence-ref.txt" "$E/environment/equivalence-ref.txt" || stop "equivalence reference copy"
-
-# B-5: every suite - real exit code, non-empty output, exact final line (expected lines: h4-first-task.md 5)
-suite() {   # <suite> <expected final line> <isolated|plain>
-  local t=$1 exp=$2 mode=$3 out="$E/p0/$1.out" err="$E/p0/$1.err" rc last
-  if [ "$mode" = isolated ]; then (cd "$Z" && $PY "$CHK/$t") >"$out" 2>"$err"; rc=$?
-  else (cd "$CHK" && python3 -B "$t") >"$out" 2>"$err"; rc=$?; fi
-  echo "$rc" > "$E/p0/$t.rc"
-  [ "$rc" -eq 0 ] || stop "$t exit code $rc"
-  [ -s "$out" ] || stop "$t produced no output (missing result)"
-  last=$(tail -n 1 "$out")
-  [ "$last" = "$exp" ] || stop "$t final line '$last' is not '$exp'"
-  echo "P-0 PASS $t rc=0 '$last'"
-}
-suite test_m2s72_e0vn21.py      "WP-A1 e0vn21 tests: 52 / 52 PASS, 0 FAIL" isolated
-suite test_m2s72_a2.py          "A-2 tests: 18 / 18 PASS" plain
-suite test_m2s72_a2probe.py     "A-2 probe tests: 11 / 11 PASS" plain
-suite test_m2s72_a2v1.py        "10 / 10 PASS" plain
-suite test_m2s72_gen.py         "generator negative tests: 67 PASS, 0 FAIL" plain
-suite test_m2s72s5.py           "S5-1 tests: 38 / 38 PASS" plain
-suite test_m2s72s5_2.py         "S5-2 tests: 28 / 28 PASS" plain
-suite test_m2s72s5_n2.py        "S5 N = 2 tests: 19 / 19 PASS" plain
-suite test_m2s72s5_smoke.py     "S5 smoke contract tests: 9 / 9 PASS" plain
-suite test_m2s72_a21.py         "A-2.1 tests: 18 / 18 PASS, 0 PENDING, 0 FAIL" plain
-suite test_m2s72_a21_fixture.py "A-2.1 fixture-extractor tests: 14 / 14 PASS, 0 FAIL" plain
-test "$(ls "$E"/p0/*.rc | wc -l)" -eq 11 || stop "not exactly 11 suite results"
-test -z "$(git -C "$W" status --porcelain --untracked-files=all)" || stop "the suites modified the worktree"
-test -z "$(git -C "$SIMU5G_ROOT" status --porcelain --untracked-files=all)" || stop "the suites modified Simu5G"
-
-echo "GATE B: GO (B-1 ... B-6 met)" | tee "$E/gate/gate-b.txt"
-exit 0
+bash "$Z/scripts/host-stage.sh" stage2-p0.sh      p0      "$Z/console.log"            || exit   # NO-GO: go to Stage 6
+bash "$Z/scripts/host-stage.sh" h3-release.sh     release "$Z/console.log" validation || exit
+bash "$Z/scripts/host-stage.sh" stage3-x2a.sh     mapped  "$Z/console.log"            || exit
+bash "$Z/scripts/host-stage.sh" stage4-mount.sh   mounted "$Z/console.log"            || exit
+bash "$Z/scripts/host-stage.sh" stage5-validate.sh mounted "$Z/console.log"; echo "stage 5 exit $?"   # 0 or 3 continue to Stage 6
+bash "$Z/scripts/host-stage.sh" stage6-finalise.sh final "$Z/finalisation.log"           # after any stop from Stage 2 on, too
 ```
 
-**Notes on the script:**
-- The invocations are those of design §8.1: `$PY` (`python3 -I -B`) for the WP-A1 suite, run from `$Z`, outside the worktree; `python3 -B` from `$CHK` for the other ten.
-- The expected lines are the approved ones (`h4-first-task.md` §5 and the I-9 line), unchanged.
-- `$R` and `$X` are not referenced in this script.
-- The executor writes `$Z/equivalence-ref.txt` (the name and sha256 of the approved A-5 record) before running it.
+**Stage 3 (method (b), X-2a), in addition to revision 2:**
+- `R` must not be visible.
+- Every manifest line is well-formed and lies under `R`.
+- **Strict presence:** every manifest entry exists at its **exact** original name, as a regular file of the recorded size. The accepted `verify-manifest` also accepts a `.gz` copy; `Run72` and the extractor do not.
+- The A2-V1 files match their public pins.
+- The seal identity, its 33 entries, and exactly the sealed files under `a2-nack-1/{p0,records,eval}`.
+- The smoke seals are verified if archived, and recorded either way.
+- The `Run72` readiness of the three runs (§8.1).
 
-## 6. Stages 3 and 4: DR-13, the two methods kept apart (R3)
+**Stage 4:** the mount and `X` are read-only (no file created), and the mount shows exactly `X`.
 
-DR-13 (decision of 17 Nov 2026) and `authoritative-migration-status.md` §0.4 permit exactly two methods. **Original manifests are never rewritten, and evidence is never modified.**
+**Stage 5** runs the design commands with their exact argument vectors:
 
-| Method | Used for | Stage | Writes |
-|---|---|---|---|
-| **(b) in-memory prefix mapping** | **integrity verification** of the extraction against the original manifests (X-2a) | 3 | nothing in `$X`; results go to `$E/x2a/` |
-| **(a) read-only mount at the original absolute prefix** | **evaluation** by the reviewed tools, unchanged (`hrq`, `xa`, `verify-manifest` in P-1 / P-3, the extractor) | 4 – 5 | nothing under `$R`; results go to `$E/<v>/` |
+| Validation | Commands (design §8.2 – §8.4, argument vectors unchanged) |
+|---|---|
+| V-N1 | `verify-manifest` (P-1) → `check_m2s72_s5n21.py hrq … --expect expect/vn1.expect.json` → `check_m2s72_s5n2.py xa …` → `verify-manifest` (P-3) → `cmp` |
+| V-N2 | the same, for the N = 2 configuration and `vn2.expect.json` |
+| V-V1 | `m2s72_a21_fixture.py extract … --out fx-before` + fixture pin (P-1) → `hrq … --expect expect/vv1.expect.json` → `extract … --out fx-after` + fixture pin (P-3) |
 
-- **Neither method replaces the other.** A tool that refuses a mapped path is correct and is not weakened; method (a) is used instead.
-- **Method validation (A-4) comes first.** Both methods must have been validated, with an approved record, before this evaluation. Stages 3 and 4 apply them; they do not validate them.
+Each design suffix `; echo "… rc=$?"` is replaced by `; rc=$?; note "… rc=$rc"`. The script then applies §9 itself. An `hrq` exit 0 counts only if `hrq-<cfg>.expect.txt` ends `ALL EXPECTATIONS MET`.
 
-### 6.1 Stage 3: X-2a integrity of the extraction, method (b)
+**Stage 6** (F-2 … F-9 of revision 2, as a script):
+- the post-checks;
+- copies of the procedure, references and console transcript;
+- the inventory of every file except the two top-level records, including the nested `fx-*/SHA256SUMS`;
+- a completeness check and verification, top level and nested;
+- `SHA256SUMS.final`, then `chmod -R a-w`. The containers run as the executor's user; root would bypass `chmod`.
 
-These commands are run interactively under the transcript. **Any non-zero exit code is a stop** (§8).
+It prints the `SHA256SUMS.final` line for F-10. It refuses a second finalisation.
 
-```bash
-. "$Z/vars.env"; mkdir "$E/x2a"
-# (1) each archive against its archive checksum manifest - the command distributed with the archives (PR-9)
-<archive checksum verification command> > "$E/x2a/archives.txt" 2>&1; echo "X-2a archives rc=$?"            # expect 0
+### 8.1 Inputs the reviewed evaluators read (from the code at `C`; no configuration file)
 
-# (2) RR = the original results prefix, read from the manifests: every entry must lie under it
-RR="$R"
-for m in s5-smoke-1/m2/M2-S7.2a-s5smoke/records/M2S72-E0v-q0-f1.manifest.sha256 \
-         s5-n2-1/m2/M2-S7.2a-s5smoke-n2/records/M2S72-E0vN-q0-one0-n2-f1.manifest.sha256 \
-         a2-nack-1/records/M2S72-E0vN-q0-one0-n2-f1_A2V1.manifest.sha256; do
-  awk -v a="  $RR/" 'index($0, a) == 0 { bad++ } END { exit bad > 0 }' "$X/$m"; echo "X-2a prefix $m rc=$?"   # expect 0
-  echo "$m entries $(wc -l < "$X/$m") sha256 $(sha256sum "$X/$m" | cut -d' ' -f1)" >> "$E/x2a/manifests.txt"
-  # in-memory mapping: the prefix is substituted in the stream; no modified manifest is written anywhere
-  $PY "$CHK/m2s72s5_lib.py" verify-manifest \
-      <(awk -v a="  $RR/" -v b="  $X/" '{ i = index($0, a); print substr($0, 1, i - 1) b substr($0, i + length(a)) }' "$X/$m") \
-      > "$E/x2a/$(basename "$m").verify.txt"; echo "X-2a verify $m rc=$?"                                       # expect 0
-done
+| Reader (code at `C`) | Opens | Needed by |
+|---|---|---|
+| `check_m2s72_a21.inputs()` → `m2s72_a21.load`, `m2s72_maclog.MacLog` | `<runs>/run-<cfg>.log.gz` | `hrq`, `xa`, G0-RO |
+| `check_m2s72_a2._node_ids` → `m2s72_runs.Run72(runs, cfg, 0)` | the `.sca` (`par … nrMac macNodeId`, one per UE); the directory `<runs>/<cfg>/pcap/<cfg>-0/`, whose `dsTt[k]`, `talker[k]`, `ue[k]` PCAPs set N; the PCAPs of `listener`, `nwTt` 0 and 1, `upf` 1, parsed; the CSVs `M2S72Bridge.nwTt.eth[1].trafficConditionerLayer.{syncIn.sync,engine.pdelay}.csv` under `<runs>/<cfg>/m2log/<cfg>-0/` | the node ids. If any file is missing or does not parse, `hrq` **refuses** (exit 2), with no node id guessed. |
+| `m2s72_a2probe.scalars`, `m2s72_a2.sca_nodes`, `scalar_record_counts` | `<runs>/<cfg>/<cfg>/0.sca` | A2-8u, MAP-UE, the duplicate census |
+| `check_m2s72_s5v.parse_name` (code, via `_nproc`) | none; the H-ARQ process count comes from the configuration **name** | `hrq`, `xa` |
+| `m2s72_a21` A2-0s | `$SIMU5G_ROOT` sources (public) | `hrq`, G0-RO |
+| `m2s72_a21_fixture.extract` | the seal, the 33 sealed records, the raw manifest and its 58 entries (exact names) | V-V1 P-1 / P-3, DV-a3 |
+| `m2s72s5_lib.verify-manifest` | the manifests and their entries (a `.gz` copy is accepted) | P-1 / P-3, X-2a |
 
-# (3) the A2-V1 seal: relative paths, no mapping needed
-test "$(sha256sum "$X/a2-nack-1-evidence.sha256" | cut -d' ' -f1)" = 3d00ef8ebc2bd03e18e2d4a986a75771b3bcac8e54fae402d742fd19c5749ca0; echo "X-2a seal identity rc=$?"
-(cd "$X" && sha256sum -c --strict a2-nack-1-evidence.sha256) > "$E/x2a/seal.txt" 2>&1; echo "X-2a seal rc=$?"  # expect 0
-echo "DR-13 method (b), in-memory prefix mapping RR=$RR -> X=$X, for integrity verification" > "$E/x2a/method.txt"
-```
+**No `.ini` or other configuration file is opened** by any of these. A `grep` of the whole evaluation chain at `C` finds no `.ini` reference. The absence of standalone `.ini` files in the archives therefore blocks nothing.
 
-**Why the tool is used this way:**
-- The accepted `verify-manifest` checks every entry's size and sha256, as the DR-13 rule requires. It also checks the decompressed hash of tier-B `.gz`-retained files.
-- The `awk` stream form is the §0.4 substitution, done by literal prefix rather than by regex.
-- Exit 0 = every entry verified; 1 = a mismatch.
-- Checked here with dummy files only, never with evidence: a mapped stream verifies (exit 0), and a changed file gives `MANIFEST MISMATCH` (exit 1).
+What is needed beyond the logs and `.sca` files is the PCAP and NW-TT CSV files that `Run72` opens. They are raw outputs and therefore manifest entries, so the strict presence check covers them. Stage 3's readiness check names them explicitly.
 
-### 6.2 Stage 4: the read-only mount at the original prefix, method (a)
+On a dummy tree, `Run72` took the node ids from the `.sca` while only requiring the other files to exist and parse. `MAP-UE` then cross-checked them against the `.sca`.
 
-```bash
-# the mount is made by the executor's container or host tooling, for example:  -v "$X":"$RR":ro
-. "$Z/vars.env"
-findmnt -no OPTIONS --target "$R" | tr ',' '\n' | grep -qx ro; echo "M-ro rc=$?"                              # expect 0
-touch "$R/.wtest" 2>/dev/null; test $? -ne 0; echo "M-nowrite rc=$?"                                          # expect 0 (write refused)
-echo "DR-13 method (a), read-only mount of $X at $R, for evaluation" > "$E/x2a/mount.txt"
-findmnt --target "$R" >> "$E/x2a/mount.txt"
-```
-
-## 7. Stage 5: the validations (design §8.2 – §8.4, verbatim)
-
-Each block is run interactively under the transcript, with `. "$Z/vars.env"` sourced first. After every command, the executor applies the stop rules of §8 before typing the next one.
-
-### 7.1 V-N1: N = 1 smoke `M2S72-E0v-q0-f1`, seed 0
-
-**Inputs:**
-- `$N1/runs/run-M2S72-E0v-q0-f1.log.gz`, `$N1/runs/M2S72-E0v-q0-f1/M2S72-E0v-q0-f1/0.sca` and the configuration files;
-- `$N1/records/M2S72-E0v-q0-f1.manifest.sha256`;
-- `$CHK/expect/vn1.expect.json`.
-
-```bash
-N1="$R/s5-smoke-1/m2/M2-S7.2a-s5smoke"
-mkdir "$E/vn1"
-$PY "$CHK/m2s72s5_lib.py" verify-manifest "$N1/records/M2S72-E0v-q0-f1.manifest.sha256" > "$E/vn1/integrity-before.txt"; echo "P-1 rc=$?"
-$PY "$CHK/check_m2s72_s5n21.py" hrq "$N1/runs" M2S72-E0v-q0-f1 "$E/vn1/hrq" --expect "$CHK/expect/vn1.expect.json"; echo "V-N1 hrq rc=$?"   # expect 0
-$PY "$CHK/check_m2s72_s5n2.py" xa "$N1/runs" M2S72-E0v-q0-f1 "$E/vn1/xa"; echo "V-N1 xa rc=$?"                                              # unchanged reference
-$PY "$CHK/m2s72s5_lib.py" verify-manifest "$N1/records/M2S72-E0v-q0-f1.manifest.sha256" > "$E/vn1/integrity-after.txt"; echo "P-3 rc=$?"
-cmp "$E/vn1/integrity-before.txt" "$E/vn1/integrity-after.txt" && echo "P-3 identical"
-```
-
-**Expected results:**
-- P-1 = 0 and P-3 = 0; both files read `manifest verified`; then `P-3 identical`.
-- `hrq --expect` = **0**. `$E/vn1/hrq/` holds `a21-…{txt,json}`, `hrq-…{txt,json}` and `hrq-M2S72-E0v-q0-f1.expect.txt`, which ends `ALL EXPECTATIONS MET`.
-- `xa` = 0 by the tool contract. No expectation is declared for it (M-7).
-
-**Declared values** (design §8.2):
-- A-1: a1a 11 697; the other counts 0; PU-4 PASS, reported unchanged.
-- A-2.1 rows:
-  - A2-0, A2-0s, A2-1, A2-2, A2-3, A2-6, A2-7, A2-8 and A2-9 PASS;
-  - A2-5 PASS or NX;
-  - A2-4a / b / c NX.
-- Verdicts VALID / VALID.
-- MAP-UE, C-0, PU-4h, PU-4o UE 0 and A2-8u UE 0 PASS.
-- Held features: {single-candidate ACK attribution}, plus "inserted in the last TTI" iff its count > 0.
-- Composed verdict HELD FOR REVIEW.
-
-### 7.2 V-N2: N = 2 smoke `M2S72-E0vN-q0-one0-n2-f1`, seed 0
-
-**Inputs:** as V-N1, under `$N2`, for this configuration, with `vn2.expect.json`.
-
-```bash
-N2="$R/s5-n2-1/m2/M2-S7.2a-s5smoke-n2"
-mkdir "$E/vn2"
-$PY "$CHK/m2s72s5_lib.py" verify-manifest "$N2/records/M2S72-E0vN-q0-one0-n2-f1.manifest.sha256" > "$E/vn2/integrity-before.txt"; echo "P-1 rc=$?"
-$PY "$CHK/check_m2s72_s5n21.py" hrq "$N2/runs" M2S72-E0vN-q0-one0-n2-f1 "$E/vn2/hrq" --expect "$CHK/expect/vn2.expect.json"; echo "V-N2 hrq rc=$?"   # expect 0
-$PY "$CHK/check_m2s72_s5n2.py" xa "$N2/runs" M2S72-E0vN-q0-one0-n2-f1 "$E/vn2/xa"; echo "V-N2 xa rc=$?"
-$PY "$CHK/m2s72s5_lib.py" verify-manifest "$N2/records/M2S72-E0vN-q0-one0-n2-f1.manifest.sha256" > "$E/vn2/integrity-after.txt"; echo "P-3 rc=$?"
-cmp "$E/vn2/integrity-before.txt" "$E/vn2/integrity-after.txt" && echo "P-3 identical"
-```
-
-**Expected results:**
-- P-1 / P-3 = 0, and the integrity files are identical.
-- `hrq --expect` = **0**.
-- `xa` = 0: XA-6 is NOT EVALUATED when A-1 is not exact, which still exits 0 (M-7).
-
-**Declared values** (design §8.3):
-- A-1: a1a 9 718, a1b 2 476, ambiguous 768, re-insert 768, orphan 0; **PU-4 FAIL retained verbatim**.
-- A-2.1 (predicted counts, PC-A2-N2, never confirmed on genuine output):
-  - 12 194 single-candidate lines;
-  - 384 certified exchangeable groups (768 lines);
-  - A2-4a / b / c NX; A2-5, A2-7 and A2-8 PASS;
-  - verdicts VALID / VALID.
-- MAP-UE, C-0 and PU-4h PASS; PU-4o PASS ×2; A2-8u PASS ×2.
-- Agreement: disagree = 0, and all 768 A-1-unattributed lines are `exchangeable`.
-- Held features: {single-candidate ACK, exchangeable ACK groups (2 candidates)}, plus "inserted in the last TTI" iff > 0.
-- Composed verdict HELD FOR REVIEW.
-
-### 7.3 V-V1: A2-V1 run `M2S72-E0vN-q0-one0-n2-f1_A2V1` (sealed)
-
-**Inputs:**
-- the sealed tree under `$R`: the seal `a2-nack-1-evidence.sha256`, the 33 sealed records and the 58-entry raw manifest;
-- `$R/a2-nack-1/runs` with the log, the `.sca` and the configuration files;
-- `vv1.expect.json`.
-
-```bash
-SEAL=3d00ef8ebc2bd03e18e2d4a986a75771b3bcac8e54fae402d742fd19c5749ca0
-FXSHA=cfb05ff78e63e056f512bdea9fdc568d555dba71ffd884675fc46f905bc6e65b
-mkdir "$E/vv1"
-$PY "$CHK/m2s72_a21_fixture.py" extract --results-root "$R" --seal-sha256 "$SEAL" --out "$E/vv1/fx-before"; echo "P-1 extract rc=$?"   # expect 0
-grep -q "^$FXSHA  a2v1-first-chain.log.gz$" "$E/vv1/fx-before/a2v1-first-chain.log.gz.sha256" && echo "P-1 reproduces the F3 fixture"
-$PY "$CHK/check_m2s72_s5n21.py" hrq "$R/a2-nack-1/runs" M2S72-E0vN-q0-one0-n2-f1_A2V1 "$E/vv1/hrq" --expect "$CHK/expect/vv1.expect.json"; echo "V-V1 hrq rc=$?"   # expect 0
-$PY "$CHK/m2s72_a21_fixture.py" extract --results-root "$R" --seal-sha256 "$SEAL" --out "$E/vv1/fx-after"; echo "P-3 extract rc=$?"
-grep -q "^$FXSHA  a2v1-first-chain.log.gz$" "$E/vv1/fx-after/a2v1-first-chain.log.gz.sha256" && echo "P-3 reproduces the F3 fixture"
-```
-
-**Expected results:**
-- **P-1 extract = 0**, followed by `P-1 reproduces the F3 fixture`.
-- **`hrq --expect` = 0.**
-- **P-3 extract = 0**, followed by `P-3 reproduces the F3 fixture`.
-- Extractor exit codes:
-  - 10 = E-0 STOP, nothing written;
-  - 11 – 14 = an integrity gate failed (E-1 … E-3, E-7), leaving `FAILED.txt` and `.partial` outputs.
-- Each `fx-*/` directory holds `steps.txt`, the fixture, its `.sha256`, the metadata file and **its own `SHA256SUMS`**. These are covered by §9.
-
-**Declared values** (design §8.4):
-- Per-node accounting, exactly as in the S1 closure §3:
-  - node 2049: 11 702 / 11 702 / 11 697 / 11 697 / 0 / discarded 0 / censored 5;
-  - node 2050: 1 265 / 1 409 / 1 408 / 1 264 / 144 / retransmissions 144 / discarded 0 / censored 1.
-- 371 exchangeable groups (742 lines); 40 resolved by retransmission; 15 bound; 129 handles retired; unresolved `[]`; end states `{censored: awaiting feedback: 6}`.
-- A2-8 PASS; `f1d-i` VALID; `full` INCOMPLETE (A2-4c NE).
-- A2-8u: 0 / 1 and 0.10227272727272728 / 1.1139240506329113. PASS ×2.
-- MAP-UE, C-0 and PU-4h PASS; PU-4o PASS ×2.
-- A-1 reported, with no expectation declared.
-- Held features: {single-candidate ACK, exchangeable ACK groups (2 candidates)}, plus "NACK resolved: single candidate" iff > 0.
-- Composed verdict HELD FOR REVIEW.
-- **The A2-V1 verdict stays NOT ACCEPTED.**
-
-## 8. Stop, mismatch and retry rules (proposed; gate A-6 requires their approval)
+## 9. Stop, mismatch and retry rules (enforced by the scripts; gate A-6 approves them)
 
 | Event | Action |
 |---|---|
-| Gate A item unmet | NO-GO. Nothing is set up or accessed. |
-| Stage 2 exits non-zero | NO-GO. Stop. `$E` keeps the P-0 outputs and is finalised (§9) as a NO-GO record. Genuine evidence was never accessed. |
-| Stage 3 or 4: any non-zero exit code (archive verification, prefix check, `verify-manifest`, seal identity or seal check, `M-ro`, `M-nowrite`) | Stop before any evaluation. Finalise `$E` (§9) and report. |
-| P-1 of a validation is non-zero, or its extract is not 0 | Do not evaluate that run. Stop the session. Finalise and report. |
-| `hrq --expect` exits **5** (expectation mismatch) | A finding. Do not re-run. Run that validation's P-3 and `cmp`, then continue with the next validation. `hrq-<cfg>.expect.txt` already lists every declared value against the evaluated one. |
-| `hrq` exits 2, or any other code than 0 or 5 | Run that validation's P-3 and `cmp`, then stop the session. Finalise and report. |
-| `xa` exits non-zero | Record it as found (non-gating, M-7). Continue. |
-| P-3 is non-zero, `cmp` differs, or `reproduces` is not printed after P-3 | An integrity failure. Stop the session. Finalise and report. |
-| Any failure | No retry, no clean-up, no relabelling (X-6). Partial outputs stay as found. |
-| A fresh attempt | Only with the maintainer's written approval, in a **new** `$E`. The failed `$E` is preserved, finalised and reported with it. |
+| Any gate-A item unmet | NO-GO: session V is not started |
+| Stage 2 exit ≠ 0 | NO-GO. Genuine evidence was never accessed. Stage 6 finalises the NO-GO record. |
+| H-3, Stage 3 or Stage 4 exit ≠ 0 | stop before any evaluation; Stage 6 |
+| P-1 ≠ 0, or the V-V1 fixture not reproduced at P-1 | that run is not evaluated; stop; Stage 6 |
+| `hrq --expect` exit 5 | finding, written to `<v>/findings.md`; P-3 and `cmp`; continue with the next validation; Stage 5 exits 3 |
+| `hrq` exit 0 without `ALL EXPECTATIONS MET`, or any other exit | P-3 and `cmp`, then stop; Stage 6 |
+| `xa` exit ≠ 0 | finding (non-gating, M-7); continue |
+| P-3 ≠ 0, `cmp` differs, or the fixture not reproduced at P-3 | integrity failure; stop; Stage 6 |
+| Any failure | no retry, no clean-up, no relabelling (X-6). Each stage refuses an existing output (single attempt). |
+| A fresh attempt | only with the maintainer's written approval, as a new session V (new `$Z`, new `X`). The failed one is preserved, finalised and reported. |
 
-**Recording deviations:**
-- Each deviation is entered in `$E/<v>/findings.md` before §9. Each entry gives the declared value, the evaluated value, the record file and line, and "reported as found".
-- **Expectation files are never modified.** Gate B pins their hashes, and §9 re-checks them.
-- A discrepancy is a finding against the expectation **or** the implementation. The maintainer decides which; any correction is a separate reviewed change at a new commit, followed by a new validation.
+## 10. Evidence for VG-0 … VG-3
 
-## 9. Stage 6: evidence finalisation (corrected P-4, C-2; R2)
-
-This is run after Stage 5 completes, or after any stop from Stage 2 onwards. The sequence is fixed:
-
-| Step | Action |
+| Gate | Evidence |
 |---|---|
-| F-1 | End the console transcript (`exit` from `script`). Start a second transcript, `script -q "$Z/finalisation.log"`, for F-2 … F-9. |
-| F-2 | Re-check the expectation files and registry (the gate-B `sha256sum -c` block of §5, run again) and `git -C "$W" status --porcelain --untracked-files=all` (empty). Write both results to `$E/supplementary/post-checks.txt`. |
-| F-3 | Copy the procedure and the console transcript into `$E`: `mkdir "$E/procedure"`, copy `"$Z/vars.env"`, `"$Z/stage2-p0.sh"` and `"$Z/equivalence-ref.txt"` into it, and copy `"$Z/console.log"` to `"$E/console.log"`, refusing to overwrite. |
-| F-4 | Preconditions: no top-level `SHA256SUMS` or `SHA256SUMS.final`; only regular files and directories (`find "$E" ! -type f ! -type d` prints nothing); every supplementary record (`environment/`, `gate/`, `x2a/`, `supplementary/`, `findings.md`) is already written. **Nothing may be added to `$E` after F-5 except the F-8 record.** |
-| F-5 | **The inventory, including nested checksum files:**<br>`(cd "$E" && find . -type f ! -path ./SHA256SUMS ! -path ./SHA256SUMS.final -print0 \| LC_ALL=C sort -z \| xargs -0 sha256sum) > "$E/SHA256SUMS"` |
-| F-6 | Completeness: the number of lines in `SHA256SUMS` equals `find . -type f ! -path ./SHA256SUMS ! -path ./SHA256SUMS.final \| wc -l`. Where those stages ran, it contains `./vv1/fx-before/SHA256SUMS`, `./vv1/fx-after/SHA256SUMS`, `./environment/identity.txt`, `./environment/equivalence-ref.txt`, `./gate/gate-b.txt`, `./x2a/method.txt`, `./x2a/mount.txt`, `./console.log` and `./procedure/stage2-p0.sh`. |
-| F-7 | Verification: `(cd "$E" && sha256sum -c --strict --quiet SHA256SUMS)` exits 0. Each nested sum also verifies: `(cd "$E/vv1/fx-before" && sha256sum -c --strict --quiet SHA256SUMS)`, and the same for `fx-after`. |
-| F-8 | **The final checksum record:** `(cd "$E" && sha256sum SHA256SUMS) > "$E/SHA256SUMS.final"`. It covers `SHA256SUMS`, which covers every other file, including the supplementary records and the nested sums. |
-| F-9 | Seal locally with `chmod -R a-w "$E"`. End the finalisation transcript. |
-| F-10 | Record the content of `SHA256SUMS.final` **at once**, at sealing time (X-5), in the validation record outside `$E`, together with the sha256 of `"$Z/finalisation.log"`. Then transfer `$E` and `finalisation.log` to the private evidence repository with checksums (X-5). |
+| VG-0 | `gate/gate-b.txt`; `p0/*`; `release/*` (`sums-identity`, `selected.sha256`, `verify-before` / `-after`, `members-*`); `x2a/*` (method, manifests, presence, verify, public pins, seal and seal set, Run72 readiness, `mount.txt`, `mount-vs-x.txt`); the integrity files of each validation; `vv1/fx-{before,after}/`; `environment/*` (identity, the two gate-A references); `console.log`; `SHA256SUMS`, `SHA256SUMS.final`; the approved DR-13 and G0-RO records cited |
+| VG-1 | `stage5-summary.txt`: `hrq rc 0: ALL EXPECTATIONS MET` for all three, and Stage 5 exit 0 |
+| VG-2 | the A-1 PU-4 row verbatim under `historical` (PASS for V-N1, **FAIL** for V-N2) and never a gate; no output restating the A2-V1 verdict |
+| VG-3 | the maintainer's acceptance of the validation record (X-9) |
 
-**How the corrected P-4 differs from design §8.1:**
-- `! -name SHA256SUMS` became `! -path ./SHA256SUMS`, so nested `SHA256SUMS` files are included.
-- `SHA256SUMS.final` is added, and the transcripts are now covered.
-- The X-4 identity is now `$E/environment/identity.txt` (§4.2), written in Stage 2 so that it is inside the inventory.
+## 11. Fail-open points found and resolved
 
-## 10. Evidence for VG-0 … VG-3 (design §8.5)
-
-| Gate | Condition | Evidence |
+| # | Fail-open point (where) | Resolution |
 |---|---|---|
-| VG-0 | P-0 … P-4 complete; integrity identical before and after | `gate/gate-b.txt` (GO); `p0/*.{out,err,rc}` (11 suites); `x2a/*` (method (b) results and the method statement); `x2a/mount.txt` (method (a)); `vn1/` and `vn2/integrity-{before,after}.txt`, identical; `vv1/fx-{before,after}/`; `environment/identity.txt` with `equivalence-ref.txt` (the approved A-5 record); `console.log`; `SHA256SUMS`, `SHA256SUMS.final` and their F-7 verification; the A-4 DR-13 validation record cited. |
-| VG-1 | `hrq --expect` exit 0, every declared expectation met exactly | `rc=0` in `console.log`; `hrq-<cfg>.expect.txt` ending `ALL EXPECTATIONS MET`, with `n / n MATCH` (35 / 39 / 56 declared keys). |
-| VG-2 | No wrapper output relabels a historical result | `hrq-<cfg>.{txt,json}`: the A-1 PU-4 row is verbatim under `historical` (PASS for V-N1, **FAIL** for V-N2) and never gates. A-1 values appear only under `historical`. No V-V1 output restates or changes the A2-V1 verdict. |
-| VG-3 | The maintainer accepts the record | The validation record, citing: `C`; the four sha256 values; the archive identities; gate A evidence A-1 … A-6; `SHA256SUMS.final`; the findings. It is stored with checksums (X-5) and has the status "executed, not accepted" until accepted (X-9). |
+| FO-1 | `script` without `-e` returns 0 whatever the child returns (step-137 plan H-2 / H-4); **checked: `exit 7` gives rc 0** | `host-stage.sh` runs `script -e` and returns the stage's exit code; checked: rc 7 |
+| FO-2 | Stages 3 – 5 typed by hand, the stop rules applied by the operator (revision 2) | scripts enforce §9 |
+| FO-3 | `M-nowrite` used `touch`, which **creates a file in the evidence** if the mount is writable | `findmnt` `ro` + `test ! -w`; nothing is created (checked on a read-only bind mount) |
+| FO-4 | `docker -v` silently creates a missing source directory | `--mount type=bind` (an error on a missing source), plus a check of every source before the command is built |
+| FO-5 | placeholders, relative or overlapping paths in `vars.env` | `load_vars`: no `<`/`>`; absolute; fixed `W`, `E`, `CHK`, `PY`, `R`, `C`; `X` / `REL` / `$Z` / `R` disjoint |
+| FO-6 | `verify-manifest` accepts a `.gz` copy that `Run72` and the extractor cannot read | strict exact-name presence before evaluation (Stage 3) |
+| FO-7 | method (b) could resolve through the mount, or P-0 could run with the evidence present | Stage 3 and DV-b refuse if `R` is visible; Stage 2 refuses if `R`, `X` or `REL` is visible |
+| FO-8 | the equivalence reference was only "non-empty" | `key=<64 hex>` lines; the running image digest must equal the approved one |
+| FO-9 | `hrq` exit 0 trusted without its record | also requires `ALL EXPECTATIONS MET` as the final line of `hrq-<cfg>.expect.txt` |
+| FO-10 | partial release verification: missing, extra or duplicate names, `--ignore-missing`, an unauthenticated checksum list | the approved `SHA256SUMS` hash; exactly three names, each listed once; `--strict`; re-verification after extraction |
+| FO-11 | extraction: traversal, links, overwrite, unknown layout | `extract_checked.py` (tested on crafted archives) |
+| FO-12 | finalisation as prose | `stage6-finalise.sh`: completeness, nested sums, verification, final record; a second run refused |
+| FO-13 | an unpinned or absent image | digest required and present locally; recorded in the identity record |
+| FO-14 | re-runs into existing outputs | every stage refuses an existing output (single attempt) |
+| FO-15 | `bind()` stopping inside `$(…)` would only end a subshell | sources checked before any substitution |
+| FO-16 | the `map` stream could silently drop an unprefixed line (found in the draft DR-13 script) | an explicit prefix check of every line first; the stream maps every line |
 
-**After VG-3 (outside this runbook):**
-- S5-2-D2 (V-N1 and V-N2);
-- the registry admissions of design §8.5, each a separate reviewed change.
-
-## 11. Decisions that require maintainer approval
+## 12. Decisions requiring the maintainer
 
 | ID | Decision | Gate |
 |---|---|---|
-| M-1 | Designate the independent executor, and who records and transfers the evidence | A-1 |
-| M-2 | Confirm `C` and the expectation files (the four sha256 values) | A-2 |
-| M-3 | Authorise access to the three archives for the executor | A-3 |
-| M-4 | Validate DR-13 methods (a) and (b) and approve the validation record, or identify an existing one | A-4 |
-| M-5 | Define the scope of, and approve, the G0-style verdict-equivalence record for the executor's environment against D-2 (X-4) | A-5 |
-| M-6 | Approve the stop, mismatch and retry rules of §8, as proposed or amended | A-6 |
-| M-7 | The status of `xa` (no declared expectation; proposed non-gating, recorded as found) | §8 |
-| M-8 | Confirm the archive checksum verification command (PR-9) and the extraction layout (PR-10) | Stage 3 |
-| M-9 | Whether design §8.1 is revised to carry corrections C-1 and C-2 | — |
-| M-10 | After VG-3: S5-2-D2 and the registry admissions | — |
+| M-1 | Executor and host | A-1 |
+| M-2 | `C`, `D` and the four sha256 values | A-2 |
+| M-3 | Access for the executor; the `SHA256SUMS` hash and the three archive names (the release check already passed for the maintainer) | A-3 |
+| M-4 | Approve the DR-13 validation record (§6) | A-4 |
+| M-5 | Approve the G0-RO record (§7) for one image digest; decide whether G0RO-H (the S1 archive) is wanted | A-5 |
+| M-6 | Approve §9 | A-6 |
+| M-7 | `xa` non-gating in V-N1 / V-N2 (proposed) | §9 |
+| M-8 | X-7: not applicable to read-only evaluations, or define its form | — |
+| M-9 | A later design revision carrying C-1 / C-2 and this procedure | — |
+| M-10 | After VG-3: S5-2-D2; registry admissions | — |
 
-## 12. What was checked while preparing (no evidence used, nothing executed against evidence)
+## 13. What was exercised while preparing
 
-- Every design §8 command names a tool and mode that exists at `C`, with the same argument order. Each tool imports under `python3 -I -B` from an unrelated directory.
-- `hrq` and the extractor refuse an existing output directory; `xa` creates its own directory. The `hrq` name guard admits the V-N1 and V-V1 names, and V-N2 is an E0v-N name.
-- The P-0 `PIPESTATUS` defect (C-1) was reproduced in Bash with a dummy command.
-- **The Stage 2 script, extracted verbatim from §5, was run on public code only.** It used a detached worktree at `C` and Simu5G at `7477d266…`, with `R` and `X` set to non-existent paths and a placeholder equivalence reference labelled TEST ONLY:
-  - all 11 suites gave their exact lines, and the script printed `GATE B: GO` with exit 0;
-  - each of the following was NO-GO with exit 1: `S5N_ADAPTER_VALIDATED` set; an existing `$E`; a wrong expected line; an untracked file in the worktree; a missing equivalence reference; a dummy suite with the right line but exit 3; a dummy suite with empty output.
-
-  This is a check of the procedure, not a P-0 of any validation.
-- Method (b), the stream form, was exercised with dummy files: verified (0) and changed (1).
-- F-5 … F-8 were exercised on a dummy tree:
-  - the nested `fx-*/SHA256SUMS` are listed in the inventory;
-  - the F-6 count matches, and F-7 verifies;
-  - a change to a nested `SHA256SUMS` after F-5 is detected (exit 1).
-- The extractor writes its own `SHA256SUMS` in each output directory (C-2).
+Nothing touched genuine evidence. Mount profiles were emulated with private mount namespaces; no container daemon was available, so `docker run` itself is untested here.
+- **Stage 2** on public code (real worktree at `C`, real Simu5G, TEST-ONLY gate references): 11 / 11 suites, GO.
+- **H-3** on dummy archives:
+  - verified and extracted (78 files);
+  - refused: an unapproved `SHA256SUMS`, a second attempt, a qualification run with `E` present, and a validation run without gate B.
+- **Stage 3** on the dummy extraction:
+  - the manifest, presence and mapped-verification checks passed;
+  - it stopped at the A2-V1 public pins, as it must on dummy data;
+  - a TEST-ONLY copy without the two pin comparisons passed the seal-set, smoke-seal and `Run72` readiness checks.
+- **Stage 4:** passed.
+- **Stage 5** on dummy data:
+  - V-N1 / V-N2: `hrq` exit 5 → findings, P-3 identical, continued;
+  - V-V1: stopped at P-1, extractor exit 11 (seal gate), before evaluation.
+- **Stage 6:** finalised, nested sums included, re-verified, a second run refused.
+- **DR-13-V and G0-RO:** see §6 and §7.
+- **`host-stage.sh`:** refused an unpinned image, an absent image and an unknown script.
