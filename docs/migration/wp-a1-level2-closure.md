@@ -12,7 +12,7 @@
 | **Reviewed implementation** | **`f3f68be696777e42b0717f949625855ddb475435`** (I-1 … I-9, plus the I-8 pin correction `70425d33b80b980874b3cd7274e4e6ee99dd0759`) |
 | Baseline | `m2/continuation` at `7bb0e3a7145602ae556239c8667362203d9294b5` |
 | Pull request | draft PR #11, `wp/a1-a21-e0vn-wrapper`; open, not merged |
-| Validation runbook (level 3, prepared only) | `docs/migration/wp-a1-validation-runbook.md` |
+| Validation runbook (level 3, prepared only) | `docs/migration/wp-a1-validation-runbook.md`, revision 2 (step-135 corrections R1 … R5; GO / NO-GO gate in its §2) |
 
 ## 1. GitHub CI evidence for `f3f68be`
 
@@ -125,4 +125,4 @@ A  simulations/m2/results/M2-S7.2a-a1-implementation.md
 - No private evidence was read, and no simulation was run.
 - AC-5 (independent execution and acceptance, VG-0 … VG-3) and AC-6 (S5-2-D2) are open. Both are outside the development agent's authority (design §10; `remote-execution-feasibility.md` §4, X-1).
 - Until registry admissions are made after accepted validations, every realistic run is HELD FOR REVIEW (risk R-10).
-- The prepared procedure is `docs/migration/wp-a1-validation-runbook.md`.
+- The prepared procedure is `docs/migration/wp-a1-validation-runbook.md`, revision 2. Execution requires GO on its gate (runbook §2); any unmet item is NO-GO.
