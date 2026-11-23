@@ -14,6 +14,9 @@ Increment I-3 adds C-0 with R-0a .. R-0e (4.1), PU-4h (4.3) and PU-4o (4.6); the
 the unchanged A-2.1 rows.
 Increment I-4 adds the historical A-1 report (PU-4 verbatim, the A-1 summary and per-UE values under 'historical') and
 the non-gating A-1 / A-2.1 agreement diagnostic (4.10).
+Increment I-7 adds the complete row-set checks (A-2.1 rows incl. A2-7 / A2-8, the s5n rows incl. the historical
+PU-4), the availability-gated current H-ARQ values, the all-or-nothing across-UE aggregates and the composed digest
+of the run mode (3.3, 4.8 - 4.10, 5.3).
 Increment I-6 adds IG-2 (no A2-8u comparison without the duplicate census) and the record writers used by the
 hrq / hrq-fixture modes of check_m2s72_s5n21.py.
 Increment I-5 adds the first-genuine-occurrence evaluation against the committed registry (4.7), the s5n gate
@@ -25,6 +28,7 @@ Pure functions. Never writes a file. Reads only the registry and the result reco
 and accepted modules are imported read-only and are never modified.
 """
 import copy
+from collections import Counter
 import hashlib
 import json
 import math
@@ -500,9 +504,18 @@ def validate_digest(d):
                 rs = {}
                 for i, r in enumerate(a21["rows"]):
                     if isinstance(r, list) and len(r) == 4 and all(isinstance(x, str) for x in r):
+                        if r[0] in rs:
+                            probs.append(f"correctness.a21.rows: {r[0]} twice")
                         rs[r[0]] = r[2]
                     else:
                         probs.append(f"correctness.a21.rows[{i}]: must be [id, subject, status, detail] text")
+                # I-7: the accepted A-2.1 row set is complete (A2-7 and A2-8 included), nothing else
+                if sorted(rs) != sorted(A21_ROW_IDS):
+                    probs.append(f"correctness.a21.rows: missing {sorted(set(A21_ROW_IDS) - set(rs))}, "
+                                 f"unexpected {sorted(set(rs) - set(A21_ROW_IDS))}")
+                bad_st = sorted(k for k, v in rs.items() if v not in (PASS, FAIL, NE, NX))
+                if bad_st:
+                    probs.append(f"correctness.a21.rows: statuses not PASS / FAIL / NE / NX for {bad_st}")
                 a21_view["rows_status"] = rs
         if n_ok:
             _rows_consistency(rows, n, v, s5n if isinstance(s5n, dict) else None, a21_view, probs)
@@ -1278,3 +1291,205 @@ def run_verdict(fn, *args, **kwargs):
         return error_verdict(ex, refused=True)
     except Exception as ex:                      # includes EvaluationError
         return error_verdict(f"{type(ex).__name__}: {ex}")
+
+
+# ================================================================================================ I-7 ============
+# ------------------------------------------------------------------------- complete row sets (design 4.9) ---------
+A21_ROW_IDS = ("A2-0", "A2-0s", "A2-1", "A2-2", "A2-3", "A2-4a", "A2-4b", "A2-4c", "A2-5", "A2-6", "A2-7", "A2-8", "A2-9")
+
+
+def check_a21_rows(rows, extra):
+    """the accepted A-2.1 row set, exactly once each, well formed, with A2-7 and A2-8 consistent with their own
+    structured output (extra["xa"], extra["scalars"]): never a missing, duplicated or unexplained row. Raises
+    EvaluationError."""
+    if not isinstance(rows, (list, tuple)):
+        raise EvaluationError(f"A-2.1 rows missing ({type(rows).__name__})")
+    ids = []
+    for r in rows:
+        if not (isinstance(r, (list, tuple)) and len(r) == 4 and all(isinstance(x, str) for x in r)):
+            raise EvaluationError(f"A-2.1 row malformed: {_show(r)}")
+        if r[1] != "run" or r[2] not in (PASS, FAIL, NE, NX):
+            raise EvaluationError(f"A-2.1 row {r[0]}: subject {r[1]!r}, status {r[2]!r}")
+        ids.append(r[0])
+    dup = sorted({i for i in ids if ids.count(i) > 1})
+    if dup or sorted(ids) != sorted(A21_ROW_IDS):
+        raise EvaluationError(f"A-2.1 row set incomplete or unexpected: missing {sorted(set(A21_ROW_IDS) - set(ids))}, "
+                              f"unexpected {sorted(set(ids) - set(A21_ROW_IDS))}, duplicated {dup}")
+    st = {r[0]: r[2] for r in rows}
+    if not isinstance(extra, dict) or "xa" not in extra or "scalars" not in extra:
+        raise EvaluationError("A-2.1 structured output (xa, scalars) missing")
+    x7, x8 = extra["xa"], extra["scalars"]
+    if x7 is None:
+        if st["A2-7"] not in (NE, FAIL):
+            raise EvaluationError(f"A2-7 {st['A2-7']} without its reference output")
+    else:
+        if not (isinstance(x7, dict) and isinstance(x7.get("occupancy_equal"), dict) and isinstance(x7.get("skipped"), list)
+                and isinstance(x7.get("confirmed"), dict)):
+            raise EvaluationError(f"A2-7 reference output malformed: {_show(x7)}")
+        if st["A2-7"] == PASS and (x7["skipped"] or not all(v is True for v in x7["occupancy_equal"].values())):
+            raise EvaluationError("A2-7 PASS with skipped nodes or an unequal occupancy")
+    if st["A2-8"] == PASS and not (isinstance(x8, list) and x8):
+        raise EvaluationError("A2-8 PASS without any compared statistic")
+    if st["A2-8"] != PASS and x8 is not None:
+        raise EvaluationError(f"A2-8 {st['A2-8']} with compared statistics")
+    return st
+
+
+S5N_DECLARED_ONCE = ("PU-1", "PU-4", "PU-5")
+S5N_DECLARED_PER_UE = ("PU-2", "PU-3", "AV-1", "AV-2", "AV-3")
+S5N_DECLARED_ANY = ("Q8-v", "SG-403", "MG-1", "EOR", "F0-1 (info)", "I-2H")
+
+
+def check_s5n_rows(s5n_rows, n, written, digest_rows):
+    """the s5n rows of the run (design 4.9): the declared rows with their multiplicities, every row well formed, and
+    the row set equal to the rows written to s5n/<cfg>.check.txt and to the s5n digest's count. A row is never
+    silently dropped. Raises EvaluationError naming what is missing or inconsistent."""
+    if not isinstance(s5n_rows, (list, tuple)) or not all(isinstance(r, (list, tuple)) and len(r) == 4 and
+                                                          all(isinstance(x, str) for x in r[:3]) for r in s5n_rows):
+        raise EvaluationError("s5n rows missing or malformed")
+    c = Counter(r[0] for r in s5n_rows)
+    probs = [f"{i} x{c[i]} (expected 1)" for i in S5N_DECLARED_ONCE if c[i] != 1]
+    probs += [f"{i} x{c[i]} (expected {n})" for i in S5N_DECLARED_PER_UE if c[i] != n]
+    for i in S5N_DECLARED_PER_UE:
+        subj = sorted(r[1] for r in s5n_rows if r[0] == i)
+        if c[i] == n and subj != sorted(f"UE {k}" for k in range(n)):
+            probs.append(f"{i} subjects {subj}")
+    probs += [f"{i} missing" for i in S5N_DECLARED_ANY if c[i] < 1]
+    if probs:
+        raise EvaluationError(f"s5n rows incomplete: {probs}")
+    got = Counter((r[2], r[0], r[1]) for r in s5n_rows)
+    if Counter(written) != got:
+        raise EvaluationError(f"s5n rows differ from those written to check.txt: {sorted((got - Counter(written)).elements())[:3]} / "
+                              f"{sorted((Counter(written) - got).elements())[:3]}")
+    if digest_rows != len(s5n_rows):
+        raise EvaluationError(f"s5n digest counts {digest_rows!r} rows, the evaluation {len(s5n_rows)}")
+
+
+def parse_s5n_check(text):
+    """(rows as (status, id, subject), verdict line) of an s5n <cfg>.check.txt, in its own layout
+    ('  <status:15> | <id> | <subject> | <detail>' under 'CORRECTNESS (gates)', then 'per-run verdict: ...')"""
+    lines = text.splitlines()
+    try:
+        i = lines.index("CORRECTNESS (gates)")
+    except ValueError:
+        raise EvaluationError("s5n check.txt without its CORRECTNESS section")
+    rows = []
+    for line in lines[i + 1:]:
+        if not line.strip():
+            break
+        p = line.strip().split(" | ", 3)
+        if len(p) < 3:
+            raise EvaluationError(f"s5n check.txt row unreadable: {line[:120]!r}")
+        rows.append((p[0].strip(), p[1], p[2]))
+    v = [x for x in lines if x.startswith("per-run verdict: ")]
+    if len(v) != 1:
+        raise EvaluationError("s5n check.txt: no single per-run verdict line")
+    return rows, v[0][len("per-run verdict: "):]
+
+
+# --------------------------------------------------------- current H-ARQ values and availability (design 5.3) -----
+HARQ_COUNT_FIELDS = ("inserts", "transmissions", "retransmissions", "feedback", "ack", "nack", "discarded",
+                     "transmissions_per_acked_pdu", "harq_latency_ps", "feedback_age_ps", "end_states", "lines_by_class")
+
+
+def _unavail(reason):
+    return {"available": False, "reason": reason}
+
+
+def harq_a21_groups(n_k, per, touched, pu4h_row, pu4o_row, a28u_row):
+    """the current per-UE H-ARQ values of UE k from the single A-2.1 replay, each group with its availability:
+    counts only with PU-4h PASS and the node untouched; occupancy only with PU-4o UE k PASS; the Simu5G cross-check
+    only with A2-8u UE k PASS. An unavailable group carries a reason and no value: never 0, never an A-1 value."""
+    o = per.get(n_k) if isinstance(per, dict) else None
+    if pu4h_row["status"] != PASS:
+        counts = _unavail(f"PU-4h {pu4h_row['status']}")
+    elif n_k in touched:
+        counts = _unavail("uncertain attribution: censored or pending group")
+    elif o is None:
+        counts = _unavail("no A-2.1 lifecycle for this UE")
+    else:
+        counts = {"available": True, **{f: copy.deepcopy(o[f]) for f in HARQ_COUNT_FIELDS}}
+        acked = o["transmissions_per_acked_pdu"]
+        n_ack = sum(acked.values())
+        counts["harq_error_rate"] = (o["nack"] / o["feedback"]) if o["feedback"] else None
+        counts["harq_tx_attempts"] = (sum(int(t) * c for t, c in acked.items()) / n_ack) if n_ack else None
+    if pu4o_row["status"] == PASS and o is not None and occupancy_valid(o.get("occupancy")):
+        occ = {"available": True, "occupancy": copy.deepcopy(o["occupancy"])}
+    else:
+        occ = _unavail(f"PU-4o {pu4o_row['status']} (local {pu4o_row.get('local')})")
+    if a28u_row["status"] == PASS:
+        sim = {"available": True, "status": PASS, "detail": a28u_row["detail"]}
+    else:
+        sim = _unavail(f"A2-8u {a28u_row['status']} (local {a28u_row.get('local')})")
+    return {"counts": counts, "occupancy": occ, "simu5g": sim}
+
+
+def _occ_mean(occ):
+    h = occ.get("busy_at_tti_start_hist") if isinstance(occ, dict) else None
+    if not isinstance(h, dict) or not h:
+        return None
+    tot = sum(h.values())
+    return (sum(int(b) * c for b, c in h.items()) / tot) if tot else None
+
+
+ACROSS_HARQ = (("harq_error_rate", "counts", lambda g: g.get("harq_error_rate")),
+               ("harq_tx_attempts", "counts", lambda g: g.get("harq_tx_attempts")),
+               ("retransmissions", "counts", lambda g: g.get("retransmissions")),
+               ("occupancy_busy_mean", "occupancy", lambda g: _occ_mean(g.get("occupancy"))))
+
+
+def across_harq_a21(per_ue_groups):
+    """across-UE aggregates of the current A-2.1 values: all-or-nothing. A metric is computed only if EVERY expected
+    UE's value is available (and defined); otherwise {available: false, missing_ues}. No partial aggregate."""
+    out = {}
+    for key, group, get in ACROSS_HARQ:
+        vals, missing = [], []
+        for k, g in enumerate(per_ue_groups):
+            gv = g[group]
+            v = get(gv) if gv.get("available") else None
+            if v is None or not math.isfinite(v):
+                missing.append(k)
+            else:
+                vals.append((k, v))
+        if missing or not vals:
+            out[key] = {"available": False, "missing_ues": missing or list(range(len(per_ue_groups)))}
+        else:
+            w = max(vals, key=lambda kv: kv[1])
+            v = [x for _, x in vals]
+            out[key] = {"available": True, "min": min(v), "max": max(v), "spread": max(v) - min(v), "worst_ue": w[0],
+                        "worst": w[1], "n": len(v)}
+    return out
+
+
+def composed_digest(s5n_digest, s5n_verdict_line, s5n_rows, wrapper_rows, verdict, a21_out, per, touched, node_id,
+                    agreement_report, inputs):
+    """the composed digest <cfg>.s5n21.digest.json (design 5.3), field by field from its owner. The s5n digest is
+    read, never modified."""
+    n = s5n_digest["numUe"]
+    current, hist_harq = split_per_ue(s5n_digest["performance"]["per_ue"])
+    rows_by = {(r["id"], r["subject"]): r for r in wrapper_rows}
+    groups = []
+    for k in range(n):
+        groups.append(harq_a21_groups(node_id[k], per, touched, rows_by[(ROW_PU4H, "run")], rows_by[(ROW_PU4O, f"UE {k}")],
+                                      rows_by[(ROW_A28U, f"UE {k}")]))
+    for k, m in enumerate(current):
+        if m.get("k") != k:
+            raise EvaluationError(f"s5n per-UE measurement {k} carries k {m.get('k')!r}")
+        m["harq_a21"] = groups[k]
+    pu4 = extract_pu4(s5n_rows)
+    d = {"schema": DIGEST_SCHEMA,
+         **{f: copy.deepcopy(s5n_digest[f]) for f in ("config", "kind", "option", "placement", "numUe", "harq16", "dl_factor")},
+         "correctness": {"verdict": {f: verdict[f] for f in VERDICT_KEYS}, "rows": copy.deepcopy(wrapper_rows),
+                         "s5n": {"verdict_line": s5n_verdict_line,
+                                 "gate_failures": copy.deepcopy(s5n_digest["correctness"]["gate_failures"]),
+                                 "per_ue_not_evaluated": copy.deepcopy(s5n_digest["correctness"]["per_ue_not_evaluated"]),
+                                 "rows": s5n_digest["correctness"]["rows"]},
+                         "a21": {"rows": [list(r) for r in a21_out["rows"]], "verdict_f1d_i": a21_out["verdict_f1d_i"],
+                                 "verdict_full": a21_out["verdict_full"], "coverage": [list(c) for c in a21_out["coverage"]]}},
+         "performance": {"per_ue": current, "across": copy.deepcopy(s5n_digest["performance"]["across"]),
+                         "across_harq_a21": across_harq_a21(groups), "totals": copy.deepcopy(s5n_digest["performance"]["totals"])},
+         "historical": {"a1": historical_a1(pu4, s5n_digest["performance"]["harq_attribution"], hist_harq)},
+         "diagnostics": {"agreement": copy.deepcopy(agreement_report)},
+         "mac_grammar_census": copy.deepcopy(s5n_digest["mac_grammar_census"]),
+         "inputs": copy.deepcopy(inputs)}
+    return d

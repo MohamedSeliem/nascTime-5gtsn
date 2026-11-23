@@ -3,7 +3,7 @@
 
     python3 -I -B check_m2s72_s5n21.py hrq         <runs> <cfg> <records dir> [--t0 <s>] [--expect <file>]
     python3 -I -B check_m2s72_s5n21.py hrq-fixture <fixture dir> <records dir> [--expect <file>]
-    python3 -I -B check_m2s72_s5n21.py run         <runs> <cfg> <records dir> [--t0 <s>]      (I-7: not implemented)
+    python3 -I -B check_m2s72_s5n21.py run         <runs> <cfg> <records dir> [--t0 <s>]
     python3 -I -B check_m2s72_s5n21.py controls    <runs> <cfg> <records dir> [--t0 <s>]      (I-8: not implemented)
 
 hrq          the H-ARQ rows of one run: ONE A-2.1 replay (F1-d(i) and full verdicts from the same rows), MAP-UE, C-0,
@@ -12,12 +12,21 @@ hrq          the H-ARQ rows of one run: ONE A-2.1 replay (F1-d(i) and full verdi
              diagnostic. s5n is not run and S5N_ADAPTER_VALIDATED is not read. Names: the E0v-N guard, plus
              M2S72-E0v-q0-f1 (V-N1) and M2S72-E0vN-q0-one0-n2-f1_A2V1 (V-V1). Inputs: <runs>/run-<cfg>.log.gz,
              <runs>/<cfg>/<cfg>/0.sca, the run's files for the node ids (Run72), $SIMU5G_ROOT (A2-0s).
+run          the E0v-N per-run evaluation: REFUSED unless S5N_ADAPTER_VALIDATED is non-empty (decision S5-2-D2; never
+             set here). The accepted check_m2s72_s5n.run_one() runs unchanged (its records under s5n/, byte for byte);
+             its PU-4 is reported verbatim and never gates; the s5n gates otherwise keep their exact semantics. One
+             A-2.1 replay gives MAP-UE, C-0, PU-4h, PU-4o, A2-8u, FGO and the current per-UE H-ARQ values. One run per
+             process. The records are written into <records dir>.incomplete and renamed to <records dir> only when
+             complete: <records dir> exists only for a completed evaluation.
 hrq-fixture  the same on the committed real-chain fixture (m2s72_a21_realchain.load_fixture: pinned sha256), t0 = 0,
              no .sca; SIMU5G_ROOT required. "fixture (prefix of the sealed A2-V1 run); not an E0v-N run; not an A2-V1
              acceptance".
 --t0 <s>     start of the evaluation window in seconds (default 2, as check_m2s72_a21.py)
 --expect     a declared expectation file (schema m2s72-s5n21-expect/1), compared after the evaluation
 
+run: s5n/<cfg>.check.txt, s5n/<cfg>.digest.json (the unchanged s5n records), a21-<cfg>.txt / .json,
+     <cfg>.s5n21.txt, <cfg>.s5n21.json, <cfg>.s5n21.digest.json (the composed digest) and SHA256SUMS.
+hrq / hrq-fixture:
 <records dir> must not exist (its parent must); it is created and receives, durably (fsync):
     a21-<cfg>.txt / .json     the A-2.1 record of the single replay, with both contract verdicts
     hrq-<cfg>.txt / .json     the composed H-ARQ record
@@ -76,11 +85,13 @@ def parse_args(argv):
             raise Usage(f"unknown option {a}")
         else:
             pos.append(a)
-    if mode in ("run", "controls"):
-        raise W.Refused(f"mode '{mode}' is not implemented in this increment (design revision 2.1, section 9: I-7 / I-8)")
-    if mode == "hrq":
+    if mode == "controls":
+        raise W.Refused(f"mode '{mode}' is not implemented in this increment (design revision 2.1, section 9: I-8)")
+    if mode in ("hrq", "run"):
         if len(pos) != 3:
-            raise Usage("hrq <runs> <cfg> <records dir>")
+            raise Usage(f"{mode} <runs> <cfg> <records dir>")
+        if mode == "run" and opts["expect"] is not None:
+            raise Usage("run has no --expect (expectations are compared by hrq)")
         args = {"mode": mode, "runs": pos[0], "cfg": pos[1], "recdir": pos[2]}
     else:
         if len(pos) != 2:
@@ -237,11 +248,11 @@ def code_identity():
 
 # -------------------------------------------------------------------------------------------- the evaluation ----
 def gather_hrq(args):
-    """the inputs of hrq: the accepted check_m2s72_a21.inputs(), the raw log for A-1 and the census, the .sca"""
+    """the inputs of hrq / run: the accepted check_m2s72_a21.inputs(), the raw log for A-1 and the census, the .sca"""
     import check_m2s72_a2 as C
     import check_m2s72_a21 as CC
     runs, cfg = args["runs"], args["cfg"]
-    W.guard(cfg, "hrq")
+    W.guard(cfg, "run" if args["mode"] == "run" else "hrq")
     log = os.path.join(runs, f"run-{cfg}.log.gz")
     if not os.path.isfile(log):
         raise W.Refused(f"no gNB MAC log {log}: nothing to replay")
@@ -252,7 +263,7 @@ def gather_hrq(args):
         n_name = int(cfg.split("-n")[-1].split("-")[0])
         if n_name != len(node_id):
             raise W.EvaluationError(f"{cfg}: numUe {len(node_id)} in the run, {n_name} in the name")
-    return {"mode": "hrq", "cfg": cfg, "label": f"hrq on {cfg}", "log": log, "lines21": lines21, "grants": grants,
+    return {"mode": args["mode"], "cfg": cfg, "label": f"{args['mode']} on {cfg}", "log": log, "lines21": lines21, "grants": grants,
             "node_id": dict(node_id), "sca": sca if sca and os.path.isfile(sca) else None, "root": root,
             "nproc": C._nproc(cfg), "t0": args["t0_ps"], "watch": [log] + ([sca] if sca and os.path.isfile(sca) else [])}
 
@@ -288,6 +299,7 @@ def evaluate(ctx):
     census = W.token_census(raw_lines(ctx["log"]))
     res, rows, per, cov, extra, window = W.A21.evaluate(ctx["lines21"], ctx["nproc"], ctx["t0"], node_id, ctx["grants"],
                                                         ctx["sca"], ctx["root"])
+    W.check_a21_rows(rows, extra)                                     # I-7: the complete accepted row set
     x7 = extra["xa"]                                                  # IG-3: passed through, never constructed
     v_f1di, v_full = W.A21.verdict(rows, "f1d-i")[0], W.A21.verdict(rows, "full")[0]
     if ctx["sca"]:
@@ -315,7 +327,9 @@ def evaluate(ctx):
     after = {p: sha256_file(p) for p in ctx["watch"]}
     if after != before:
         raise W.EvaluationError(f"an input changed during the evaluation: {sorted(p for p in before if before[p] != after[p])}")
-    return {"res": res, "rows": rows, "per": per, "cov": cov, "extra": extra, "window": window,
+    return {"res": res, "rows": rows, "per": per, "cov": cov, "extra": extra, "window": window, "wrapper": wrapper,
+            "fgo": f, "agreement": agree, "node_id": node_id, "census_sca": census_sca, "registry_sha256": view["sha256"],
+            "c0info": c0info, "census": census,
             "out": {
                 "schema": HRQ_SCHEMA, "mode": ctx["mode"], "config": ctx["cfg"], "label": ctx["label"],
                 "numUe": n, "nproc": ctx["nproc"], "t0_ps": ctx["t0"], "window_ps": list(window),
@@ -418,6 +432,145 @@ def dumps(x):
     return json.dumps(C._clean(x), indent=1, sort_keys=True, allow_nan=False) + "\n"
 
 
+# ------------------------------------------------------------------------------------------------------ run ------
+_RUN_STARTED = False          # one run per process: the accepted checkers accumulate rows in a module-global list
+
+
+def tree_fingerprint(path):
+    """(relative path, size, mtime_ns) of every file under a run directory: a change during the evaluation is
+    detected without hashing gigabytes of vectors twice"""
+    out = []
+    for dp, dn, fn in os.walk(path):
+        dn.sort()
+        for f in sorted(fn):
+            p = os.path.join(dp, f)
+            st = os.stat(p)
+            out.append((os.path.relpath(p, path), st.st_size, st.st_mtime_ns))
+    return out
+
+
+def import_s5n():
+    argv = sys.argv
+    sys.argv = [argv[0]]
+    try:
+        import check_m2s72_s5n as S5N         # accepted; unchanged
+    finally:
+        sys.argv = argv
+    return S5N
+
+
+def _run(args):
+    global _RUN_STARTED
+    d2 = os.environ.get("S5N_ADAPTER_VALIDATED")
+    if not d2 or not d2.strip():
+        raise W.Refused("S5N_ADAPTER_VALIDATED is not set: the per-UE adapter is not validated on real N > 1 output "
+                        "(decision S5-2-D2); E0v-N evaluation stays refused")
+    cfg, runs, recdir = args["cfg"], args["runs"], args["recdir"]
+    W.guard(cfg, "run")
+    if _RUN_STARTED:
+        raise W.Refused("one run per process: the accepted checkers accumulate their rows in a module-global list (L-11)")
+    staging = recdir.rstrip("/") + ".incomplete"
+    fresh_dir(recdir)
+    if os.path.lexists(staging):
+        raise W.Refused(f"{staging} exists: an interrupted earlier evaluation; its records are not a result (remove it)")
+    log, sca = os.path.join(runs, f"run-{cfg}.log.gz"), os.path.join(runs, cfg, cfg, "0.sca")
+    for p in (log, sca):
+        if not os.path.isfile(p):
+            raise W.Refused(f"required input {p} missing")
+    if not os.path.isdir(os.path.join(runs, cfg)):
+        raise W.Refused(f"run directory {os.path.join(runs, cfg)} missing")
+    _RUN_STARTED = True
+    tree0 = tree_fingerprint(os.path.join(runs, cfg))
+    hashes0 = {p: sha256_file(p) for p in (log, sca)}
+    S5N = import_s5n()
+    os.mkdir(staging)
+    s5dir = os.path.join(staging, "s5n")
+    start = len(S5N.rows)
+    rc5, dig5 = S5N.run_one(runs, cfg, s5dir)                            # the accepted checker, unchanged
+    if rc5 == 2 or dig5 is None:
+        raise W.Refused(f"the accepted s5n checker refused {cfg} (rc {rc5})")
+    s5n_rows = list(S5N.rows[start:])
+    chk_txt = open(os.path.join(s5dir, f"{cfg}.check.txt"), encoding="utf-8").read()
+    with open(os.path.join(s5dir, f"{cfg}.digest.json"), encoding="utf-8") as fh:
+        dig5_file = json.load(fh)
+    if dig5_file != json.loads(json.dumps(W_clean_s5v(S5N, dig5))):
+        raise W.EvaluationError("the s5n digest written differs from the one returned")
+    written, s5n_vline = W.parse_s5n_check(chk_txt)
+    n = dig5_file["numUe"]
+    W.check_s5n_rows(s5n_rows, n, written, dig5_file["correctness"]["rows"])
+    pu4 = W.extract_pu4(s5n_rows)                                       # exactly one, well formed; verbatim
+    ctx = gather_hrq(args)
+    if len(ctx["node_id"]) != n:
+        raise W.EvaluationError(f"numUe {n} (s5n) vs {len(ctx['node_id'])} node ids")
+    ev = evaluate(ctx)                                                  # ONE A-2.1 replay
+    out = ev["out"]
+    info, ne = W.s5n_info()
+    verdict = W.compose_verdict(n, ev["wrapper"], ev["fgo"], s5n_rows, info, ne)
+    inputs = {"log_sha256": hashes0[log], "sca_sha256": hashes0[sca], "registry_sha256": ev["registry_sha256"],
+              "code": code_identity(), "c0": {"census": ev["census"], "lengths": ev["c0info"]["lengths"],
+                                              "sha256_a1": ev["c0info"]["sha256_a1"], "sha256_a21": ev["c0info"]["sha256_a21"]},
+              "s5n_adapter_validated": d2}
+    digest = W.composed_digest(dig5_file, s5n_vline, s5n_rows, ev["wrapper"], verdict, out["a21"], ev["per"],
+                               set(W.A21.touched_nodes(ev["res"])), ev["node_id"], ev["agreement"], inputs)
+    probs = W.validate_digest(json.loads(dumps(digest)))
+    if probs:
+        raise W.EvaluationError(f"the composed digest fails its own schema: {probs[:5]}")
+    txt_view = dict(out, mode="run", verdict={k: verdict[k] for k in W.VERDICT_KEYS}, held=verdict["held"])
+    out = dict(out, mode="run", verdict={k: verdict[k] for k in W.VERDICT_KEYS}, held=verdict["held"],
+               historical={"label": W.HISTORICAL_A1_LABEL, "pu4": W.pu4_report_row(pu4),
+                           "a1_summary_s5n": dig5_file["performance"]["harq_attribution"],
+                           "a1_rule_on_the_same_log": {"pu4_row": out["historical"]["a1_pu4_row"],
+                                                       "summary": out["historical"]["a1_summary"]}},
+               s5n={"verdict_line": s5n_vline, "rc": rc5, "gate_failures": dig5_file["correctness"]["gate_failures"],
+                    "per_ue_not_evaluated": dig5_file["correctness"]["per_ue_not_evaluated"], "rows": [list(r) for r in s5n_rows]})
+    a21_txt, a21_js = a21_record(cfg, ev)
+    txt = run_text(txt_view, pu4, s5n_vline)
+    files = [(f"a21-{cfg}.txt", a21_txt), (f"a21-{cfg}.json", dumps(a21_js)), (f"{cfg}.s5n21.txt", txt),
+             (f"{cfg}.s5n21.json", dumps(out)), (f"{cfg}.s5n21.digest.json", dumps(digest))]
+    if tree_fingerprint(os.path.join(runs, cfg)) != tree0 or {p: sha256_file(p) for p in (log, sca)} != hashes0:
+        raise W.EvaluationError("an input changed during the evaluation")
+    publish(staging, recdir, files)
+    print(txt.rstrip())
+    return verdict["exit"]
+
+
+def W_clean_s5v(S5N, x):
+    return S5N.S5V.clean(x)
+
+
+def publish(staging, recdir, files):
+    """write the wrapper records into the staging directory, then SHA256SUMS of everything in it, fsync, and only
+    then rename it to <records dir> (atomic on one file system): an interrupted evaluation leaves <records dir>.incomplete,
+    never a <records dir> that could be read as a result"""
+    import m2s72s5_lib as LIB
+    paths = []
+    for name, content in files:
+        p = os.path.join(staging, name)
+        with open(p, "x", encoding="utf-8") as fh:
+            fh.write(content)
+        paths.append(p)
+    allf = sorted(os.path.relpath(os.path.join(dp, f), staging) for dp, _, fn in os.walk(staging) for f in fn)
+    sums = "".join(f"{sha256_file(os.path.join(staging, f))}  {f}\n" for f in allf)
+    with open(os.path.join(staging, "SHA256SUMS"), "x", encoding="utf-8") as fh:
+        fh.write(sums)
+    LIB.durable(paths + [os.path.join(staging, "SHA256SUMS")] + [os.path.join(staging, f) for f in allf])
+    if os.path.lexists(recdir):
+        raise W.Refused(f"records dir {recdir} appeared during the evaluation")
+    os.rename(staging, recdir)
+    LIB.durable([os.path.join(recdir, "SHA256SUMS")])
+
+
+def run_text(out, pu4, s5n_vline):
+    base = hrq_text(out)
+    i = base.index("\nA-1 rule")
+    j = base.index("\nA-1 / A-2.1 agreement")
+    rep = W.pu4_report_row(pu4)
+    hist = (f"\n{rep['label']}\n  {rep['status']:<15} | {rep['id']} | {rep['subject']} | {rep['detail']}\n"
+            f"s5n per-run verdict (unchanged, historical scoping): {s5n_vline}\n"
+            f"s5n gates carried (identical predicate, PU-4 removed): failures {out['verdict']['gate_failures']}, "
+            f"not evaluated {out['verdict']['gate_not_evaluated']}\n")
+    return base[:i] + hist + base[j:]
+
 # ------------------------------------------------------------------------------------------------------ main -----
 def _hrq(args):
     expect = load_expect(args["expect"], args["cfg"]) if args["expect"] else None
@@ -451,7 +604,7 @@ def _dispatch(argv):
     except Usage as ex:
         print(f"usage error: {ex}\n\n{__doc__}")
         return W.EXIT[W.V_REFUSED]
-    return _hrq(args)
+    return _run(args) if args["mode"] == "run" else _hrq(args)
 
 
 def main(argv):
