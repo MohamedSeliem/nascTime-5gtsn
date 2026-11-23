@@ -1,6 +1,6 @@
 # M2-B S-CFG interface, version 1 (`nasctime-scfg/1`)
 
-**Status: M2B-1, for independent review (step 144).** This is the B2 interface definition of the S-CFG seam (`travel-development-plan.md` §1) for the TSN AF offline compiler `simulations/m2/tools/tsnaf_compile.py` (B3).
+**Status: M2B-1, revised at step 145 (corrections C1 and C2), for independent review.** This is the B2 interface definition of the S-CFG seam (`travel-development-plan.md` §1) for the TSN AF offline compiler `simulations/m2/tools/tsnaf_compile.py` (B3).
 
 It translates a static TSN stream specification into the existing Simu5G 1.8.1 bearer configuration mechanism, the `BearerConfigurator` parameters. It is **not** a CNC protocol and does **not** configure a 5G core dynamically.
 
@@ -44,7 +44,19 @@ The chain is: stream → (classification rule) → QFI → (QoS flow declaration
 - PCP p: `expr(has(ieee8021qctag) && ieee8021qctag.pcp == p)`;
 - `gptp-event`: `expr(has(GptpSync) || has(GptpFollowUp))`.
 
-The VID is part of the stream identity and is validated, but S-CFG/1 does not classify on it (§6).
+### 3a. PCP / VID classification semantics (step 145, C2)
+
+**The VID is validated stream metadata, and it is not part of the generated classification predicate.** S-CFG/1 classifies tagged frames on the PCP only. This is exactly the accepted S7.2a filtering, and the 37 compatibility cases are unchanged.
+
+So a rule `PCP p → QFI q` applies to frames with PCP p **on every VLAN**, including VLANs that no stream declares. Streams on different VIDs that share a PCP in the same scope (DL: every UE; UL: one UE) can never be classified independently. The compiler makes this explicit rather than leaving it to interpretation:
+
+| Case | Result |
+|---|---|
+| Same PCP, different VIDs, **different** QFIs, same scope | **Refused** as a conflict. The error states that the VID is not part of the predicate, so the two VLANs cannot be mapped to different QoS flows. |
+| Same PCP, different VIDs, **same** QFI, same scope | **Valid**: one rule is emitted and the output is unchanged. A `note:` on standard error names the streams and their VIDs and states that every frame with that PCP, on any VLAN, is classified to that QFI. The notes are also returned by the library as `model["notes"]`. |
+| Same PCP and the same VID | No note |
+
+**No VID filter expression is generated.** VID-based classification is deferred (§6).
 
 ## 4. Deterministic ordering and serialisation
 
@@ -62,7 +74,15 @@ The output does not depend on the order of JSON object members, DRBs, QoS flows 
 
 ## 5. Validation and failure behaviour
 
-The whole specification is validated before anything is written, and **every** problem is reported, one `error:` line each, exit 1. Errors include:
+The whole specification is validated before anything is written, and **every** problem is reported, one `error:` line each, exit 1.
+
+**Type validation (step 145, C1).** Every value is type-checked at its schema boundary before it is used as a key, compared, matched against a pattern or sorted:
+- identifiers (stream `id`, `source`, `destination`, `class`, `direction`, DRB `profile`, endpoint `side`) must be strings;
+- numbers (PCP, VID, QFI, LCG, `drb_id`) must be integers, never booleans or floats;
+- containers must have their declared type;
+- an endpoint definition that is not an object with a valid `side` is excluded from the set that streams may reference.
+
+A schema-invalid value of any JSON type is therefore a reported error, never an unhandled exception. A systematic sweep of more than 6 000 wrong-type mutations of the four specifications is part of the test suite. Errors include:
 - **out-of-range values:** PCP, VID, QFI, LCG, DRB id, profile values;
 - **unknown references:** an unknown endpoint or UE index, a profile that is not defined, a QoS flow on an undefined or default DRB, a stream QFI with no QoS flow;
 - **invalid structure:** an invalid direction, a direction / endpoint-side mismatch, zero or several classifiers;
@@ -96,7 +116,7 @@ The whole specification is validated before anything is written, and **every** p
 
 | Item | Reason |
 |---|---|
-| VID-based classification | Not exercised by any accepted configuration; the INET filter field name would be unvalidated |
+| VID-based classification | Not exercised by any accepted configuration; the INET filter field name would be unvalidated. Until then, the §3a safeguards apply. |
 | Per-UE DRB templates, and DRBs that are both default and mapped | Not exercised |
 | Other `drbProfiles` fields and other RLC modes | Not exercised |
 | TAS gate lists, TSCAI, FRER / S-PATH member streams | M2B-3 and later; M3 |

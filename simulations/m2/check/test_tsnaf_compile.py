@@ -319,6 +319,181 @@ try:
 except TC.SpecError as ex:
     check("T-negative --ues 0", "--ues" in ex.problems[0])
 
+# ---------------------------------------------------------------- T-malformed (C1: wrong JSON types) --------------
+def put(path, val):
+    def f(x):
+        o = x
+        for k in path[:-1]:
+            o = o[k]
+        o[path[-1]] = val
+    return f
+
+
+MALFORMED = [
+    ("stream source as an array", put(["streams", 1, "source"], ["listener"])),
+    ("stream source as an object", put(["streams", 1, "source"], {"name": "listener"})),
+    ("stream destination as an array", put(["streams", 1, "destination"], ["talker"])),
+    ("stream destination as an object", put(["streams", 2, "destination"], {"a": 1})),
+    ("stream class as an array", put(["streams", 0, "class"], ["gptp-event"])),
+    ("stream class as an object", put(["streams", 0, "class"], {"gptp-event": True})),
+    ("QoS flow drb_id as an array", put(["qos_flows", 0, "drb_id"], [2])),
+    ("QoS flow drb_id as an object", put(["qos_flows", 1, "drb_id"], {"id": 4})),
+    ("QoS flow drb_id as a string", put(["qos_flows", 0, "drb_id"], "2")),
+    ("DRB profile reference as an array", put(["drbs", 0, "profile"], ["nasc-be"])),
+    ("DRB profile reference as an object", put(["drbs", 2, "profile"], {"name": "nasc-gptp"})),
+    ("DRB profile reference as a number", put(["drbs", 1, "profile"], 1)),
+    ("endpoint definition as a string", put(["endpoints", "listener"], "network")),
+    ("endpoint definition as a list", put(["endpoints", "talker"], ["ue"])),
+    ("endpoint definition as null", put(["endpoints", "talker"], None)),
+    ("endpoint side as a list", put(["endpoints", "listener", "side"], ["network"])),
+    ("endpoints as a list", put(["endpoints"], [{"listener": {"side": "network"}}])),
+    ("stream id as an array", put(["streams", 1, "id"], ["dl-pcp5"])),
+    ("stream id as an object", put(["streams", 1, "id"], {"id": "dl-pcp5"})),
+    ("stream id as a number", put(["streams", 1, "id"], 5)),
+    ("stream direction as an array", put(["streams", 1, "direction"], ["dl"])),
+    ("UE assignment as an object", put(["streams", 2, "ues"], {"0": True})),
+    ("UE assignment as a string other than all", put(["streams", 2, "ues"], "0")),
+    ("UE assignment with string elements", put(["streams", 2, "ues"], ["0"])),
+    ("UE assignment with nested lists", put(["streams", 2, "ues"], [[0]])),
+    ("UE assignment with booleans", put(["streams", 2, "ues"], [True])),
+    ("VID as an array", put(["streams", 1, "vid"], [42])),
+    ("VID as an object", put(["streams", 2, "vid"], {"vid": 42})),
+    ("PCP as a string", put(["streams", 1, "pcp"], "5")),
+    ("QFI as a float", put(["streams", 1, "qfi"], 5.0)),
+    ("stream entry as a string", put(["streams", 1], "dl-pcp5")),
+    ("DRB entry as a list", put(["drbs", 1], [2, 1, "UM"])),
+    ("QoS flow entry as null", put(["qos_flows", 0], None)),
+    ("drb_profiles as a list", put(["drb_profiles"], ["nasc-be"])),
+    ("profile entry as a string", put(["drb_profiles", "nasc-be"], "90/300")),
+    ("default flag as a string", put(["drbs", 0, "default"], "true")),
+    ("specification as a list", lambda x: None),            # replaced below
+]
+with tempfile.TemporaryDirectory() as d:
+    for i, (name, mut) in enumerate(MALFORMED):
+        x = spec("s72-qdu")
+        if name == "specification as a list":
+            x = [x]
+        else:
+            mut(x)
+        try:
+            TC.emit(TC.check(x, 2))
+            lib = "accepted"
+        except TC.SpecError:
+            lib = "SpecError"
+        except Exception as ex:                       # an unhandled type assumption
+            lib = f"{type(ex).__name__}: {ex}"
+        f = os.path.join(d, f"m{i}.json")
+        json.dump(x, open(f, "w"))
+        o = os.path.join(d, f"m{i}.ini")
+        r = subprocess.run([sys.executable, "-I", "-B", TOOL, "emit", f, "--ues", "2", "--out", o], capture_output=True, text=True)
+        r2 = subprocess.run([sys.executable, "-I", "-B", TOOL, "emit", f, "--ues", "2"], capture_output=True, text=True)
+        ok = (lib == "SpecError" and r.returncode == 1 and not os.path.exists(o) and r2.returncode == 1 and r2.stdout == ""
+              and "Traceback" not in r.stderr + r2.stderr and "error:" in r2.stderr)
+        check(f"T-malformed {name}: SpecError, exit 1, no stdout, no file, no traceback", ok,
+              f"library {lib}; cli rc {r.returncode}/{r2.returncode}; {(r.stderr + r2.stderr)[-160:]}")
+
+# ---------------------------------------------------------------- T-fuzz (C1: systematic type sweep) ------------------
+BADV = [[], {}, None, "x", "", 1, -1, 0, True, False, 1.5, ["talker"], {"a": 1}, [1, 2], ["all"], [[0]], {"side": "ue"},
+        "all", "dl", "talker", "gptp-event", 10 ** 30]
+
+
+def paths(o, p=()):
+    yield p
+    if isinstance(o, dict):
+        for k, v in o.items():
+            yield from paths(v, p + (k,))
+    elif isinstance(o, list):
+        for i, v in enumerate(o):
+            yield from paths(v, p + (i,))
+
+
+unhandled, n_mut = [], 0
+for name in ("s72-q0", "s72-qdu", "s72-q0p", "s72-qde"):
+    base = spec(name)
+    for pth in list(paths(base)):
+        for b in BADV:
+            for mode in ("replace", "add"):
+                x = copy.deepcopy(base)
+                if mode == "replace":
+                    if not pth:
+                        x = copy.deepcopy(b)
+                    else:
+                        put(list(pth), copy.deepcopy(b))(x)
+                else:
+                    t = x
+                    for k in pth:
+                        t = t[k]
+                    if isinstance(t, list):
+                        t.append(copy.deepcopy(b))
+                    elif isinstance(t, dict):
+                        t["bogus"] = copy.deepcopy(b)
+                    else:
+                        continue
+                n_mut += 1
+                for ues in (1, 2):
+                    try:
+                        TC.emit(TC.check(x, ues))
+                    except TC.SpecError:
+                        pass
+                    except Exception as ex:
+                        unhandled.append((name, pth, mode, repr(b)[:20], f"{type(ex).__name__}: {ex}"))
+for b in BADV:
+    try:
+        TC.check(spec("s72-q0"), b)
+    except TC.SpecError:
+        pass
+    except Exception as ex:
+        unhandled.append(("--ues", repr(b)[:20], f"{type(ex).__name__}: {ex}"))
+check(f"T-fuzz {n_mut} wrong-type mutations of the four specifications (each at N = 1 and 2): no unhandled exception",
+      not unhandled and n_mut > 5000, str(unhandled[:3]))
+
+# ---------------------------------------------------------------- T-vid (C2: VID is not a classifier) ----------------
+x = spec("s72-q0")
+m = TC.check(x, 2)
+check("T-vid the accepted specifications produce no VID note", all(not TC.check(spec(n_), 4)["notes"] for n_ in
+      ("s72-q0", "s72-qdu", "s72-q0p", "s72-qde")))
+x["streams"].append({"id": "dl-pcp5-vid43", "direction": "dl", "source": "listener", "destination": "talker",
+                     "ues": [1], "vid": 43, "pcp": 5, "qfi": 5})
+m2 = TC.check(x, 2)
+check("T-vid same PCP, different VIDs, same QFI (DL): valid, one rule, explicit note that the VID does not classify",
+      TC.emit(m2) == TC.emit(m) and len(m2["notes"]) == 1 and "VID is not part of the classification predicate" in m2["notes"][0]
+      and "VID 42" in m2["notes"][0] and "VID 43" in m2["notes"][0], str(m2["notes"]))
+x["streams"][-1]["qfi"] = 6
+x["qos_flows"].append({"qfi": 6, "drb_id": 2})
+try:
+    TC.check(x, 2)
+    check("T-vid same PCP, different VIDs, different QFIs (DL): refused, naming the VID semantics", False, "accepted")
+except TC.SpecError as ex:
+    check("T-vid same PCP, different VIDs, different QFIs (DL): refused, naming the VID semantics",
+          any("conflicting DL classification" in p_ and "VID 42 and VID 43" in p_ for p_ in ex.problems), str(ex.problems))
+y = spec("s72-q0")
+y["streams"].append({"id": "ul-pcp5-vid43", "direction": "ul", "source": "talker", "destination": "listener",
+                     "ues": [0], "vid": 43, "pcp": 5, "qfi": 5})
+my = TC.check(y, 2)
+check("T-vid same PCP, different VIDs, same QFI (UL, one UE): note scoped to that UE",
+      len(my["notes"]) == 1 and my["notes"][0].startswith("UL UE 0:"), str(my["notes"]))
+y["streams"][-1]["qfi"] = 6
+y["qos_flows"].append({"qfi": 6, "drb_id": 2})
+try:
+    TC.check(y, 2)
+    check("T-vid same PCP, different VIDs, different QFIs (UL, same UE): refused", False, "accepted")
+except TC.SpecError as ex:
+    check("T-vid same PCP, different VIDs, different QFIs (UL, same UE): refused",
+          any("conflicting UL classification for UE 0" in p_ and "VID" in p_ for p_ in ex.problems), str(ex.problems))
+z = spec("s72-q0")
+z["streams"].append({"id": "dl-pcp5-again", "direction": "dl", "source": "listener", "destination": "talker",
+                     "ues": [1], "vid": 42, "pcp": 5, "qfi": 5})
+check("T-vid same PCP and same VID: no note", not TC.check(z, 2)["notes"])
+with tempfile.TemporaryDirectory() as d:
+    f = os.path.join(d, "vid.json")
+    json.dump(m2 and {**spec("s72-q0"), "streams": spec("s72-q0")["streams"] + [
+        {"id": "dl-pcp5-vid43", "direction": "dl", "source": "listener", "destination": "talker", "ues": [1], "vid": 43,
+         "pcp": 5, "qfi": 5}]}, open(f, "w"))
+    r = subprocess.run([sys.executable, "-I", "-B", TOOL, "emit", f, "--ues", "2"], capture_output=True, text=True)
+    check("T-vid CLI: the note goes to stderr; stdout is the unchanged S-CFG",
+          r.returncode == 0 and r.stderr.startswith("note: DL:") and r.stdout == TC.compile_file(os.path.join(SCFG, "s72-q0.json"), 2),
+          r.stderr[:200])
+
 # ---------------------------------------------------------------- T-cli (no partial output) ------------------------
 def cli(*args, cwd=None):
     r = subprocess.run([sys.executable, "-I", "-B", TOOL, *args], capture_output=True, text=True, cwd=cwd)

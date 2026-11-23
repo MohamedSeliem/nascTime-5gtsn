@@ -1,6 +1,6 @@
 # M2B-1 — TSN AF compiler compatibility report
 
-**Status: for independent review (step 144).** The baseline is `m2/continuation` at `7bb0e3a7145602ae556239c8667362203d9294b5`, on branch `m2b/tsnaf-compiler`. The interface is `docs/migration/m2b-scfg-interface.md`.
+**Status: revised at step 145 (corrections C1 – C3), for independent review.** The baseline is `m2/continuation` at `7bb0e3a7145602ae556239c8667362203d9294b5`, on branch `m2b/tsnaf-compiler`. The interface is `docs/migration/m2b-scfg-interface.md`.
 
 **Level and scope:**
 - level 2 only;
@@ -70,7 +70,7 @@ Every N value that the generators produce is covered; no case is skipped. The N 
 
 ## 4. Tests (`simulations/m2/check/test_tsnaf_compile.py`)
 
-**Final line:** `TSN AF compiler tests: 102 / 102 PASS, 0 FAIL; 37 compatibility cases reproduced`, under `python3 -I -B`, from an unrelated directory.
+**Final line:** `TSN AF compiler tests: 147 / 147 PASS, 0 FAIL; 37 compatibility cases reproduced`, under `python3 -I -B`, from an unrelated directory, in about 7 s. At step 144 it was 102 / 102.
 
 | Group | Tests |
 |---|---|
@@ -80,6 +80,9 @@ Every N value that the generators produce is covered; no case is skipped. The N 
 | T-allowed | 4, none of them conflicts: the same PCP to different QFIs on different UEs (UL); different UL and DL mappings; a QFI reused by every UE; two streams with the same classifier and QFI giving one rule |
 | T-negative | 37 (§4a) |
 | T-cli | 9: stdout under `-I`; complete `--out`; an existing output refused and unchanged; invalid input gives exit 1, no file, no stdout; duplicate JSON key; malformed JSON; validate; no stray temporary file |
+| T-malformed (C1) | 37: each wrong-type case gives `SpecError`, CLI exit 1, empty stdout, no `--out` file and no traceback. Cases: stream `source` / `destination` / `class` / `id` / `direction` as arrays, objects or numbers; QoS-flow `drb_id` as an array, object or string; a DRB `profile` reference as an array, object or number; endpoint definitions as a string, list or null; an endpoint `side` as a list; `endpoints` as a list; `ues` as an object, a non-`all` string, or with string, nested-list or boolean elements; VID as an array or object; PCP as a string; QFI as a float; stream, DRB and QoS-flow entries of the wrong type; `drb_profiles` as a list; a profile as a string; `default` as a string; the specification as a list |
+| T-fuzz (C1) | 1: 6 204 replace / add mutations with 22 wrong-type values over every path of the four specifications, each at N = 1 and 2, plus `--ues` of every type: no unhandled exception |
+| T-vid (C2) | 7: no notes for the accepted specifications; same PCP / different VID / same QFI is valid, gives an identical output and a note (DL; UL scoped to the UE); different QFIs are refused with the VID statement (DL and UL); same VID gives no note; the CLI note goes to stderr with stdout unchanged |
 | T-isolation | 3: both accepted generators' `check` IDENTICAL; committed files unchanged |
 
 ### 4a. Negative controls
@@ -94,6 +97,8 @@ Every N value that the generators produce is covered; no case is skipped. The N 
 | Unsupported input fields | `tas_gate_lists` (top level); `max_latency` (stream); `pdcpDuplication` (DRB); `resourceType` (profile); RLC mode `TM`; unknown class `gptp-general` |
 | Duplicate identities | stream id; DRB id; QFI declaration; JSON key |
 | Invalid or incomplete configuration | wrong schema; missing `streams`; empty `drbs`; empty UE list; no or two default DRBs; a QoS flow on an undefined or default DRB; a stream QFI without a QoS flow; a PCP stream without a VID; both or no classifiers; `--ues 0`; malformed JSON |
+
+**Sensitivity of the C1 tests.** Run against the step-144 compiler (`cf13cc4`), 15 of the T-malformed cases and T-fuzz fail with unhandled `AttributeError` / `TypeError`, while 22 T-malformed cases already passed. The suite then stops at T-vid, because the original has no `notes`.
 
 ## 5. Existing suites on this branch (unmodified)
 
@@ -120,6 +125,6 @@ Every N value that the generators produce is covered; no case is skipped. The N 
    Integrating the compiler's output into `.ini` sections is a later increment.
 2. **The layout rule matches the generator on every existing configuration, not by construction.** The generator copies the source's line breaks, whereas the compiler applies a declared rule (§4 of the interface). A future source with a single-line multi-element template would differ in layout only, not in content.
 3. **The specifications are hand-written descriptions of the accepted designs.** They are validated by the byte-identical oracle. They do not describe the traffic applications (`numApps`, taggers, flow indices), which S-CFG/1 does not emit. PCP 0 traffic uses the default DRB and needs no stream.
-4. **The VID is validated but not classified on.** No accepted configuration classifies on it.
+4. **The VID is validated but not classified on** (interface §3a). Different QoS flows for the same PCP on different VLANs are refused, and a shared rule across VLANs is reported as a note.
 5. **The oracle's chain resolution is first-match over a depth-first `extends` order.** That equals OMNeT++'s C3 linearisation for these files: there is one N mixin and one base per configuration, and only those set bearer keys (tested). It is not a general OMNeT++ resolver.
-6. **Not in this increment:** TAS / Qbv, TSCAI, FRER, runtime observation, C++, simulator execution, CI-workflow integration of the new suite (a separate, reviewed CI change, as for I-9), per-UE DRB templates, and dynamic 5GC configuration.
+6. **Not in this increment:** TAS / Qbv, TSCAI, FRER, runtime observation, C++, simulator execution, per-UE DRB templates, and dynamic 5GC configuration. **CI (step 145, C3):** the suite is added to tier-0 as its 11th step, in a separate commit.
