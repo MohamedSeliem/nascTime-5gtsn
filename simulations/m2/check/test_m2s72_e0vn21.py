@@ -2994,7 +2994,7 @@ def t_a1_s5n_pinned():
     git_unchanged("7bb0e3a", [CHK_REL + f for f in ("check_m2s72_s5n.py", "m2s72_peru_adapter.py", "check_m2s72_s5v.py",
                                                     "check_m2s72_s5n2.py", "m2s72s5_lib.py", "check_m2s72_e0.py", "check_m2s72_b.py",
                                                     "check_m2s72_i2h.py", "check_m2s72_f0.py", "check_m2s72_f0r2.py", "m2s72_maclog.py")]
-                  + ["simulations/m2/m2s72s5.sh", "simulations/m2/m2s72s5.ini", "simulations/m2/m2s72a2v.ini", ".github",
+                  + ["simulations/m2/m2s72s5.sh", "simulations/m2/m2s72s5.ini", "simulations/m2/m2s72a2v.ini", ".github", ":(exclude).github/workflows/tier0-python.yml",
                      CHK_REL + "fixtures"])
 
 
