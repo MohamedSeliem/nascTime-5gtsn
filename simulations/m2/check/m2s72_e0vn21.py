@@ -14,6 +14,8 @@ Increment I-3 adds C-0 with R-0a .. R-0e (4.1), PU-4h (4.3) and PU-4o (4.6); the
 the unchanged A-2.1 rows.
 Increment I-4 adds the historical A-1 report (PU-4 verbatim, the A-1 summary and per-UE values under 'historical') and
 the non-gating A-1 / A-2.1 agreement diagnostic (4.10).
+Increment I-6 adds IG-2 (no A2-8u comparison without the duplicate census) and the record writers used by the
+hrq / hrq-fixture modes of check_m2s72_s5n21.py.
 Increment I-5 adds the first-genuine-occurrence evaluation against the committed registry (4.7), the s5n gate
 predicate minus the historical PU-4 (4.8, 4.9) and the composed verdict with the precedence
 REFUSED / EVALUATION ERROR > FAIL > INCOMPLETE > HELD FOR REVIEW > PASS (exits 2, 1, 4, 3, 0; D-A1-11).
@@ -743,8 +745,12 @@ def a28u_local(k, n_k, sc, sca_map, counts, touched, dups):
         return done(NOT_COMPARED, "4", "no feedback")
     if not isinstance(c, dict):
         c = {}                                       # malformed counts: V-3 reports them as DIFFERENT
-    dups = dups if isinstance(dups, dict) else {}
-    stats = {name: _stat(name, s[name] if name in s else _ABSENT, c, dups.get((mod, name), 0)) for name in A28_STATS}
+    if not isinstance(dups, dict):
+        # IG-2: without the duplicate census of the .sca, a statistic can never be compared (never a silent pass)
+        stats = {name: {"outcome": NOT_COMPARED, "step": "V-1", "reason": "duplicate census not performed (IG-2)",
+                        "rec": None, "val": None} for name in A28_STATS}
+    else:
+        stats = {name: _stat(name, s[name] if name in s else _ABSENT, c, dups.get((mod, name), 0)) for name in A28_STATS}
     detail = "; ".join(f"{name} {v['outcome']} ({v['step']}: {v['reason']})" for name, v in stats.items())
     if any(v["outcome"] == DIFFERENT for v in stats.values()):
         return done(DIFFERENT, "6", detail, stats)

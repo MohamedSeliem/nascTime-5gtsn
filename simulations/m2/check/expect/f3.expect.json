@@ -1,0 +1,81 @@
+{
+ "config": "f3-fixture",
+ "expect": {
+  "a21.rows.A2-0": "PASS",
+  "a21.rows.A2-0s": "PASS",
+  "a21.rows.A2-1": "PASS",
+  "a21.rows.A2-2": "PASS",
+  "a21.rows.A2-3": "PASS",
+  "a21.rows.A2-4a": "PASS",
+  "a21.rows.A2-4b": "PASS",
+  "a21.rows.A2-4c": "NOT EVALUATED",
+  "a21.rows.A2-5": "PASS",
+  "a21.rows.A2-6": "PASS",
+  "a21.rows.A2-7": "PASS",
+  "a21.rows.A2-8": "NOT EVALUATED",
+  "a21.rows.A2-9": "PASS",
+  "a21.verdict_f1d_i": "A-2.1 VALID",
+  "a21.verdict_full": "A-2.1 INCOMPLETE",
+  "a2_7.occupancy_equal": {
+   "2049": true,
+   "2050": true
+  },
+  "c0.lengths": [
+   195,
+   195
+  ],
+  "c0.status": "PASS",
+  "census.feedback": 96,
+  "census.insert": 99,
+  "coverage.NACK resolved by retransmission evidence (deferred)": 1,
+  "coverage.NACK resolved: bound handle": 2,
+  "coverage.NACK resolved: single candidate": 0,
+  "coverage.Simu5G per-UE statistics (A2-8)": 0,
+  "coverage.discard after maxHarqRtx + 1 transmissions": 0,
+  "coverage.end-of-run censoring: awaiting feedback": 6,
+  "coverage.end-of-run censoring: awaiting resolution (structural)": 0,
+  "coverage.end-of-run censoring: awaiting retransmission (structural)": 0,
+  "coverage.end-of-run censoring: inserted in the last TTI": 0,
+  "coverage.exchangeable ACK groups (2 candidates)": 5,
+  "coverage.exchangeable groups of 3 or more": 0,
+  "coverage.independent UE-side reference (A2-7)": 1,
+  "coverage.mixed ACK / NACK groups": 3,
+  "coverage.multi-NACK groups (handle relations kept ambiguous)": 0,
+  "coverage.per-UE occupancy confirmed by the independent reference": 2,
+  "coverage.retransmission node identity from the UE side (A2-4b)": 1,
+  "coverage.retransmissions": 3,
+  "coverage.single-candidate ACK attribution": 83,
+  "end_states": {
+   "censored: awaiting feedback": 6
+  },
+  "nodes": {
+   "0": 2049,
+   "1": 2050
+  },
+  "rows.A2-8u.UE 0": "NOT EVALUATED",
+  "rows.A2-8u.UE 0.local": "NOT COMPARED",
+  "rows.A2-8u.UE 1": "NOT EVALUATED",
+  "rows.A2-8u.UE 1.local": "NOT COMPARED",
+  "rows.C-0": "PASS",
+  "rows.MAP-UE": "PASS",
+  "rows.PU-4h": "PASS",
+  "rows.PU-4o.UE 0": "PASS",
+  "rows.PU-4o.UE 0.local": "EQUAL",
+  "rows.PU-4o.UE 1": "PASS",
+  "rows.PU-4o.UE 1.local": "EQUAL",
+  "touched_nodes": [],
+  "unresolved": [],
+  "verdict.exit": 4,
+  "verdict.gate_failures": [],
+  "verdict.gate_not_evaluated": [
+   "A2-8u"
+  ],
+  "verdict.held_features": [
+   "single-candidate ACK attribution",
+   "exchangeable ACK groups (2 candidates)"
+  ],
+  "verdict.status": "INCOMPLETE"
+ },
+ "note": "Declared before execution from design revision 2.1 (57a80ca) section 7.2, T-f3-hrq, and the read-only observations of section 1.6 (public fixture sha256 cfb05ff7...). The fixture is a prefix of the sealed A2-V1 run: not an E0v-N run, not an A2-V1 acceptance. A deviation is a finding (exit 5), never adjusted.",
+ "schema": "m2s72-s5n21-expect/1"
+}

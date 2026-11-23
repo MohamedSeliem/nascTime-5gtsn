@@ -3,7 +3,9 @@
 T-schema, T-imports-isolated. Increment I-2: T-map, T-a28-compat, NC-scalar-ue1, NC-scalar-missing-ue1.
 Increment I-3: T-c0, NC-c0, T-n2-same-tti, T-n2-a2v1-like, T-n4-independent, T-n4-overlap-nack, T-censor-*,
 T-unresolved, NC-no-ue-lines, NC-swap, NC-occ, T-pu4h. Increment I-4: T-agree, NC-pu4-relabel.
-Increment I-5: T-n3-groups, T-multinack, T-discard, NC-registry, T-a24c-review, T-verdict, T-s5n-semantics. The I-2 and I-3 tests that run the accepted A-2.1 need
+Increment I-5: T-n3-groups, T-multinack, T-discard, NC-registry, T-a24c-review, T-verdict, T-s5n-semantics.
+Increment I-6: T-f3-hrq, T-f3-a1, T-single-replay, T-a21-record-equiv, T-expect-exit, NC-cli-inputs; T-imports-isolated
+on the functional CLI. The I-2 and I-3 tests that run the accepted A-2.1 need
 SIMU5G_ROOT (the Simu5G 1.8.1 sources, for A2-0s), as test_m2s72_a21.py does; tier-0 provides it. No simulation; no raw output of any run; synthetic inputs and repository files only.
 The committed registry is only read; T-registry and main() check that its sha256 is unchanged.
 
@@ -1908,6 +1910,364 @@ def t_s5n_semantics():
               f"s5n semantics differ on {rows}")
 
 
+# ================================================================================================ I-6 ============
+import contextlib  # noqa: E402
+import io  # noqa: E402
+import check_m2s72_a21 as CC  # noqa: E402  (accepted; read-only: inputs(), a21())
+import check_m2s72_s5n21 as CLIM  # noqa: E402
+
+FIXDIR = os.path.join(HERE, "fixtures")
+F3_EXPECT = os.path.join(HERE, "expect", "f3.expect.json")
+SYN_CFG = "M2S72-E0vN-q0-one0-n2-f1"
+
+
+def cli(args, env_extra=None, drop=(), cwd=None):
+    """the CLI as a separate process under -I -B (what tier-0 and the executors run)"""
+    env = {k: v for k, v in os.environ.items() if not k.startswith("PYTHON") and k not in drop}
+    env.update(env_extra or {})
+    return subprocess.run([sys.executable, "-I", "-B", CLI_PATH] + args, cwd=cwd or tempfile.gettempdir(), env=env,
+                          capture_output=True, text=True, timeout=600)
+
+
+CLI_PATH = os.path.join(HERE, "check_m2s72_s5n21.py")
+
+
+def cli_inproc(args):
+    buf = io.StringIO()
+    with contextlib.redirect_stdout(buf):
+        rc = CLIM.main(["check_m2s72_s5n21.py"] + args)
+    return rc, buf.getvalue()
+
+
+def file_digests(paths):
+    return {p: hashlib.sha256(open(p, "rb").read()).hexdigest() for p in paths}
+
+
+def fixture_files():
+    return [os.path.join(FIXDIR, x) for x in ("a2v1-first-chain.log.gz", "a2v1-first-chain.log.gz.sha256",
+                                              "a2v1-first-chain.meta.json")]
+
+
+@contextlib.contextmanager
+def synthetic_runs(lines, node, truth, cfg=SYN_CFG, sca=True):
+    """a synthetic run tree in the layout hrq reads (<runs>/run-<cfg>.log.gz, <runs>/<cfg>/<cfg>/0.sca). The node ids
+    come from Run72 on a real run tree; here check_m2s72_a21.inputs() is replaced IN MEMORY, for the duration of the
+    block, by the same tuple built from the synthetic files (the accepted file is not changed)."""
+    d = tempfile.mkdtemp(prefix="e0vn21-runs-")
+    runs = os.path.join(d, "runs")
+    os.makedirs(os.path.join(runs, cfg, cfg))
+    log = os.path.join(runs, f"run-{cfg}.log.gz")
+    with gzip.open(log, "wt") as fh:
+        fh.writelines(lines)
+    scap = None
+    if sca:
+        scap = write_sca(os.path.join(runs, cfg, cfg), node, truth_sca_values(node, truth))
+    orig = CC.inputs
+
+    def fake(runs_, cfg_):
+        check(runs_ == runs and cfg_ == cfg, "inputs() called for another run")
+        return A21.load(log), TA.grants_of(lines), dict(node), os.path.join(runs, cfg, cfg, "0.sca"), simu5g_root()
+    CC.inputs = fake
+    try:
+        yield d, runs, log, scap
+    finally:
+        CC.inputs = orig
+        shutil.rmtree(d)
+
+
+def count_replays():
+    calls = []
+    orig = A21.replay
+
+    def counted(lines):
+        calls.append(1)
+        return orig(lines)
+    return calls, orig, counted
+
+
+# ---------------------------------------------------------------------------------------- T-f3-hrq / T-f3-a1 ----
+@named("T-f3-hrq")
+def t_f3_hrq():
+    root = simu5g_root()
+    before = file_digests(fixture_files() + [W.REGISTRY_PATH, F3_EXPECT])
+    d = tempfile.mkdtemp(prefix="e0vn21-f3-")
+    try:
+        r = cli(["hrq-fixture", FIXDIR, os.path.join(d, "a"), "--expect", F3_EXPECT], {"SIMU5G_ROOT": root})
+        check(r.returncode == 0 and "58 / 58 MATCH; ALL EXPECTATIONS MET" in r.stdout, f"rc {r.returncode}: {r.stdout[-600:]} {r.stderr[-600:]}")
+        r2 = cli(["hrq-fixture", FIXDIR, os.path.join(d, "b")], {"SIMU5G_ROOT": root})
+        check(r2.returncode == 4, f"without --expect: rc {r2.returncode} (INCOMPLETE expected)")
+        names = sorted(os.listdir(os.path.join(d, "a")))
+        check(names == ["a21-f3-fixture.json", "a21-f3-fixture.txt", "hrq-f3-fixture.expect.txt", "hrq-f3-fixture.json",
+                        "hrq-f3-fixture.txt"], f"records {names}")
+        check(sorted(os.listdir(os.path.join(d, "b"))) == [n for n in names if "expect" not in n], "records without --expect")
+        out = json.load(open(os.path.join(d, "b", "hrq-f3-fixture.json")))
+        check(out["label"] == CLIM.FIXTURE_LABEL and out["inputs"]["fixture"]["sha256"] == "cfb05ff78e63e056f512bdea9fdc568d555dba71ffd884675fc46f905bc6e65b"
+              and out["inputs"]["fixture"]["cfg"] == "M2S72-E0vN-q0-one0-n2-f1_A2V1", "fixture provenance recorded")
+        check(out["verdict"]["status"] == "INCOMPLETE" and out["verdict"]["exit"] == 4, f"{out['verdict']}")
+        check(all(W.validate_row(x) == [] for x in out["rows"]), "row schema")
+        # the A-2.1 rows are those of the accepted real-chain validation (R-1 .. R-10) on the same fixture
+        fx = RC.load_fixture(FIXDIR)
+        rc_out, ctx = RC.validate(fx, root)
+        check(all(s_ == "PASS" for _, s_, _ in rc_out), f"accepted real-chain expectations {[x for x in rc_out if x[1] != 'PASS']}")
+        check([list(x) for x in ctx["rows"]] == out["a21"]["rows"], "A-2.1 rows differ from m2s72_a21_realchain's")
+        # reproducible records: two evaluations give byte-identical files (the expectation table aside)
+        for n_ in ("a21-f3-fixture.json", "a21-f3-fixture.txt", "hrq-f3-fixture.json", "hrq-f3-fixture.txt"):
+            check(open(os.path.join(d, "a", n_), "rb").read() == open(os.path.join(d, "b", n_), "rb").read(), f"{n_} not reproducible")
+    finally:
+        shutil.rmtree(d)
+    check(file_digests(fixture_files() + [W.REGISTRY_PATH, F3_EXPECT]) == before, "an input, the registry or the expectation file changed")
+
+
+@named("T-f3-a1")
+def t_f3_a1():
+    root = simu5g_root()
+    d = tempfile.mkdtemp(prefix="e0vn21-f3a1-")
+    try:
+        r = cli(["hrq-fixture", FIXDIR, os.path.join(d, "a")], {"SIMU5G_ROOT": root})
+        check(r.returncode == 4, f"rc {r.returncode}")
+        out = json.load(open(os.path.join(d, "a", "hrq-f3-fixture.json")))
+    finally:
+        shutil.rmtree(d)
+    fx = RC.load_fixture(FIXDIR)
+    ev = PA.harq_events(fx["path"])
+    trace = []
+    _, summ = P.attribute_feedback(ev, fx["nproc"], window=tuple(out["window_ps"]), trace=trace)
+    pu4 = next(x for x in P.structural_rows([], [], summ, None) if x[0] == "PU-4")
+    check(out["historical"]["a1_summary"] == json.loads(json.dumps(W_clean(summ))), "the A-1 summary differs from the frozen rule's")
+    check(out["historical"]["a1_pu4_row"] == list(pu4), f"the A-1 PU-4 row differs: {out['historical']['a1_pu4_row']} vs {pu4}")
+    ag = out["diagnostics"]["agreement"]
+    check(ag["computed"] and ag["agree"] + ag["disagree"] + sum(ag["a1_attributed_without_a21_owner"].values()) == summ["a1a"] + summ["a1b"]
+          and sum(ag["a1_unattributed_by_a21_class"].values()) == summ["ambiguous"] + summ["orphan"], f"agreement vs A-1 {ag} {summ}")
+    check("not a gate" in out["historical"]["label"] and "PU-4" not in out["verdict"]["gate_failures"], "A-1 reported, never gating")
+
+
+def W_clean(x):
+    import check_m2s72_a2 as C
+    return C._clean(x)
+
+
+# ------------------------------------------------------------------------------------------- T-single-replay ----
+@named("T-single-replay")
+def t_single_replay():
+    lines, node, truth, T = nack_run(2, lambda tti: [0] + ([1] if tti % 3 == 0 else []), 1, 1)
+    calls, orig, counted = count_replays()
+    A21.replay = counted
+    try:
+        with synthetic_runs(lines, node, truth) as (d, runs, log, sca):
+            before = file_digests([log, sca])
+            rc, txt = cli_inproc(["hrq", runs, SYN_CFG, os.path.join(d, "rec"), "--t0", "1"])
+            check(len(calls) == 1, f"hrq replayed {len(calls)} times")
+            out = json.load(open(os.path.join(d, "rec", f"hrq-{SYN_CFG}.json")))
+            rows = [tuple(x) for x in out["a21"]["rows"]]
+            check(out["a21"]["verdict_f1d_i"] == A21.verdict(rows, "f1d-i")[0] and out["a21"]["verdict_full"] == A21.verdict(rows, "full")[0],
+                  "both contract verdicts from the same rows")
+            check(out["a21"]["verdict_f1d_i"] == "A-2.1 VALID" and out["a21"]["verdict_full"] == "A-2.1 INCOMPLETE", f"{out['a21']['verdict_f1d_i']}")
+            check(file_digests([log, sca]) == before, "hrq modified its inputs")
+            # IG-2: the .sca duplicate census ran before the comparisons; A2-8u PASS on truth statistics
+            check(out["inputs"]["sca_duplicate_census"] == {"performed": True, "duplicates": []}, f"{out['inputs']['sca_duplicate_census']}")
+            check([x["status"] for x in out["rows"] if x["id"] == "A2-8u"] == ["PASS", "PASS"], "A2-8u PASS with the census")
+            check(rc == out["verdict"]["exit"] == 3 and out["verdict"]["status"] == "HELD FOR REVIEW", f"rc {rc}, {out['verdict']}")
+            # IG-3: A2-7 / its occupancy comparison are exactly those of an independent run of the accepted evaluator
+            res, rows2, per, cov, extra, window = A21.evaluate(A21.load(log), 16, 1000 * MS, dict(node), TA.grants_of(lines), sca, simu5g_root())
+            check(out["a21"]["a2_7"] == json.loads(json.dumps(W_clean(extra["xa"]))), "A2-7 reference output not passed through verbatim")
+        # IG-2 on the CLI path: a duplicated scalar record in the .sca is found by the census and blocks that UE's A2-8u
+        calls.clear()
+        with synthetic_runs(lines, node, truth) as (d, runs, log, sca):
+            dup = [x for x in open(sca).read().splitlines(True) if f"{W.ue_module(1)} {ER}" in x]
+            open(sca, "a").writelines(dup)
+            rc, txt = cli_inproc(["hrq", runs, SYN_CFG, os.path.join(d, "rec"), "--t0", "1"])
+            out = json.load(open(os.path.join(d, "rec", f"hrq-{SYN_CFG}.json")))
+            a8 = {x["subject"]: x for x in out["rows"] if x["id"] == "A2-8u"}
+            check(out["inputs"]["sca_duplicate_census"]["duplicates"] == [f"{W.ue_module(1)} {ER}"], f"{out['inputs']['sca_duplicate_census']}")
+            check(a8["UE 1"]["status"] == "NOT EVALUATED" and "ambiguous: 2 records" in a8["UE 1"]["detail"] and a8["UE 0"]["status"] == "PASS",
+                  f"duplicate record: {a8}")
+            check(out["a21"]["run_level_a2_8"][2] == "PASS" and rc == 4, f"run-level A2-8 (frozen, last record) {out['a21']['run_level_a2_8'][2]}, rc {rc}")
+        calls.clear()
+        with tempfile.TemporaryDirectory() as d:
+            rc, _ = cli_inproc(["hrq-fixture", FIXDIR, os.path.join(d, "f")])
+            check(rc == 4 and len(calls) == 1, f"hrq-fixture: rc {rc}, replays {len(calls)}")
+    finally:
+        A21.replay = orig
+    # IG-2 in the library: without the duplicate census, a present statistic is never compared
+    locs = W.a28u_rows(2, {0: 2049, 1: 2050}, {W.ue_module(0): {ER: "0", TX: "1"}, W.ue_module(1): {ER: "0", TX: "1"}},
+                       {W.ue_module(0): 2049, W.ue_module(1): 2050}, mkres({2049: (["ACK"], [1]), 2050: (["ACK"], [1])}),
+                       None, "PASS", "PASS")
+    check([x["status"] for x in locs[0]] == ["NOT EVALUATED"] * 2 and all(s_["step"] == "V-1" for x in locs[1] for s_ in x["stats"].values()),
+          f"IG-2: {[x['status'] for x in locs[0]]}")
+    # IG-3 / IG-5 / IG-6 in the source: no constructed reference, no TEST ONLY view, the committed registry only
+    src = open(CLI_PATH).read()
+    check("test_only_view" not in src and "TEST ONLY" not in src and "TEST_ONLY" not in src, "the CLI can reach a TEST ONLY view")
+    check(src.count("W.load_registry(W.REGISTRY_PATH)") == 1 and "registry_view(W.load_registry(W.REGISTRY_PATH))" in src, "registry path")
+    check(not re.search(r"occupancy_equal\"?\]?\s*=|\[\"occupancy_equal\"\]\s*=", src), "the CLI assigns an occupancy comparison")
+    check(src.count("W.A21.evaluate(") == 1 and "A21.replay" not in src and "fgo(cov, rows, view)" in src, "one replay; coverage and rows of it")
+
+
+# ------------------------------------------------------------------------------------------ T-a21-record-equiv ---
+def sections(txt):
+    """the ROWS .. handles part of an A-2.1 record (between the header and the verdict line(s))"""
+    i = txt.index("ROWS\n")
+    j = txt.index("\nA-2.1 verdict")
+    return txt[i:j]
+
+
+@named("T-a21-record-equiv")
+def t_a21_record_equiv():
+    lines, node, truth, T = nack_run(2, lambda tti: [0] + ([1] if tti % 3 == 0 else []), 1, 1)
+    with synthetic_runs(lines, node, truth) as (d, runs, log, sca):
+        rc, _ = cli_inproc(["hrq", runs, SYN_CFG, os.path.join(d, "rec")])
+        mine_t = open(os.path.join(d, "rec", f"a21-{SYN_CFG}.txt")).read()
+        mine_j = json.load(open(os.path.join(d, "rec", f"a21-{SYN_CFG}.json")))
+        for contract in ("f1d-i", "full"):
+            with contextlib.redirect_stdout(io.StringIO()):
+                CC.a21(runs, SYN_CFG, os.path.join(d, f"acc-{contract}"), contract=contract)
+            acc_t = open(os.path.join(d, f"acc-{contract}", f"a21-{SYN_CFG}.txt")).read()
+            acc_j = json.load(open(os.path.join(d, f"acc-{contract}", f"a21-{SYN_CFG}.json")))
+            check(sections(mine_t) == sections(acc_t), f"{contract}: ROWS / COVERAGE / PER UE / handles sections differ")
+            check(f"A-2.1 verdict ({contract}): {acc_j['verdict']}" in mine_t and mine_j["verdicts"][contract] == acc_j["verdict"],
+                  f"{contract}: verdict {acc_j['verdict']} not in the wrapper record")
+            same = {k: v for k, v in acc_j.items() if k not in ("contract", "verdict")}
+            check({k: mine_j[k] for k in same} == same, f"{contract}: JSON fields differ: "
+                  f"{[k for k in same if mine_j.get(k) != same[k]]}")
+            check(acc_t.splitlines()[1:3] == mine_t.splitlines()[1:3], "the NOTE lines")
+
+
+# ------------------------------------------------------------------------------------------------ T-expect-exit --
+@named("T-expect-exit")
+def t_expect_exit():
+    root = simu5g_root()
+    base = json.load(open(F3_EXPECT))
+    d = tempfile.mkdtemp(prefix="e0vn21-exp-")
+    try:
+        def run(doc, name, raw=None):
+            p = os.path.join(d, f"{name}.json")
+            with open(p, "w") as fh:
+                fh.write(raw if raw is not None else json.dumps(doc))
+            r = cli(["hrq-fixture", FIXDIR, os.path.join(d, name), "--expect", p], {"SIMU5G_ROOT": root})
+            return r, os.path.join(d, name)
+        r, rec = run(base, "match")
+        check(r.returncode == 0, f"matching: rc {r.returncode}")
+        for key, val in (("census.insert", 98), ("verdict.status", "PASS"), ("coverage.retransmissions", 4),
+                         ("verdict.held_features", ["single-candidate ACK attribution"]), ("rows.PU-4o.UE 1.local", "DIFFERENT"),
+                         ("per_ue.2050.nack", 99)):
+            doc = copy.deepcopy(base)
+            doc["expect"][key] = val
+            r, rec = run(doc, f"mis-{key.replace(' ', '_').replace('/', '_')}")
+            t = open(os.path.join(rec, "hrq-f3-fixture.expect.txt")).read()
+            check(r.returncode == 5 and "EXPECTATION MISMATCH" in t and f"MISMATCH | {key} |" in t, f"mismatch {key}: rc {r.returncode}")
+            check(os.path.isfile(os.path.join(rec, "hrq-f3-fixture.json")), "the records are kept on a mismatch")
+        # held_features_if_exercised: a declared condition
+        doc = copy.deepcopy(base)
+        doc["expect"]["verdict.held_features"] = ["single-candidate ACK attribution"]
+        doc["expect"]["verdict.held_features_if_exercised"] = ["exchangeable ACK groups (2 candidates)", "multi-NACK groups (handle relations kept ambiguous)"]
+        r, rec = run(doc, "cond")
+        check(r.returncode == 0, f"conditional held features: rc {r.returncode}")
+        # malformed expectation files: exit 2, nothing evaluated or written
+        bad = {"json": None, "schema": dict(base, schema="m2s72-s5n21-expect/2"), "config": dict(base, config="M2S72-E0v-q0-f1"),
+               "unknown-key": dict(base, expect=dict(base["expect"], **{"verdict.colour": "green"})),
+               "empty": dict(base, expect={}), "extra-top": dict(base, extra=1), "no-expect": {"schema": base["schema"], "config": "f3-fixture"},
+               "cond-alone": dict(base, expect={"verdict.held_features_if_exercised": []}), "list": None}
+        for name, doc in bad.items():
+            raw = "{ not json" if name == "json" else ("[1]" if name == "list" else None)
+            r, rec = run(doc, f"bad-{name}", raw)
+            check(r.returncode == 2 and "expectation file" in r.stdout and not os.path.exists(rec), f"malformed {name}: rc {r.returncode}")
+        r = cli(["hrq-fixture", FIXDIR, os.path.join(d, "noexp"), "--expect", os.path.join(d, "missing.json")], {"SIMU5G_ROOT": root})
+        check(r.returncode == 2, "a missing expectation file")
+    finally:
+        shutil.rmtree(d)
+
+
+# ----------------------------------------------------------------------------------------------- NC-cli-inputs ---
+@named("NC-cli-inputs")
+def nc_cli_inputs():
+    root = simu5g_root()
+    d = tempfile.mkdtemp(prefix="e0vn21-cli-")
+    try:
+        rec = lambda n_: os.path.join(d, n_)
+        cases = [
+            ("no mode", [], {}),
+            ("unknown mode", ["evaluate", "x"], {}),
+            ("run not implemented", ["run", d, SYN_CFG, rec("r")], {}),
+            ("controls not implemented", ["controls", d, SYN_CFG, rec("c")], {}),
+            ("hrq: wrong arity", ["hrq", d, SYN_CFG], {}),
+            ("hrq: extra positional", ["hrq", d, SYN_CFG, rec("x"), "y"], {}),
+            ("hrq: name refused", ["hrq", d, "M2S72-E0vNL-q0-f1", rec("n1")], {}),
+            ("hrq: suffixed name refused", ["hrq", d, "M2S72-E0vN-q0-one0-n2-f1_X", rec("n2")], {}),
+            ("hrq: no log", ["hrq", d, SYN_CFG, rec("nolog")], {}),
+            ("hrq: --t0 not a number", ["hrq", d, SYN_CFG, rec("t0"), "--t0", "abc"], {}),
+            ("hrq: --t0 negative", ["hrq", d, SYN_CFG, rec("t0n"), "--t0", "-1"], {}),
+            ("hrq: --t0 twice", ["hrq", d, SYN_CFG, rec("t02"), "--t0", "1", "--t0", "2"], {}),
+            ("unknown option (e.g. a registry override)", ["hrq-fixture", FIXDIR, rec("reg"), "--registry", W.REGISTRY_PATH], {}),
+            ("hrq-fixture: --t0", ["hrq-fixture", FIXDIR, rec("ft0"), "--t0", "1"], {}),
+            ("hrq-fixture: no SIMU5G_ROOT", ["hrq-fixture", FIXDIR, rec("noroot")], {"env": {}, "drop": ("SIMU5G_ROOT",)}),
+            ("hrq-fixture: SIMU5G_ROOT not a directory", ["hrq-fixture", FIXDIR, rec("badroot")], {"env": {"SIMU5G_ROOT": os.path.join(d, "none")}}),
+            ("hrq-fixture: no fixture", ["hrq-fixture", os.path.join(d, "nofx"), rec("nofx-r")], {}),
+            ("records dir parent missing", ["hrq-fixture", FIXDIR, os.path.join(d, "no", "parent")], {}),
+        ]
+        for what, args, kw in cases:
+            r = cli(args, kw.get("env", {"SIMU5G_ROOT": root}), kw.get("drop", ()))
+            check(r.returncode == 2, f"{what}: rc {r.returncode}: {r.stdout[-300:]}")
+            check("Traceback" not in r.stderr, f"{what}: {r.stderr[-300:]}")
+        for a in ("r", "c", "n1", "n2", "nolog", "t0", "reg", "ft0", "noroot", "badroot", "nofx-r"):
+            check(not os.path.exists(rec(a)), f"records dir {a} created by a refused call")
+        # an existing records dir is never reused or touched
+        os.mkdir(rec("exists"))
+        open(os.path.join(rec("exists"), "keep.txt"), "w").write("mine")
+        r = cli(["hrq-fixture", FIXDIR, rec("exists")], {"SIMU5G_ROOT": root})
+        check(r.returncode == 2 and os.listdir(rec("exists")) == ["keep.txt"] and open(os.path.join(rec("exists"), "keep.txt")).read() == "mine",
+              f"records dir reuse: rc {r.returncode}")
+        check("REFUSED: records dir" in r.stdout and "never reused" in r.stdout and "WRAPPER ROWS" not in r.stdout,
+              f"an existing records dir is refused before any evaluation: {r.stdout[-300:]}")
+        # a corrupted fixture copy (pin / metadata mismatch) is refused before any evaluation
+        fx2 = os.path.join(d, "fx2")
+        shutil.copytree(FIXDIR, fx2)
+        meta = os.path.join(fx2, "a2v1-first-chain.meta.json")
+        m = json.load(open(meta))
+        m["fixture_sha256"] = "0" * 64
+        json.dump(m, open(meta, "w"))
+        r = cli(["hrq-fixture", fx2, rec("fx2r")], {"SIMU5G_ROOT": root})
+        check(r.returncode == 2 and "fixture refused" in r.stdout and not os.path.exists(rec("fx2r")), f"corrupted fixture: rc {r.returncode}")
+        # the registry is validated on the CLI path: a corrupted registry (in place of the committed one) is exit 2
+        bad_reg = os.path.join(d, "reg.json")
+        reg = json.load(open(W.REGISTRY_PATH))
+        _by(reg, "single-candidate ACK attribution")["admitted"] = True
+        json.dump(reg, open(bad_reg, "w"))
+        orig = W.REGISTRY_PATH
+        W.REGISTRY_PATH = bad_reg
+        try:
+            rc, txt = cli_inproc(["hrq-fixture", FIXDIR, rec("badreg")])
+        finally:
+            W.REGISTRY_PATH = orig
+        check(rc == 2 and "registry" in txt and not os.path.exists(rec("badreg")), f"invalid registry on the CLI path: rc {rc}")
+        # node ids unavailable -> REFUSED; a numUe that contradicts the name -> EVALUATION ERROR
+        lines, node, truth = G.make(2, 20, lambda tti: [0, 1], tail=40)
+        with synthetic_runs(lines, node, truth) as (d2, runs, log, sca):
+            o = CC.inputs
+            CC.inputs = lambda r_, c_: o(r_, c_)[:2] + (None,) + o(r_, c_)[3:]
+            rc, txt = cli_inproc(["hrq", runs, SYN_CFG, os.path.join(d2, "x")])
+            check(rc == 2 and "REFUSED" in txt, f"no node ids: rc {rc}")
+            CC.inputs = lambda r_, c_: o(r_, c_)[:2] + ({0: 2049},) + o(r_, c_)[3:]
+            rc, txt = cli_inproc(["hrq", runs, SYN_CFG, os.path.join(d2, "y")])
+            check(rc == 2 and "numUe" in txt, f"numUe contradicting the name: rc {rc}")
+            CC.inputs = o
+        # an input that changes during the evaluation is detected (simulated by a log rewritten by harq_events' reader)
+        lines, node, truth = G.make(2, 20, lambda tti: [0, 1], tail=40)
+        with synthetic_runs(lines, node, truth) as (d2, runs, log, sca):
+            orig_he = PA.harq_events
+
+            def tamper(path, *a, **k):
+                out = orig_he(path, *a, **k)
+                open(sca, "a").write("\n")
+                return out
+            PA.harq_events = tamper
+            try:
+                rc, txt = cli_inproc(["hrq", runs, SYN_CFG, os.path.join(d2, "z")])
+            finally:
+                PA.harq_events = orig_he
+            check(rc == 2 and "an input changed" in txt and not os.path.exists(os.path.join(d2, "z")), f"changed input: rc {rc}")
+    finally:
+        shutil.rmtree(d)
+
+
 # --------------------------------------------------------------------------------------- T-imports-isolated ----
 def _run(args, cwd):
     env = {k: v for k, v in os.environ.items() if not k.startswith("PYTHON")}
@@ -1930,7 +2290,7 @@ def test_imports_isolated():
             r = _run(["-I", "-B"] + args, d)
             check(r.returncode == 2 and "Traceback" not in r.stderr and "Error" not in r.stderr,
                   f"CLI {args[1:]}: rc {r.returncode}, stderr {r.stderr[-400:]}")
-            check("check_m2s72_s5n21.py run" in r.stdout or "not implemented in increment I-1" in r.stdout, f"CLI output {r.stdout[:200]}")
+            check("check_m2s72_s5n21.py hrq" in r.stdout or "not implemented in this increment" in r.stdout, f"CLI output {r.stdout[:200]}")
         # the library, executed by path (its own preamble must make m2s72_a21 and the frozen modules importable)
         r = _run(["-I", "-B", "-c", f"import runpy; g = runpy.run_path({LIB!r}); print(len(g['coverage_names']()))"], d)
         check(r.returncode == 0 and r.stdout.strip() == "18", f"library under -I: rc {r.returncode}, {r.stderr[-400:]}")
