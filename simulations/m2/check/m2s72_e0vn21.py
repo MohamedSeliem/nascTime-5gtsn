@@ -10,8 +10,9 @@ This file holds increment I-1 only:
   - isolated import handling: this directory is put on sys.path before any local import, so the module imports
     under `python3 -I` (which does not add the script directory to sys.path).
 Increment I-2 adds MAP-UE (4.4) and A2-8u with its compatibility relation CR-1 .. CR-4 (4.5).
-C-0, PU-4h, PU-4o, the FGO flag, the verdict composition and the CLI modes are later increments (I-3 .. I-8) and are
-deliberately absent.
+Increment I-3 adds C-0 with R-0a .. R-0e (4.1), PU-4h (4.3) and PU-4o (4.6); the censoring classes of 4.2 act through
+the unchanged A-2.1 rows. The A-1 report, the FGO flag, the verdict composition and the CLI modes are later increments
+(I-4 .. I-8) and are deliberately absent.
 
 Pure functions. Never writes a file. Reads only the registry and the result records the registry cites. The frozen
 and accepted modules are imported read-only and are never modified.
@@ -28,6 +29,7 @@ if HERE not in sys.path:
     sys.path.insert(0, HERE)
 import m2s72_a21 as A21  # noqa: E402  (accepted, d920125; read-only)
 import m2s72_a2probe as PR  # noqa: E402  (frozen, fbee202; read-only: NET, R_UE_MOD, HARQ_SCALARS)
+import m2s72_peru_adapter as PA  # noqa: E402  (accepted S5-2 tooling; read-only: harq_events' gNB module)
 
 REPO = os.path.normpath(os.path.join(HERE, "..", "..", ".."))
 REGISTRY_PATH = os.path.join(HERE, "m2s72_fgo_registry.json")
@@ -789,3 +791,204 @@ def cr_violations(r_status, locals_, node_ids, touched):
     if L and all(x == EQUAL for x in L) and r_status != PASS:
         out.append(f"CR-4: every L EQUAL but R {r_status}")
     return out
+
+
+# ================================================================================================ I-3 ============
+# ------------------------------------------------------------------------------------------ C-0 (design 4.1) -----
+GNB_MODULE = PR.GNB                       # "M2S72Bridge.gnb1.cellularNic.mac"
+TOKEN_INS = "H-ARQ TX: new pdu"
+TOKEN_FB = "H-ARQ TX: feedback received"
+RESULTS = ("ACK", "NACK")
+
+
+def a1_gnb_module():
+    """the gNB module A-1's harq_events() reads (its default argument): T-c0-module asserts it equals GNB_MODULE"""
+    import inspect
+    return inspect.signature(PA.harq_events).parameters["gnb"].default
+
+
+def token_census(lines):
+    """R-0e: regex-free counts of the raw log lines whose module is exactly the gNB MAC and whose message contains the
+    insert / feedback token. No timestamp filter and no pattern: a malformed line is still counted. Pure (the caller
+    reads the raw log). lines: the raw text lines of run-<cfg>.log.gz."""
+    ins = fb = 0
+    for line in lines:
+        if not isinstance(line, str):
+            continue
+        p = line.split("|", 2)
+        if len(p) < 3 or p[1] != GNB_MODULE:
+            continue
+        ins += TOKEN_INS in p[2]
+        fb += TOKEN_FB in p[2]
+    return {"insert": ins, "feedback": fb}
+
+
+def _canon_ok(e):
+    """R-0d: one canonical event: ('ins', t, node, p, cw) or ('fb', t, p, cw, result), integers (bool excluded)"""
+    if not isinstance(e, tuple) or len(e) != 5 or e[0] not in ("ins", "fb"):
+        return False
+    if e[0] == "ins":
+        return all(_is_int(v) for v in e[1:])
+    return all(_is_int(v) for v in e[1:4]) and isinstance(e[4], str) and e[4] in RESULTS
+
+
+def c0_a1_sequence(events):
+    """the A-1 canonical sequence: harq_events() output as produced, in log order. Returns (sequence, problems)."""
+    if not isinstance(events, list):
+        return None, [f"A-1 event extraction missing or malformed ({type(events).__name__}): never an empty set (IG-1)"]
+    seq = [tuple(e) if isinstance(e, (tuple, list)) else e for e in events]
+    bad = [i for i, e in enumerate(seq) if not _canon_ok(e)]
+    return seq, ([f"R-0d: A-1 events malformed at {bad[:5]}"] if bad else [])
+
+
+def c0_a21_sequence(res):
+    """the A-2.1 canonical sequence, reconstructed from res["pdus"] and res["fb"] merged by the log line index, with the
+    preconditions R-0a .. R-0d. Never deduplicates, repairs, filters or re-sorts by anything but the line index.
+    Returns (sequence or None, problems). Reads only."""
+    probs = []
+    if not isinstance(res, dict) or not isinstance(res.get("pdus"), dict) or not isinstance(res.get("fb"), list) \
+            or not isinstance(res.get("counts"), dict):
+        return None, ["A-2.1 replay result missing or malformed: never an empty set (IG-1)"]
+    units, fb = list(res["pdus"].values()), res["fb"]
+    if not all(isinstance(u, dict) for u in units) or not all(isinstance(x, dict) for x in fb):
+        return None, ["R-0d: A-2.1 units or feedback lines are not objects"]
+    n_ins = res["counts"].get("insert lines", 0)
+    if not _is_int(n_ins) or len(units) != n_ins:
+        probs.append(f"R-0a: {len(units)} PDU lifecycles vs {n_ins!r} insert lines (an insert lost by reconstruction, "
+                     f"e.g. a repeated PDU id)")
+    igi = [u.get("ins_gi") for u in units]
+    fgi = [x.get("gi") for x in fb]
+    if len(set(map(repr, igi))) != len(igi) or len(set(map(repr, fgi))) != len(fgi) or set(map(repr, igi)) & set(map(repr, fgi)):
+        probs.append("R-0b: two events claim one log line (insert and feedback line indices not pairwise distinct)")
+    if [x.get("j") for x in fb] != list(range(len(fb))):
+        probs.append("R-0c: feedback entries not indexed 0 .. n-1 in order (repeated, dropped or reordered)")
+    if not all(_is_int(g) for g in fgi) or any(b <= a for a, b in zip(fgi, fgi[1:])):
+        probs.append("R-0c: feedback line indices not strictly increasing integers")
+    ev = [(u.get("ins_gi"), ("ins", u.get("t_ins"), u.get("node"), u.get("p"), u.get("cw"))) for u in units]
+    ev += [(x.get("gi"), ("fb", x.get("t"), x.get("p"), x.get("cw"), x.get("res"))) for x in fb]
+    if not all(_is_int(g) for g, _ in ev):
+        return None, probs + ["R-0d: a line index is not an integer"]
+    bad = [e for _, e in ev if not _canon_ok(e)]
+    if bad:
+        probs.append(f"R-0d: malformed reconstructed events {bad[:3]}")
+    return [e for _, e in sorted(ev, key=lambda ge: ge[0])], probs
+
+
+def _digest(seq):
+    return hashlib.sha256(json.dumps([list(e) for e in seq] if seq is not None else None,
+                                     separators=(",", ":")).encode()).hexdigest()
+
+
+def c0_row(a1_events, res, census):
+    """C-0 (design 4.1): PASS iff R-0a .. R-0e hold and the A-1 and A-2.1 canonical sequences are equal element by
+    element. Missing or malformed extraction is FAIL, never an empty evidence set (IG-1). Returns (row, info). Reads only."""
+    a1, p1 = c0_a1_sequence(a1_events)
+    a2, p2 = c0_a21_sequence(res)
+    probs = p1 + p2
+    if not (isinstance(census, dict) and _is_int(census.get("insert")) and _is_int(census.get("feedback"))):
+        probs.append(f"R-0e: token census missing or malformed ({_show(census)}): never an empty set (IG-1)")
+        census = None
+    cnt = lambda seq, k: None if seq is None else sum(1 for e in seq if isinstance(e, tuple) and e[:1] == (k,))
+    counts = {"a1": {"insert": cnt(a1, "ins"), "feedback": cnt(a1, "fb")},
+              "a21": {"insert": cnt(a2, "ins"), "feedback": cnt(a2, "fb")}, "census": census}
+    if census is not None:
+        for k in ("insert", "feedback"):
+            if not (census[k] == counts["a1"][k] == counts["a21"][k]):
+                probs.append(f"R-0e: {k} token census {census[k]} vs A-1 {counts['a1'][k]} vs A-2.1 {counts['a21'][k]} "
+                             f"(a malformed or skipped {k} line)")
+    if a1 is not None and a2 is not None:
+        if not a1 and not a2:
+            probs.append("no gNB H-ARQ event in either sequence: nothing to compare (never an empty PASS, IG-1)")
+        elif a1 != a2:
+            i = next((i for i, (x, y) in enumerate(zip(a1, a2)) if x != y), min(len(a1), len(a2)))
+            probs.append(f"parser divergence at event {i}: A-1 {a1[i] if i < len(a1) else '<end>'}, "
+                         f"A-2.1 {a2[i] if i < len(a2) else '<end>'} (lengths {len(a1)} / {len(a2)})")
+    info = {"sha256_a1": _digest(a1), "sha256_a21": _digest(a2), "lengths": [None if a1 is None else len(a1),
+            None if a2 is None else len(a2)], "counts": counts, "problems": probs}
+    detail = (f"sequences equal: {len(a1)} events ({counts['a1']['insert']} inserts, {counts['a1']['feedback']} feedback); "
+              f"census {census}; sha256 {info['sha256_a1'][:16]}" if not probs else "; ".join(probs)
+              + f"; sha256 A-1 {info['sha256_a1'][:16]}, A-2.1 {info['sha256_a21'][:16]}")
+    return {"id": ROW_C0, "subject": "run", "status": FAIL if probs else PASS, "detail": detail}, info
+
+
+# ------------------------------------------------------------------------------------------ PU-4h (design 4.3) ---
+def pu4h_row(map_row, c0, rows, res=None):
+    """PU-4h (design 4.3): MAP-UE, C-0 and the unchanged A-2.1 F1-d(i) verdict, derived from the SAME rows as the
+    reported full-contract verdict (one replay). Returns (row, {"verdict_f1d_i", "verdict_full"}). Reads only."""
+    vf, _ = A21.verdict(rows, "f1d-i")
+    vfull, _ = A21.verdict(rows, "full")
+    st = {r[0]: r[2] for r in rows}
+    if map_row.get("status") != PASS:
+        status, why = FAIL, f"UE-to-node mapping invalid (MAP-UE {map_row.get('status')})"
+    elif c0.get("status") != PASS:
+        status, why = FAIL, f"parser divergence (C-0 {c0.get('status')}): {str(c0.get('detail'))[:300]}"
+    elif vf == f"{A21.VERSION} NOT VALID":
+        status, why = FAIL, f"F1-d(i) NOT VALID: failing rows {sorted(k for k, v in st.items() if v == FAIL)}"
+    elif vf == f"{A21.VERSION} INCOMPLETE":
+        miss = sorted(k for k in A21.REQUIRED["f1d-i"] if st.get(k) not in (PASS, NX))
+        touched = sorted(A21.touched_nodes(res)) if isinstance(res, dict) and "groups" in res else None
+        status, why = NE, f"F1-d(i) INCOMPLETE: required rows not PASS {miss}" + (
+            f"; A2-7 not evaluated for the touched nodes {touched}" if touched and "A2-7" in miss else "")
+    elif vf == f"{A21.VERSION} VALID":
+        status, why = PASS, "F1-d(i) VALID; MAP-UE PASS; C-0 PASS"
+    else:
+        raise EvaluationError(f"PU-4h: unknown A-2.1 verdict {vf!r}")
+    extra = ""
+    if isinstance(res, dict) and isinstance(res.get("fb"), list):
+        from collections import Counter
+        cls = Counter(x.get("cls") for x in res["fb"] if isinstance(x, dict))
+        extra = (f"; line classes {dict(sorted(cls.items(), key=lambda kv: str(kv[0])))}; d*_tx {res.get('d_star')}; "
+                 f"end states {res.get('end_states')}; handles {len(res.get('handles') or {})}")
+    detail = f"{why}{extra}; full contract (reported; scheduler logging absent in E0v-N configurations): {vfull}"
+    return {"id": ROW_PU4H, "subject": "run", "status": status, "detail": detail}, {"verdict_f1d_i": vf, "verdict_full": vfull}
+
+
+# ------------------------------------------------------------------------------------------ PU-4o (design 4.6) ---
+def occupancy_valid(o):
+    """a valid A-2.1 occupancy: a non-empty object without an 'error' key (m2s72_peru.occupancy_log_order output)"""
+    return isinstance(o, dict) and bool(o) and "error" not in o
+
+
+def pu4o_local(k, n_k, per, x7):
+    """the local comparison of UE k (design 4.6 steps 1 .. 7). Returns {local, step, detail}. Reads only."""
+    def done(local, step, detail):
+        return {"local": local, "step": step, "detail": f"ue[{k}] node {n_k}: {detail}"}
+    if x7 is None:
+        return done(NOT_COMPARED, "1", "no valid independent reference (A2-7 without x7)")
+    if not (isinstance(x7, dict) and isinstance(x7.get("occupancy_equal"), dict) and isinstance(x7.get("skipped"), (list, tuple))):
+        return done(DIFFERENT, "1", f"independent reference output malformed: {_show(x7)}")
+    if not isinstance(per, dict) or n_k not in per:
+        return done(NOT_COMPARED, "2", "no A-2.1 occupancy (no DL PDU for this UE; unexpected)")
+    o = per[n_k].get("occupancy") if isinstance(per[n_k], dict) else None
+    if not occupancy_valid(o):
+        return done(DIFFERENT, "3", f"A-2.1 occupancy invalid: {_show(o)}")
+    if n_k in x7["skipped"]:
+        return done(NOT_COMPARED, "4", "uncertain attribution: censored or pending group")
+    if n_k not in x7["occupancy_equal"]:
+        return done(DIFFERENT, "5", "no comparison entry for an unskipped node (inconsistent evidence; never a pass)")
+    if x7["occupancy_equal"][n_k] is True:
+        return done(EQUAL, "6", "A-2.1 occupancy equals the independent UE-side reference")
+    return done(DIFFERENT, "7", f"occupancy differs from the reference (occupancy_equal {_show(x7['occupancy_equal'][n_k])})")
+
+
+def pu4o_row(k, local, map_status, pu4h_status, a27_status):
+    """the row status of PU-4o UE k (design 4.6) over the local outcome"""
+    loc = local["local"]
+    if map_status == FAIL or pu4h_status == FAIL:
+        st, why = FAIL, f"global: MAP-UE {map_status}, PU-4h {pu4h_status}"
+    elif loc == DIFFERENT:
+        st, why = FAIL, "local DIFFERENT"
+    elif loc == NOT_COMPARED:
+        st, why = NE, "local NOT COMPARED"
+    elif map_status == PASS and pu4h_status == PASS and a27_status == PASS:
+        st, why = PASS, "local EQUAL, A2-7 PASS, PU-4h PASS"
+    else:
+        st, why = NE, f"global: local EQUAL but A2-7 {a27_status}, PU-4h {pu4h_status}, MAP-UE {map_status}"
+    return {"id": ROW_PU4O, "subject": f"UE {k}", "status": st, "local": loc, "detail": f"{why}; {local['detail']}"}
+
+
+def pu4o_rows(n, node_id, per, x7, rows, map_status, pu4h_status):
+    """PU-4o for every expected UE 0 .. n-1: (rows, locals). A2-7's status is read from the unchanged A-2.1 rows."""
+    a27 = {r[0]: r[2] for r in rows}.get("A2-7")
+    locs = [pu4o_local(k, node_id.get(k) if isinstance(node_id, dict) else None, per, x7) for k in range(n)]
+    return [pu4o_row(k, locs[k], map_status, pu4h_status, a27) for k in range(n)], locs

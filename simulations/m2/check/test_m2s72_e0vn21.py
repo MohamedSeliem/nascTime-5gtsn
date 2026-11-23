@@ -1,6 +1,9 @@
 #!/usr/bin/env python3
 """Tests of the WP-A1 wrapper (design revision 2.1, 57a80ca, section 7). Increment I-1: T-name-guard, T-registry,
-T-schema, T-imports-isolated. Increment I-2: T-map, T-a28-compat, NC-scalar-ue1, NC-scalar-missing-ue1. No simulation; no raw output of any run; synthetic inputs and repository files only.
+T-schema, T-imports-isolated. Increment I-2: T-map, T-a28-compat, NC-scalar-ue1, NC-scalar-missing-ue1.
+Increment I-3: T-c0, NC-c0, T-n2-same-tti, T-n2-a2v1-like, T-n4-independent, T-n4-overlap-nack, T-censor-*,
+T-unresolved, NC-no-ue-lines, NC-swap, NC-occ, T-pu4h. The I-2 and I-3 tests that run the accepted A-2.1 need
+SIMU5G_ROOT (the Simu5G 1.8.1 sources, for A2-0s), as test_m2s72_a21.py does; tier-0 provides it. No simulation; no raw output of any run; synthetic inputs and repository files only.
 The committed registry is only read; T-registry and main() check that its sha256 is unchanged.
 
     python3 -I -B test_m2s72_e0vn21.py [<test name prefix> ...]
@@ -954,12 +957,12 @@ def run_genuine_like(d, vals, node, lines, name):
     res, rows, per, cov, extra, window = A21.evaluate(lines, 16, 0, node, None, sca, None)
     r = {x[0]: x for x in rows}["A2-8"]
     raw = open(sca).read().splitlines(True)
-    before = (copy.deepcopy(res), copy.deepcopy(rows), hashlib.sha256(open(sca, "rb").read()).hexdigest())
+    before = (fingerprint((res, rows)), hashlib.sha256(open(sca, "rb").read()).hexdigest())
     smap = A2.sca_nodes(sca)
     mrow = W.map_ue(2, dict(node), smap, W.evidence_nodes(res, per, extra["xa"]))
     pu4h = "FAIL" if A21.verdict(rows, "f1d-i")[1] == 1 else "PASS"     # stand-in for I-3: NOT VALID -> PU-4h FAIL
     rws, locs = W.a28u_rows(2, dict(node), PR.scalars(sca), smap, res, W.scalar_record_counts(raw), mrow["status"], pu4h)
-    check(before == (res, rows, hashlib.sha256(open(sca, "rb").read()).hexdigest()),
+    check(before == (fingerprint((res, rows)), hashlib.sha256(open(sca, "rb").read()).hexdigest()),
           "the wrapper modified the frozen evaluator results or the .sca")
     check(not W.cr_violations(r[2], locs, list(node.values()), A21.touched_nodes(res)), "CR on the genuine-like run")
     return r, mrow, rws, locs, pu4h
@@ -997,6 +1000,443 @@ def nc_scalar_missing_ue1():
         check(ST(rws) == ["PASS", "NOT EVALUATED"], f"A2-8u rows {ST(rws)}: the run-level PASS is never per-UE coverage")
     finally:
         shutil.rmtree(d)
+
+
+# ================================================================================================ I-3 ============
+import gzip  # noqa: E402
+import m2s72_peru as P  # noqa: E402  (frozen; read-only: A-1 attribute_feedback, to show the A-1 ambiguity of a case)
+import m2s72_peru_adapter as PA  # noqa: E402  (accepted; read-only: harq_events)
+import m2s72_a21_realchain as RC  # noqa: E402  (accepted; read-only: load_fixture)
+import test_m2s72_a2 as TA  # noqa: E402  (frozen test helpers: root(), grants_of())
+
+MS = G.MS
+
+
+def tms(line):
+    return float(line.split("|")[0]) * 1000
+
+
+def simu5g_root():
+    r = TA.root()
+    check(r is not None, "SIMU5G_ROOT must name the Simu5G 1.8.1 sources (A2-0s); tier-0 provides it")
+    return r
+
+
+def pipe(lines, node, nproc=16, t0=1000 * MS):
+    """the I-3 composition on one synthetic run, as the wrapper will wire it (I-6 / I-7): the raw log is written, A-1's
+    harq_events() and the token census read it, A-2.1 runs ONCE on m2s72_a21.load() of it; then MAP-UE, C-0, PU-4h and
+    PU-4o. Every input of the library is checked unchanged afterwards."""
+    d = tempfile.mkdtemp(prefix="e0vn21-i3-")
+    try:
+        p = os.path.join(d, "run.log.gz")
+        with gzip.open(p, "wt") as fh:
+            fh.writelines(lines)
+        a1 = PA.harq_events(p)
+        with gzip.open(p, "rt") as fh:
+            census = W.token_census(fh.read().splitlines(True))
+        res, rows, per, cov, extra, window = A21.evaluate(A21.load(p), nproc, t0, node, TA.grants_of(lines), None, simu5g_root())
+    finally:
+        shutil.rmtree(d)
+    return compose(len(node), node, a1, census, res, rows, per, cov, extra)
+
+
+def fingerprint(obj):
+    """a digest of a (possibly cyclic) structure: the A-2.1 replay result links groups and units both ways, so deep
+    equality would recurse forever; repr() marks a back-reference as {...} and still prints every value once"""
+    return hashlib.sha256(repr(obj).encode()).hexdigest()
+
+
+def compose(n, node, a1, census, res, rows, per, cov, extra):
+    x7 = extra["xa"]
+    snap = fingerprint((a1, census, res, rows, per, x7, node))
+    m = W.map_ue(n, dict(node), None, W.evidence_nodes(res, per, x7))
+    c0, info = W.c0_row(a1, res, census)
+    ph, v = W.pu4h_row(m, c0, rows, res)
+    po, locs = W.pu4o_rows(n, dict(node), per, x7, rows, m["status"], ph["status"])
+    check(snap == fingerprint((a1, census, res, rows, per, x7, node)), "the wrapper modified the frozen results or its inputs")
+    for r in [m, c0, ph] + po:
+        check(W.validate_row(r) == [], f"row schema: {W.validate_row(r)}")
+    st = {r[0]: r[2] for r in rows}
+    return {"a1": a1, "census": census, "res": res, "rows": rows, "per": per, "cov": dict((k, v_) for k, v_, _ in cov),
+            "x7": x7, "st": st, "map": m, "c0": c0, "c0info": info, "pu4h": ph, "v": v, "pu4o": po, "locs": locs,
+            "touched": sorted(A21.touched_nodes(res)), "node": node, "n": n}
+
+
+def S(r):
+    return [x["status"] for x in r["pu4o"]]
+
+
+def LO(r):
+    return [x["local"] for x in r["locs"]]
+
+
+def nack_run(n_ue, sched, who, attempt_idx=0, ttis=40, **kw):
+    """a corrected-generator run (synthetic, labelled) in which the attempt_idx-th PDU of UE `who` is NACKed once"""
+    _, _, t0 = G.make(n_ue, ttis, sched, tail=40, **kw)
+    pid = [x["pid"] for x in t0 if x["node"] == 2049 + who][attempt_idx]
+    lines, node, truth = G.make(n_ue, ttis, sched, nack={(pid, 1)}, tail=40, **kw)
+    x = next(x for x in truth if x["res"] == "NACK")
+    return lines, node, truth, x["t"] // MS
+
+
+def truth_per_node(truth):
+    out = {}
+    for x in truth:
+        d = out.setdefault(x["node"], {"pids": set(), "feedback": 0, "nack": 0, "ack": 0})
+        d["pids"].add(x["pid"])
+        d["feedback"] += 1
+        d["nack"] += x["res"] == "NACK"
+        d["ack"] += x["res"] == "ACK"
+    return out
+
+
+def check_counts_truth(r, truth):
+    tp = truth_per_node(truth)
+    for n, t in tp.items():
+        o = r["per"][n]
+        got = (o["inserts"], o["feedback"], o["nack"], o["ack"])
+        check(got == (len(t["pids"]), t["feedback"], t["nack"], t["ack"]), f"node {n}: A-2.1 {got} vs truth "
+              f"{(len(t['pids']), t['feedback'], t['nack'], t['ack'])}")
+
+
+def all_pass(r, n):
+    check(r["map"]["status"] == "PASS" and r["c0"]["status"] == "PASS", f"MAP-UE {r['map']} / C-0 {r['c0']['detail'][:300]}")
+    check(r["pu4h"]["status"] == "PASS", f"PU-4h {r['pu4h']['detail'][:400]}")
+    check(S(r) == ["PASS"] * n and LO(r) == [W.EQUAL] * n, f"PU-4o {S(r)} {LO(r)}")
+
+
+# --------------------------------------------------------------------------------------------------- T-c0 -------
+@named("T-c0")
+def t_c0():
+    check(W.a1_gnb_module() == W.GNB_MODULE == A21.GNB == "M2S72Bridge.gnb1.cellularNic.mac", "T-c0-module")
+    for name, (lines, node, _) in {
+            "N=2 same TTI": G.make(2, 40, lambda tti: [0, 1], tail=40),
+            "N=2 NACK": nack_run(2, lambda tti: [0] + ([1] if tti % 3 == 0 else []), 1, 1)[:3],
+            "N=4": G.make(4, 30, lambda tti: [0, 2] + ([1] if tti % 4 == 1 else []) + ([3] if tti % 5 == 3 else []), tail=40)}.items():
+        r = pipe(lines, node)
+        i = r["c0info"]
+        check(r["c0"]["status"] == "PASS" and not i["problems"], f"{name}: C-0 {r['c0']['detail'][:300]}")
+        check(i["sha256_a1"] == i["sha256_a21"] and i["lengths"][0] == i["lengths"][1] > 0, f"{name}: {i}")
+        check(i["counts"]["census"] == i["counts"]["a1"] == i["counts"]["a21"], f"{name}: census {i['counts']}")
+        check(i["counts"]["a21"]["insert"] == r["res"]["counts"]["insert lines"], f"{name}: insert lines")
+    # the genuine F3 fixture (public, pinned): A-1 and A-2.1 parse the same 99 inserts and 96 feedback lines
+    fx = RC.load_fixture(os.path.join(HERE, "fixtures"))
+    res, rows, per, cov, extra, window = A21.evaluate(fx["lines21"], fx["nproc"], 0, fx["node"], fx["grants"], None, simu5g_root())
+    with gzip.open(fx["path"], "rt", errors="replace") as fh:
+        census = W.token_census(fh.read().splitlines(True))
+    r = compose(2, fx["node"], PA.harq_events(fx["path"]), census, res, rows, per, cov, extra)
+    check(census == {"insert": 99, "feedback": 96}, f"F3 census {census}")
+    check(r["c0"]["status"] == "PASS" and r["c0info"]["lengths"] == [195, 195], f"F3 C-0 {r['c0']['detail'][:300]}")
+    check(r["map"]["status"] == "PASS" and r["pu4h"]["status"] == "PASS" and S(r) == ["PASS", "PASS"],
+          f"F3: MAP-UE {r['map']['status']}, PU-4h {r['pu4h']['detail'][:300]}, PU-4o {S(r)}")
+    # IG-1: a missing or malformed extraction is FAIL, never an empty evidence set
+    lines, node, _ = G.make(2, 20, lambda tti: [0, 1], tail=40)
+    base = pipe(lines, node)
+    a1, res, cen = base["a1"], base["res"], base["census"]
+    for what, args in {"A-1 events None": (None, res, cen), "A-1 events a dict": ({}, res, cen),
+                       "A-2.1 result None": (a1, None, cen), "A-2.1 without pdus": (a1, {"fb": [], "counts": {}}, cen),
+                       "census None": (a1, res, None), "census malformed": (a1, res, {"insert": "80"}),
+                       "census without feedback": (a1, res, {"insert": cen["insert"]}),
+                       "both sequences empty": ([], {"pdus": {}, "fb": [], "counts": {"insert lines": 0}}, {"insert": 0, "feedback": 0}),
+                       "A-1 event of a wrong shape": (a1[:1] + [("ins", 1, 2)] + a1[1:], res, cen),
+                       "A-1 event with a bool": ([("ins", True) + tuple(a1[0][2:])] + a1[1:], res, cen),
+                       "A-1 events a string": ("ins", res, cen)}.items():
+        row, info = W.c0_row(*args)
+        check(row["status"] == "FAIL", f"IG-1 {what}: C-0 {row['status']}")
+
+
+# ------------------------------------------------------------------------------------------------ NC-c0-* -------
+def _c0_base():
+    lines, node, truth, T = nack_run(2, lambda tti: [0] + ([1] if tti % 3 == 0 else []), 1, 1)
+    r = pipe(lines, node)
+    check(r["c0"]["status"] == "PASS", "NC-c0 baseline guard: C-0 PASS before the mutation")
+    return lines, node, r
+
+
+@named("NC-c0")
+def nc_c0():
+    lines, node, base = _c0_base()
+    a1, res, cen = base["a1"], base["res"], base["census"]
+
+    def fails(row, what, token=None):
+        check(row[0]["status"] == "FAIL", f"{what}: C-0 {row[0]['status']}")
+        check(token is None or token in row[0]["detail"], f"{what}: detail lacks {token!r}: {row[0]['detail'][:300]}")
+        return row
+    # NC-c0-same-count: two A-1 feedback events exchange their process ids (counts and kinds unchanged)
+    fbi = [i for i, e in enumerate(a1) if e[0] == "fb"]
+    i, j = next((i, j) for i in fbi for j in fbi if a1[i][2] != a1[j][2])
+    m = list(a1)
+    m[i], m[j] = m[i][:2] + (a1[j][2],) + m[i][3:], m[j][:2] + (a1[i][2],) + m[j][3:]
+    fails(W.c0_row(m, res, cen), "NC-c0-same-count", "parser divergence")
+    # NC-c0-reorder: two adjacent events of different UEs swapped
+    k = next(k for k in range(len(a1) - 1) if a1[k][0] == a1[k + 1][0] == "ins" and a1[k][2] != a1[k + 1][2])
+    m = list(a1)
+    m[k], m[k + 1] = m[k + 1], m[k]
+    fails(W.c0_row(m, res, cen), "NC-c0-reorder", "parser divergence")
+    # NC-c0-node: one A-1 insert's node changed
+    k = next(k for k, e in enumerate(a1) if e[0] == "ins")
+    m = list(a1)
+    m[k] = m[k][:2] + (m[k][2] + 1,) + m[k][3:]
+    fails(W.c0_row(m, res, cen), "NC-c0-node", "parser divergence")
+    # NC-c0-recon-drop: an entry removed from a copy of res["pdus"], and separately from a copy of res["fb"]
+    fp = fingerprint(res)
+    r2 = copy.deepcopy(res)
+    del r2["pdus"][next(iter(r2["pdus"]))]
+    fails(W.c0_row(a1, r2, cen), "NC-c0-recon-drop (pdus)", "R-0a")
+    r2 = copy.deepcopy(res)
+    del r2["fb"][3]
+    fails(W.c0_row(a1, r2, cen), "NC-c0-recon-drop (fb)", "R-0c")
+    check(fingerprint(res) == fp, "the original replay result is unchanged")
+    # NC-c0-recon-dup: a duplicated feedback entry; and one unit's ins_gi set to another's
+    r2 = copy.deepcopy(res)
+    r2["fb"].insert(5, copy.deepcopy(r2["fb"][4]))
+    fails(W.c0_row(a1, r2, cen), "NC-c0-recon-dup (fb)", "R-0c")
+    r2 = copy.deepcopy(res)
+    us = list(r2["pdus"].values())
+    us[1]["ins_gi"] = us[0]["ins_gi"]
+    fails(W.c0_row(a1, r2, cen), "NC-c0-recon-dup (ins_gi)", "R-0b")
+    # R-0d: a malformed reconstructed unit
+    r2 = copy.deepcopy(res)
+    next(iter(r2["pdus"].values()))["node"] = None
+    fails(W.c0_row(a1, r2, cen), "R-0d", "R-0d")
+    # NC-c0-dup-pid (log mutation): a later insert line reuses an earlier PDU id -> A-2.1 loses a unit in pdus
+    ins = [i for i, y in enumerate(lines) if W.TOKEN_INS in y and W.GNB_MODULE in y]
+    first_pid = re.search(r"\(id (\d+) \)", lines[ins[0]]).group(1)
+    k = next(i for i in ins[5:] if "for node with id 2050" in lines[i])
+    m = list(lines)
+    m[k] = re.sub(r"\(id \d+ \)", f"(id {first_pid} )", m[k])
+    r = pipe(m, node)
+    fails((r["c0"],), "NC-c0-dup-pid", "R-0a")
+    check(r["c0info"]["lengths"][0] == r["c0info"]["lengths"][1] + 1, f"NC-c0-dup-pid: lengths {r['c0info']['lengths']}")
+    check(r["st"]["A2-2"] == "FAIL" and r["pu4h"]["status"] == "FAIL", f"NC-c0-dup-pid: A2-2 {r['st']['A2-2']}, PU-4h {r['pu4h']['status']}")
+    # NC-c0-malformed-ins / -fb: a corrupted token line; A-1 and A-2.1 still agree with each other; only R-0e sees it
+    for what, sel, sub in (("NC-c0-malformed-ins", W.TOKEN_INS, (r"\(id (\d)(\d*) \)", r"(id \1x\2 )")),
+                           ("NC-c0-malformed-fb", W.TOKEN_FB, (r"result is ACK", "result is ACX")),
+                           ("NC-c0-malformed-timestamp", W.TOKEN_INS, (r"^(\d)", r"x\1"))):
+        k = next(i for i, y in enumerate(lines) if sel in y and W.GNB_MODULE in y and tms(y) > 1010 and
+                 (sel != W.TOKEN_FB or "result is ACK" in y))
+        m = list(lines)
+        m[k] = re.sub(sub[0], sub[1], m[k], count=1)
+        check(m[k] != lines[k], f"{what}: mutation applied")
+        r = pipe(m, node)
+        fails((r["c0"],), what, "R-0e")
+        a1s, _ = W.c0_a1_sequence(r["a1"])
+        a2s, _ = W.c0_a21_sequence(r["res"])
+        check(a1s == a2s, f"{what}: A-1 and A-2.1 agree with each other (identical regexes): only the census detects it")
+        check(r["pu4h"]["status"] == "FAIL", f"{what}: PU-4h {r['pu4h']['status']}")
+    # a token in a UE-module line is not counted (the census is restricted to the gNB MAC)
+    check(W.token_census(["1.0|M2S72Bridge.ue[0].cellularNic.nrMac|H-ARQ TX: feedback received x\n",
+                          "1.0|M2S72Bridge.gnb1.cellularNic.mac|H-ARQ TX: new pdu (id ?? )\n", "garbage\n", None, 7]) ==
+          {"insert": 1, "feedback": 0}, "census scope")
+
+
+# ------------------------------------------------------------------------------------------- N = 2, N = 4 -------
+@named("T-n2-same-tti")
+def t_n2_same_tti():
+    lines, node, truth = G.make(2, 40, lambda tti: [0, 1], tail=40)
+    r = pipe(lines, node)
+    _, summ = P.attribute_feedback(r["a1"], 16)
+    check(summ["ambiguous"] > 0 and summ["reinsert"] > 0, f"A-1 must be ambiguous on same-TTI feedback: {summ}")
+    check(r["v"] == {"verdict_f1d_i": "A-2.1 VALID", "verdict_full": "A-2.1 VALID"}, f"verdicts {r['v']}")
+    check(all(r["st"][k] == W.NX for k in ("A2-4a", "A2-4b", "A2-4c")), "A2-4a/b/c NOT EXERCISED")
+    pairs = sum(1 for c in Counter(x["t"] for x in truth).values() if c == 2)
+    check(r["cov"]["exchangeable ACK groups (2 candidates)"] == pairs > 0, f"groups {r['cov']} vs same-TTI pairs {pairs}")
+    all_pass(r, 2)
+    check_counts_truth(r, truth)
+    check(r["v"]["verdict_f1d_i"] == A21.verdict(r["rows"], "f1d-i")[0] and r["v"]["verdict_full"] == A21.verdict(r["rows"], "full")[0],
+          "both contract verdicts from the same rows")
+
+
+@named("T-n2-a2v1-like")
+def t_n2_a2v1_like():
+    lines, node, truth, T = nack_run(2, lambda tti: [0] + ([1] if tti % 3 == 0 else []), 1, 1)
+    check(all(x["node"] == 2050 for x in truth if x["res"] == "NACK"), "NACKs on UE 1 only")
+    r = pipe(lines, node)
+    check(r["st"]["A2-4a"] == "PASS" and r["st"]["A2-4c"] == W.NE, f"A2-4a {r['st']['A2-4a']}, A2-4c {r['st']['A2-4c']}")
+    check(r["v"] == {"verdict_f1d_i": "A-2.1 VALID", "verdict_full": "A-2.1 INCOMPLETE"}, f"verdicts {r['v']}")
+    all_pass(r, 2)
+    check("full contract (reported" in r["pu4h"]["detail"] and "A-2.1 INCOMPLETE" in r["pu4h"]["detail"], "full verdict recorded")
+    check_counts_truth(r, truth)
+
+
+@named("T-n4-independent")
+def t_n4_independent():
+    s4 = lambda tti: [0, 2] + ([1] if tti % 4 == 1 else []) + ([3] if tti % 5 == 3 else [])
+    _, _, t0 = G.make(4, 40, s4, tail=40)
+    pp = [x["pid"] for x in t0 if x["node"] == 2050][:2] + [x["pid"] for x in t0 if x["node"] == 2052][:2]
+    lines, node, truth = G.make(4, 40, s4, nack={(p, 1) for p in pp}, tail=40)
+    check({x["node"] for x in truth if x["res"] == "NACK"} == {2050, 2052}, "NACK chains on UEs 1 and 3")
+    r = pipe(lines, node)
+    all_pass(r, 4)
+    check_counts_truth(r, truth)
+
+
+@named("T-n4-overlap-nack")
+def t_n4_overlap_nack():
+    s4 = lambda tti: [0, 2] + ([1] if tti % 6 == 1 else []) + ([3] if tti % 7 == 2 else [])
+    lines, node, truth, T = nack_run(4, s4, 2, 3, ttis=30)
+    r = pipe(lines, node)
+    check(r["cov"]["mixed ACK / NACK groups"] >= 1 and r["cov"]["NACK resolved by retransmission evidence (deferred)"] >= 1,
+          f"a mixed group resolved by retransmission evidence: {r['cov']}")
+    all_pass(r, 4)
+    check_counts_truth(r, truth)
+
+
+# ------------------------------------------------------------------------------------------ T-censor-* ----------
+def cut_at(lines, T):
+    return [y for y in lines if tms(y) < T + 1 - 1e-9]
+
+
+def loops_only_after(lines, T):
+    return [y for y in lines if tms(y) < T + 1 - 1e-9 or "ENB MAIN LOOP" in y]
+
+
+@named("T-censor-awaiting-feedback")
+def t_censor_awaiting_feedback():
+    lines, node, truth = G.make(2, 40, lambda tti: [0, 1], tail=1)
+    r = pipe(lines, node)
+    check(r["res"]["end_states"].get("censored: awaiting feedback", 0) > 0 and r["touched"] == [], f"{r['res']['end_states']}")
+    check(r["st"]["A2-7"] == "PASS", "A2-7 unaffected")
+    all_pass(r, 2)
+
+
+@named("T-censor-structural-unit")
+def t_censor_structural_unit():
+    s = lambda tti: ([0] if tti - 1000 < 3 else []) + ([1] if tti - 1000 == 10 else [])
+    lines, node, truth, T = nack_run(2, s, 1)
+    r = pipe(cut_at(lines, T), node)
+    check(r["res"]["end_states"] == {"censored: awaiting retransmission": 1} and r["touched"] == [], f"{r['res']['end_states']}")
+    all_pass(r, 2)
+
+
+@named("T-censor-group")
+def t_censor_group():
+    s = lambda tti: ([0, 1] if tti - 1000 == 10 else []) + ([2] if tti - 1000 == 4 else [])
+    lines, node, truth, T = nack_run(3, s, 1)
+    r = pipe(cut_at(lines, T), node)
+    check(r["res"]["end_states"] == {"censored: awaiting resolution": 2} and r["touched"] == [2049, 2050], f"{r['res']['end_states']} {r['touched']}")
+    check(r["st"]["A2-7"] == W.NE and r["v"]["verdict_f1d_i"] == "A-2.1 INCOMPLETE", f"A2-7 {r['st']['A2-7']}, {r['v']}")
+    check(r["pu4h"]["status"] == W.NE and "touched nodes [2049, 2050]" in r["pu4h"]["detail"], f"PU-4h {r['pu4h']['detail'][:300]}")
+    check(LO(r) == [W.NOT_COMPARED, W.NOT_COMPARED, W.EQUAL] and S(r) == [W.NE] * 3, f"PU-4o {LO(r)} {S(r)}")
+    check([x["step"] for x in r["locs"]] == ["4", "4", "6"] and "global" in r["pu4o"][2]["detail"], "touched: step 4; UE 2: global NE")
+
+
+@named("T-censor-pending-unresolved")
+def t_censor_pending_unresolved():
+    lines, node, truth, T = nack_run(2, lambda tti: [0, 1] if tti - 1000 == 10 else [], 1)
+    r = pipe(loops_only_after(lines, T), node)
+    check(r["res"]["end_states"] == {"unresolved: pending group at the end": 2} and r["touched"] == [2049, 2050], f"{r['res']['end_states']}")
+    check(r["st"]["A2-7"] == W.NE and r["st"]["A2-9"] == W.NE and r["pu4h"]["status"] == W.NE, f"{r['st']} {r['pu4h']['status']}")
+    check(S(r) == [W.NE, W.NE] and LO(r) == [W.NOT_COMPARED] * 2, f"PU-4o {S(r)} {LO(r)}")
+
+
+@named("T-unresolved")
+def t_unresolved():
+    s = lambda tti: ([0] if tti - 1000 < 3 else []) + ([1] if tti - 1000 == 10 else [])
+    lines, node, truth, T = nack_run(2, s, 1)
+    r = pipe(loops_only_after(lines, T), node)
+    check(r["res"]["end_states"] == {"unresolved: retransmission not observed": 1} and r["touched"] == [], f"{r['res']['end_states']}")
+    check(r["st"]["A2-9"] == W.NE and r["st"]["A2-7"] == "PASS" and r["pu4h"]["status"] == W.NE, f"{r['st']} {r['pu4h']['status']}")
+    check(LO(r) == [W.EQUAL, W.EQUAL] and S(r) == [W.NE, W.NE], f"PU-4o: local EQUAL, row NE (global): {LO(r)} {S(r)}")
+
+
+@named("NC-no-ue-lines")
+def nc_no_ue_lines():
+    lines, node, truth = G.make(2, 40, lambda tti: [0, 1], tail=40, ue_log=False)
+    r = pipe(lines, node)
+    check(r["x7"] is None and r["st"]["A2-7"] == W.NE and r["pu4h"]["status"] == W.NE, f"A2-7 {r['st']['A2-7']}, PU-4h {r['pu4h']['status']}")
+    check(S(r) == [W.NE, W.NE] and [x["step"] for x in r["locs"]] == ["1", "1"], f"PU-4o {S(r)}")
+
+
+# ------------------------------------------------------------------------------------------ NC-swap, NC-occ-* ----
+def _occ_base():
+    s = lambda tti: [0] + ([1] if tti % 3 == 0 else [])
+    lines, node, truth, T = nack_run(2, s, 1, 1)
+    r = pipe(lines, node)
+    all_pass(r, 2)                                     # baseline guard
+    return lines, node, r
+
+
+@named("NC-swap")
+def nc_swap():
+    lines, node, base = _occ_base()
+    k = next(i for i, y in enumerate(lines) if "for node with id 2049" in y and tms(y) > 1012)
+    m = list(lines)
+    m[k] = m[k].replace("for node with id 2049", "for node with id 2050")
+    r = pipe(m, node)
+    check(r["st"]["A2-7"] == "FAIL" and r["pu4h"]["status"] == "FAIL", f"A2-7 {r['st']['A2-7']}, PU-4h {r['pu4h']['status']}")
+    check(S(r) == ["FAIL", "FAIL"] and all("global" in x["detail"] for x in r["pu4o"]), f"PU-4o {S(r)}")
+
+
+@named("NC-occ")
+def nc_occ():
+    lines, node, base = _occ_base()
+    # NC-occ-one-ue: one of UE 0's insert lines removed, its feedback kept
+    k = next(i for i, y in enumerate(lines) if "for node with id 2049" in y and tms(y) > 1012)
+    m = list(lines)
+    del m[k]
+    r = pipe(m, node)
+    check(r["v"]["verdict_f1d_i"] == "A-2.1 NOT VALID" and r["pu4h"]["status"] == "FAIL", f"{r['v']} PU-4h {r['pu4h']['status']}")
+    check(S(r) == ["FAIL", "FAIL"], f"PU-4o {S(r)}")
+    check("global" in r["pu4o"][1]["detail"] and r["pu4o"][1]["local"] in W.LOCAL_OUTCOMES,
+          f"UE 1 FAILs by the global rule, its local outcome reported: {r['pu4o'][1]}")
+    # NC-occ-entry-missing: occupancy_equal without UE 1's entry (UE 1 not skipped)
+    x7 = copy.deepcopy(base["x7"])
+    del x7["occupancy_equal"][2050]
+    rows, locs = W.pu4o_rows(2, dict(node), base["per"], x7, base["rows"], "PASS", "PASS")
+    check([x["local"] for x in locs] == [W.EQUAL, W.DIFFERENT] and locs[1]["step"] == "5" and rows[1]["status"] == "FAIL",
+          f"NC-occ-entry-missing: {locs} {rows[1]['status']}")
+    # NC-occ-invalid: an invalid A-2.1 occupancy with occupancy_equal True
+    per = copy.deepcopy(base["per"])
+    per[2050]["occupancy"] = {"error": "negative occupancy: a feedback before its insert"}
+    rows, locs = W.pu4o_rows(2, dict(node), per, base["x7"], base["rows"], "PASS", "PASS")
+    check(base["x7"]["occupancy_equal"][2050] is True and locs[1]["step"] == "3" and rows[1]["status"] == "FAIL",
+          f"NC-occ-invalid: {locs[1]} {rows[1]['status']}")
+    # non-boolean / false entries, a malformed reference, a UE without PDUs, skipped
+    for val, step, local in ((False, "7", W.DIFFERENT), (1, "7", W.DIFFERENT), ("True", "7", W.DIFFERENT), (None, "7", W.DIFFERENT)):
+        x7 = copy.deepcopy(base["x7"])
+        x7["occupancy_equal"][2050] = val
+        loc = W.pu4o_local(1, 2050, base["per"], x7)
+        check((loc["local"], loc["step"]) == (local, step), f"occupancy_equal {val!r}: {loc}")
+    for x7 in ({}, [], "x", {"occupancy_equal": [], "skipped": []}, {"occupancy_equal": {2050: True}}):
+        loc = W.pu4o_local(1, 2050, base["per"], x7)
+        check(loc["local"] == W.DIFFERENT and loc["step"] == "1", f"malformed reference {x7!r}: {loc}")
+    for o in (None, {}, [], "x", {"error": "e"}):
+        per = copy.deepcopy(base["per"])
+        per[2050]["occupancy"] = o
+        check(W.pu4o_local(1, 2050, per, base["x7"])["step"] == "3", f"invalid occupancy {o!r}")
+    check(W.pu4o_local(1, 2051, base["per"], base["x7"])["step"] == "2", "no PDU for the UE")
+    x7 = copy.deepcopy(base["x7"])
+    x7["skipped"] = [2050]
+    check(W.pu4o_local(1, 2050, base["per"], x7)["local"] == W.NOT_COMPARED, "skipped")
+    # the row status table (design 4.6)
+    E, D, N = ({"local": W.EQUAL, "detail": "x"}, {"local": W.DIFFERENT, "detail": "x"}, {"local": W.NOT_COMPARED, "detail": "x"})
+    for loc, ms, ps, a27, want in ((E, "FAIL", "PASS", "PASS", "FAIL"), (E, "PASS", "FAIL", "PASS", "FAIL"), (D, "PASS", "PASS", "PASS", "FAIL"),
+                                   (N, "PASS", "PASS", "PASS", W.NE), (E, "PASS", "PASS", W.NE, W.NE), (E, "PASS", W.NE, "PASS", W.NE),
+                                   (E, "PASS", "PASS", "PASS", "PASS"), (N, "PASS", "FAIL", "PASS", "FAIL"), (E, "PASS", "PASS", None, W.NE)):
+        r = W.pu4o_row(1, loc, ms, ps, a27)
+        check(r["status"] == want and r["local"] == loc["local"], f"PU-4o row for {loc['local']}, MAP {ms}, PU-4h {ps}, A2-7 {a27}: {r['status']}")
+
+
+@named("T-pu4h")
+def t_pu4h():
+    """the PU-4h precedence (design 4.3) on the accepted verdict() of synthetic row sets"""
+    ok = {"id": "MAP-UE", "subject": "run", "status": "PASS", "detail": ""}
+    c0 = {"id": "C-0", "subject": "run", "status": "PASS", "detail": ""}
+    bad = dict(ok, status="FAIL")
+    valid = [(k, "run", "PASS", "") for k in A21.REQUIRED["full"]] + [("A2-8", "run", "PASS", "")]
+    inc = [(k, "run", W.NE if k == "A2-7" else "PASS", "") for k in A21.REQUIRED["full"]]
+    nv = [(k, "run", "FAIL" if k == "A2-8" else "PASS", "") for k in A21.REQUIRED["full"]] + [("A2-8", "run", "FAIL", "")]
+    a4c = [(k, "run", "FAIL" if k == "A2-4c" else "PASS", "") for k in A21.REQUIRED["full"]]
+    cases = [(ok, c0, valid, "PASS"), (bad, c0, valid, "FAIL"), (ok, dict(c0, status="FAIL"), valid, "FAIL"),
+             (ok, c0, nv, "FAIL"), (ok, c0, a4c, "FAIL"), (ok, c0, inc, W.NE), (bad, c0, inc, "FAIL"),
+             (ok, dict(c0, status=W.NE), valid, "FAIL")]
+    for m, c, rows, want in cases:
+        r, v = W.pu4h_row(m, c, rows)
+        check(r["status"] == want, f"PU-4h MAP {m['status']} C-0 {c['status']} {v['verdict_f1d_i']}: {r['status']} (want {want})")
+        check(v == {"verdict_f1d_i": A21.verdict(rows, "f1d-i")[0], "verdict_full": A21.verdict(rows, "full")[0]}, "verdicts")
+    r, _ = W.pu4h_row(ok, c0, nv)
+    check("A2-8" in r["detail"], "the failing A2 rows are named")
 
 
 # --------------------------------------------------------------------------------------- T-imports-isolated ----
