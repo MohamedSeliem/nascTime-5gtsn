@@ -11,12 +11,15 @@ This file holds increment I-1 only:
     under `python3 -I` (which does not add the script directory to sys.path).
 Increment I-2 adds MAP-UE (4.4) and A2-8u with its compatibility relation CR-1 .. CR-4 (4.5).
 Increment I-3 adds C-0 with R-0a .. R-0e (4.1), PU-4h (4.3) and PU-4o (4.6); the censoring classes of 4.2 act through
-the unchanged A-2.1 rows. The A-1 report, the FGO flag, the verdict composition and the CLI modes are later increments
-(I-4 .. I-8) and are deliberately absent.
+the unchanged A-2.1 rows.
+Increment I-4 adds the historical A-1 report (PU-4 verbatim, the A-1 summary and per-UE values under 'historical') and
+the non-gating A-1 / A-2.1 agreement diagnostic (4.10). The FGO flag, the verdict composition and the CLI modes are
+later increments (I-5 .. I-8) and are deliberately absent.
 
 Pure functions. Never writes a file. Reads only the registry and the result records the registry cites. The frozen
 and accepted modules are imported read-only and are never modified.
 """
+import copy
 import hashlib
 import json
 import math
@@ -542,8 +545,15 @@ def validate_digest(d):
     hi = d["historical"]
     if _keys(hi, ("a1",), "historical", probs):
         a1 = hi["a1"]
-        if _keys(a1, HISTORICAL_A1_KEYS, "historical.a1", probs) and not _text(a1["label"]):
-            probs.append("historical.a1.label must be non-empty text")
+        if _keys(a1, HISTORICAL_A1_KEYS, "historical.a1", probs):
+            if a1["label"] != "A-1, historical rule; not a current measurement (DR-07b)":   # I-4: HISTORICAL_A1_LABEL
+                probs.append(f"historical.a1.label {_show(a1['label'])} is not the historical label")
+            pr = a1["pu4_row"]
+            # I-4: the s5n PU-4 row, verbatim: [PU-4, subject, status, detail] with an s5n status; never relabelled
+            if not (isinstance(pr, list) and len(pr) == 4 and all(isinstance(x, str) for x in pr) and pr[0] == "PU-4"):
+                probs.append(f"historical.a1.pu4_row {_show(pr)} is not the s5n PU-4 row")
+            elif pr[2] not in (PASS, FAIL, NE):
+                probs.append(f"historical.a1.pu4_row status {pr[2]!r} is not an s5n PU-4 status (relabelled?)")
     if not isinstance(d["diagnostics"], dict):
         probs.append(f"diagnostics: must be an object, got {type(d['diagnostics']).__name__}")
     if not isinstance(d["mac_grammar_census"], list):
@@ -992,3 +1002,120 @@ def pu4o_rows(n, node_id, per, x7, rows, map_status, pu4h_status):
     a27 = {r[0]: r[2] for r in rows}.get("A2-7")
     locs = [pu4o_local(k, node_id.get(k) if isinstance(node_id, dict) else None, per, x7) for k in range(n)]
     return [pu4o_row(k, locs[k], map_status, pu4h_status, a27) for k in range(n)], locs
+
+
+# ================================================================================================ I-4 ============
+# --------------------------------------------------------------------- historical A-1 report (design 4.10, 5.3) --
+HISTORICAL_PU4_ID = "PU-4"
+HISTORICAL_PU4_LABEL = "PU-4 (A-1, historical rule; reported, not a gate — DR-07b)"
+HISTORICAL_A1_LABEL = "A-1, historical rule; not a current measurement (DR-07b)"
+
+
+def extract_pu4(s5n_rows):
+    """the one PU-4 row of the unchanged s5n evaluation, exactly as produced (a 4-tuple). A missing or repeated PU-4
+    row is an EVALUATION ERROR: the historical result is never silently dropped or chosen."""
+    if not isinstance(s5n_rows, (list, tuple)):
+        raise EvaluationError(f"s5n rows missing or malformed ({type(s5n_rows).__name__})")
+    found = [r for r in s5n_rows if isinstance(r, (list, tuple)) and len(r) == 4 and r[0] == HISTORICAL_PU4_ID]
+    if len(found) != 1:
+        raise EvaluationError(f"s5n rows hold {len(found)} PU-4 rows (exactly one expected): the historical A-1 result "
+                              f"cannot be reported verbatim")
+    r = found[0]
+    if not all(isinstance(x, str) for x in r):
+        raise EvaluationError(f"the s5n PU-4 row is malformed: {_show(r)}")
+    return tuple(r)
+
+
+def pu4_report_row(pu4_row):
+    """the historical PU-4 under its reporting label: status and detail VERBATIM (PASS, FAIL or NOT EVALUATED as
+    produced). It is not a wrapper gate row and never enters a gate list or the verdict."""
+    r = tuple(pu4_row)
+    if len(r) != 4 or r[0] != HISTORICAL_PU4_ID:
+        raise EvaluationError(f"not the historical PU-4 row: {_show(r)}")
+    return {"label": HISTORICAL_PU4_LABEL, "id": r[0], "subject": r[1], "status": r[2], "detail": r[3], "gating": False}
+
+
+def split_per_ue(ms):
+    """the s5n per-UE measurements split into (current, historical): `current` is every field except 'harq' (new
+    objects); `historical` is {k: harq} with the A-1-derived 'harq' record verbatim. Reads only."""
+    if not isinstance(ms, list) or not all(isinstance(m, dict) for m in ms):
+        raise EvaluationError(f"s5n per-UE measurements missing or malformed ({type(ms).__name__})")
+    current = [{k: copy.deepcopy(v) for k, v in m.items() if k != "harq"} for m in ms]
+    hist = {}
+    for i, m in enumerate(ms):
+        k = m.get("k", i)
+        if k in hist:
+            raise EvaluationError(f"s5n per-UE measurements: UE {k} twice")
+        hist[k] = copy.deepcopy(m.get("harq"))
+    return current, hist
+
+
+def historical_a1(pu4_row, harq_attribution, per_ue_harq):
+    """the composed digest's historical.a1 (design 5.3): the s5n PU-4 row as a list, the A-1 summary and the per-UE
+    A-1 'harq' records, all verbatim (deep copies), under the label that they are not current measurements"""
+    r = tuple(pu4_row)
+    if len(r) != 4 or r[0] != HISTORICAL_PU4_ID:
+        raise EvaluationError(f"not the historical PU-4 row: {_show(r)}")
+    return {"label": HISTORICAL_A1_LABEL, "pu4_row": list(r), "harq_attribution": copy.deepcopy(harq_attribution),
+            "per_ue_harq": copy.deepcopy(per_ue_harq)}
+
+
+# --------------------------------------------------------------- A-1 / A-2.1 agreement diagnostic (4.10) ---------
+A1_ATTRIBUTED = ("a1a", "a1b")
+
+
+def a21_canonical_feedback(res):
+    """{canonical index: res["fb"] entry} for the feedback events of the A-2.1 canonical sequence (the order C-0
+    compares: units and feedback lines merged by the log line index). Reads only."""
+    ev = [(u.get("ins_gi"), None) for u in res["pdus"].values()] + [(x.get("gi"), x) for x in res["fb"]]
+    ev.sort(key=lambda g: g[0])
+    return {i: x for i, (_, x) in enumerate(ev) if x is not None}
+
+
+def agreement(a1_events, a1_trace, res, c0_status):
+    """the non-gating A-1 / A-2.1 agreement diagnostic (design 4.10, D-A1-10). Only when C-0 PASSED (the canonical
+    indices align); otherwise it is not computed and nothing is inferred. For each feedback line, by its canonical
+    index: A-1 attributed (A-1a / A-1b) -> agree / disagree with A-2.1's owner, or 'not comparable' when A-2.1 holds
+    no owner (e.g. a censored line); A-1 not attributed (ambiguous / orphan) -> counted by A-2.1 class, never as
+    agreement. Returns a report dict; it has no status and is never read by a gate. Reads only."""
+    from collections import Counter
+    base = {"diagnostic": "A-1 / A-2.1 agreement (report only; never a gate; D-A1-10)", "gating": False}
+    if c0_status != PASS:
+        return dict(base, computed=False, reason=f"C-0 {c0_status}: the canonical indices do not align; nothing inferred")
+    if not isinstance(a1_trace, list):
+        return dict(base, computed=False, reason="no A-1 trace")
+    fbmap = a21_canonical_feedback(res)
+    fb_idx = [i for i, e in enumerate(a1_events) if isinstance(e, (tuple, list)) and e[:1] == ("fb",)]
+    traced = {}
+    for t in a1_trace:
+        if not (isinstance(t, (tuple, list)) and len(t) == 3):
+            return dict(base, computed=False, reason=f"malformed A-1 trace entry {_show(t)}")
+        if t[0] in traced:
+            return dict(base, computed=False, reason=f"A-1 trace holds event {t[0]} twice")
+        traced[t[0]] = t
+    if set(traced) != set(fb_idx) or set(fb_idx) != set(fbmap):
+        return dict(base, computed=False, reason=f"A-1 trace ({len(traced)}), A-1 feedback events ({len(fb_idx)}) and "
+                                                 f"A-2.1 feedback lines ({len(fbmap)}) do not cover the same indices")
+    agree, disagree, dis_cls, not_comp, unattr = 0, 0, Counter(), Counter(), Counter()
+    examples = []
+    for i in sorted(fb_idx):
+        _, node, kind = traced[i]
+        x = fbmap[i]
+        cls, owner = x.get("cls"), x.get("owner")
+        if kind in A1_ATTRIBUTED:
+            if owner is None:
+                not_comp[str(cls)] += 1
+            elif owner == node:
+                agree += 1
+            else:
+                disagree += 1
+                dis_cls[str(cls)] += 1
+                if len(examples) < 10:
+                    examples.append({"index": i, "t_ps": x.get("t"), "process": x.get("p"), "result": x.get("res"),
+                                     "a1": {"node": node, "rule": kind}, "a21": {"owner": owner, "class": cls}})
+        else:
+            unattr[f"{kind} -> {cls}"] += 1
+    return dict(base, computed=True, a1_attributed=agree + disagree + sum(not_comp.values()), agree=agree,
+                disagree=disagree, disagree_by_a21_class=dict(sorted(dis_cls.items())),
+                a1_attributed_without_a21_owner=dict(sorted(not_comp.items())),
+                a1_unattributed_by_a21_class=dict(sorted(unattr.items())), disagreements=examples)

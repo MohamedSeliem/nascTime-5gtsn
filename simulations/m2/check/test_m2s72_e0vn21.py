@@ -2,7 +2,7 @@
 """Tests of the WP-A1 wrapper (design revision 2.1, 57a80ca, section 7). Increment I-1: T-name-guard, T-registry,
 T-schema, T-imports-isolated. Increment I-2: T-map, T-a28-compat, NC-scalar-ue1, NC-scalar-missing-ue1.
 Increment I-3: T-c0, NC-c0, T-n2-same-tti, T-n2-a2v1-like, T-n4-independent, T-n4-overlap-nack, T-censor-*,
-T-unresolved, NC-no-ue-lines, NC-swap, NC-occ, T-pu4h. The I-2 and I-3 tests that run the accepted A-2.1 need
+T-unresolved, NC-no-ue-lines, NC-swap, NC-occ, T-pu4h. Increment I-4: T-agree, NC-pu4-relabel. The I-2 and I-3 tests that run the accepted A-2.1 need
 SIMU5G_ROOT (the Simu5G 1.8.1 sources, for A2-0s), as test_m2s72_a21.py does; tier-0 provides it. No simulation; no raw output of any run; synthetic inputs and repository files only.
 The committed registry is only read; T-registry and main() check that its sha256 is unchanged.
 
@@ -1437,6 +1437,174 @@ def t_pu4h():
         check(v == {"verdict_f1d_i": A21.verdict(rows, "f1d-i")[0], "verdict_full": A21.verdict(rows, "full")[0]}, "verdicts")
     r, _ = W.pu4h_row(ok, c0, nv)
     check("A2-8" in r["detail"], "the failing A2 rows are named")
+
+
+# ================================================================================================ I-4 ============
+def a1_of(r):
+    """A-1 on the run's events, as the unchanged s5n path runs it (frozen attribute_feedback), with its trace; and the
+    genuine frozen PU-4 row for that summary (m2s72_peru.structural_rows)"""
+    trace = []
+    _, summ = P.attribute_feedback(r["a1"], 16, trace=trace)
+    pu4 = next(x for x in P.structural_rows([], [], summ, None) if x[0] == "PU-4")
+    return summ, trace, pu4
+
+
+def gate_rows(r):
+    """every wrapper gate row of a composed run (I-2 / I-3 functions), as comparable text"""
+    m, c0, ph, po = r["map"], r["c0"], r["pu4h"], r["pu4o"]
+    return json.dumps([m, c0, ph] + po, sort_keys=True, default=str)
+
+
+# ------------------------------------------------------------------------------------------------- T-agree ------
+@named("T-agree")
+def t_agree():
+    cases = {}
+    # (a) complete agreement: N = 1 (A-1 exact by construction): every line A-1a / A-1b and equal to A-2.1's owner
+    lines, node, truth = G.make(1, 40, lambda tti: [0], tail=40)
+    cases["N=1"] = r = pipe(lines, node)
+    summ, trace, pu4 = a1_of(r)
+    a = W.agreement(r["a1"], trace, r["res"], r["c0"]["status"])
+    check(pu4[2] == "PASS" and r["pu4h"]["status"] == "PASS", f"N=1: A-1 PU-4 {pu4[2]}, PU-4h {r['pu4h']['status']}")
+    check(a["computed"] and a["disagree"] == 0 and a["agree"] == len(truth) == summ["a1a"] + summ["a1b"]
+          and a["a1_unattributed_by_a21_class"] == {}, f"N=1 agreement {a}")
+    # (b) A-1 ambiguous, A-2.1 independently valid: no agreement inferred for the ambiguous lines
+    lines, node, truth = G.make(2, 40, lambda tti: [0, 1], tail=40)
+    cases["same-TTI"] = r = pipe(lines, node)
+    summ, trace, pu4 = a1_of(r)
+    a = W.agreement(r["a1"], trace, r["res"], r["c0"]["status"])
+    check(pu4[2] == "FAIL" and r["pu4h"]["status"] == "PASS", f"same-TTI: A-1 PU-4 {pu4[2]}, PU-4h {r['pu4h']['status']}")
+    check(a["computed"] and a["agree"] == summ["a1a"] + summ["a1b"] and a["disagree"] == 0, f"same-TTI {a}")
+    check(sum(a["a1_unattributed_by_a21_class"].values()) == summ["ambiguous"] + summ["orphan"] > 0 and
+          set(a["a1_unattributed_by_a21_class"]) == {"ambiguous -> exchangeable"}, f"unattributed {a['a1_unattributed_by_a21_class']}")
+    # (c) a genuine disagreement: under NACKs A-1 closes a unit at its first feedback (L-2) and gives a later line of
+    # UE 1 to UE 0; A-2.1's owner is confirmed by the independent UE-side reference (A2-7 PASS, PU-4h PASS)
+    lines, node, truth, T = nack_run(2, lambda tti: [0] + ([1] if tti % 3 == 0 else []), 1, 1)
+    cases["NACK"] = r = pipe(lines, node)
+    summ, trace, pu4 = a1_of(r)
+    a = W.agreement(r["a1"], trace, r["res"], r["c0"]["status"])
+    check(r["st"]["A2-7"] == "PASS" and r["pu4h"]["status"] == "PASS", f"NACK: A2-7 {r['st']['A2-7']}, PU-4h {r['pu4h']['status']}")
+    check(a["computed"] and a["disagree"] > 0 and a["agree"] + a["disagree"] == summ["a1a"] + summ["a1b"], f"NACK {a}")
+    check(sum(a["disagree_by_a21_class"].values()) == a["disagree"] and a["disagreements"], "disagreements by class, with examples")
+    truth_owner = {}
+    for x in truth:
+        truth_owner.setdefault(x["t"], []).append(x["node"])
+    for ex in a["disagreements"]:
+        check(ex["a21"]["owner"] in truth_owner[ex["t_ps"]] and ex["a1"]["node"] != ex["a21"]["owner"],
+              f"the A-2.1 owner is the generator truth, A-1's node is not: {ex}")
+    check(sum(a["a1_unattributed_by_a21_class"].values()) == summ["ambiguous"] + summ["orphan"], "unattributed lines all counted")
+    # (d) never inferred without aligned indices, or from a malformed trace
+    r = cases["NACK"]
+    summ, trace, _ = a1_of(r)
+    for c0s in ("FAIL", "NOT EVALUATED", None):
+        check(W.agreement(r["a1"], trace, r["res"], c0s)["computed"] is False, f"computed with C-0 {c0s}")
+    for bad in (None, trace[:-1], trace + [trace[0]], [("x",)] + trace[1:], "trace"):
+        check(W.agreement(r["a1"], bad, r["res"], "PASS")["computed"] is False, f"computed from a malformed trace {str(bad)[:40]}")
+    # (e) the diagnostic is non-gating: the gate rows are identical whatever the diagnostic says, no gate function
+    # takes it, and a composed digest's consistency does not depend on its content
+    import inspect
+    for fn in (W.map_ue, W.c0_row, W.pu4h_row, W.pu4o_rows, W.pu4o_row, W.a28u_rows, W.a28u_row):
+        check(not any("agree" in p_ or "diagnos" in p_ for p_ in inspect.signature(fn).parameters), f"{fn.__name__} reads the diagnostic")
+    for name, r in cases.items():
+        before = gate_rows(r)
+        summ, trace, _ = a1_of(r)
+        snap = fingerprint((r["a1"], r["res"], r["rows"], trace))
+        a = W.agreement(r["a1"], trace, r["res"], r["c0"]["status"])
+        a["disagree"], a["agree"] = 10 ** 6, -1
+        r2 = compose(r["n"], r["node"], r["a1"], r["census"], r["res"], r["rows"], r["per"],
+                     [(k, v, "") for k, v in r["cov"].items()], {"xa": r["x7"]})
+        check(gate_rows(r2) == before, f"{name}: gate rows changed after the diagnostic")
+        check(fingerprint((r["a1"], r["res"], r["rows"], trace)) == snap, f"{name}: the diagnostic modified its inputs")
+        check(not {"status", "verdict", "gate"} & set(a), f"{name}: the diagnostic carries a status: {sorted(a)}")
+    for diag in ({}, {"agreement": {"disagree": 999}}, {"agreement": {"computed": False}}):
+        for base in (good_digest, fail_digest, incomplete_digest, held_digest):
+            x = base()
+            want = W.validate_digest(x)
+            x["diagnostics"] = diag
+            check(W.validate_digest(x) == want, f"digest consistency depends on the diagnostic {diag}")
+
+
+# ------------------------------------------------------------------------------------------ NC-pu4-relabel ------
+@named("NC-pu4-relabel")
+def nc_pu4_relabel():
+    summaries = {"PASS": {"a1a": 11697, "a1b": 0, "ambiguous": 0, "orphan": 0, "reinsert": 0, "d_star_ps": 5000000000},
+                 "FAIL": {"a1a": 9718, "a1b": 2476, "ambiguous": 768, "orphan": 0, "reinsert": 768, "d_star_ps": 5000000000},
+                 "NOT EVALUATED": None}
+    for want, summ in summaries.items():
+        s5n_rows = P.structural_rows([], [], summ, None) + [("Q8-v", "run", "PASS", "x"), ("MG-1", "run", "FAIL", "y")]
+        orig = next(x for x in s5n_rows if x[0] == "PU-4")
+        check(orig[2] == want, f"frozen PU-4 status {orig[2]}")
+        snap = copy.deepcopy(s5n_rows)
+        pu4 = W.extract_pu4(s5n_rows)
+        rep = W.pu4_report_row(pu4)
+        hist = W.historical_a1(pu4, summ, {0: {"feedback": 3}})
+        check(s5n_rows == snap, "extract / report modified the s5n rows")
+        # byte-equal status and detail, everywhere the row appears
+        check(tuple(pu4) == tuple(orig) and (rep["status"], rep["detail"]) == (orig[2], orig[3]) and
+              tuple(hist["pu4_row"]) == tuple(orig), f"{want}: not verbatim")
+        check(rep["label"] == W.HISTORICAL_PU4_LABEL and "not a gate" in rep["label"] and rep["gating"] is False, "label")
+        check(hist["harq_attribution"] == summ and hist["label"] == W.HISTORICAL_A1_LABEL, "the A-1 summary verbatim")
+        out = json.loads(json.dumps({"report": rep, "historical": hist}))
+        check(out["report"]["status"] == orig[2] and out["historical"]["pu4_row"] == list(orig), "JSON round trip")
+        if want == "FAIL":
+            for o in (rep, hist):
+                text = json.dumps(o)
+                check("superseded" not in text.lower() and '"PASS"' not in text and '"NOT APPLICABLE"' not in text,
+                      f"a PU-4 FAIL relabelled in {text[:200]}")
+    # a digest carrying the historical FAIL stays valid with a PASS verdict: PU-4 never gates
+    d = good_digest()
+    check(d["historical"]["a1"]["pu4_row"][2] == "FAIL" and d["correctness"]["verdict"]["status"] == "PASS"
+          and W.validate_digest(d) == [], "historical PU-4 FAIL with a composed PASS")
+    # the digest rejects a relabelled or reshaped historical row, and PU-4 in a gate list
+    for st in ("NOT APPLICABLE", "SUPERSEDED", "superseded", "PASS (A-1 superseded)", "HELD FOR REVIEW", ""):
+        x = good_digest()
+        x["historical"]["a1"]["pu4_row"][2] = st
+        check(W.validate_digest(x), f"relabelled historical status {st!r} accepted")
+    for row in (["PU-4h", "run", "FAIL", "x"], ["PU-4", "run", "FAIL"], ("PU-4", "run", "FAIL", "x"), None):
+        x = good_digest()
+        x["historical"]["a1"]["pu4_row"] = row
+        check(W.validate_digest(x), f"historical row {row!r} accepted")
+    x = good_digest()
+    x["historical"]["a1"]["label"] = "A-1 (current)"
+    check(W.validate_digest(x), "a historical section presented as current")
+    x = good_digest()
+    x["correctness"]["verdict"].update(status="FAIL", exit=1, gate_failures=["PU-4"])
+    check(W.validate_digest(x), "PU-4 as a gate")
+    # extraction never drops or chooses the historical row
+    for rows in ([("PU-1", "run", "PASS", "")], [("PU-4", "run", "FAIL", "a"), ("PU-4", "run", "PASS", "b")],
+                 [("PU-4", "run", "FAIL")], [("PU-4", "run", None, "x")], None, "rows"):
+        try:
+            W.extract_pu4(rows)
+            raise AssertionError(f"extract_pu4 accepted {rows!r}")
+        except W.EvaluationError:
+            pass
+    for row in (("PU-4h", "run", "PASS", "x"), ("PU-4", "run", "FAIL")):
+        for fn in (W.pu4_report_row, lambda r_: W.historical_a1(r_, {}, {})):
+            try:
+                fn(row)
+                raise AssertionError(f"accepted {row!r}")
+            except W.EvaluationError:
+                pass
+    # the historical per-UE A-1 values: split off verbatim, never left among the current measurements
+    ms = [{"k": 0, "node": 2049, "dl_service_ratio": 1.0, "harq": {"processes": 16, "inserts": 5, "feedback": 5, "nack": 0,
+                                                                   "occupancy": {"busy": 1}, "feedback_delay_ps": [5]}},
+          {"k": 1, "node": 2050, "dl_service_ratio": None, "harq": {"processes": 16, "inserts": 2, "feedback": 1, "nack": 1,
+                                                                   "occupancy": None, "feedback_delay_ps": []}}]
+    snap = copy.deepcopy(ms)
+    cur, hist = W.split_per_ue(ms)
+    check(ms == snap and all("harq" not in m for m in cur) and hist == {0: snap[0]["harq"], 1: snap[1]["harq"]}, "split")
+    check([{k: v for k, v in m.items() if k != "harq"} for m in snap] == cur, "every current field verbatim")
+    hist[0]["feedback"] = -1
+    cur[0]["dl_service_ratio"] = -1
+    check(ms == snap, "the split outputs share state with the s5n measurements")
+    for bad in (None, {}, [None], [{"k": 0}, {"k": 0}]):
+        try:
+            W.split_per_ue(bad)
+            raise AssertionError(f"split_per_ue accepted {bad!r}")
+        except W.EvaluationError:
+            pass
+    h = W.historical_a1(("PU-4", "run", "FAIL", "x"), {"a1a": 1}, {0: {"f": 1}})
+    h["harq_attribution"]["a1a"] = 2
+    check(W.historical_a1(("PU-4", "run", "FAIL", "x"), {"a1a": 1}, {0: {"f": 1}})["harq_attribution"] == {"a1a": 1}, "copies")
 
 
 # --------------------------------------------------------------------------------------- T-imports-isolated ----
