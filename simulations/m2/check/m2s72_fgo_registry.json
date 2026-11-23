@@ -1,0 +1,354 @@
+{
+ "schema": "m2s72-fgo-registry/1",
+ "features": [
+  {
+   "name": "single-candidate ACK attribution",
+   "admitted": false,
+   "genuine": "inferred-only",
+   "strength": "I",
+   "evidence": [
+    {
+     "record": "simulations/m2/results/M2-S7.2a-a2-implementation.md",
+     "section": "§4 (coverage table)",
+     "contract": "none: the record is 'implemented, not yet validated on the VM'; its table is headed '(predicted)'",
+     "scope": "N = 1 / N = 2 smokes, predicted counts",
+     "statement": "| single-candidate ACK attribution | **real** (11,697 / 12,194) | — |"
+    }
+   ],
+   "note": "Excluded. No accepted record states the class count. S1 states only 12 961 ACK lines and 742 exchangeable lines; the single-candidate count is an inference. The cited N = 1 / N = 2 numbers are predictions, never evidence."
+  },
+  {
+   "name": "exchangeable ACK groups (2 candidates)",
+   "admitted": false,
+   "genuine": "inferred-only",
+   "strength": "I",
+   "evidence": [
+    {
+     "record": "simulations/m2/results/M2-S7.2a-a21-s1-closure.md",
+     "section": "§3 Whole-run rows and accounting",
+     "contract": "F1-d(i) (A2-V1-S1 CLOSED ACCEPTED)",
+     "scope": "the sealed A2-V1 run, whole-run window, one configuration, one seed, DL, two UEs, NACKs on ue[1] only; does not accept A2-V1",
+     "statement": "- 371 certified exchangeable groups, with 742 exchangeable lines;"
+    },
+    {
+     "record": "simulations/m2/results/M2-S7.2a-a21-s1-closure.md",
+     "section": "§3 Whole-run rows and accounting",
+     "contract": "F1-d(i) (A2-V1-S1 CLOSED ACCEPTED)",
+     "scope": "the sealed A2-V1 run, whole-run window, one configuration, one seed, DL, two UEs, NACKs on ue[1] only; does not accept A2-V1",
+     "statement": "- Exchangeable lines are twice the groups: 2 × 371 = 742."
+    }
+   ],
+   "note": "Excluded (design rev. 2.1, F-3). The record states neither the candidate count of a group nor that the groups are ACK groups; '2 candidates' is a deduction."
+  },
+  {
+   "name": "exchangeable groups of 3 or more",
+   "admitted": false,
+   "genuine": "not-exercised",
+   "strength": "N",
+   "evidence": [
+    {
+     "record": "simulations/m2/results/M2-S7.2a-a21-s1-closure.md",
+     "section": "§5 Scope (not covered at all)",
+     "contract": "F1-d(i) (A2-V1-S1 CLOSED ACCEPTED)",
+     "scope": "the sealed A2-V1 run, whole-run window, one configuration, one seed, DL, two UEs, NACKs on ue[1] only; does not accept A2-V1",
+     "statement": "- more than two UEs in a genuine run;"
+    }
+   ],
+   "note": "Known, not exercised on genuine output."
+  },
+  {
+   "name": "NACK resolved: single candidate",
+   "admitted": false,
+   "genuine": "inferred-only",
+   "strength": "I",
+   "evidence": [
+    {
+     "record": "simulations/m2/results/M2-S7.2a-a21-s1-closure.md",
+     "section": "§3 Whole-run rows and accounting",
+     "contract": "F1-d(i) (A2-V1-S1 CLOSED ACCEPTED)",
+     "scope": "the sealed A2-V1 run, whole-run window, one configuration, one seed, DL, two UEs, NACKs on ue[1] only; does not accept A2-V1",
+     "statement": "- 40 lines resolved by retransmission evidence and 15 by bound handles;"
+    }
+   ],
+   "note": "Excluded. S1 states 144 NACKs, 40 resolved by retransmission evidence and 15 bound; the class of the remaining NACK lines is not stated."
+  },
+  {
+   "name": "NACK resolved: bound handle",
+   "admitted": true,
+   "genuine": "explicit",
+   "strength": "E1",
+   "evidence": [
+    {
+     "record": "simulations/m2/results/M2-S7.2a-a21-s1-closure.md",
+     "section": "§3 Whole-run rows and accounting",
+     "contract": "F1-d(i) (A2-V1-S1 CLOSED ACCEPTED)",
+     "scope": "the sealed A2-V1 run, whole-run window, one configuration, one seed, DL, two UEs, NACKs on ue[1] only; does not accept A2-V1",
+     "statement": "- 40 lines resolved by retransmission evidence and 15 by bound handles;"
+    },
+    {
+     "record": "simulations/m2/results/M2-S7.2a-a21-f3-closure.md",
+     "section": "§2 Phase 2: targeted validation",
+     "contract": "f1d-i on the prefix (A2-D2-F3 CLOSED ACCEPTED)",
+     "scope": "the F3 prefix (up to 385 ms) of the sealed A2-V1 run; not an A2-V1 acceptance",
+     "statement": "- Handle 54326 is bound at 366 ms and retired at 384 ms."
+    }
+   ],
+   "note": "Admitted. The class 'bound' is assigned only to NACK lines (m2s72_a21.py apply_nack 'bound' at lines 280 and 291; discard lines at 432)."
+  },
+  {
+   "name": "NACK resolved by retransmission evidence (deferred)",
+   "admitted": true,
+   "genuine": "explicit",
+   "strength": "E1",
+   "evidence": [
+    {
+     "record": "simulations/m2/results/M2-S7.2a-a21-s1-closure.md",
+     "section": "§3 Whole-run rows and accounting",
+     "contract": "F1-d(i) (A2-V1-S1 CLOSED ACCEPTED)",
+     "scope": "the sealed A2-V1 run, whole-run window, one configuration, one seed, DL, two UEs, NACKs on ue[1] only; does not accept A2-V1",
+     "statement": "- 40 lines resolved by retransmission evidence and 15 by bound handles;"
+    },
+    {
+     "record": "simulations/m2/results/M2-S7.2a-a21-f3-closure.md",
+     "section": "§2 Phase 2: targeted validation",
+     "contract": "f1d-i on the prefix (A2-D2-F3 CLOSED ACCEPTED)",
+     "scope": "the F3 prefix (up to 385 ms) of the sealed A2-V1 run; not an A2-V1 acceptance",
+     "statement": "- A-2.1 resolves the mixed 366 ms group: the NACK is `resolved-by-rtx`, bound to node 2050 / 145933."
+    }
+   ],
+   "note": "Admitted. The class 'resolved-by-rtx' is assigned only to RTX (NACK) lines (m2s72_a21.py line 409)."
+  },
+  {
+   "name": "multi-NACK groups (handle relations kept ambiguous)",
+   "admitted": false,
+   "genuine": "not-exercised",
+   "strength": "N",
+   "evidence": [
+    {
+     "record": "simulations/m2/results/M2-S7.2a-a21-s1-closure.md",
+     "section": "§5 Scope (synthetic only)",
+     "contract": "F1-d(i) (A2-V1-S1 CLOSED ACCEPTED)",
+     "scope": "the sealed A2-V1 run, whole-run window, one configuration, one seed, DL, two UEs, NACKs on ue[1] only; does not accept A2-V1",
+     "statement": "- multi-NACK groups, ambiguous handles and narrowing by elimination (ue[0] never NACKs, so no group holds two NACKs);"
+    }
+   ],
+   "note": "Known, not exercised on genuine output."
+  },
+  {
+   "name": "retransmissions",
+   "admitted": true,
+   "genuine": "explicit",
+   "strength": "E1",
+   "evidence": [
+    {
+     "record": "simulations/m2/results/M2-S7.2a-a21-s1-closure.md",
+     "section": "§3 Whole-run rows and accounting (accounting table)",
+     "contract": "F1-d(i) (A2-V1-S1 CLOSED ACCEPTED)",
+     "scope": "the sealed A2-V1 run, whole-run window, one configuration, one seed, DL, two UEs, NACKs on ue[1] only; does not accept A2-V1",
+     "statement": "| Retransmissions | 0 | 144 | 144 (on 129 PDUs) |"
+    }
+   ],
+   "note": "Admitted."
+  },
+  {
+   "name": "discard after maxHarqRtx + 1 transmissions",
+   "admitted": false,
+   "genuine": "not-exercised",
+   "strength": "N",
+   "evidence": [
+    {
+     "record": "simulations/m2/results/M2-S7.2a-a21-s1-closure.md",
+     "section": "§5 Scope (synthetic only)",
+     "contract": "F1-d(i) (A2-V1-S1 CLOSED ACCEPTED)",
+     "scope": "the sealed A2-V1 run, whole-run window, one configuration, one seed, DL, two UEs, NACKs on ue[1] only; does not accept A2-V1",
+     "statement": "- discards at maxHarqRtx (the genuine run has 0 discards);"
+    }
+   ],
+   "note": "Known, not exercised on genuine output."
+  },
+  {
+   "name": "mixed ACK / NACK groups",
+   "admitted": true,
+   "genuine": "explicit",
+   "strength": "E2",
+   "evidence": [
+    {
+     "record": "simulations/m2/results/M2-S7.2a-a21-f3-closure.md",
+     "section": "§2 Phase 2: targeted validation",
+     "contract": "f1d-i on the prefix (A2-D2-F3 CLOSED ACCEPTED)",
+     "scope": "the F3 prefix (up to 385 ms) of the sealed A2-V1 run; not an A2-V1 acceptance",
+     "statement": "- A-2.1 resolves the mixed 366 ms group: the NACK is `resolved-by-rtx`, bound to node 2050 / 145933."
+    }
+   ],
+   "note": "Admitted. Scope: the one stated instance, on the F3 prefix. S1 states no count.",
+   "definition": {
+    "record": "simulations/m2/results/M2-S7.2a-a2-design-review.md",
+    "section": "§9 coverage gaps (GA-4), glossary for the word 'mixed' only",
+    "statement": "| GA-4 mixed groups (ACK + NACK at the same t, p) |"
+   }
+  },
+  {
+   "name": "end-of-run censoring: awaiting feedback",
+   "admitted": true,
+   "genuine": "explicit",
+   "strength": "E1",
+   "evidence": [
+    {
+     "record": "simulations/m2/results/M2-S7.2a-a21-s1-closure.md",
+     "section": "§3 Whole-run rows and accounting (accounting table)",
+     "contract": "F1-d(i) (A2-V1-S1 CLOSED ACCEPTED)",
+     "scope": "the sealed A2-V1 run, whole-run window, one configuration, one seed, DL, two UEs, NACKs on ue[1] only; does not accept A2-V1",
+     "statement": "| Censored (awaiting feedback at the end) | 5 | 1 | 6 |"
+    },
+    {
+     "record": "simulations/m2/results/M2-S7.2a-a21-s1-closure.md",
+     "section": "§2 Acceptance matrix (S-7)",
+     "contract": "F1-d(i) (A2-V1-S1 CLOSED ACCEPTED)",
+     "scope": "the sealed A2-V1 run, whole-run window, one configuration, one seed, DL, two UEs, NACKs on ue[1] only; does not accept A2-V1",
+     "statement": "end states `{'censored: awaiting feedback': 6}`"
+    }
+   ],
+   "note": "Admitted."
+  },
+  {
+   "name": "end-of-run censoring: inserted in the last TTI",
+   "admitted": false,
+   "genuine": "not-exercised",
+   "strength": "N",
+   "evidence": [
+    {
+     "record": "simulations/m2/results/M2-S7.2a-a21-s1-closure.md",
+     "section": "§2 Acceptance matrix (S-7)",
+     "contract": "F1-d(i) (A2-V1-S1 CLOSED ACCEPTED)",
+     "scope": "the sealed A2-V1 run, whole-run window, one configuration, one seed, DL, two UEs, NACKs on ue[1] only; does not accept A2-V1",
+     "statement": "end states `{'censored: awaiting feedback': 6}`"
+    }
+   ],
+   "note": "Known, not exercised on genuine output: the only genuine end state is 'awaiting feedback'."
+  },
+  {
+   "name": "end-of-run censoring: awaiting retransmission (structural)",
+   "admitted": false,
+   "genuine": "not-exercised",
+   "strength": "N",
+   "evidence": [
+    {
+     "record": "simulations/m2/results/M2-S7.2a-a21-s1-closure.md",
+     "section": "§5 Scope (synthetic only)",
+     "contract": "F1-d(i) (A2-V1-S1 CLOSED ACCEPTED)",
+     "scope": "the sealed A2-V1 run, whole-run window, one configuration, one seed, DL, two UEs, NACKs on ue[1] only; does not accept A2-V1",
+     "statement": "- structural censoring of a NACK or of a pending group at the end of the log (the genuine end states are only \"awaiting feedback\");"
+    }
+   ],
+   "note": "Known, not exercised on genuine output."
+  },
+  {
+   "name": "end-of-run censoring: awaiting resolution (structural)",
+   "admitted": false,
+   "genuine": "not-exercised",
+   "strength": "N",
+   "evidence": [
+    {
+     "record": "simulations/m2/results/M2-S7.2a-a21-s1-closure.md",
+     "section": "§5 Scope (synthetic only)",
+     "contract": "F1-d(i) (A2-V1-S1 CLOSED ACCEPTED)",
+     "scope": "the sealed A2-V1 run, whole-run window, one configuration, one seed, DL, two UEs, NACKs on ue[1] only; does not accept A2-V1",
+     "statement": "- structural censoring of a NACK or of a pending group at the end of the log (the genuine end states are only \"awaiting feedback\");"
+    }
+   ],
+   "note": "Known, not exercised on genuine output."
+  },
+  {
+   "name": "per-UE occupancy confirmed by the independent reference",
+   "admitted": true,
+   "genuine": "explicit",
+   "strength": "E1",
+   "evidence": [
+    {
+     "record": "simulations/m2/results/M2-S7.2a-a21-s1-closure.md",
+     "section": "§3 Whole-run rows and accounting",
+     "contract": "F1-d(i) (A2-V1-S1 CLOSED ACCEPTED)",
+     "scope": "the sealed A2-V1 run, whole-run window, one configuration, one seed, DL, two UEs, NACKs on ue[1] only; does not accept A2-V1",
+     "statement": "- XA (UE side, unchanged) agrees for both UEs, including per-UE occupancy."
+    }
+   ],
+   "note": "Admitted."
+  },
+  {
+   "name": "independent UE-side reference (A2-7)",
+   "admitted": true,
+   "genuine": "explicit",
+   "strength": "E1",
+   "evidence": [
+    {
+     "record": "simulations/m2/results/M2-S7.2a-a21-s1-closure.md",
+     "section": "§3 Whole-run rows and accounting (row table; A2-7 is the 12th column)",
+     "contract": "F1-d(i) (A2-V1-S1 CLOSED ACCEPTED)",
+     "scope": "the sealed A2-V1 run, whole-run window, one configuration, one seed, DL, two UEs, NACKs on ue[1] only; does not accept A2-V1",
+     "statement": "| Result | PASS | PASS | PASS | PASS | PASS | PASS | PASS | **NOT EVALUATED** | PASS | PASS | PASS | PASS | PASS |"
+    },
+    {
+     "record": "simulations/m2/results/M2-S7.2a-a21-f3-closure.md",
+     "section": "§2 Phase 2: targeted validation",
+     "contract": "f1d-i on the prefix (A2-D2-F3 CLOSED ACCEPTED)",
+     "scope": "the F3 prefix (up to 385 ms) of the sealed A2-V1 run; not an A2-V1 acceptance",
+     "statement": "| XA (UE-side, unchanged) | agreement for both UEs, zero mismatches |"
+    }
+   ],
+   "note": "Admitted."
+  },
+  {
+   "name": "retransmission node identity from the UE side (A2-4b)",
+   "admitted": true,
+   "genuine": "explicit",
+   "strength": "E1",
+   "evidence": [
+    {
+     "record": "simulations/m2/results/M2-S7.2a-a21-s1-closure.md",
+     "section": "§2 Acceptance matrix (S-3)",
+     "contract": "F1-d(i) (A2-V1-S1 CLOSED ACCEPTED)",
+     "scope": "the sealed A2-V1 run, whole-run window, one configuration, one seed, DL, two UEs, NACKs on ue[1] only; does not accept A2-V1",
+     "statement": "every row PASS, with A2-4a and A2-4b exercised"
+    },
+    {
+     "record": "simulations/m2/results/M2-S7.2a-a21-s1-closure.md",
+     "section": "§3 Whole-run rows and accounting (row table; A2-4b is the 7th column)",
+     "contract": "F1-d(i) (A2-V1-S1 CLOSED ACCEPTED)",
+     "scope": "the sealed A2-V1 run, whole-run window, one configuration, one seed, DL, two UEs, NACKs on ue[1] only; does not accept A2-V1",
+     "statement": "| Result | PASS | PASS | PASS | PASS | PASS | PASS | PASS | **NOT EVALUATED** | PASS | PASS | PASS | PASS | PASS |"
+    },
+    {
+     "record": "simulations/m2/results/M2-S7.2a-a21-f3-closure.md",
+     "section": "§2 Phase 2: targeted validation",
+     "contract": "f1d-i on the prefix (A2-D2-F3 CLOSED ACCEPTED)",
+     "scope": "the F3 prefix (up to 385 ms) of the sealed A2-V1 run; not an A2-V1 acceptance",
+     "statement": "- A2-4a and A2-4b are PASS, **A2-4c is NOT EVALUATED** (no scheduler line), and A2-8 is NOT EVALUATED (a prefix has no scalars)."
+    }
+   ],
+   "note": "Admitted."
+  },
+  {
+   "name": "Simu5G per-UE statistics (A2-8)",
+   "admitted": true,
+   "genuine": "explicit",
+   "strength": "E1",
+   "evidence": [
+    {
+     "record": "simulations/m2/results/M2-S7.2a-a21-s1-closure.md",
+     "section": "§2 Acceptance matrix (S-4)",
+     "contract": "F1-d(i) (A2-V1-S1 CLOSED ACCEPTED)",
+     "scope": "the sealed A2-V1 run, whole-run window, one configuration, one seed, DL, two UEs, NACKs on ue[1] only; does not accept A2-V1",
+     "statement": "| S-4 | A2-8 against the genuine whole-run scalars | **PASS** (§4) |"
+    },
+    {
+     "record": "simulations/m2/results/M2-S7.2a-a21-s1-closure.md",
+     "section": "§4 A2-8: genuine whole-run scalars",
+     "contract": "F1-d(i) (A2-V1-S1 CLOSED ACCEPTED)",
+     "scope": "the sealed A2-V1 run, whole-run window, one configuration, one seed, DL, two UEs, NACKs on ue[1] only; does not accept A2-V1",
+     "statement": "All four values are equal within the declared relative tolerance of 1e-9."
+    }
+   ],
+   "note": "Admitted."
+  }
+ ]
+}
