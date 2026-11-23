@@ -24,12 +24,25 @@ import m2s72_e0vn21 as W  # noqa: E402
 MODES = ("run", "hrq", "hrq-fixture", "controls")
 
 
-def main(argv):
+def _dispatch(argv):
     if len(argv) >= 2 and argv[1] in MODES:
         print(f"REFUSED: mode '{argv[1]}' is not implemented in increment I-1 (design revision 2.1, section 9)")
         return W.EXIT[W.V_REFUSED]
     print(__doc__)
     return W.EXIT[W.V_REFUSED]
+
+
+def main(argv):
+    """the CLI boundary: a refusal or any evaluation that cannot complete is exit 2, never a PASS"""
+    try:
+        return _dispatch(argv)
+    except W.Refused as ex:
+        print(f"REFUSED: {ex}")
+        return W.EXIT[W.V_REFUSED]
+    except Exception as ex:                     # includes W.EvaluationError
+        import traceback
+        print(f"EVALUATION ERROR {type(ex).__name__}: {ex}\n{traceback.format_exc()[-1500:]}")
+        return W.EXIT[W.V_ERROR]
 
 
 if __name__ == "__main__":
