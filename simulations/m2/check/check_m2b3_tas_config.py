@@ -64,7 +64,9 @@ def opp_run(args, cwd):
 
 def runconfig(ini_dir, ini, cfg):
     """[(key, value)] of the flattened configuration, in lookup order"""
-    r = opp_run(["-f", ini, "-c", cfg, "-r", "0", "-q", "runconfig"], ini_dir)
+    # exactly the argument-vector form of tier-1's audited queries (no NED path, no libraries: -q loads no network)
+    r = subprocess.run([os.path.join(OMNETPP, "bin", "opp_run"), "-u", "Cmdenv", "-f", ini, "-c", cfg, "-r", "0", "-q",
+                        "runconfig"], cwd=ini_dir, capture_output=True, text=True, timeout=600)
     out = []
     for line in r.stdout.splitlines():
         m = re.match(r"^\t(\S.*?) = (.*)$", line)
