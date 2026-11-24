@@ -1,6 +1,23 @@
 # nascTime 2.0 migration — authoritative status (handover)
 
-**Status: revision 4, 18 November 2026 (WP-E4 Phase 3, documentation-only; pending the maintainer's review).** Revision 3 was approved on 17 November 2026 with the maintainer's targeted corrections.
+**Status: revision 5, 24 November 2026 (step 160 roadmap reconciliation, documentation-only; pending the maintainer's review).** Revision 4 (18 November 2026, WP-E4 Phase 3) was merged with PR #10. Revision 3 was approved on 17 November 2026 with the maintainer's targeted corrections.
+
+**Two baselines are distinguished in this revision:**
+
+| Baseline | Date | Integration head | Marked |
+|---|---|---|---|
+| **18 November baseline** (rev. 4) | 18 Nov 2026 | reviewed pre-E4 baseline `290babb`; rev. 4 merged by PR #10 | unmarked or "(rev. 4)" text |
+| **24 November reconciliation** (rev. 5) | 24 Nov 2026 | `m2/continuation` at `3b2c2941ef297cb20051798fd1ad3ed8dea69c20` (the WP-A1 merge, PR #11) | "(rev. 5)" text and the new **§9** |
+
+Revision 5 records:
+- the M2-B implementation increments M2B-1 … M2B-5 (PRs #12 … #16), mapped onto the original work packages B1 … B7;
+- the integration of WP-A1 (PR #11) at level 2;
+- a reconciliation of every original milestone against the repository at `3b2c294` (§9), using the status vocabulary CLOSED / IMPLEMENTED / PARTIAL / NOT STARTED / DEFERRED / BLOCKED;
+- the companion plan for the remaining work, `docs/migration/remaining-work-roadmap.md` (new in rev. 5).
+
+Revision 5 **changes no code, configuration, CI workflow, evaluator, fixture, result or frozen record**, accepts no open scientific criterion and records **no new maintainer decision**. A merged pull request is never treated as scientific acceptance. Rev-4 text that rev. 5 supersedes is kept and labelled, as before.
+
+**Previous header (rev. 4), retained:** *Status: revision 4, 18 November 2026 (WP-E4 Phase 3, documentation-only; pending the maintainer's review).* Revision 3 was approved on 17 November 2026 with the maintainer's targeted corrections.
 
 Revision 4 records:
 - the integrated tier-0 and tier-1 CI;
@@ -63,6 +80,27 @@ Every discrepancy between these sources is listed in `migration/migration-decisi
 - **Tags.** The other 26 branches were deleted on 18 November 2026, after 28 annotated `archive/*` tags preserved their heads. 30 tags in total, with `v1.0` and `v1.0.1` unchanged.
 - **Register.** The complete branch / tag / commit mapping, and how to resolve a historical branch name, is in `docs/migration/repository-archive-and-evidence-register.md` §2.
 - **History.** `m2/continuation` shares **no history** with `master`. Its only root is the snapshot `14d5e0f` (DR-18).
+
+**Current state (rev. 5, 24 Nov 2026).**
+- **Integration head:** `m2/continuation` at `3b2c2941ef297cb20051798fd1ad3ed8dea69c20`, the merge of PR #11 (WP-A1). The live head advances with later merges.
+- **Merged since the 18 November baseline** (each by a merge commit into `m2/continuation`):
+
+| PR | Increment | Merged | Head merged | Level |
+|---|---|---|---|---|
+| #11 | WP-A1: A-2.1 integration wrapper for E0v-N and the prepared independent-validation procedure | 24 Nov | `0b7da11` (merge `3b2c294`) | 2 |
+| #12 | M2B-1: TSN AF offline compiler, S-CFG/1 | 23 Nov | `0655cee` (merge `1580a95`) | 2 |
+| #13 | M2B-2: TT gate clock adapter (S-CLK) and offline bridge-delay observer (S-OBS) | 24 Nov | `1d03822` (merge `690b5bf`) | 2 |
+| #14 | M2B-3: opt-in IEEE 802.1Qbv egress gating (S-CFG/2) | 24 Nov | `c6e82ed` (merge `8771095`) | 2 |
+| #15 | M2B-4: TAS-compatible egress pairing; bridge residence under TAS | 24 Nov | `388826c` (merge `9781291`) | 2 |
+| #16 | M2B-5: common-epoch TAS schedule alignment | 24 Nov | `09cffb4` (merge `f8bf10c`) | 2 |
+
+- **Branches.** The four permanent branches are unchanged (`git ls-remote`, 24 Nov). The feature branches of PRs #11 … #16 are no longer on the remote; their content is reachable from `m2/continuation`. In particular the WP-A1 reviewed implementation commit `C` = `f3f68be` and the tested procedure commit `544c093` are ancestors of `3b2c294`, which the validation procedure requires (runbook §1, `h1-setup.sh`).
+- **Tags:** 30, unchanged.
+- **Open pull requests:** #2 and #3, both from an external fork and both against the frozen `master` (legacy line). They are **historical reference material only**:
+  - **#2** (head `1501a50`): on the legacy PPP / IP NW-TT–UPF architecture, a DS-TT uplink translation of mapped 802.1Q PCP values into the IPv4 DSCP (the VLAN tag of a mapped PCP is removed), the DS-TT downlink restoration of PCP from the DSCP, and an uplink reflective-QoS demo (`simulations/demos/uplink_qos`). It is **not** a general DS-TT VLAN translation and has no counterpart in the Ethernet PDU-session architecture of the 1.8 line. The DS-TT VLAN-translation task retained by DR-02 stays outstanding (§9.4).
+  - **#3:** two-gNB uplink FRER replication, recovery and scalability demos on the legacy line; relevant as reference for M3 F2 / TP-3.
+
+  Neither can be merged into `master` (DR-18); their disposition is a maintainer decision (§9.6).
 
 **Historical table (rev. 3, 17 Nov 2026), retained.** The column "Archived as (rev. 4)" gives the tag that now preserves each deleted branch's head; the rev-3 text is otherwise unchanged. These commits come from the maintainer's independent audit of 17 November 2026. They are not re-verified by this record, because the authoring clone holds only the `m2/*` and `plan/*` branches.
 
@@ -206,6 +244,8 @@ Rules:
 | F4 | NR dual-connectivity transport diversity (README: "in development") | — | **Deferred to Phase 5 — approved** | Roadmap Phase 5: trigger: upstream NR dual-connectivity support (blocker B1). Contingency `nasctime.compat.nrdc` only by approval. |
 | — | DS-TT VLAN translation (nascTime PR #2; inventory §3 "keep") | PR #2 head `1501a50` | **Task — retained in M2-B (approved)** | M2-B (DS-TT function); not in the README tables |
 
+**(rev. 5) Note on the last row.** The rev-3 citation "nascTime PR #2 … head `1501a50`" is retained as written. Review of that PR (24 Nov) shows that it implements legacy DS-TT PCP-to-IPv4-DSCP translation and an uplink reflective-QoS demo on the legacy PPP / IP architecture, not a general DS-TT VLAN translation. It is historical reference material only. The DR-02 task "DS-TT VLAN translation" is unchanged and outstanding (§9.4).
+
 The README also documents `tests/fingerprint/` (lines 504–509), but that directory is not in the repository at `115012f` or, per `legacy-baseline-manifest.md` §3, in the public repository. This is blocker B8.
 
 **The M2 work actually executed** follows the gPTP stage plan of `m2-s2-design.md` §7 (S0–S8) and the S7 roadmap. It does not complete M2 alone: **DR-02 (17 Nov)** approved the full M2-A (timing, S0–S8) and M2-B (bridge functionality) scope. S8 stays within M2 as extended fidelity (DR-04). `StaticBmca` gets an offline replacement, conditional on equivalence analysis (DR-03).
@@ -260,9 +300,9 @@ E2 (the load sweep) is outside the plan's execution scope. It is re-declared aft
 | E0v-N N = 2 smoke | **Accepted 2026-11-16 as "VALIDATED WITH A-1 LIMITATION"** (PU-4 FAIL retained) | quoted in `m2-s7.2a-a2-design-review.md` §1. Raw evidence preserved (private archive, 58 files, verified). **No dedicated closure record yet** (DR-08). | as above |
 | A-2 (ACK-only H-ARQ attribution) | Frozen at `fbee202`. Validated on real ACK-only output. | `m2-s7.2a-a2-implementation.md`; `m2-s7.2a-a2-control-fix.md` | — |
 | A2-V1 (real-NACK run of A-2) | **NOT ACCEPTED, permanently** | `m2-s7.2a-a2d2-protocol-r1.md`; `m2-s7.2a-a2d2-f1-root-cause.md` | — |
-| A-2.1 | Implemented (`2a7b96e`). F3 **CLOSED, ACCEPTED** (`d920125`). A2-V1-S1 **CLOSED, ACCEPTED under F1-d(i)**; the full contract is INCOMPLETE (A2-4c NOT EVALUATED). | `results/M2-S7.2a-a21-implementation.md`, `-f3-closure.md`, `-s1-closure.md` (`115012f`) | **Not yet integrated into E0v-N** (DR-07) |
+| A-2.1 | Implemented (`2a7b96e`). F3 **CLOSED, ACCEPTED** (`d920125`). A2-V1-S1 **CLOSED, ACCEPTED under F1-d(i)**; the full contract is INCOMPLETE (A2-4c NOT EVALUATED). | `results/M2-S7.2a-a21-implementation.md`, `-f3-closure.md`, `-s1-closure.md` (`115012f`) | ~~**Not yet integrated into E0v-N** (DR-07)~~ **(rev. 5)** Integrated into the E0v-N evaluation **at level 2** by WP-A1 (§3.4b). Not yet a gate of any accepted E0v-N verdict. |
 | E0v core / H5 / p (N = 1 calibration) | **Not run** | plan §2.1 | Needs an independent execution batch and approval |
-| E0v-N bracket (f_E1) | **Not run; blocked** until A-2.1 is integrated (A1) and validated (V-N1, V-N2, V-V1). DR-07a–d are approved. | plan §2.1. N2-D2: the campaign cannot start under A-1. S5-2-D2 is open. | A1, the validations, then an independent environment. About 60–200 GB cumulative (plan §4.3). |
+| E0v-N bracket (f_E1) | **Not run; blocked** until A-2.1 is integrated (A1) and validated (V-N1, V-N2, V-V1). DR-07a–d are approved. | plan §2.1. N2-D2: the campaign cannot start under A-1. S5-2-D2 is open. | A1, the validations, then an independent environment. About 60–200 GB cumulative (plan §4.3). **(rev. 5)** A1 is done at level 2; the bracket remains **BLOCKED** on V-N1 / V-N2 / V-V1 (AC-5) and S5-2-D2 (AC-6). |
 | E3 | Not prepared (generator E3v section, G-1, missing) | plan §2.2, §3 | — |
 | E1 + E4 | Not prepared (G-1 E1 section; G-2 per-UE S7.1 rows) | plan §2.3, §2.4, §3 | — |
 | Stage 6, Block F, stages 8–9 | Not started | §3.3 | — |
@@ -283,14 +323,20 @@ E2 (the load sweep) is outside the plan's execution scope. It is re-declared aft
 
 **Requires an independent execution environment** (currently the VM): every E0v / E3 / E1 / E4 run and every independent acceptance. Storage: cumulative 290–470 GB, peak 6 GB or less, with the tiered evidence rules of plan §4. Wall time about 18–25 h for the whole of Stage 5 (plan §4.3, an estimate).
 
-### 3.4b WP-A1 — A-2.1 integration wrapper for E0v-N (step 159; pending the maintainer's review)
+### 3.4b WP-A1 — A-2.1 integration wrapper for E0v-N (step 159; updated rev. 5)
 
-This entry adds status only. It does not change any row of §3.4 or §3.4a, and S7.2a remains **partial**.
+This entry adds status only. It does not change any row of §3.4a, and S7.2a remains **partial**.
+
+**(rev. 5) Integration record:**
+- **Integrated** into `m2/continuation` by the merge commit `3b2c294` of PR #11 (head `0b7da11`, itself containing the history-preserving merge `a54faf3` of `f8bf10c`).
+- **Development tests and hosted CI passed:** tier-0 run 45470846973 on `0b7da11`, 13 / 13 suites including `test_m2s72_e0vn21.py` 52 / 52 (isolated); the historical-pin tests pass on the merged tree.
+- **Preserved:** the reviewed implementation commit `C` (`f3f68be`) and the procedure commits (`544c093`, `532d579`) are ancestors of `3b2c294`; the wrapper files equal `C` and the procedure files equal `544c093` byte for byte.
+- **Pending:** V-N1, V-N2, V-V1; AC-5 and AC-6; S5-2-D2. **S7.2a Stage 5 remains incomplete.** The next executable action is the maintainer's gate A for session Q (§9.2).
 
 | Item | Status |
 |---|---|
 | Design | Revision 2.1 (`57a80ca`), approved with the D-A1 rulings (`docs/migration/wp-a1-a21-e0vn-wrapper-design.md`) |
-| Implementation (`m2s72_e0vn21.py`, `check_m2s72_s5n21.py`, registry, expectation files, suite) | **Complete at level 2 (AC-1 … AC-4)**, subject to confirmation by hosted CI on the integration branch. Reviewed implementation commit `C` = `f3f68be`. Closure record: `docs/migration/wp-a1-level2-closure.md`. Suite: 52 / 52 PASS, run isolated as the 13th tier-0 suite. |
+| Implementation (`m2s72_e0vn21.py`, `check_m2s72_s5n21.py`, registry, expectation files, suite) | **Complete at level 2 (AC-1 … AC-4)**, ~~subject to confirmation by hosted CI on the integration branch~~ **(rev. 5) confirmed by hosted tier-0 on the merged head (run 45470846973) and integrated (`3b2c294`)**. Reviewed implementation commit `C` = `f3f68be`. Closure record: `docs/migration/wp-a1-level2-closure.md`. Suite: 52 / 52 PASS, run isolated as the 13th tier-0 suite. |
 | FGO registry | 18 features, 9 admitted, unchanged since `7e5c169`. No admission without a reviewed change citing an accepted record. |
 | Validation procedure | Runbook revision 4 with fail-closed scripts (`docs/migration/wp-a1-validation-runbook.md`, `docs/migration/wp-a1-validation/`; procedure tested at `544c093`, test report `docs/migration/wp-a1-validation-test-report.md`). Procedure commit `D` is fixed only when the maintainer signs gate A. |
 | V-N1, V-N2, V-V1 | **Not executed.** NO-GO until gate A is signed, an executor is designated, session Q (DR-13-V, G0-RO) is approved and the three archives are released. |
@@ -311,9 +357,9 @@ This entry adds status only. It does not change any row of §3.4 or §3.4a, and 
 
 | Item (roadmap §2 Phase 2) | Status (audit §1.1) | Remote | Indep. evidence |
 |---|---|---|---|
-| TAS / Qbv at the TT ports ("TAS parsed, not applied" closed with INET Qbv; `upstream-dependency-matrix.md` §2) | Not started | Design and configuration: yes | yes (protocol row "gates observed opening and closing") |
-| TSN AF offline compiler (streams → S-CFG tables, PCP/VID → QFI, nascTime profiles, TSCAI) and runtime observer | Not started. S-CFG exists only as the S7.2a generator (audit §1.6). | Compiler: yes. Observer: code yes, runs no. | yes |
-| Multi-endpoint (N DS-TT / UE pairs on one UPF bridge) | Partly covered by S7.2a (gPTP only) | — | — |
+| TAS / Qbv at the TT ports ("TAS parsed, not applied" closed with INET Qbv; `upstream-dependency-matrix.md` §2) | ~~Not started~~ **(rev. 5) IMPLEMENTED at level 2** (B5: M2B-2 S-CLK, M2B-3 opt-in Qbv, M2B-5 common epoch; local functional evidence only). §9.4 | Design and configuration: yes | yes (protocol row "gates observed opening and closing") |
+| TSN AF offline compiler (streams → S-CFG tables, PCP/VID → QFI, nascTime profiles, TSCAI) and runtime observer | ~~Not started. S-CFG exists only as the S7.2a generator (audit §1.6).~~ **(rev. 5)** Compiler **PARTIAL** (B3: S-CFG/1 bearer tables byte-identical to the generator; S-CFG/2 TAS and common epoch; no TSCAI, no VID classification, no `.ini` section integration). Observer **PARTIAL** (B6: offline statistics M2B-2 and passive per-frame observation with TAS pairing M2B-4 at level 2; the runtime `bridgeResidence` signal and its per-port-pair statistics are not implemented). §9.4 | Compiler: yes. Observer: code yes, runs no. | yes |
+| Multi-endpoint (N DS-TT / UE pairs on one UPF bridge) | Partly covered by S7.2a (gPTP only). **(rev. 5)** M2B-3 … M2B-5 add DL / UL Ethernet data traffic through the N = 2 bridge in their test configurations (level 2, local). The S8 integration scenario (bidirectional, 3 endpoints) is not started. | — | — |
 | `StaticBmca` replacement | Not started. DR-03 approved an offline replacement, conditional on equivalence analysis. | yes (analysis; validator once tier 1 exists) | legacy-scalar check (Phase 0) |
 | G1–G6 / H1–H6 / S1–S8 / F1–F4 coverage | Dispositions decided by DR-02 (§3 table); the H5 retirement is pending its equivalence analysis. The coverage-evidence entries (WP B1) are not started. | yes | no (it is a mapping) |
 | Legacy-vs-1.8 statistical comparison | Not started. Needs the Phase 0 evidence acquisition and mapping first (DR-06). | no | **yes**: the legacy stack on the results machine |
@@ -322,6 +368,8 @@ This entry adds status only. It does not change any row of §3.4 or §3.4a, and 
 | VM NED / INI compatibility corrections for 6.5.0 | **Collected** (H2: the private VM-compatibility archive). Not yet reviewed or incorporated. | review by the maintainer, or by the agent from reviewed extracts (DR-12); integration as reviewed default-off commits | yes (G0 identity, held) |
 
 **M2 overall: OPEN.** S0–S6 and S7.1 are complete on 1.8.0, with the 1.8.1 forms accepted. S7.2a is partial. S7.2b, S7.3, S7.4a, S8 and the non-gPTP Phase 2 items have not started.
+
+**(rev. 5)** M2 remains **OPEN**. The non-gPTP statement above is superseded for B3, B5 and B6: B5 is implemented at level 2, while B3 and B6 are partly implemented (§9.4). No M2-B acceptance row has independent evidence.
 
 ## 4. M3 (Phase 3) — FRER
 
@@ -358,6 +406,8 @@ Upstream contributions are coordinated separately by the maintainer. Simu5G 1.8.
 
 ## 7. Summary matrix
 
+**(rev. 5)** The table below is the **18 November baseline**, retained unchanged. The 24 November reconciliation is §9.1, which supersedes it for current status.
+
 | Milestone / stage | Status | Remote work possible | Independent simulation evidence still required |
 |---|---|---|---|
 | Phase 0 | Open (provenance collected; mapping and reproduction outstanding) | Documentation; mapping analysis from reviewed extracts provided by the maintainer (DR-12) | yes (legacy regeneration) |
@@ -383,7 +433,7 @@ Upstream contributions are coordinated separately by the maintainer. Simu5G 1.8.
 
 | Item | Status | Level |
 |---|---|---|
-| Tier-0 Python regression CI (H4 / WP-E1) | **Integrated** (PR #4, 17 Nov). Runs on every pull request to `m2/continuation`. Required at repository-ruleset level (DR-14). Negative controls NC-H4-fixture and NC-H4-simu5g each failed at their intended gate. | 2 |
+| Tier-0 Python regression CI (H4 / WP-E1) | **Integrated** (PR #4, 17 Nov). Runs on every pull request to `m2/continuation`. Required at repository-ruleset level (DR-14). Negative controls NC-H4-fixture and NC-H4-simu5g each failed at their intended gate. **(rev. 5)** Now **13 declared suites**: the ten original ones, `test_tsnaf_compile.py` (M2B-1), `test_tsnaf_compile_tas.py` (M2B-3) and `test_m2s72_e0vn21.py` (WP-A1, isolated). Not in tier-0: the M2B-5 compiler suite `test_tsnaf_compile_epoch.py` (pure Python, 32 / 32 locally) and the simulator-based M2B-2 … M2B-5 suites. | 2 |
 | Tier-1 full-stack CI (WP-E2) | **Integrated** (PR #7, 18 Nov). Pinned release build of OMNeT++ 6.5.0 / INET 4.7.0 / Simu5G 1.8.1 and `libnasctime_m2`; linkage, single C++ runtime and RUNPATH classes; **its specific reviewed configuration queries** (the two `-q runconfig` queries of the A2-V1 wrapper suite). It does **not** automatically validate every newly introduced NED or INI configuration. **Triggering:** automatic for relevant **non-draft** pull requests (complete change set, fail closed); the label `tier1:run` overrides, including for drafts. **Not mandatory** at ruleset level (DR-14). | 2 |
 | Tier-1 negative controls N-1 (lock) and N-2 (SYS_LIBS) | N-1 and N-2 failed during the **offline self-tests** of their hosted runs, so those hosted runs **never reached** the downstream gates they target. Those gates are the lock-identity gate (N-1) and the C-5 SYS_LIBS gate (N-2). Both gates **passed** in the positive hosted tier-1 runs: PR #7 and the C-1 … C-12 prerequisites of E3a, E3b and E3b-R1. Their negative (rejecting) behaviour was tested **offline** by the tier-1 self-tests. | — |
 | E2b.1 / E2b.2 / E2b.3 / E2b.3-R1 | PASS / **FAIL** / **FAIL** / PASS. The failures are preserved (`archive/exp/*`). Superseded by tier-1. | — |
@@ -391,7 +441,7 @@ Upstream contributions are coordinated separately by the maintainer. Simu5G 1.8.
 | **E3b** (`M2S5`, run 0; original) | **E3b PUBLICATION FAILURE, preserved.** E-1 … E-7 PASS. The evidence seal passed and was verified. The raw publication failed: the N3 publication policy was too narrow, and the raw evidence was lost with the runner. | — |
 | **E3b-R1** (`M2S5`, run 0; publication correction) | **E3b PASS.** C-1 … C-12 and E-1 … E-8 PASS. Per-run M2-S5 oracle PASS: C1–C7, S1, S2 and P2 fully; C8 and P1 partially; S3 NOT EVALUATED. **Demonstrates the downlink 5G–TSN timing path.** 33/33 R181c CSV / PCAP hashes reproduced. 568 downlink and 488 uplink N3 packets passed publication validation. | **2** (development smoke) |
 | Differing `.sca` / `.vec` hashes (E3b, E3b-R1) | **Cause unverified.** Not attributed to metadata or any other cause; no whole-result equivalence claim. | — |
-| Hosted functional simulations during travel | **Permitted when individually authorised and bounded** (DR-15). There is no automatic tier-2 integration. | 2 |
+| Hosted functional simulations during travel | **Permitted when individually authorised and bounded** (DR-15). There is no automatic tier-2 integration. **(rev. 5)** None was authorised for M2B-1 … M2B-5: their functional TAS, residence and common-epoch results are **local release-build runs only**. Tier-1 builds and links the changed C++ but does not resolve or run the M2B configurations; extending it is a proposal (M2B-3 §8) awaiting a maintainer decision. | 2 |
 | Independent scientific execution during travel | **Permitted** for an authorised independent scientific executor, under a pre-declared protocol, the approved budget and the maintainer's acceptance (feasibility §4) | 3 candidates |
 | **WP-E4: repository consolidation and travel handover** | **Completed by the documentation PR that introduces revision 4.** That covers four permanent branches, 30 tags and the archive and evidence register. **Still open:** release documentation and M4 readiness (plan package E4, M4). | — |
 
@@ -401,3 +451,200 @@ Upstream contributions are coordinated separately by the maintainer. Simu5G 1.8.
 - Development CI does not replace independent scientific execution. Every scientific acceptance listed in §3.4, §4, §5 and the travel plan's acceptance queue still requires the independent executor (or the VM) under a pre-declared protocol, and the maintainer's acceptance.
 
 **Licensing (DR-16).** The maintainer has confirmed academic-use scope for current nascTime development and simulation, including hosted CI. No compiled framework binary is redistributed. Commercial use is outside the current scope.
+
+---
+
+## 9. Reconciliation of 24 November 2026 (rev. 5)
+
+**Baseline:** `m2/continuation` at `3b2c2941ef297cb20051798fd1ad3ed8dea69c20`.
+
+**Method:**
+- Every original milestone is reconciled against the published records on that head, the merged pull requests and the hosted CI record.
+- Private planning documents (DR-12) were **not** re-read for this revision. Where they are cited, the citation is the reviewed excerpt already quoted in this record (sections 1–8) or in the decisions register. Nothing is inferred about their unquoted content.
+- A merged pull request is never treated as scientific acceptance. Level 2 means code complete and CI- or locally validated; level 3 is independent acceptance by the maintainer.
+
+**Status vocabulary (used only in this section and in `remaining-work-roadmap.md`):**
+
+| Status | Meaning |
+|---|---|
+| **CLOSED** | Accepted against its original scope |
+| **IMPLEMENTED** | The functionality exists, but acceptance remains incomplete |
+| **PARTIAL** | Some original requirements remain unimplemented |
+| **NOT STARTED** | No implementation |
+| **DEFERRED** | Deferred by an explicit, approved decision (cited) |
+| **BLOCKED** | Cannot proceed until the named dependency is met |
+
+**"Required for 2.0"** is taken from the sources already quoted:
+- S7 roadmap §2.1 minimum gPTP scope: S7.1, S7.2a, S7.2b, S7.3 (detection and state; recovery experimental);
+- §2.2 and F1: S7.4a optional, and it never delays M3 or M4; D7: BMCA (S7.4b) not mandatory;
+- DR-02: the full M2-A and M2-B scope, and M2 closes only when both close;
+- §5: M4 depends on M2 and M3;
+- DR-04: the release eligibility of S8 claims follows the B7 analysis;
+- the Phase 0 rule (§1): nothing waits for Phase 0 closure, but the legacy comparisons need its mapping (DR-06).
+
+Where the sources leave a release question open, this record says **"undecided"** and lists it in §9.6.
+
+### 9.1 Milestone status matrix (24 Nov 2026)
+
+| Milestone / stage | Status | Required for 2.0 | Next concrete action |
+|---|---|---|---|
+| Phase 0: legacy baseline and preservation | **PARTIAL** (provenance collected; mapping, dataset preservation and reproduction outstanding) | Closure: not a gate (§1 rule). Mapping and evidence acquisition: **yes**, for the M2 and M3 legacy comparisons (DR-06) | Maintainer: DR-06b dataset preservation when VM access resumes |
+| M1: Ethernet bridge | **CLOSED** (2026-10-13) | yes (done) | — (O-S0-1 observation only) |
+| M2-A S0, S1, S3–S6 | **CLOSED** (1.8.0; 1.8.1 forms accepted) | yes (done) | — |
+| M2-A S2 (design and standards stage) | **CLOSED** as a design stage; standards texts not read (V-register) | yes (done) | V-register affects S7.3 L-rec, S7.4a, S8 only |
+| M2-A S7.1 | **CLOSED** for its 1.8.0 scope; the 1.8.1 per-UE forms are re-planned into Stage 5 (E1 + E4) | yes | via Stage 5 (A4) |
+| M2-A S7.2a | **PARTIAL**: stages 1–4 CLOSED; stage 5 PARTIAL (E0v-N bracket **BLOCKED**); stages 6–9 NOT STARTED | **yes** | Maintainer gate A for WP-A1 session Q (§9.2) |
+| M2-A S7.2b (UL GM, UE-to-UE) | **NOT STARTED** | **yes** | C1 design |
+| M2-A S7.3 (L-det / L-state; L-rec experimental) | **NOT STARTED** | **yes** | C3 design |
+| M2-A S7.4a (`NtGptp`, Announce, port states) | **NOT STARTED** | no (release-optional, F1) | after C1 / C3 |
+| M2-A S7.4b (BMCA) | **DEFERRED** (D7) | no | — |
+| M2-A S8 (fidelity) | **NOT STARTED** (within M2 by DR-04) | **undecided** (B7 analysis) | B7 note |
+| M2-B B1 coverage table | **NOT STARTED** | **yes** (DR-02 functional acceptance) | B1 draft |
+| M2-B B2 architecture and seams | **PARTIAL** (S-CFG interface note; S-CLK analysis) | yes | B2 consolidation |
+| M2-B B3 TSN AF offline compiler | **PARTIAL** (M2B-1, M2B-3, M2B-5 compiler parts) | yes | B3 completion |
+| M2-B B4 `StaticBmca` validator | **NOT STARTED**; DR-03 condition (1) **BLOCKED** on the Phase 0 datasets | yes (DR-03, conditional) | DR-03 conditions (2) and (3) |
+| M2-B B5 TAS / Qbv at the TT ports | **IMPLEMENTED** (level 2; local evidence) | yes | hosted-evidence decision, then acceptance protocol |
+| M2-B B6 bridge-delay observer | **PARTIAL** (offline statistics and passive per-frame observation at level 2, local evidence; the runtime `bridgeResidence` signal and per-port-pair statistics not implemented) | yes | B6-R deliverable (§9.4) |
+| M2-B B7 DR-04 clock-error analysis | **NOT STARTED** | yes (decides S8 eligibility) | B7 note |
+| M2-B DS-TT VLAN translation (DR-02, retained; no WP number in the plan) | **NOT STARTED** | yes (DR-02) | design within B2 |
+| M2-B multi-endpoint data plane (S4, S7, S8) | **PARTIAL** (gPTP in S7.2a; N = 2 data traffic in the M2B test configurations) | yes | the S8 scenario needs S7.2b for UL gPTP |
+| M2-B legacy-vs-1.8 comparison | **BLOCKED** on Phase 0 mapping and datasets (DR-06, DR-06b) | yes (M2 experimental row) | Phase 0 mapping |
+| M2-B fingerprint baseline | **BLOCKED** on B8 (suite not located) | yes (M2 regression row) | maintainer: locate the suite |
+| M3 FRER | **NOT STARTED** | **yes** (M4 depends on M3, §5) | D1 architecture |
+| M4 release 2.0 | **NOT STARTED** (CI groundwork exists) | — | E4 groundwork |
+| Phase 5 | **DEFERRED** (F3, F4 by DR-02; other items on upstream triggers, none met) | no | monitoring |
+| Phase 6 | Ongoing; the R181 instance is **CLOSED** | — | per upstream release |
+
+**M2 overall: OPEN. 2.0 is not release-ready.**
+
+### 9.2 WP-A1 and S7.2a Stage 5
+
+| Field | Record |
+|---|---|
+| Objective and acceptance | DR-07a–d: integrate A-2.1 into the E0v-N evaluation; design `wp-a1-a21-e0vn-wrapper-design.md` rev. 2.1, AC-1 … AC-6 (§10 of the design) |
+| Status | **IMPLEMENTED.** The implementation is integrated into `m2/continuation` (`3b2c294`). AC-1 … AC-4 are met at level 2. Development tests passed: 52 / 52; tier-0 13 / 13 on `0b7da11`, run 45470846973. The historical implementation commit `C` (`f3f68be`) and the procedure commit (`544c093`) are preserved as ancestors. |
+| Accepted evidence | Level 2 only: the suite, the 27 negative controls and the genuine F3 fixture through the wrapper. The procedure tests at `544c093` passed on dummy data (test report). There is **no** level-3 evidence. |
+| Remaining development | None for the validations. Later: A3 (E0v-N batch protocol addendum), which uses the wrapper's `run` mode under S5-2-D2. |
+| Remaining independent validation | **V-N1, V-N2, V-V1** (VG-0 … VG-3), giving **AC-5**; then **S5-2-D2**, giving **AC-6**. Optional registry admissions are a separate reviewed change (design §8.5). |
+| Dependencies and blockers | The executor designated by the maintainer (X-1). Gate A signed by the maintainer. Session Q (the DR-13 validation record and G0-RO), each record approved by a signed statement. The three genuine release archives with `SHA256SUMS`. The image digest approved through G0-RO. |
+| Required for 2.0 | **Yes**: every N > 1 Stage 5 result depends on it (plan §3a priority 1) |
+| **Next executable action** | **Maintainer, gate A for session Q** (runbook §2–§3):<br>1. designate the executor (X-1) and supply the public key `allowed_signers` (principal `wpa1-maintainer`, namespace `wpa1-approval`) out of band;<br>2. fix `D`, the approved procedure commit (`544c093`, the tested revision 4, is reachable from `m2/continuation`);<br>3. sign `gate-a.txt` with `reviewed_commit=f3f68be…`, `docs_commit=D`, the three expectation sha256 and the registry sha256, `access=authorised`, `release_sums_sha256`, the three `archive=` lines and `rules=approved`.<br>The executor then runs H-1 (`h1-setup.sh D`), H-3 `qualification`, DR-13-V (§6) and G0-RO (§7), and the maintainer approves both records by signing `a4-dr13.txt` and `a5-g0ro.txt`. Only then can session V run V-N1 / V-N2 / V-V1. **Session Q performs no WP-A1 evaluation.** |
+
+**Stage 5 components** (unchanged from §3.4 except where marked):
+
+| Component | Status (rev. 5) |
+|---|---|
+| D-2, S5-1 | CLOSED |
+| S5-2 | IMPLEMENTED (synthetic tests); S5-2-D2 open |
+| E0v N = 1 smoke; E0v-N N = 2 smoke | Accepted 2026-11-16 (the N = 2 smoke with the A-1 limitation and the PU-4 FAIL retained). **No dedicated closure records yet (DR-08).** |
+| A-2 | CLOSED within its ACK-only scope (frozen `fbee202`). A2-V1: **NOT ACCEPTED, permanently.** |
+| A-2.1 | F3 CLOSED; A2-V1-S1 CLOSED under F1-d(i); full contract INCOMPLETE (A2-4c) |
+| A1 (WP-A1) | IMPLEMENTED (above) |
+| A2 full-contract diagnostic configuration (DR-07a) | NOT STARTED |
+| A3 E0v-N batch protocol addendum | NOT STARTED (its I-dep A1 is now met at level 2) |
+| E0v core / H5 / p | NOT STARTED (needs A3 and an independent batch) |
+| E0v-N bracket, f_E1 | **BLOCKED** on AC-5, AC-6 and A3 |
+| A4 E3 / E1 / E4 generator sections (G-1, G-2, G-3 remainder) | NOT STARTED |
+| E3, E1 + E4 runs | BLOCKED on A4 |
+
+### 9.3 Phase 0, M1 and M2-A
+
+| Item | Objective and acceptance (source) | Status | Accepted evidence | Remaining development | Remaining independent validation | Dependencies / blockers | 2.0 | Next action |
+|---|---|---|---|---|---|---|---|---|
+| **Phase 0** | Tag the legacy line, archive every published result set, reproduction script; each archived result regenerates bit-identically (roadmap §2 Phase 0; §1) | **PARTIAL** | Public identities `v1.0` / `v1.0.1`; provenance collected (H2). No reproduction evidence. | Result-to-paper mapping documentation (from reviewed extracts, DR-12) | Bit-identical regeneration on the legacy stack; preservation of the VM-only datasets (DR-06b) | VM access; B8 (fingerprint suite not located); no tags may be created by the agent | Closure: no gate. Mapping: yes (DR-06) | Maintainer: DR-06b preservation; supply reviewed mapping extracts |
+| **M1** | Roadmap Phase 1 rows and the seam grep gate | **CLOSED** 2026-10-13 | S0–S5 commits (§2); R181 on 1.8.1; G0 | — | — | — | yes | — |
+| **M2-A S0, S1, S3, S4, S5, S6** | Stage plan `m2-s2-design.md` §7 | **CLOSED** | §3.1 (1.8.0 records; R181b / R181c on 1.8.1; G0) | — | — | — | yes | — |
+| **M2-A S2** | Design and standards stage | **CLOSED** (design) | `m2-s2-design.md` | — | — | The standards texts (V-register) are still unread; they affect S7.3 L-rec, S7.4a and S8 | yes | — |
+| **S7.1** | S7 roadmap §5.1 | **CLOSED** (1.8.0 scope) | `m2-s7.1-results.md` | 1.8.1 per-UE forms through A4 (G-2) | E1 + E4 | A4 | yes | A4 |
+| **S7.2a** stages 1–3 (CP1) | Design §11 | **CLOSED** | CP1 rev. 2; R181b; G0 | — | — | — | yes | — |
+| **S7.2a** stage 4 (CP2) | Design §11 | **CLOSED** | CP2 rev. 2; I-2H; R181b; G0 | — | — | — | yes | — |
+| **S7.2a** stage 5 | Plan rev. 1.1 §2 (E0v → E3 → E1 / E4) | **PARTIAL** | §9.2 | A2, A3, A4 | V-N1 / V-N2 / V-V1; S5-2-D2; E0v core / H5 / p; E0v-N bracket; E3; E1 + E4; DR-08 smoke closure records | §9.2 | yes | §9.2 |
+| **S7.2a** stage 6 (CP3) | Exact comparator, canaries CN-1 … CN-4, rule AR, Block D / E (design §7) | **NOT STARTED** | — | A5 | CP3 | A4 | yes | A5 after A4 |
+| **S7.2a** stages 7–9 | Block F seed diagnostic (N = 4), block T; `m2s72.sh all` record; fresh-clone bundle | **NOT STARTED** | — | A6 | Block F; fresh-clone reproduction | A5 | yes | A6 |
+| **S7.2b** | UL GM and UE-to-UE; gate V0-UL first; rows U0–U3 (§5.3) | **NOT STARTED** | — | C1 design; C2 network, configurations, checker | V0-UL, U0–U3 | V-2.2 naming; the UL residence claims (P-2) | **yes** | C1 |
+| **S7.3** | L-det / L-state; L-rec experimental (F2); rows S0–S4 (§5.4) | **NOT STARTED** | — | C3 design; C4 state machine, timers, fault injectors | S0–S4 | V-3.1 / V-3.2 block only the freeze of L-rec | **yes** | C3 |
+| **S7.4a** | `NtGptp`, Announce containment, configured port states; gates A0–A3 (§5.5) | **NOT STARTED** | — | 800–1 500 lines C++ (roadmap estimate) | A0–A3 | V-4.1 / V-4.2; legacy H4 (Announce) maps here | no (optional, F1) | after C1 / C3 |
+| **S7.4b** | BMCA (§5.6) | **DEFERRED** (D7) | — | — | — | standards texts, edition decision, S7.4a | no | — |
+| **S8** | Option C Suffix TLV; TT clock synchronization error to 5G time; one-step if required (§3.5) | **NOT STARTED** | — | Design (DR-04) | yes | B7 analysis; standards texts; the edition decision (V-4.6). "3GPP-faithful carriage" may not be claimed before S8. | **undecided** (B7) | B7 |
+
+### 9.4 M2-B: original work packages B1–B7 and the DR-02 scope
+
+**Mapping of the implementation increments.** M2B-1 … M2B-5 are increments **within** the original packages. They do not replace them.
+
+| Increment | PR | Contributes to | What it does **not** establish |
+|---|---|---|---|
+| M2B-1: TSN AF offline compiler, S-CFG/1 | #12 | **B3** (and the B2 S-CFG interface note `m2b-scfg-interface.md`) | TAS, TSCAI, FRER, runtime observation, VID classification, `.ini` section integration (report §6) |
+| M2B-2: TT gate clock adapter `TtGateClock` (S-CLK) and offline observer `bridge_delay.py` (S-OBS) | #13 | **B5** (clock binding), **B6** (offline observer), B2 (S-CLK seam analysis) | Gating itself; observation under TAS |
+| M2B-3: opt-in 802.1Qbv egress gating, S-CFG/2 | #14 | **B5**, B3 (S-CFG/2) | Common base time; B6 under TAS; hosted execution |
+| M2B-4: TAS-compatible egress pairing; residence under TAS | #15 | **B6** (in-simulation passive observation under TAS) | The runtime `bridgeResidence` signal and per-port-pair statistics; frames dropped by a shaped queue, preemption, aborted transmissions (refused); hosted execution |
+| M2B-5: common-epoch schedule alignment (`base_time_ns`, `TtEpochGate`) | #16 | **B5**, B3 | Clock synchronization accuracy, cross-translator feasibility, worst-case latency, 802.1Qbv / 802.1AS conformance; sanitizer runs; future activation (ConfigChange); runtime reconfiguration |
+
+**Evidence class of all five increments:** level 2. The functional bridge results come from **local release-build runs** on the pinned stack versions, not from the pinned tier-1 environment. No hosted run executed the M2B configurations. Tier-0 runs the M2B-1 and M2B-3 compiler suites. The tier-1 workflow completed successfully on each PR head; it builds and links the changed C++ but does not resolve or run the M2B configurations, and whether its full-stack job ran or was skipped by trigger selection is recorded per run and is not re-verified here.
+
+| WP (travel plan §2) | Objective and acceptance | Status | Accepted evidence | Remaining development | Remaining independent validation | Dependencies / blockers | 2.0 | Next action |
+|---|---|---|---|---|---|---|---|---|
+| **B1** | G1–G6, H1–H6, S1–S8 → a 1.8 scenario, M2-A stage, M2-B package, or "retired, replaced by X"; the evidence column | **NOT STARTED** (the dispositions are decided, §3 table) | DR-02 dispositions | The coverage table, now able to cite M2B-1 … M2B-5 and WP-A1 | The evidence column for retirements and legacy items | Phase 0 mapping for the evidence column; the H5 equivalence analysis | **yes** (M2 functional row) | Draft B1 |
+| **B2** | M2-B architecture and S-CFG generalisation; seam interface notes | **PARTIAL** | `m2b-scfg-interface.md`; M2B-2 §1 (S-CLK) | One architecture note covering: the runtime observer; the multi-endpoint data plane; DS-TT VLAN translation; TSCAI; the `GptpSideband` labelled baseline (G2); S-PATH emission for M3; the hosted-evidence path for the M2B configurations | — | DR-02 | yes | B2 consolidation |
+| **B3** | TSN AF offline compiler; reproduces the generator's bearer and QoS sections byte for byte before emitting anything new | **PARTIAL** | Tier-0: 147 / 147 (37 compatibility cases), 54 / 54 (TAS). Locally: 32 / 32 (common epoch, **not in tier-0**) | TSCAI; VID classification (currently refused); per-UE DRB templates; `.ini` section integration; traffic applications; S-PATH member-stream emission (M3) | Scenario runs using its output | B2 | yes | after B2 |
+| **B4** | `StaticBmca` offline validator, conditional on the equivalence analysis (DR-03) | **NOT STARTED** | DR-03 analysis table | DR-03 conditions (2) (the fail-closed difference) and (3) (every legacy check with an offline counterpart and a test); then the validator | Legacy scalar check | Condition (1) **BLOCKED** on the VM-only datasets (DR-06b) | yes (DR-03) | conditions (2), (3) |
+| **B5** | TAS / Qbv at the TT ports: default-off configuration, a gate oracle from the configuration, negative controls; acceptance by gate-observation rows on an independent environment | **IMPLEMENTED** | Level 2: M2B-2 / 3 / 5 component and bridge suites (local); the picosecond gate oracle; negative configurations | A hosted-evidence path (a maintainer decision on the tier-1 query extension, M2B-3 §8, or a DR-15 hosted run); the M2B-5 compiler suite into tier-0 (a CI change); optionally ConfigChange semantics | The protocol row "gates observed opening and closing" on an independent environment; the scientific items of M2B-5 §6 | Independent executor; the acceptance protocol is not yet written | yes | hosted-evidence decision |
+| **B6** | Runtime bridge-delay observer: signals and statistics per port pair; an independent oracle from PCAP (travel plan §2) | **PARTIAL** | Level 2, three distinct parts:<br>1. **Offline residence statistics:** `bridge_delay.py` (M2B-2), per port pair / PCP / VID, exact ps — **implemented**;<br>2. **In-simulation passive per-frame observation:** `TtTimestampProcessor` with `TtEgressPairer`, the M2-S1 FIFO pairing and the M2B-4 per-class `pairingMode = "tas"`; all 238 bridged frames against the independent PCAP oracle (local) — **implemented**;<br>3. **Runtime `bridgeResidence` signal and declared per-port-pair statistics** (M2B-2 §5, B6 item 2) — **not implemented**: no such signal or `@statistic` exists in `src/nasctime/m2` at `3b2c294`. | **B6-R:** a default-off, passive runtime signal `bridgeResidence` (R per frame) at the egress processor, with `@statistic` per port pair / PCP, equal to `bridge_delay.py` on the same run (oracle); then hosted evidence as B5 | Observer runs under an approved protocol | As B5 | yes | B6-R |
+| **B7** | DR-04 analysis: the Phase 2 clock-error row against M2-S6 / S8 | **NOT STARTED** | — | The analysis note | — | — | yes (it decides S8 eligibility) | Write B7 |
+
+**DR-02 scope items without a B number in the travel plan.** Recorded here with their own labels; they are not renumbered into B1–B7.
+
+| Item | Status | Remaining | Blocker | 2.0 |
+|---|---|---|---|---|
+| DS-TT VLAN translation (retained by DR-02) on the Ethernet PDU-session architecture | **NOT STARTED** | Design (in B2), then a default-off implementation and oracle | — | yes |
+| Multi-endpoint data plane: S4 general case, S7, S8 (bidirectional, 3 endpoints) | **PARTIAL** | The S-CFG per-UE emitter (B3); the S8 integration scenario at N = 3 (not in the S7.2a set 1, 2, 4, 8) | UL gPTP needs S7.2b | yes |
+| `GptpSideband` labelled baseline (G2 sideband part) | **NOT STARTED** | Design in B2 | — | yes (DR-02 task) |
+| H5 retirement: equivalence analysis (streaming PHY, timing) | **NOT STARTED** (retirement pending) | Analysis note | — | yes (a DR-02 decision is pending on it) |
+| Legacy-vs-1.8 statistical comparison | **BLOCKED** | — | Phase 0 mapping and datasets (DR-06, DR-06b) | yes (M2 experimental row) |
+| Fingerprint suite on the new baseline | **BLOCKED** | — | B8: suite not located | yes (M2 regression row; M4 skill) |
+| README boundary statement (DR-10) | **NOT STARTED** | Draft in E4 | — | yes (M4) |
+| VM NED / INI compatibility corrections for 6.5.0 | Collected, **not reviewed** | Review from reviewed extracts (DR-12) | DR-12 | undecided |
+
+### 9.5 M3, M4, Phase 5 and Phase 6
+
+| Item | Objective and acceptance | Status | Accepted evidence | Remaining development | Remaining independent validation | Dependencies / blockers | 2.0 | Next action |
+|---|---|---|---|---|---|---|---|---|
+| **M3 FRER** | §4: INET replication and elimination at the TTs; member streams by VID or PCP → QFI → DRB (F1 DL, F2 UL) through S-PATH; `FrerRecovery` as an INET merge extension. Acceptance: zero duplicates, surviving-path delivery, sequence wrap and timeout, R-TAG placement, reliability against the legacy F1 / F2 sweeps. | **NOT STARTED** | — | D1 architecture (TP-1 … TP-3 vs RP; the HARQ wording of §4); D2 configuration-only probe; D3 `FrerRecovery` and S-PATH bindings (emission through B3) | Functional and protocol rows; the experimental comparison | D2 needs D1; D3 needs D2 and B3 (S-PATH emission). The comparison needs Phase 0 (legacy F1 / F2 sweeps). F3 / F4 deferred (blockers B1, B2), not blocking M3. | **yes** | D1 |
+| **M4 release** | §5: README boundary statement and compatibility table; `opp_env` entry (B9); CI (a blocking pinned job plus a non-blocking nightly `simu5g@dev`); skills; claim-scoping notes. Acceptance: clean-machine install and run of every example; the dev job has run at least once; the boundary statement reviewed. | **NOT STARTED** (tier-0 and tier-1 CI groundwork exist) | — | E4: README 2.0 draft, compatibility table, `opp_env` check, skill drafts, nightly job, claim-scoping notes | Clean-machine install by the maintainer | M2 and M3; DR-18 release line (a release branch from the 2.0 line, then a default-branch transition) | — | E4 drafts |
+| **Phase 5** | Upstream-gated items: F4 NR-DC, F3 inter-PDU-session, PDCP duplication, TSC assistance / CG, 5G time distribution, mobility realism, VLAN-scoped flooding, radio stage C | **DEFERRED** (F3, F4: DR-02; the rest on upstream triggers, none met) | — | — | — | Upstream | no | monitoring |
+| **Phase 6** | Per-release upstream tracking | Ongoing; R181 **CLOSED** | `m2-r181-acceptance-record.md` | — | — | — | — | next upstream release |
+
+### 9.6 Approved deferrals, unfinished work and open questions
+
+**Approved deferrals (with decisions):**
+- S7.4b BMCA (D7);
+- F3 and F4 (DR-02, to Phase 5);
+- S7.4a is optional for the release (F1), not deferred.
+
+**Approved retirements:** H1, H2, S1, S3 (DR-02), subject to coverage of the replacement behaviour, to be evidenced in B1.
+
+**Unfinished, not deferred:**
+- Phase 0 mapping and reproduction;
+- S7.2a stages 5–9;
+- S7.2b and S7.3;
+- S8;
+- B1, B2, B3 (completion), B4, B7;
+- the B6 runtime `bridgeResidence` signal and per-port-pair statistics (B6-R);
+- DS-TT VLAN translation;
+- the multi-endpoint S8 scenario;
+- the `GptpSideband` baseline;
+- the H5 analysis;
+- the legacy comparison;
+- the fingerprint baseline;
+- M3 and M4.
+
+**Open questions for the maintainer.** These are listed only; none is decided here.
+
+| # | Question | Why it matters |
+|---|---|---|
+| Q-1 | Is S8 required for 2.0, or released as optional extended fidelity? | DR-04 ties S8 eligibility to the B7 analysis, which is not written |
+| Q-2 | Does Phase 0 bit-identical regeneration gate M4, or only the legacy comparisons? | The §1 rule says nothing waits for Phase 0 closure; the M2 and M3 experimental rows need its mapping |
+| Q-3 | Hosted evidence for the M2B configurations: the tier-1 configuration-query extension (M2B-3 §8) and/or a DR-15 hosted functional run | Currently local-only functional evidence |
+| Q-4 | Add `test_tsnaf_compile_epoch.py` (pure Python, 32 / 32) to tier-0 | The M2B-5 compiler path is not under hosted regression |
+| Q-5 | The disposition of the open PRs #2 and #3 (external, against the frozen `master`) | Historical reference only. #2 is legacy PCP-to-DSCP translation with an uplink reflective-QoS demo, not the retained DS-TT VLAN translation; #3 is relevant to M3 F2 / TP-3. Neither can merge into `master` (DR-18). |
+| Q-6 | The DR-08 smoke closure records (N = 1, N = 2) | They are part of the DR-07c audit trail and need the private evidence |
+| Q-7 | Preservation status of the hosted evidence archives (artifact expiry 24–25 Nov) and the pending job-log exports (register §4.1) | Evidence preservation |
