@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
-"""M2-B TSN AF offline configuration compiler, increment M2B-1 (docs/migration/m2b-scfg-interface.md, S-CFG/1).
+"""M2-B TSN AF offline configuration compiler: M2B-1 (docs/migration/m2b-scfg-interface.md, S-CFG/1) and M2B-3
+(docs/migration/m2b-3-tas-qbv.md, S-CFG/2 = S-CFG/1 + a required "tas" section).
 
 Translates a TSN stream specification into the Simu5G 1.8.1 bearer configuration of the BearerConfigurator:
     *.bearerConfigurator.dlQfiRules   shared: DL classification (TSN stream -> QoS flow), no UE field
@@ -19,8 +20,14 @@ Exit: 0 success; 1 invalid specification (one error line per problem, nothing wr
 With --out the file must not exist; it is written completely (temporary file, then rename) or not at all. Without
 --out the result goes to standard output only after the whole compilation succeeded. No other file is read or written.
 
-Out of scope in M2B-1 (refused, never silently ignored): TAS gate lists, TSCAI, FRER, runtime observation, per-UE DRB
-templates, VID-based classification, dynamic 5GC configuration.
+S-CFG/2 (schema "nasctime-scfg/2") additionally emits the IEEE 802.1Qbv gate schedules of the translators' egress ports
+as native INET parameters (Ieee8021qTimeAwareShaper / PeriodicGate) and the TT clock binding (TtGateClock and the
+explicit transmissionGate clockModule binding); see check_tas() and emit_tas(). An S-CFG/1 specification compiles
+exactly as before; the S-CFG/2 output begins with the S-CFG/1 output of the same bearer part.
+
+Out of scope (refused, never silently ignored): TSCAI, FRER, runtime observation, per-UE DRB templates, VID-based
+classification, dynamic 5GC configuration; in S-CFG/2 also gate lists of other bridges, other traffic-class counts
+than 8, and hold/release (frame preemption) operations.
 """
 import json
 import os
@@ -29,6 +36,7 @@ import sys
 import tempfile
 
 SCHEMA = "nasctime-scfg/1"
+SCHEMA2 = "nasctime-scfg/2"
 PCP_FILTER = 'expr(has(ieee8021qctag) && ieee8021qctag.pcp == {pcp})'
 CLASS_FILTERS = {"gptp-event": "expr(has(GptpSync) || has(GptpFollowUp))"}   # untagged gPTP event messages
 RLC_MODES = ("UM", "AM")
@@ -42,6 +50,18 @@ DRB = {"drb_id": True, "default": False, "lcg": True, "rlc_mode": True, "profile
 FLOW = {"qfi": True, "drb_id": True}
 STREAM = {"id": True, "direction": True, "source": True, "destination": True, "ues": True, "vid": False, "pcp": False,
           "class": False, "qfi": True}
+TOP2 = dict(TOP, tas=True)
+# S-CFG/2 TAS section
+TAS = {"untagged_tc": True, "schedules": True}
+SCHED = {"id": True, "translator": True, "port": True, "cycle_ns": True, "phase_ns": True, "entries": True}
+ENTRY = {"start_ns": True, "duration_ns": True, "open": True}
+NTC = 8                                                # Ieee8021qTimeAwareShaper default number of traffic classes
+# INET 4.7.0 PcpTrafficClassClassifier default mapping at 8 traffic classes (IEEE 802.1Q Table 8-5): PCP -> class
+PCP_TO_TC = (1, 0, 2, 3, 4, 5, 6, 7)
+PORTS = {"5gs": 0, "tsn": 1}                           # PassThroughTt (M2S72Bridge): eth[0] 5GS side, eth[1] TSN side
+DS_K = re.compile(r"^ds-tt\[(0|[1-9][0-9]?)\]$")
+MAX_CYCLE_NS, MIN_CYCLE_NS, MAX_ENTRIES = 1000000000, 1000, 256
+QUEUE = "eth[{port}].macLayer.queue"
 
 
 class SpecError(Exception):
@@ -89,9 +109,12 @@ def check(spec, n_ues):
     c = Checker()
     if not _int(n_ues) or n_ues < 1 or n_ues > 64:
         raise SpecError([f"--ues: {n_ues!r} is not an integer in [1, 64]"])
-    if not c.fields(spec, TOP, "specification"):
+    v2 = isinstance(spec, dict) and spec.get("schema") == SCHEMA2 and "tas" in spec
+    if not c.fields(spec, TOP2 if v2 else TOP, "specification"):
         raise SpecError(c.p)
-    if spec.get("schema") != SCHEMA:
+    if spec.get("schema") == SCHEMA2 and not v2:
+        c.err(f"schema: {SCHEMA2!r} requires the 'tas' section (S-CFG/2 = S-CFG/1 + TAS); without TAS use {SCHEMA!r}")
+    elif spec.get("schema") != SCHEMA and not v2:
         c.err(f"schema: {spec.get('schema')!r}, expected {SCHEMA!r}")
 
     eps = spec.get("endpoints", {})
@@ -255,6 +278,7 @@ def check(spec, n_ues):
                 if vid is not None:
                     vids.setdefault((f"UL UE {u}", key), {}).setdefault(vid, []).append(sid)
         norm.append({"id": sid, "dir": d, "key": key, "qfi": q, "ues": ue_set})
+    tas = check_tas(c, spec.get("tas"), n_ues, norm) if v2 else None
     if c.p:
         raise SpecError(c.p)
     notes = []
@@ -265,8 +289,176 @@ def check(spec, n_ues):
             notes.append(f"{scope}: streams {ids_} share one rule 'PCP {key[1]} -> QFI {q}'. The VID is not part of the "
                          f"classification predicate (S-CFG/1): every frame with PCP {key[1]}, on any VLAN, is "
                          f"classified to QFI {q}.")
-    return {"notes": notes, "n": n_ues, "profiles": profiles, "drbs": sorted(drbs, key=lambda x: x["drb_id"]), "qfi_drb": qfi_drb,
-            "streams": norm}
+    model = {"notes": notes, "n": n_ues, "profiles": profiles, "drbs": sorted(drbs, key=lambda x: x["drb_id"]),
+             "qfi_drb": qfi_drb, "streams": norm}
+    if tas is not None:
+        model["tas"] = tas
+    return model
+
+
+def _targets(translator, n_ues):
+    """the translators a schedule applies to: [(kind, index)] with kind 'nw' or 'ds'"""
+    if translator == "nw-tt":
+        return [("nw", 0)]
+    if translator == "ds-tt":
+        return [("ds", k) for k in range(n_ues)]
+    m = DS_K.match(translator)
+    return [("ds", int(m.group(1)))]
+
+
+def _tname(t):
+    return "nw-tt" if t[0] == "nw" else f"ds-tt[{t[1]}]"
+
+
+def check_tas(c, tas, n_ues, streams):
+    """S-CFG/2 'tas' section: validate; return the normalised schedules (every problem is reported through c)"""
+    if not c.fields(tas, TAS, "tas"):
+        return None
+    utc = tas.get("untagged_tc")
+    c.rng(utc, 0, NTC - 1, "tas.untagged_tc")
+    scheds = tas.get("schedules")
+    if not isinstance(scheds, list) or not scheds:
+        c.err("tas.schedules: must be a non-empty list")
+        return None
+    out, ids, owner = [], set(), {}                    # owner: (translator, port) -> schedule id
+    for i, sc in enumerate(scheds):
+        w = f"tas.schedules[{i}]"
+        if not c.fields(sc, SCHED, w):
+            continue
+        sid = sc.get("id")
+        if not _str(sid) or not NAME.match(sid):
+            c.err(f"{w}.id: schedule identity {sid!r} must be a string matching {NAME.pattern}")
+            continue
+        if sid in ids:
+            c.err(f"{w}.id: duplicate schedule identity {sid!r}")
+            continue
+        ids.add(sid)
+        w = f"tas schedule {sid!r}"
+        tr = sc.get("translator")
+        if not _str(tr) or not (tr in ("nw-tt", "ds-tt") or DS_K.match(tr)):
+            c.err(f"{w}.translator: {tr!r}, expected 'nw-tt', 'ds-tt' (every DS-TT) or 'ds-tt[k]'")
+            tr = None
+        elif DS_K.match(tr) and int(DS_K.match(tr).group(1)) >= n_ues:
+            c.err(f"{w}.translator: {tr!r} does not exist (the configuration has {n_ues} DS-TT(s): 0 .. {n_ues - 1})")
+            tr = None
+        port = sc.get("port")
+        if not _str(port) or port not in PORTS:
+            c.err(f"{w}.port: {port!r}, expected one of {sorted(PORTS)}")
+            port = None
+        cyc = sc.get("cycle_ns")
+        cyc_ok = c.rng(cyc, MIN_CYCLE_NS, MAX_CYCLE_NS, f"{w}.cycle_ns")
+        if cyc_ok:
+            c.rng(sc.get("phase_ns"), 0, cyc - 1, f"{w}.phase_ns")
+        elif not _int(sc.get("phase_ns")) or sc.get("phase_ns") < 0:
+            c.err(f"{w}.phase_ns: {sc.get('phase_ns')!r} is not a non-negative integer")
+        ents = sc.get("entries")
+        if not isinstance(ents, list) or not ents or len(ents) > MAX_ENTRIES:
+            c.err(f"{w}.entries: must be a list of 1 .. {MAX_ENTRIES} gate-control entries")
+            continue
+        norm_e, end, ok = [], 0, True
+        for j, e in enumerate(ents):
+            we = f"{w}.entries[{j}]"
+            if not c.fields(e, ENTRY, we):
+                ok = False
+                continue
+            st, du, op = e.get("start_ns"), e.get("duration_ns"), e.get("open")
+            good = c.rng(st, 0, MAX_CYCLE_NS, f"{we}.start_ns") & c.rng(du, 1, MAX_CYCLE_NS, f"{we}.duration_ns")
+            if not isinstance(op, list) or not all(_int(x) and 0 <= x < NTC for x in op):
+                c.err(f"{we}.open: {op!r} must be a list of traffic classes in [0, {NTC - 1}]")
+                good = False
+            elif len(set(op)) != len(op):
+                c.err(f"{we}.open: a traffic class is listed twice")
+                good = False
+            if not good:
+                ok = False
+                continue
+            if st < end:
+                c.err(f"{we}: overlaps the previous entry (starts at {st} ns, the previous entry ends at {end} ns)")
+                ok = False
+            elif st > end:
+                c.err(f"{we}: gap before the entry ({end} .. {st} ns is not covered)")
+                ok = False
+            end = st + du
+            norm_e.append((st, du, frozenset(op)))
+        if ok and cyc_ok and end != cyc:
+            c.err(f"{w}.entries: the entries end at {end} ns, the cycle is {cyc} ns "
+                  + ("(they extend beyond the cycle)" if end > cyc else "(gap at the end of the cycle)"))
+            ok = False
+        if ok and _int(utc) and 0 <= utc < NTC:
+            shut = [j for j, (_, _, op) in enumerate(norm_e) if utc not in op]
+            if shut:
+                c.err(f"{w}: the untagged traffic class {utc} (gPTP) must be open in every entry; closed in entries {shut}")
+                ok = False
+        if not ok or tr is None or port is None or not cyc_ok:
+            continue
+        for t in _targets(tr, n_ues):
+            prev = owner.get((t, port))
+            if prev is not None:
+                c.err(f"{w}: overlapping schedules: {prev!r} and {sid!r} both configure the gates of {_tname(t)} port {port}")
+            owner.setdefault((t, port), sid)
+        out.append({"id": sid, "translator": tr, "port": port, "cycle": cyc, "phase": sc["phase_ns"], "entries": norm_e})
+    if c.p:
+        return None
+    by_target = {(t, s["port"]): s for s in out for t in _targets(s["translator"], n_ues)}
+    for st in streams:                                 # a scheduled egress port must let every stream through
+        tc = PCP_TO_TC[st["key"][1]] if st["key"][0] == "pcp" else utc
+        egress = ([(("ds", k), "tsn") for k in st["ues"]] + [(("nw", 0), "5gs")] if st["dir"] == "dl"
+                  else [(("nw", 0), "tsn")] + [(("ds", k), "5gs") for k in st["ues"]])
+        for target in egress:
+            s = by_target.get(target)
+            if s is not None and all(tc not in op for _, _, op in s["entries"]):
+                c.err(f"stream {st['id']!r} (traffic class {tc}) is never transmitted at {_tname(target[0])} port "
+                      f"{target[1]}: its gate is closed in every entry of tas schedule {s['id']!r}")
+    return {"untagged_tc": utc, "schedules": out}
+
+
+def gate_params(sched, tc):
+    """native PeriodicGate parameters of traffic class tc: (initiallyOpen, [durations ns], offset ns). The durations
+    alternate starting with the initial state and begin at a state change of tc (a rotation of the cycle), so that
+    PeriodicGate's even-length alternation holds; offset = the schedule phase minus that rotation, modulo the cycle."""
+    ents, cyc = sched["entries"], sched["cycle"]
+    states = [tc in op for _, _, op in ents]
+    if all(s == states[0] for s in states):
+        return states[0], [], 0
+    n = len(ents)
+    r = next(j for j in range(n) if states[j] != states[j - 1])   # first entry that starts a new state (cyclic)
+    runs = []
+    for j in list(range(r, n)) + list(range(0, r)):
+        if runs and runs[-1][0] == states[j]:
+            runs[-1][1] += ents[j][1]
+        else:
+            runs.append([states[j], ents[j][1]])
+    assert len(runs) % 2 == 0 and sum(d for _, d in runs) == cyc
+    return states[r], [d for _, d in runs], (sched["phase"] - ents[r][0]) % cyc
+
+
+def _prefix(t):
+    return "*.nwTt" if t == "nw-tt" else "*.dsTt[*]" if t == "ds-tt" else "*.dsTt[" + DS_K.match(t).group(1) + "]"
+
+
+def _order(t):
+    return (0, -1) if t == "nw-tt" else (1, -1) if t == "ds-tt" else (1, int(DS_K.match(t).group(1)))
+
+
+def emit_tas(tas):
+    """the TAS lines: per translator the shaper, the TT gate clock and the explicit gate binding; then per schedule and
+    traffic class the PeriodicGate parameters. Deterministic: translators nw-tt, ds-tt, ds-tt[k]; ports 5gs, tsn."""
+    out = []
+    for t in sorted({s["translator"] for s in tas["schedules"]}, key=_order):
+        p = _prefix(t)
+        out += [f"{p}.hasEgressTrafficShaping = true",
+                f'{p}.clock.typename = "nasctime.m2.TtGateClock"',
+                f'{p}.eth[*].macLayer.queue.transmissionGate[*].clockModule = "^.^.^.^.clock"',
+                f"{p}.eth[*].macLayer.queue.classifier.defaultGateIndex = {tas['untagged_tc']}"]
+    for s in sorted(tas["schedules"], key=lambda x: (_order(x["translator"]), PORTS[x["port"]])):
+        q = f"{_prefix(s['translator'])}.{QUEUE.format(port=PORTS[s['port']])}"
+        for tc in range(NTC):
+            op, durs, off = gate_params(s, tc)
+            g = f"{q}.transmissionGate[{tc}]"
+            out += [f"{g}.initiallyOpen = {'true' if op else 'false'}",
+                    f"{g}.durations = [{', '.join(f'{d}ns' for d in durs)}]",
+                    f"{g}.offset = {off}ns"]
+    return "\n".join(out) + "\n"
 
 
 def _vid_note(vid, prev_vid):
@@ -321,7 +513,10 @@ def emit(model):
                 per_ue[k] = per_ue.get(k, 0) + 1
     if ul:
         out.append(_layout("ulQfiRules", ul, max(per_ue.values())))
-    return "\n".join(out) + "\n"
+    text = "\n".join(out) + "\n"
+    if model.get("tas") is not None:                  # S-CFG/2 only; an S-CFG/1 model has no "tas"
+        text += emit_tas(model["tas"])
+    return text
 
 
 def compile_file(path, n_ues, with_notes=False):
