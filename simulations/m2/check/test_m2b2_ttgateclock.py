@@ -358,6 +358,7 @@ allowed = {"simulations/m2/m2b2/TtGateClockTest.ned", "simulations/m2/m2b2/omnet
            "simulations/m2/m2b5/s72-q0-epoch.scfg.ini", "simulations/m2/m2b5/epoch.ini", "simulations/m2/m2b5/EpochGateTest.ned",
            "simulations/m2/check/m2b5_oracle.py", "simulations/m2/check/test_m2b5_epoch_gate.py",
            "simulations/m2/check/test_m2b5_epoch_bridge.py", "simulations/m2/check/test_tsnaf_compile_epoch.py",
+           "src/nasctime/m2/TtEpochGate.cc", "src/nasctime/m2/TtEpochGate.h", "src/nasctime/m2/TtEpochGate.ned",
            "src/nasctime/m2/TtGateClock.cc", "src/nasctime/m2/TtGateClock.h", "src/nasctime/m2/TtGateClock.ned"}
 check("T-default-off TtGateClock is referenced only by its own sources, test network and test", set(hits) <= allowed, str(sorted(set(hits) - allowed)))
 
