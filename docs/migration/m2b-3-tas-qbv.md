@@ -1,12 +1,21 @@
 # M2B-3 — IEEE 802.1Qbv time-aware egress gating in the 5G–TSN bridge
 
-**Status: draft for independent review (step 151).**
+**Status: draft for independent review (step 151; step 152 CI closure and precision: C1 tier-0, C2 configuration check, C3 this wording).**
 
 - **Branch:** `m2b/tas-qbv-integration`, from `m2/continuation` at `690b5bf` (M2B-2 merged).
 - **Stack:** OMNeT++ 6.5.0, INET 4.7.0, unmodified Simu5G 1.8.1.
 - **Level:** 2 (functional development tests). There is no scientific acceptance or timing-equivalence claim.
 
 **Unchanged:** INET, Simu5G, the accepted timing components (`TtClock`, `TtGateClock`, the M2-S1 measurement path), the accepted S7.2a INI files and generators, and PR #11. **No C++ is changed in M2B-3.**
+
+## 0. What this increment does and does not establish
+
+| # | Statement | Status |
+|---|---|---|
+| 1 | **IEEE 802.1Qbv-style time-aware gating is functionally demonstrated** on actual Ethernet traffic in the N = 2 5G–TSN bridge. INET's native shaper is driven by each translator's TT clock (via `TtGateClock`) and configured by the S-CFG/2 compiler. Frames of a gated traffic class are held while the gate is closed and transmitted when it opens; gate transitions follow TT time to the picosecond. | **Demonstrated** (local functional tests, §5; level 2) |
+| 2 | **A common absolute AdminBaseTime across translators** (every translator's cycle starting at the same TT epoch). The cycle of each port is anchored on its own TT clock reading at initialisation (`phase_ns`, §2), so cycles of different translators are aligned only up to their initial TT readings. | **Not implemented** (B5, §7) |
+| 3 | **Full B6 per-frame bridge-residence observation under TAS** (R = t12 − t1 per frame with the M2-S1 path). The accepted FIFO pairer stops under per-class queues (§6). This increment correlates frames per port and class (§4) but measures no bridge residence. | **Not implemented** (B6, §6, §7) |
+| 4 | **Evidence classes.** Functional evidence comes from **local** runs on a release build of the same stack versions (OMNeT++ 6.5.0, INET 4.7.0, Simu5G 1.8.1), not from the pinned tier-1 environment. **Hosted CI evidence** is limited to tier-0 (Python suites, now 12 including S-CFG/2) and, if a maintainer applies `tier1:run`, tier-1's build and linkage gates. No hosted run executes the TAS configurations (§8). | See §8 |
 
 ## 1. What is integrated
 
@@ -131,7 +140,7 @@ Correlation is k-th dequeue of a class ↔ k-th transmitted frame of that PCP. T
 - A frame's dequeue can only follow eligibility. It is later when other frames are ahead of it.
 - The PCAP gives the end of the transmission.
 
-## 5. Results (local release stack)
+## 5. Results: local functional evidence (release build, not the pinned tier-1 environment)
 
 | Suite | Result |
 |---|---|
@@ -207,8 +216,64 @@ The pairer is not changed. The TAS configurations set `observePort = false` on t
 
 | Limitation | Next task |
 |---|---|
-| **Base time.** `PeriodicGate` anchors its cycle on the clock reading at initialisation, so S-CFG/2 `phase_ns` is relative to C_T(0). A constant TT offset θ0 therefore does not shift the cycle; rate, drift and 5G time-update steps do (scenario E). Aligning cycles of different translators to a common TT epoch (802.1Qbv AdminBaseTime) needs C_T(0)-aware anchoring. | B5 |
-| **Pairing.** The B6 observer under TAS needs a per-traffic-class pairer, separately enabled with default FIFO, with self-tests under out-of-order dequeue, then the per-frame R signal (M2B-2 §5). | B6 |
+| **Not implemented: common AdminBaseTime.** `PeriodicGate` anchors its cycle on the clock reading at initialisation, so S-CFG/2 `phase_ns` is relative to C_T(0). A constant TT offset θ0 therefore does not shift the cycle; rate, drift and 5G time-update steps do (scenario E). Aligning cycles of different translators to a common TT epoch (802.1Qbv AdminBaseTime) needs C_T(0)-aware anchoring. | B5 |
+| **Not implemented: B6 under TAS.** The B6 observer under TAS needs a per-traffic-class pairer, separately enabled with default FIFO, with self-tests under out-of-order dequeue, then the per-frame R signal (M2B-2 §5). | B6 |
 | **Scope.** Schedules for two traffic classes on the TSN ports only; 8 classes fixed; no frame preemption or hold/release; no guard-band sizing check against the maximum frame size (INET's implicit guard band holds a frame that cannot finish within its window). | Later |
-| **Hosted validation.** Tier-1 compiles only; it has no NED/INI query for these configurations. | Add a reviewed tier-1 `-q runconfig` query for `TAS-gated`, and an individually authorised hosted functional run (DR-15) of `test_m2b3_tas_bridge.py`. |
-| **Tier-0 coverage.** `test_tsnaf_compile_tas.py` is pure Python but not in the tier-0 workflow, which is unchanged. | Proposed for inclusion. |
+| **Hosted validation.** Tier-1 builds and links; it does not resolve the TAS configuration. | The tier-1 extension proposed in §8 (a maintainer decision), and an individually authorised hosted functional run (DR-15) of `test_m2b3_tas_bridge.py`. |
+| **Tier-0 coverage.** Done in step 152: `test_tsnaf_compile_tas.py` is the 12th tier-0 suite (§8). | — |
+
+## 8. CI and hosted evidence (step 152)
+
+**Tier-0 (hosted, every PR to `m2/continuation`).** `test_tsnaf_compile_tas.py` is the **12th suite** of `.github/workflows/tier0-python.yml`, added in a separate commit.
+- It runs under the same gates as the other 11 suites: exit 0, exact final line, zero non-success counts.
+- **Declared expected line: `M2B-3 S-CFG/2 TAS compiler tests: 54 / 54 PASS, 0 FAIL`.**
+- The job summary now expects 12 suites.
+- The 11 existing suites and their expected lines are unchanged. S-CFG/1 stays `TSN AF compiler tests: 147 / 147 PASS, 0 FAIL; 37 compatibility cases reproduced`.
+- The generator checks are unaffected: IDENTICAL.
+
+**Configuration resolution (`simulations/m2/check/check_m2b3_tas_config.py`).** A bounded check of `tas.ini` / `TAS-gated`, with two levels.
+
+The **query level** uses only `opp_run -u Cmdenv -f <ini> -c <config> -r 0 -q runconfig`. That builds no network and runs no simulation, which is the class of query tier-1 already runs.
+
+| Check | What it verifies |
+|---|---|
+| Q1 | The effective `TAS-gated` entries equal the committed S-CFG/2 fragment: 59 entries, first-match values, multi-line values in full. The M2-S1 pairer is off on the gated TSN ports. |
+| Q2 | The accepted `M2S72-B-q0-Eall-n2` has no shaping, gate or gate-clock entry |
+| Q3 | `m2s72.ini` and `m2s72s5.ini` equal their committed sha256 |
+
+The **setup level** builds and initialises the network (sim-time-limit 1 ps, parameter recording) and reads the *resolved* module parameters.
+
+| Check | What it verifies |
+|---|---|
+| S1 | Exactly nwTt, dsTt[0] and dsTt[1] have INET's `Ieee8021qTimeAwareShaper` on both ports, and no other module has one |
+| S2 | Each translator's clock is a `TtGateClock` reading its own `TtClock` |
+| S3 | All 48 transmission gates are `PeriodicGate`s bound to their own translator's `TtGateClock` |
+| S4 | The resolved classifier mapping gives PCP 5 → TC 5 and PCP 0 → TC 1, as the compiler assumes |
+| S5 | Every resolved `initiallyOpen` / `durations` / `offset` equals the fragment |
+
+Local results:
+
+| Run | Result |
+|---|---|
+| `TAS-gated` | **10 / 10 PASS** (query level 4 / 4) |
+| Negative `TASN-unbound` | Fails Q1 and S3 |
+| Negative `TASN-phase` | Fails Q1 and S5 |
+
+**Tier-1: not extended, proposal only.** Tier-1's real-simulator calls go through an audit shim (`ci/tier1/wrapper/opp_run-audit.sh`). It forwards exactly two argument vectors from one approved working directory and refuses everything else. The verdict requires exactly rows C-1 … C-15, and C-14 forbids simulation markers. Running even the query level therefore changes the accepted tier-1 gates. As instructed, this is reported, not implemented. The smallest change would be:
+
+1. `opp_run-audit.sh`: approve two more vectors.
+   - `-u Cmdenv -f tas.ini -c TAS-gated -r 0 -q runconfig`, from `$AUDIT_REPO/simulations/m2/m2b3`. This is a new approved working directory.
+   - `-u Cmdenv -f m2s72.ini -c M2S72-B-q0-Eall-n2 -r 0 -q runconfig`, from `$AUDIT_REPO/simulations/m2`.
+2. A step after the wrapper suite, inside the same opp_env session and audit setenv. It runs `python3 -I -B simulations/m2/check/check_m2b3_tas_config.py --queries-only` and passes only on the exact line `M2B-3 TAS configuration resolution: 4 / 4 PASS, 0 FAIL (query level 4, setup level 0)`, with the audit showing exactly those two queries.
+3. `ci/tier1/py/evaluate.py`: a new row C-16, "M2B-3 TAS configuration resolution (query level)". `final.py` would then require C-1 … C-16 (`range(1, 17)`); add self-tests in `ci/tier1/tests/test_tier1.py` and update the README gate table.
+
+The setup level (S1–S5) builds the network and executes initialisation and events at t ≤ 1 ps. It conflicts with C-14 and stays outside tier-1. It would need a separately authorised hosted development run (DR-15), like the functional suite.
+
+**Evidence classes in this PR:**
+
+| Evidence | Where | Class |
+|---|---|---|
+| Tier-0: 12 Python suites, including S-CFG/2 (54 / 54) and S-CFG/1 (147 / 147, 37 cases) | GitHub-hosted | Hosted CI |
+| Tier-1: pinned release build, linkage, C++ runtime, existing wrapper queries | GitHub-hosted, only if `tier1:run` is applied to the draft | Hosted CI (does not resolve TAS) |
+| `check_m2b3_tas_config.py`: 10 / 10 | Local release build | Local configuration evidence |
+| `test_m2b3_tas_bridge.py`: 60 / 60 (gating on traffic, oracle, negatives) | Local release build | Local functional evidence (level 2) |
