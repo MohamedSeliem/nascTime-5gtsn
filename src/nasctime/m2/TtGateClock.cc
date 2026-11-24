@@ -30,7 +30,10 @@ static __int128 floorDiv128(__int128 a, __int128 b)
 
 static int64_t psOf(cPar& p)
 {
-    return std::llround(p.doubleValue() * 1e12);
+    double v = p.doubleValue() * 1e12;                   // as TtClock reads it; outside +-9.2e18 llround is unspecified
+    if (!(v > -9.2e18 && v < 9.2e18))
+        throw cRuntimeError("TtGateClock: TtClock parameter '%s' is outside the simtime_t range", p.getName());
+    return std::llround(v);
 }
 
 TtGateClock::~TtGateClock()
@@ -84,7 +87,7 @@ void TtGateClock::resolve() const
     if (updateInterval < 0)
         throw cRuntimeError("TtGateClock: TtClock updateInterval < 0");
     // rate 1 + y*1e-9 + D*dd*1e-21 with |y| <= 1e6: positive at dd = 0
-    if (std::llabs(yPpb) > 1000000 || std::llabs(dPpbPerS) > 1000000)
+    if (yPpb < -1000000 || yPpb > 1000000 || dPpbPerS < -1000000 || dPpbPerS > 1000000)   // (no llabs: INT64_MIN)
         throw cRuntimeError("TtGateClock: |freqOffsetPpb| and |driftPpbPerS| must be <= 1e6 for a monotone gate clock");
     // C_u(s + 1) - C_u(s) >= 0 whenever f(dd + 1) - f(dd) >= -2e21 with f(dd) = 2e12 y dd + D dd^2, i.e.
     // 2e12 y + D (2 dd + 1) >= -2e21. Always true for D >= 0 (|2e12 y| <= 2e18); for D < 0 it holds for
@@ -104,15 +107,34 @@ void TtGateClock::resolve() const
 
 int64_t TtGateClock::segmentStart(int64_t s) const
 {
-    return updateInterval > 0 ? updateOffset + updateInterval * (int64_t)floorDiv128((__int128)s - updateOffset, updateInterval) : 0;
+    if (updateInterval <= 0)
+        return 0;
+    // |s - updateOffset| < 2^64, so |k| < 2^64 and |updateInterval * k| < 2^127; u in (s - updateInterval, s]
+    __int128 u = updateOffset + (__int128)updateInterval * floorDiv128((__int128)s - updateOffset, updateInterval);
+    if (u > INT64_MAX || u < INT64_MIN)
+        throw cRuntimeError("TtGateClock: the update instant before simulation time %s is outside the simtime_t range",
+                SimTime::fromRaw(s).str().c_str());
+    return (int64_t)u;
 }
 
 __int128 TtGateClock::segmentClock128(int64_t u, int64_t s) const
 {
+    // C_u(s) = s + theta0 + floor((2e12 y d + D d^2) / 2e21), d = s - u, exactly as TtClock::clockFunction, but
+    // without forming D d^2, which exceeds the int128 range for |D| >= 3 at the largest |d| (step 149, C3-R1).
+    // Exact rewriting (integer N, positive m, n: floor(N / (m n)) = floor(floor(N / m) / n)), m = 1e9, n = 2e12:
+    //   2e12 y d / 1e9 = 2000 y d (an integer), and with d = a 1e9 + b, 0 <= b < 1e9 (floor division):
+    //   D d^2 = 1e9 (D a^2 1e9 + 2 D a b) + D b^2, so
+    //   floor(N / 1e9) = 2000 y d + D a^2 1e9 + 2 D a b + floor(D b^2 / 1e9),  C_u(s) = s + theta0 + floor(that / 2e12).
+    // Bounds (|d| < 2^64 < 1.85e19 since s, u are int64; |y|, |D| <= 1e6, checked in resolve()):
+    //   |a| < 1.85e10, |D a| < 1.85e16, |D a a| < 3.42e26, |D a a 1e9| < 3.42e35, |2000 y d| < 3.7e28,
+    //   |2 D a b| < 3.7e25, |D b| < 1e15, |D b b| < 1e24, every sum < 3.5e35, the quotient < 1.75e23:
+    //   all far below 2^127 - 1 (1.7e38), every product is formed from factors whose bounds are given above.
+    const __int128 m = 1000000000, n = 2000000000000LL;
     __int128 d = (__int128)s - u;
-    __int128 num = (__int128)2000000000000LL * yPpb * d + (__int128)dPpbPerS * d * d;
-    __int128 den = (__int128)2000000000000000000LL * 1000;   // 2e21, as TtClock::clockFunction
-    return (__int128)s + theta0 + floorDiv128(num, den);
+    __int128 a = floorDiv128(d, m), b = d - a * m;
+    __int128 p = (__int128)2000 * yPpb * d + (__int128)dPpbPerS * a * a * m + 2 * (__int128)dPpbPerS * a * b
+            + floorDiv128((__int128)dPpbPerS * b * b, m);
+    return (__int128)s + theta0 + floorDiv128(p, n);
 }
 
 int64_t TtGateClock::segmentClock(int64_t u, int64_t s) const
@@ -300,6 +322,8 @@ void TtGateClock::applyStep()
     int64_t u = segmentStart(now);
     if (u != now)
         throw cRuntimeError("TtGateClock: step timer off its update instant");
+    if ((__int128)u - updateInterval < INT64_MIN)
+        throw cRuntimeError("TtGateClock: the previous update instant is outside the simtime_t range");
     int64_t oldClock = segmentClock(u - updateInterval, now), newClock = segmentClock(u, now);
     if (newClock != ttClock->clockFunction(now))
         throw cRuntimeError("TtGateClock: C after the step differs from TtClock::clockFunction");
@@ -307,7 +331,10 @@ void TtGateClock::applyStep()
     lastStepAt = now;
     lastStepOld = oldClock;
     lastStepNew = newClock;
-    int64_t delta = newClock - oldClock;
+    __int128 delta128 = (__int128)newClock - oldClock;    // two int64 values: |difference| < 2^64
+    if (delta128 > INT64_MAX || delta128 < INT64_MIN)
+        throw cRuntimeError("TtGateClock: the clock step at %s is outside the clocktime_t range", SimTime::fromRaw(now).str().c_str());
+    int64_t delta = (int64_t)delta128;
     emit(timeChangedSignal, SimTime::fromRaw(oldClock));
     for (auto event : events)                             // relative events keep their simulation arrival time
         if (event->getRelative())

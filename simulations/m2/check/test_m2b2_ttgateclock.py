@@ -293,6 +293,46 @@ with tempfile.TemporaryDirectory() as res:
     o = outs["P-step-back"]
     check("T-inv P-step-back at u: lowerBound = upperBound = C_new(u) (the interval is empty below the new clock)",
           f"PROBE {U} c2s now+0 lower {ct(U)}" in o and f"PROBE {U} c2s now+0 upper {ct(U)}" in o and ct.seg(U - 5 * MS, U - 1) > ct(U))
+    # ---- step 149 (C3-R1): arithmetic boundaries - exact results also where D*d^2 exceeds the int128 range
+    ARITH = {
+        "P-arith-pos-max": dict(d=1000000),
+        "P-arith-pos-min": dict(d=1),
+        "P-arith-pos-3": dict(y=-1000000, d=3),
+        "P-arith-pos-upd": dict(y=1000000, d=1000000, upd=10 * MS, uoff=MS),
+        "P-arith-neg-max": dict(y=1000000, d=-1000000, upd=500 * 10 ** 12),
+    }
+    I128 = 2 ** 127 - 1
+    beyond_total = 0
+    for cfg, p in ARITH.items():
+        r = opp_run(cfg, res)
+        outs[cfg] = r.stdout
+        bad, rr = probe_oracle(p, r.stdout)
+        ct, u_of = make_ct(**p)
+        # queries whose d = s - u (s: the result, or the queried time) makes |D| d^2 exceed the int128 range
+        beyond = 0
+        for t, kind, tok, side, got in rr:
+            u = u_of(t) if p.get("upd", 0) > 0 else 0
+            s_ = (int(got) if got != "ERR" else None) if kind == "inv" else (MAXRAW if tok == "smax" else t + int(tok[4:]))
+            if s_ is not None and abs(p.get("d", 0)) * (s_ - u) ** 2 > I128:
+                beyond += 1
+        beyond_total += beyond
+        check(f"T-arith {cfg}: {len(rr)} IClock queries equal the exact contract oracle ({beyond} of them with "
+              f"|D|*d^2 beyond the int128 range)", r.returncode == 0 and len(rr) >= 8 and not bad,
+              f"rc {r.returncode}; {bad[:3]}; {r.stderr[-300:]}")
+    check(f"T-arith: the boundary configurations reach the former overflow region ({beyond_total} queries)", beyond_total >= 10,
+          str(beyond_total))
+    o = outs["P-arith-pos-3"]
+    ct, _ = make_ct(y=-1000000, d=3)
+    check("T-arith P-arith-pos-3: C(9e18 ps) = exact value in int64 although 3*d^2 > 2^127-1",
+          f"PROBE 0 c2s now+9000000000000000000 upper {ct(9 * 10 ** 18)}" in o and 3 * (9 * 10 ** 18) ** 2 > I128
+          and ct(9 * 10 ** 18) < 2 ** 63)
+    check("T-arith P-arith-pos-max / pos-min: C(max simtime) beyond clocktime_t -> controlled error, no wrap",
+          "PROBE 0 c2s smax upper ERR" in outs["P-arith-pos-max"] and "PROBE 0 c2s smax upper ERR" in outs["P-arith-pos-min"]
+          and "outside the clocktime_t range" in outs["P-arith-pos-max"])
+    check("T-arith P-arith-neg-max: the last ps of the monotone span (1001 s at y = +1e6) is exact, the next is a "
+          "controlled error", "PROBE 0 c2s now+1001000000000001 upper ERR" in outs["P-arith-neg-max"]
+          and "PROBE 0 c2s now+1001000000000000 upper ERR" not in outs["P-arith-neg-max"])
+
     r = opp_run("P-skip", res)
     sk = [l.split() for l in r.stdout.splitlines() if l.startswith("SKIP")]
     dl = [list(map(int, l.split()[1:])) for l in r.stdout.splitlines() if l.startswith("DELIVER")]

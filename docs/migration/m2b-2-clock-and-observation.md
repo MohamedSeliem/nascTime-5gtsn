@@ -51,7 +51,7 @@
 | Rescheduling when the clock changes | At every update instant u_k (a self-timer at the lowest scheduling priority, so before any other event at u_k): relative events keep their simulation arrival time; absolute events are rescheduled by `computeScheduleTime`; **Overdue** means a clock time jumped over by the forward step: C_old(u) < c < C_new(u). Such events are rescheduled to u and delivered there in clock-time order, each presenting its own clock time, including the events scheduled while catching up. This is the `SettableClock` EXECUTE semantics without its friend-only synchronous path. In `error` mode they raise an error. |
 | Initialisation | `INITSTAGE_LOCAL`: mode, resolution check, `TtClock` resolution, first step timer. The mapping also resolves lazily, so a clock user asking earlier gets the same answer. `INITSTAGE_LAST`: the cross-check against `TtClock`. |
 | Parameter limits | \|y\| ≤ 10⁶ ppb and \|D\| ≤ 10⁶ ppb/s; anything else is refused. |
-| Range and monotonicity (step 148, C3) | C_u is non-decreasing for s − u ≤ span, where span = ⌊(⌊(2e21 + 2e12·y)/\|D\|⌋ − 1)/2⌋ + 1 for D < 0 (from 2e12·y + D·(2dd+1) ≥ −2e21), and is unbounded for D ≥ 0. With \|D\| = 10⁶ the span is 1000 s.<br>• An update interval longer than the span is refused at initialisation.<br>• A query beyond the span (free-running with D < 0) is a `cRuntimeError`, as is a clock or simulation time outside the int64 `clocktime_t` / `simtime_t` range.<br>• C is evaluated in 128-bit arithmetic.<br>• The expanding inverse search never probes beyond min(span end, max simtime), so it cannot overflow.<br>• Targets at or below C(now), including negative ones and INT64_MIN, map to now.<br>• A target not reached within the range is an error, never a wrapped or non-monotone result. |
+| Range and monotonicity (step 148, C3) | C_u is non-decreasing for s − u ≤ span, where span = ⌊(⌊(2e21 + 2e12·y)/\|D\|⌋ − 1)/2⌋ + 1 for D < 0 (from 2e12·y + D·(2dd+1) ≥ −2e21), and is unbounded for D ≥ 0. With \|D\| = 10⁶ the span is 1000 s.<br>• An update interval longer than the span is refused at initialisation.<br>• A query beyond the span (free-running with D < 0) is a `cRuntimeError`, as is a clock or simulation time outside the int64 `clocktime_t` / `simtime_t` range.<br>• C is evaluated in 128-bit arithmetic **without forming D·d²** (step 149, C3-R1). D·d² exceeds the `__int128` range for \|D\| ≥ 3 at the largest \|d\| < 2⁶⁴. The adapter uses the exact identity floor(N/2e21) = floor(floor(N/1e9)/2e12), with d = a·1e9 + b and floor(N/1e9) = 2000·y·d + D·a²·1e9 + 2·D·a·b + floor(D·b²/1e9).<br>• Bounds, for \|d\| < 1.85e19 and \|y\|, \|D\| ≤ 1e6: \|D·a²·1e9\| < 3.42e35, \|2000·y·d\| < 3.7e28, \|2·D·a·b\| < 3.7e25, \|D·b²\| < 1e24. Every product and sum stays below 2¹²⁷ − 1 ≈ 1.7e38, and the result equals `TtClock::clockFunction`'s floor exactly.<br>• Update instants, the step delta and `TtClock` time parameters (finite, within ±9.2e18 ps) are range-checked before conversion.<br>• The expanding inverse search never probes beyond min(span end, max simtime), so it cannot overflow.<br>• Targets at or below C(now), including negative ones and INT64_MIN, map to now.<br>• A target not reached within the range is an error, never a wrapped or non-monotone result. |
 | Default-off | No accepted network or configuration instantiates `TtGateClock` |
 | Compatibility with S6 | `TtClock` is unchanged; protocol timestamps remain `stamp()`; the gate clock equals C_T exactly (cross-check). With all `TtClock` parameters at their defaults, the gate clock is the simulation time (TG-ideal). |
 | Not covered | `skip` overdue handling (a skipped `PeriodicGate` timer would stop the gate). Clock events of *different scheduling priorities* due at the same instant follow the future-event-set order, not clock-time order. Lifetime: as with INET's `SettableClock`, a clock event must be cancelled through the clock before it is deleted. |
@@ -156,13 +156,21 @@
 - `P-step-fwd` / `P-step-back`: queries at u−1, u and u+1 around a step, covering the lower and upper bound at the step instant and the extended old segment before it.
 - `P-skip`: two clock events at a clock picosecond that C skips (C(t)−1 and C(t)), scheduled in reverse clock order. They must be delivered at t in clock-time order, each with `getClockTime()` == its arrival clock time.
 - `PN-interval` (negative): an update interval longer than the monotone span is refused.
+- Arithmetic boundaries (T-arith, step 149). Each config's results are compared with an exact Python big-integer oracle; 54 queries lie where \|D\|·d² exceeds the int128 range:
+  - `P-arith-pos-max`: D = +1e6, no updates;
+  - `P-arith-pos-min`: D = +1, the whole simtime range;
+  - `P-arith-pos-3`: D = +3, y = −1e6, where C(9e18 ps) fits int64 but 3·d² does not fit int128;
+  - `P-arith-pos-upd`: D = y = +1e6, updates every 10 ms, the extended segment;
+  - `P-arith-neg-max`: D = −1e6, y = +1e6, updates every 500 s, with the last picosecond of the 1001 s monotone span exact and the next one an error.
+  - Distant targets up to INT64_MAX are included. Times beyond the clocktime range give controlled errors.
 
 **Results (local).**
 
 | Run | Result |
 |---|---|
-| Release | `M2B-2 TtGateClock tests (release): 34 / 34 PASS, 0 FAIL` |
-| Debug, assertions on | `M2B-2 TtGateClock tests (debug): 34 / 34 PASS, 0 FAIL` |
+| Release | `M2B-2 TtGateClock tests (release): 43 / 43 PASS, 0 FAIL` (34 + 9 arithmetic boundary tests, step 149) |
+| Debug, assertions on | `M2B-2 TtGateClock tests (debug): 43 / 43 PASS, 0 FAIL` |
+| UBSan (step 149; `libnasctime_m2` built with clang 18 `-fsanitize=undefined -fno-sanitize-recover=all`) | 43 / 43 PASS. No UBSan report in any of the 24 test configurations; topology test 9 / 9. The step-148 adapter under the same instrumentation: `TtGateClock.cc:113: runtime error: signed integer overflow … cannot be represented in type '__int128'` (P-arith-pos-max). |
 | PR #13 adapter (`c1a0d7d`) under debug, for comparison | TG-ideal passes. TG-step-fwd stops with `ASSERT: Condition 'getArrivalClockTime() == clockTime' does not hold … ClockEvent.cc:25` (invariant 2, first overdue change). P-skip stops with `checkScheduledClockEvent` invariant 5 (`0.000000002001 >= 0.000000002002`). |
 
 **Mutation checks.**
