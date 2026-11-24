@@ -292,7 +292,8 @@ hits = subprocess.run(["git", "-C", REPO, "grep", "-l", "TtEpochGate", "--", "si
 allowed = {"simulations/m2/tools/tsnaf_compile.py", "simulations/m2/m2b5/s72-q0-epoch.scfg.ini", "simulations/m2/m2b5/epoch.ini",
            "simulations/m2/m2b5/EpochGateTest.ned", "simulations/m2/check/test_m2b5_epoch_gate.py", "simulations/m2/check/test_m2b5_epoch_bridge.py",
            "simulations/m2/check/test_tsnaf_compile_epoch.py", "simulations/m2/check/m2b5_oracle.py",
-           "src/nasctime/m2/TtEpochGate.ned", "src/nasctime/m2/TtEpochGate.h", "src/nasctime/m2/TtEpochGate.cc"}
+           "src/nasctime/m2/TtEpochGate.ned", "src/nasctime/m2/TtEpochGate.h", "src/nasctime/m2/TtEpochGate.cc",
+           "simulations/m2/check/test_m2b2_ttgateclock.py"}          # its own default-off allowlist names these files
 check("T5b-default-off TtEpochGate is referenced only by its own sources, the compiler, and the M2B-5 test files",
       set(hits) <= allowed, str(sorted(set(hits) - allowed)))
 
