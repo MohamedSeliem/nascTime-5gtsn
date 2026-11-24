@@ -37,6 +37,10 @@ module TtTimestampLayer like IMeasurementLayer
         string ingressEvent = default("receptionEnded");   // TEST ONLY: "receptionStarted" (streaming receivers)
         string egressEvent = default("transmissionEnded"); // TEST ONLY: "transmissionStarted" | "enqueue"
         string pairingTest = default("");       // TEST ONLY: "rotate" writes each tx row with the previous row's identity
+        // M2B-4: egress pairing of observePort. "fifo" (default) is the accepted M2-S1 port-wide FIFO; "tas" is for ports with
+        // a time-aware shaper (per-class queues): cross-PCP overtaking is valid, per-PCP FIFO and the port's transmission sequence
+        // are enforced (TtEgressPairer.h)
+        string pairingMode @enum("fifo","tas") = default("fifo");
         ingress.role = "ingress";
         egress.role = "egress";
         *.ttId = this.ttId;
@@ -52,6 +56,7 @@ module TtTimestampLayer like IMeasurementLayer
         *.ingressEvent = this.ingressEvent;
         *.egressEvent = this.egressEvent;
         *.pairingTest = this.pairingTest;
+        *.pairingMode = this.pairingMode;
         @display("i=block/layer");
     gates:
         input upperLayerIn;
@@ -89,5 +94,6 @@ simple TtTimestampProcessor extends PacketFlowBase
         string ingressEvent;
         string egressEvent;
         string pairingTest;
+        string pairingMode;
         @class(nasctime::TtTimestampProcessor);
 }

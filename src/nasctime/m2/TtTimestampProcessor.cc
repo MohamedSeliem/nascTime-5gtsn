@@ -100,6 +100,14 @@ void TtTimestampProcessor::initialize(int stage)
             throw cRuntimeError("Unknown pairingTest '%s'", pt.c_str());
         if (!observePort && (ingressEvent != RX_END || egressEvent != EG_TX_END || pairingRotate))
             throw cRuntimeError("ingressEvent, egressEvent and pairingTest need observePort = true");
+        std::string pm = par("pairingMode").stdstringValue();   // M2B-4
+        if (pm == "tas") {
+            if (!observePort)
+                throw cRuntimeError("pairingMode \"tas\" needs observePort = true");
+            pairer.mode = TtEgressPairer::TAS;
+        }
+        else if (pm != "fifo")
+            throw cRuntimeError("Unknown pairingMode '%s'", pm.c_str());
         if (observePort) {
             // processor -> TtTimestampLayer -> network interface (LayeredEthernetInterface)
             interfaceModule = getParentModule()->getParentModule();
@@ -202,8 +210,8 @@ void TtTimestampProcessor::receiveSignal(cComponent *source, simsignal_t signalI
         throw cRuntimeError("observePort pairing: %s", error.c_str());
     if (event != TtEgressPairer::TX_END)
         return;
-    // end of transmission: the transmitted packet must be the recorded frame
-    TtPortRecord& r = pairer.fifo.front();
+    // end of transmission: the transmitted packet must be the recorded frame (FIFO mode: index 0, the head)
+    TtPortRecord& r = pairer.fifo[index];
     Layout layout = parse(packet, true);
     if (!layout.error.empty())
         throw cRuntimeError("observePort: unsupported structure of the transmitted frame: %s (%s)", layout.error.c_str(), layout.signature.c_str());
@@ -214,12 +222,17 @@ void TtTimestampProcessor::receiveSignal(cComponent *source, simsignal_t signalI
     bool txTagged = !found.empty();
     if (txTagged != r.tagOnWire || (txTagged && r.tagged && found[0].tag->getFrameId() != r.frameId))
         throw cRuntimeError("observePort pairing: tag of the transmitted frame differs from the enqueued one (tree id %ld)", r.treeId);
+    if (pairer.mode == TtEgressPairer::TAS) {       // M2B-4: PCP twins can share a payload hash
+        std::string idError = pairer.verifyTransmitted(r, layout.etherType, layout.pcp, layout.vid);
+        if (!idError.empty())
+            throw cRuntimeError("observePort pairing: %s", idError.c_str());
+    }
     numPortTx++;
     if (pairingRotate)
         rotateRows.push_back(r);
     else
         writePortTx(r, r, "tx");
-    pairer.fifo.pop_front();
+    pairer.fifo.erase(pairer.fifo.begin() + index);
 }
 
 void TtTimestampProcessor::writePortTx(const TtPortRecord& r, const TtPortRecord& id, const char *event)
@@ -793,6 +806,8 @@ void TtTimestampProcessor::selfTest()
         throw cRuntimeError("Self-test failed: %d of %d cases passed (see log)", passed, (int)cases.size());
     if (observePort)
         selfTestPairer();
+    if (observePort && pairer.mode == TtEgressPairer::TAS)
+        selfTestPairerTas();
 }
 
 // M2-S1: the egress pairing rules on synthetic event sequences (observePort only, so that
@@ -850,6 +865,58 @@ int TtTimestampProcessor::selfTestPairer()
     recordScalar("selfTestPairerPassed", passed);
     if (passed != (int)cases.size())
         throw cRuntimeError("Pairer self-test failed: %d of %d cases passed (see log)", passed, (int)cases.size());
+    return passed;
+}
+
+// M2B-4: the TAS pairing rules on synthetic event sequences (pairingMode "tas" only). 'P' push with a PCP,
+// 'D' dequeue, 'S' start, 'E' end. Each case states the expected outcome.
+int TtTimestampProcessor::selfTestPairerTas()
+{
+    using E = TtEgressPairer;
+    struct Step { char op; long tree; double t; int pcp; };
+    struct Case { const char *name; std::vector<Step> steps; const char *expectedError; };
+    std::vector<Case> cases = {
+        {"TAS: a PCP 5 frame overtakes an older PCP 0 frame (valid)", {{'P', 1, 1, 0}, {'P', 2, 1, 5}, {'D', 2, 2, 0}, {'S', 2, 2, 0}, {'E', 2, 3, 0}, {'D', 1, 4, 0}, {'S', 1, 4, 0}, {'E', 1, 5, 0}}, nullptr},
+        {"TAS: overtaking within the same PCP", {{'P', 1, 1, 5}, {'P', 2, 1, 5}, {'D', 2, 2, 0}}, "within PCP 5"},
+        {"TAS: start of a frame dequeued later", {{'P', 1, 1, 0}, {'P', 2, 1, 5}, {'D', 1, 2, 0}, {'D', 2, 2, 0}, {'S', 2, 2, 0}}, "out-of-sequence"},
+        {"TAS: overlapping transmissions", {{'P', 1, 1, 0}, {'P', 2, 1, 5}, {'D', 1, 2, 0}, {'S', 1, 2, 0}, {'D', 2, 2, 0}, {'S', 2, 2, 0}}, "overlapping transmission"},
+        {"TAS: end without start", {{'P', 1, 1, 0}, {'D', 1, 2, 0}, {'E', 1, 3, 0}}, "no transmission start"},
+        {"TAS: orphan dequeue", {{'P', 1, 1, 0}, {'D', 9, 2, 0}}, "orphan"},
+    };
+    int passed = 0;
+    for (const auto& c : cases) {
+        TtEgressPairer p;
+        p.mode = E::TAS;
+        std::string error;
+        for (const auto& s : c.steps) {
+            if (s.op == 'P') {
+                TtPortRecord r;
+                r.treeId = s.tree;
+                r.tSlot = s.t;
+                r.pcp = s.pcp;
+                error = p.push(r);
+            }
+            else {
+                size_t index;
+                E::Event e = s.op == 'D' ? E::DEQUEUE : s.op == 'S' ? E::TX_START : E::TX_END;
+                error = p.match(e, s.tree, s.t, index);
+                if (error.empty() && e == E::TX_END)
+                    p.fifo.erase(p.fifo.begin() + index);
+            }
+            if (!error.empty())
+                break;
+        }
+        bool ok = c.expectedError == nullptr ? error.empty() && p.fifo.empty() : error.find(c.expectedError) != std::string::npos;
+        if (ok)
+            passed++;
+        if (portLog.is_open())
+            portLog << "selftest,0," << ttId << ',' << (role == INGRESS ? "ingress" : "egress") << ",,,,,,,,,,,,,,,,,,,,"
+                    << (ok ? "PASS " : "FAIL ") << c.name << " / " << (error.empty() ? "accepted" : error) << '\n';
+    }
+    recordScalar("selfTestPairerTasCases", cases.size());
+    recordScalar("selfTestPairerTasPassed", passed);
+    if (passed != (int)cases.size())
+        throw cRuntimeError("TAS pairer self-test failed: %d of %d cases passed (see log)", passed, (int)cases.size());
     return passed;
 }
 
