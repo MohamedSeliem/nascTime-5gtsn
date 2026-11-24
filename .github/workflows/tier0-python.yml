@@ -9,12 +9,16 @@
 #   (b) the suite's final summary line equals the declared expected line exactly;
 #   (c) every non-success count in that line is zero.
 # Expected lines are declared in h4-first-task.md §5 and must not be edited to make CI pass.
+# M2B-1 (step 145, C3): test_tsnaf_compile.py added; its line is declared in docs/migration/m2b-1-compatibility-report.md §4.
+# M2B-3 (step 152, C1): test_tsnaf_compile_tas.py added as the 12th suite; its line is declared in docs/migration/m2b-3-tas-qbv.md §8.
 #
-# WP-A1 I-9 (decision D-A1-6; design docs/migration/wp-a1-a21-e0vn-wrapper-design.md rev. 2.1, §9): an eleventh
-# suite, test_m2s72_e0vn21.py, with its declared line. It runs isolated, exactly as verified locally:
-# python3 -I -B <absolute path> from a directory outside the repository, with SIMU5G_ROOT = the gated Simu5G
-# checkout below and the full git history (its source-pin tests resolve fbee202, 39a6434, d920125, 7bb0e3a, 7e5c169).
-# The ten original suites keep their invocation and expected lines unchanged.
+# WP-A1 I-9 (decision D-A1-6; design docs/migration/wp-a1-a21-e0vn-wrapper-design.md rev. 2.1, §9): test_m2s72_e0vn21.py,
+# with its declared line (added as the eleventh suite on the WP-A1 branch; the 13th after the merge of m2/continuation,
+# step 159). It runs isolated, exactly as verified locally: python3 -I -B <absolute path> from a directory outside the
+# repository, with SIMU5G_ROOT = the gated Simu5G checkout below and the full git history (its source-pin tests resolve
+# fbee202, 39a6434, d920125, 7bb0e3a, 7e5c169).
+# The other twelve suites (the ten original ones, M2B-1 and M2B-3) keep their invocation and expected lines unchanged.
+# Combined workflow: 13 declared suites, 12 in the default mode and 1 (WP-A1) isolated.
 
 name: tier0-python
 
@@ -90,7 +94,7 @@ jobs:
           cat > "$RUNNER_TEMP/tier0/run_suite.sh" <<'RUNNER'
           #!/usr/bin/env bash
           # usage: run_suite.sh <suite.py> <expected final line> [isolated]
-          #   default:  cd <suite dir>; python3 -B <suite>            (the ten original suites, unchanged)
+          #   default:  cd <suite dir>; python3 -B <suite>            (the twelve default-mode suites, unchanged)
           #   isolated: cd $RUNNER_TEMP; python3 -I -B <absolute path>  (WP-A1, as verified locally)
           set -uo pipefail
           suite="$1"
@@ -265,6 +269,14 @@ jobs:
         if: ${{ !cancelled() && steps.runner.outcome == 'success' && steps.fixture_gate.outcome == 'success' && steps.simu5g_gate.outcome == 'success' }}
         run: '"$RUNNER_TEMP/tier0/run_suite.sh" test_m2s72_a21_fixture.py "A-2.1 fixture-extractor tests: 14 / 14 PASS, 0 FAIL"'
 
+      - name: Suite test_tsnaf_compile.py (M2B-1)
+        if: ${{ !cancelled() && steps.runner.outcome == 'success' && steps.fixture_gate.outcome == 'success' && steps.simu5g_gate.outcome == 'success' }}
+        run: '"$RUNNER_TEMP/tier0/run_suite.sh" test_tsnaf_compile.py "TSN AF compiler tests: 147 / 147 PASS, 0 FAIL; 37 compatibility cases reproduced"'
+
+      - name: Suite test_tsnaf_compile_tas.py (M2B-3)
+        if: ${{ !cancelled() && steps.runner.outcome == 'success' && steps.fixture_gate.outcome == 'success' && steps.simu5g_gate.outcome == 'success' }}
+        run: '"$RUNNER_TEMP/tier0/run_suite.sh" test_tsnaf_compile_tas.py "M2B-3 S-CFG/2 TAS compiler tests: 54 / 54 PASS, 0 FAIL"'
+
       - name: Suite test_m2s72_e0vn21.py (WP-A1, isolated)
         if: ${{ !cancelled() && steps.runner.outcome == 'success' && steps.fixture_gate.outcome == 'success' && steps.simu5g_gate.outcome == 'success' }}
         run: '"$RUNNER_TEMP/tier0/run_suite.sh" test_m2s72_e0vn21.py "WP-A1 e0vn21 tests: 52 / 52 PASS, 0 FAIL" isolated'
@@ -311,9 +323,9 @@ jobs:
                 echo "| \`$suite\` | **$verdict** | $rc | $dur | \`$(esc "$actual")\` | \`$(esc "$expected")\` |"
               done < "$R/results.tsv"
             fi
-            if [[ "$ran" -ne 11 ]]; then
+            if [[ "$ran" -ne 13 ]]; then
               echo
-              echo "**Only $ran of 11 declared suites produced a result; the rest were not run (see the gates and step logs).**"
+              echo "**Only $ran of 13 declared suites produced a result; the rest were not run (see the gates and step logs).**"
             fi
             echo
             echo "### NOT RUN in tier 0"

@@ -1,0 +1,83 @@
+{
+ "schema": "nasctime-scfg/1",
+ "endpoints": {
+  "listener": {
+   "side": "network"
+  },
+  "talker": {
+   "side": "ue"
+  }
+ },
+ "drb_profiles": {
+  "nasc-be": {
+   "qosPriorityLevel": 90,
+   "packetDelayBudget": 300
+  },
+  "nasc-gptp": {
+   "qosPriorityLevel": 10,
+   "packetDelayBudget": 5
+  }
+ },
+ "drbs": [
+  {
+   "drb_id": 1,
+   "default": true,
+   "lcg": 3,
+   "rlc_mode": "UM",
+   "profile": "nasc-be"
+  },
+  {
+   "drb_id": 2,
+   "lcg": 1,
+   "rlc_mode": "UM",
+   "profile": "nasc-be"
+  },
+  {
+   "drb_id": 4,
+   "lcg": 2,
+   "rlc_mode": "UM",
+   "profile": "nasc-be"
+  }
+ ],
+ "qos_flows": [
+  {
+   "qfi": 5,
+   "drb_id": 2
+  },
+  {
+   "qfi": 10,
+   "drb_id": 4
+  }
+ ],
+ "streams": [
+  {
+   "id": "dl-gptp-event",
+   "direction": "dl",
+   "source": "listener",
+   "destination": "talker",
+   "ues": "all",
+   "class": "gptp-event",
+   "qfi": 10
+  },
+  {
+   "id": "dl-pcp5",
+   "direction": "dl",
+   "source": "listener",
+   "destination": "talker",
+   "ues": "all",
+   "vid": 42,
+   "pcp": 5,
+   "qfi": 5
+  },
+  {
+   "id": "ul-pcp5",
+   "direction": "ul",
+   "source": "talker",
+   "destination": "listener",
+   "ues": "all",
+   "vid": 42,
+   "pcp": 5,
+   "qfi": 5
+  }
+ ]
+}
