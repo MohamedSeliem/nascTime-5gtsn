@@ -1,0 +1,51 @@
+{
+ "config": "M2S72-E0v-q0-f1",
+ "expect": {
+  "a1.pu4_status": "PASS",
+  "a1.summary.a1a": 11697,
+  "a1.summary.a1b": 0,
+  "a1.summary.ambiguous": 0,
+  "a1.summary.orphan": 0,
+  "a1.summary.reinsert": 0,
+  "a21.rows.A2-0": "PASS",
+  "a21.rows.A2-0s": "PASS",
+  "a21.rows.A2-1": "PASS",
+  "a21.rows.A2-2": "PASS",
+  "a21.rows.A2-3": "PASS",
+  "a21.rows.A2-4a": "NOT EXERCISED",
+  "a21.rows.A2-4b": "NOT EXERCISED",
+  "a21.rows.A2-4c": "NOT EXERCISED",
+  "a21.rows.A2-5": {
+   "any_of": [
+    "PASS",
+    "NOT EXERCISED"
+   ]
+  },
+  "a21.rows.A2-6": "PASS",
+  "a21.rows.A2-7": "PASS",
+  "a21.rows.A2-8": "PASS",
+  "a21.rows.A2-9": "PASS",
+  "a21.verdict_f1d_i": "A-2.1 VALID",
+  "a21.verdict_full": "A-2.1 VALID",
+  "c0.status": "PASS",
+  "rows.A2-8u.UE 0": "PASS",
+  "rows.A2-8u.UE 0.local": "EQUAL",
+  "rows.C-0": "PASS",
+  "rows.MAP-UE": "PASS",
+  "rows.PU-4h": "PASS",
+  "rows.PU-4o.UE 0": "PASS",
+  "rows.PU-4o.UE 0.local": "EQUAL",
+  "verdict.exit": 3,
+  "verdict.gate_failures": [],
+  "verdict.gate_not_evaluated": [],
+  "verdict.held_features": [
+   "single-candidate ACK attribution"
+  ],
+  "verdict.held_features_if_exercised": [
+   "end-of-run censoring: inserted in the last TTI"
+  ],
+  "verdict.status": "HELD FOR REVIEW"
+ },
+ "note": "Declared before execution from the approved WP-A1 design revision 2.1 (57a80ca), section 8.2, and the accepted records it cites. NOT EXECUTED in WP-A1: the genuine run is private evidence, evaluated only by the independent executor (DR-07c). A deviation is a finding (exit 5), never a reason to change a declared value. Not expressible as a key and therefore not declared here: 'per-UE A-2.1 occupancy = A-1's occupancy' (the hrq record does not carry A-1's per-node occupancy); PU-4o UE 0 PASS with local EQUAL declares the equality with the XA truth occupancy.",
+ "schema": "m2s72-s5n21-expect/1"
+}

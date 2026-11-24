@@ -283,6 +283,21 @@ E2 (the load sweep) is outside the plan's execution scope. It is re-declared aft
 
 **Requires an independent execution environment** (currently the VM): every E0v / E3 / E1 / E4 run and every independent acceptance. Storage: cumulative 290–470 GB, peak 6 GB or less, with the tiered evidence rules of plan §4. Wall time about 18–25 h for the whole of Stage 5 (plan §4.3, an estimate).
 
+### 3.4b WP-A1 — A-2.1 integration wrapper for E0v-N (step 159; pending the maintainer's review)
+
+This entry adds status only. It does not change any row of §3.4 or §3.4a, and S7.2a remains **partial**.
+
+| Item | Status |
+|---|---|
+| Design | Revision 2.1 (`57a80ca`), approved with the D-A1 rulings (`docs/migration/wp-a1-a21-e0vn-wrapper-design.md`) |
+| Implementation (`m2s72_e0vn21.py`, `check_m2s72_s5n21.py`, registry, expectation files, suite) | **Complete at level 2 (AC-1 … AC-4)**, subject to confirmation by hosted CI on the integration branch. Reviewed implementation commit `C` = `f3f68be`. Closure record: `docs/migration/wp-a1-level2-closure.md`. Suite: 52 / 52 PASS, run isolated as the 13th tier-0 suite. |
+| FGO registry | 18 features, 9 admitted, unchanged since `7e5c169`. No admission without a reviewed change citing an accepted record. |
+| Validation procedure | Runbook revision 4 with fail-closed scripts (`docs/migration/wp-a1-validation-runbook.md`, `docs/migration/wp-a1-validation/`; procedure tested at `544c093`, test report `docs/migration/wp-a1-validation-test-report.md`). Procedure commit `D` is fixed only when the maintainer signs gate A. |
+| V-N1, V-N2, V-V1 | **Not executed.** NO-GO until gate A is signed, an executor is designated, session Q (DR-13-V, G0-RO) is approved and the three archives are released. |
+| AC-5, AC-6 | **Open** (maintainer, level 3) |
+| S5-2-D2 | **Open.** `S5N_ADAPTER_VALIDATED` is not set; the wrapper's `run` mode refuses without it. |
+| Scientific acceptance | **Not claimed.** The `hrq` verdict is HELD FOR REVIEW. A2-V1 stays **NOT ACCEPTED**; the A-1 PU-4 FAIL of the N = 2 smoke is retained; A-2 and A-2.1 are unchanged. The E0v-N bracket stays blocked (§3.4). |
+
 ### 3.5 M2-S8 — Fidelity (`m2-s2-design.md` §7)
 
 | Item | Content |
