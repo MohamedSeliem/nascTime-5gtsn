@@ -353,6 +353,7 @@ allowed = {"simulations/m2/m2b2/TtGateClockTest.ned", "simulations/m2/m2b2/omnet
            # M2B-3 (opt-in TAS): the S-CFG/2 compiler emits the binding; test-only configurations and tests
            "simulations/m2/tools/tsnaf_compile.py", "simulations/m2/m2b3/s72-q0-tas.scfg.ini", "simulations/m2/m2b3/tas.ini",
            "simulations/m2/check/test_m2b3_tas_bridge.py", "simulations/m2/check/test_tsnaf_compile_tas.py",
+           "simulations/m2/check/check_m2b3_tas_config.py",
            "src/nasctime/m2/TtGateClock.cc", "src/nasctime/m2/TtGateClock.h", "src/nasctime/m2/TtGateClock.ned"}
 check("T-default-off TtGateClock is referenced only by its own sources, test network and test", set(hits) <= allowed, str(sorted(set(hits) - allowed)))
 
