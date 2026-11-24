@@ -33,7 +33,8 @@
 | M2-A S8 | NOT STARTED | undecided (Q-1) | B7 |
 | M2-B B1, B4, B7 | NOT STARTED (B4 condition (1) BLOCKED) | yes | B4: Phase 0 datasets |
 | M2-B B2, B3 | PARTIAL | yes | — |
-| M2-B B5, B6 | IMPLEMENTED (level 2, local evidence) | yes | hosted-evidence decision (Q-3); independent protocol |
+| M2-B B5 | IMPLEMENTED (level 2, local evidence) | yes | hosted-evidence decision (Q-3); independent protocol |
+| M2-B B6 | PARTIAL (offline statistics and passive per-frame observation at level 2; runtime `bridgeResidence` signal and per-port-pair statistics missing) | yes | B6-R; then as B5 |
 | M2-B DS-TT VLAN translation | NOT STARTED | yes | — |
 | M2-B multi-endpoint data plane | PARTIAL | yes | S7.2b (UL gPTP) for the S8 scenario |
 | M2-B legacy comparison; fingerprint baseline | BLOCKED | yes | Phase 0 (DR-06); B8 |
@@ -77,7 +78,7 @@ The tracks run in parallel. Independent validation (track V) never waits for dev
 | **V-6** A2 non-perturbation twin and full-contract diagnostic | A2 | Records | Twin identical in non-log outputs; declared coverage minima | A2 |
 | **V-7** E3, then E1 + E4 | A4 | Records | Pre-declared rows | A4; V-5 for E1 |
 | **V-8** CP3 (Stage 6), Block F, fresh-clone closure | A5, A6 | S7.2a stage 6–9 records | Design §7, §11 | A5, A6 |
-| **V-9** M2-B acceptance rows (gates observed, observer) | B5 / B6 protocol (BX-P) | Records | The protocol row "gates observed opening and closing"; the observer rows | BX-P; Q-3 resolved |
+| **V-9** M2-B acceptance rows (gates observed, observer) | B5 / B6 protocol (BX-P) | Records | The protocol row "gates observed opening and closing"; the observer rows | BX-P; B6-R; Q-3 resolved |
 | **V-10** S7.2b, S7.3 rows | C2, C4 | V0-UL first, U0–U3; S0–S4 | Roadmap §5.3, §5.4 | C2, C4 |
 | **V-11** M3 functional and protocol rows; then the legacy F1 / F2 comparison | D3; P-1 | Records | §4 of the status | D3; P-1 for the comparison |
 
@@ -109,8 +110,9 @@ The tracks run in parallel. Independent validation (track V) never waits for dev
 | **B3** Compiler completion | B2 | TSCAI; VID classification (decision in B2); per-UE DRB templates; `.ini` section integration; traffic applications | The byte-identical oracle stays green for every existing configuration | B2 |
 | **B4** `StaticBmca` validator | DR-03 | Conditions (2) and (3); then the offline validator over the resolved configuration, with one test per legacy check | The recorded fail-closed difference | Condition (1): P-2 (A-dep) |
 | **B5 / B6 follow-up** | M2B-2 … M2B-5 | Hosted evidence per Q-3; the acceptance protocol **BX-P** for the gate and observer rows | Protocol reviewed before any run | Q-3 |
+| **B6-R** Runtime B6 signal and statistics (the outstanding part of the original B6 contract) | M2B-2 §5 (B6 item 2); M2B-4 observer | A default-off, passive runtime signal `bridgeResidence` (R per frame) at the egress processor, with declared `@statistic` per port pair / PCP | Equal to `bridge_delay.py` on the same run (oracle); outputs of existing configurations unchanged; level 2 | B2 (observer section); tier-1 build
 | **B7** DR-04 clock-error analysis | M2-S6; status §3.5 | Analysis note | Maintainer decision on Q-1 | — |
-| **BX-VT** DS-TT VLAN translation | Legacy PR #2 (`1501a50`) as reference only; B2 | Default-off translation function at the DS-TT; oracle; negative controls | Accepted configurations unchanged | B2 |
+| **BX-VT** DS-TT VLAN translation (DR-02) on the Ethernet PDU-session architecture | B2. Legacy PR #2 (`1501a50`) is historical reference only: it implements legacy PCP-to-IPv4-DSCP translation and an uplink reflective-QoS demo, not this function | Default-off translation function at the DS-TT; oracle; negative controls | Accepted configurations unchanged | B2 |
 | **BX-ME** Multi-endpoint S8 scenario (bidirectional, N = 3) | B3; C2 (UL gPTP) | Scenario and checker | Level-2 tests | B3, C2 |
 | **BX-SB** `GptpSideband` labelled baseline | B2 | Default-off baseline, labelled idealised | Level-2 tests | B2 |
 | **BX-H5** H5 equivalence analysis | The legacy `LayeredEthernetInterface` | Analysis note for the pending retirement | Maintainer decision | — |
@@ -146,7 +148,7 @@ The tracks run in parallel. Independent validation (track V) never waits for dev
 2. **A3, A2**: so that V-5 and V-6 can start as soon as V-3 is decided.
 3. **B1, B7, BX-H5**: documentation that unblocks decisions Q-1 and H5, and the M2 functional row.
 4. **A4**, then **A5 → A6**.
-5. **B2** consolidation, then **B3** completion, **BX-VT**, **BX-SB**.
+5. **B2** consolidation, then **B3** completion, **B6-R**, **BX-VT**, **BX-SB**.
 6. **D1**, then **D2**. D3 waits for B3.
 7. **C1, C3**, then **C2, C4**, then **BX-ME**.
 8. **B4** conditions (2) and (3) at any point; the validator after them.
@@ -184,7 +186,7 @@ The tracks run in parallel. Independent validation (track V) never waits for dev
 | R-2 | The validation procedure depends on `C` and `D` staying reachable | `h1-setup.sh` stops if they are missing | Both are ancestors of `m2/continuation`. Never rewrite its history. |
 | R-3 | The VM-only legacy datasets (DR-06b) | Risk of loss; blocks the legacy comparisons, B4 condition (1) and Phase 0 | P-2 when VM access resumes |
 | R-4 | B8: the fingerprint suite is not located | The M2 regression row and the M4 skill | P-4 |
-| R-5 | The M2B functional evidence is local only | B5 / B6 acceptance cannot use it | Q-3 (CI-2 or a DR-15 run); then BX-P and V-9 |
+| R-5 | The M2B functional evidence is local only, and B6 lacks its runtime signal and statistics | B5 / B6 acceptance cannot use it | B6-R; Q-3 (CI-2 or a DR-15 run); then BX-P and V-9 |
 | R-6 | Standards texts not read (V-register) | The freeze of S7.3 L-rec, S7.4a and S8 | Not blocking implementation; schedule the reading before any freeze |
 | R-7 | The S7.2a evidence volume (about 290–470 GB cumulative; plan §4.3 estimate) | Executor budget | Tiered evidence rules (plan §4); the budget is approved by the maintainer |
 | R-8 | The A-2.1 full contract is INCOMPLETE (A2-4c not evaluated) | Limits the claims; never broadened | A2 / V-6 |
@@ -201,7 +203,7 @@ The criteria are taken from the sources quoted in the status record. **Undecided
 **Mandatory (from the sources):**
 1. **Stack:** OMNeT++ 6.5.0 / INET 4.7.0 / unmodified Simu5G 1.8.1 (DR-01).
 2. **M2-A minimum gPTP scope** (S7 roadmap §2.1): S7.1, S7.2a, S7.2b, S7.3 (detection and state; recovery experimental), each **CLOSED** with independent evidence. S7.2a closure includes stages 5–9 at N = 1, 2, 4, 8 (DR-05).
-3. **M2-B** (DR-02): B1 coverage table complete, with every retirement evidenced; G5 and G6 covered (B3, B4); TAS and the observer accepted (B5, B6); DS-TT VLAN translation; the multi-endpoint data plane; the legacy-vs-1.8 comparison; the fingerprint baseline. **M2 closes only when M2-A and M2-B close.**
+3. **M2-B** (DR-02): B1 coverage table complete, with every retirement evidenced; G5 and G6 covered (B3, B4); TAS and the observer accepted (B5; B6 including its runtime signal and per-port-pair statistics); DS-TT VLAN translation on the Ethernet PDU-session architecture; the multi-endpoint data plane; the legacy-vs-1.8 comparison; the fingerprint baseline. **M2 closes only when M2-A and M2-B close.**
 4. **M3 F1 / F2** CLOSED with the functional, protocol and experimental rows (§4 of the status). Results over TP-1 … TP-3 are labelled "FRER over existing transport paths".
 5. **M4 acceptance** (status §5): clean-machine install and run of every example; the CI dev job has run at least once; the boundary statement reviewed; claim-scoping notes; release line per DR-18.
 6. **Claims:** no claim beyond the accepted evidence. In particular: no "3GPP-faithful carriage" before S8; A2-V1 NOT ACCEPTED and the A-1 PU-4 FAIL stated as such; no IEEE 802.1Qbv / 802.1AS conformance claim without evidence.

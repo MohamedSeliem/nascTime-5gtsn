@@ -96,7 +96,11 @@ Every discrepancy between these sources is listed in `migration/migration-decisi
 
 - **Branches.** The four permanent branches are unchanged (`git ls-remote`, 24 Nov). The feature branches of PRs #11 … #16 are no longer on the remote; their content is reachable from `m2/continuation`. In particular the WP-A1 reviewed implementation commit `C` = `f3f68be` and the tested procedure commit `544c093` are ancestors of `3b2c294`, which the validation procedure requires (runbook §1, `h1-setup.sh`).
 - **Tags:** 30, unchanged.
-- **Open pull requests:** #2 and #3, both from an external fork and both against the frozen `master` (legacy line): uplink reflective QoS (#2, head `1501a50`, the source of the retained DS-TT VLAN translation task) and two-gNB uplink FRER demos (#3). Neither can be merged into `master` under DR-18; their disposition is a maintainer decision (§9.6).
+- **Open pull requests:** #2 and #3, both from an external fork and both against the frozen `master` (legacy line). They are **historical reference material only**:
+  - **#2** (head `1501a50`): on the legacy PPP / IP NW-TT–UPF architecture, a DS-TT uplink translation of mapped 802.1Q PCP values into the IPv4 DSCP (the VLAN tag of a mapped PCP is removed), the DS-TT downlink restoration of PCP from the DSCP, and an uplink reflective-QoS demo (`simulations/demos/uplink_qos`). It is **not** a general DS-TT VLAN translation and has no counterpart in the Ethernet PDU-session architecture of the 1.8 line. The DS-TT VLAN-translation task retained by DR-02 stays outstanding (§9.4).
+  - **#3:** two-gNB uplink FRER replication, recovery and scalability demos on the legacy line; relevant as reference for M3 F2 / TP-3.
+
+  Neither can be merged into `master` (DR-18); their disposition is a maintainer decision (§9.6).
 
 **Historical table (rev. 3, 17 Nov 2026), retained.** The column "Archived as (rev. 4)" gives the tag that now preserves each deleted branch's head; the rev-3 text is otherwise unchanged. These commits come from the maintainer's independent audit of 17 November 2026. They are not re-verified by this record, because the authoring clone holds only the `m2/*` and `plan/*` branches.
 
@@ -240,6 +244,8 @@ Rules:
 | F4 | NR dual-connectivity transport diversity (README: "in development") | — | **Deferred to Phase 5 — approved** | Roadmap Phase 5: trigger: upstream NR dual-connectivity support (blocker B1). Contingency `nasctime.compat.nrdc` only by approval. |
 | — | DS-TT VLAN translation (nascTime PR #2; inventory §3 "keep") | PR #2 head `1501a50` | **Task — retained in M2-B (approved)** | M2-B (DS-TT function); not in the README tables |
 
+**(rev. 5) Note on the last row.** The rev-3 citation "nascTime PR #2 … head `1501a50`" is retained as written. Review of that PR (24 Nov) shows that it implements legacy DS-TT PCP-to-IPv4-DSCP translation and an uplink reflective-QoS demo on the legacy PPP / IP architecture, not a general DS-TT VLAN translation. It is historical reference material only. The DR-02 task "DS-TT VLAN translation" is unchanged and outstanding (§9.4).
+
 The README also documents `tests/fingerprint/` (lines 504–509), but that directory is not in the repository at `115012f` or, per `legacy-baseline-manifest.md` §3, in the public repository. This is blocker B8.
 
 **The M2 work actually executed** follows the gPTP stage plan of `m2-s2-design.md` §7 (S0–S8) and the S7 roadmap. It does not complete M2 alone: **DR-02 (17 Nov)** approved the full M2-A (timing, S0–S8) and M2-B (bridge functionality) scope. S8 stays within M2 as extended fidelity (DR-04). `StaticBmca` gets an offline replacement, conditional on equivalence analysis (DR-03).
@@ -352,7 +358,7 @@ This entry adds status only. It does not change any row of §3.4a, and S7.2a rem
 | Item (roadmap §2 Phase 2) | Status (audit §1.1) | Remote | Indep. evidence |
 |---|---|---|---|
 | TAS / Qbv at the TT ports ("TAS parsed, not applied" closed with INET Qbv; `upstream-dependency-matrix.md` §2) | ~~Not started~~ **(rev. 5) IMPLEMENTED at level 2** (B5: M2B-2 S-CLK, M2B-3 opt-in Qbv, M2B-5 common epoch; local functional evidence only). §9.4 | Design and configuration: yes | yes (protocol row "gates observed opening and closing") |
-| TSN AF offline compiler (streams → S-CFG tables, PCP/VID → QFI, nascTime profiles, TSCAI) and runtime observer | ~~Not started. S-CFG exists only as the S7.2a generator (audit §1.6).~~ **(rev. 5)** Compiler **PARTIAL** (B3: S-CFG/1 bearer tables byte-identical to the generator; S-CFG/2 TAS and common epoch; no TSCAI, no VID classification, no `.ini` section integration). Observer **IMPLEMENTED at level 2** (B6: offline observer M2B-2, TAS pairing M2B-4). §9.4 | Compiler: yes. Observer: code yes, runs no. | yes |
+| TSN AF offline compiler (streams → S-CFG tables, PCP/VID → QFI, nascTime profiles, TSCAI) and runtime observer | ~~Not started. S-CFG exists only as the S7.2a generator (audit §1.6).~~ **(rev. 5)** Compiler **PARTIAL** (B3: S-CFG/1 bearer tables byte-identical to the generator; S-CFG/2 TAS and common epoch; no TSCAI, no VID classification, no `.ini` section integration). Observer **PARTIAL** (B6: offline statistics M2B-2 and passive per-frame observation with TAS pairing M2B-4 at level 2; the runtime `bridgeResidence` signal and its per-port-pair statistics are not implemented). §9.4 | Compiler: yes. Observer: code yes, runs no. | yes |
 | Multi-endpoint (N DS-TT / UE pairs on one UPF bridge) | Partly covered by S7.2a (gPTP only). **(rev. 5)** M2B-3 … M2B-5 add DL / UL Ethernet data traffic through the N = 2 bridge in their test configurations (level 2, local). The S8 integration scenario (bidirectional, 3 endpoints) is not started. | — | — |
 | `StaticBmca` replacement | Not started. DR-03 approved an offline replacement, conditional on equivalence analysis. | yes (analysis; validator once tier 1 exists) | legacy-scalar check (Phase 0) |
 | G1–G6 / H1–H6 / S1–S8 / F1–F4 coverage | Dispositions decided by DR-02 (§3 table); the H5 retirement is pending its equivalence analysis. The coverage-evidence entries (WP B1) are not started. | yes | no (it is a mapping) |
@@ -363,7 +369,7 @@ This entry adds status only. It does not change any row of §3.4a, and S7.2a rem
 
 **M2 overall: OPEN.** S0–S6 and S7.1 are complete on 1.8.0, with the 1.8.1 forms accepted. S7.2a is partial. S7.2b, S7.3, S7.4a, S8 and the non-gPTP Phase 2 items have not started.
 
-**(rev. 5)** M2 remains **OPEN**. The non-gPTP statement above is superseded for B3, B5 and B6, which now have level-2 implementations (§9.4). No M2-B acceptance row has independent evidence.
+**(rev. 5)** M2 remains **OPEN**. The non-gPTP statement above is superseded for B3, B5 and B6: B5 is implemented at level 2, while B3 and B6 are partly implemented (§9.4). No M2-B acceptance row has independent evidence.
 
 ## 4. M3 (Phase 3) — FRER
 
@@ -498,7 +504,7 @@ Where the sources leave a release question open, this record says **"undecided"*
 | M2-B B3 TSN AF offline compiler | **PARTIAL** (M2B-1, M2B-3, M2B-5 compiler parts) | yes | B3 completion |
 | M2-B B4 `StaticBmca` validator | **NOT STARTED**; DR-03 condition (1) **BLOCKED** on the Phase 0 datasets | yes (DR-03, conditional) | DR-03 conditions (2) and (3) |
 | M2-B B5 TAS / Qbv at the TT ports | **IMPLEMENTED** (level 2; local evidence) | yes | hosted-evidence decision, then acceptance protocol |
-| M2-B B6 bridge-delay observer | **IMPLEMENTED** (level 2; local evidence) | yes | as B5 |
+| M2-B B6 bridge-delay observer | **PARTIAL** (offline statistics and passive per-frame observation at level 2, local evidence; the runtime `bridgeResidence` signal and per-port-pair statistics not implemented) | yes | B6-R deliverable (§9.4) |
 | M2-B B7 DR-04 clock-error analysis | **NOT STARTED** | yes (decides S8 eligibility) | B7 note |
 | M2-B DS-TT VLAN translation (DR-02, retained; no WP number in the plan) | **NOT STARTED** | yes (DR-02) | design within B2 |
 | M2-B multi-endpoint data plane (S4, S7, S8) | **PARTIAL** (gPTP in S7.2a; N = 2 data traffic in the M2B test configurations) | yes | the S8 scenario needs S7.2b for UL gPTP |
@@ -570,7 +576,7 @@ Where the sources leave a release question open, this record says **"undecided"*
 | M2B-1: TSN AF offline compiler, S-CFG/1 | #12 | **B3** (and the B2 S-CFG interface note `m2b-scfg-interface.md`) | TAS, TSCAI, FRER, runtime observation, VID classification, `.ini` section integration (report §6) |
 | M2B-2: TT gate clock adapter `TtGateClock` (S-CLK) and offline observer `bridge_delay.py` (S-OBS) | #13 | **B5** (clock binding), **B6** (offline observer), B2 (S-CLK seam analysis) | Gating itself; observation under TAS |
 | M2B-3: opt-in 802.1Qbv egress gating, S-CFG/2 | #14 | **B5**, B3 (S-CFG/2) | Common base time; B6 under TAS; hosted execution |
-| M2B-4: TAS-compatible egress pairing; residence under TAS | #15 | **B6** | Frames dropped by a shaped queue, preemption, aborted transmissions (refused); hosted execution |
+| M2B-4: TAS-compatible egress pairing; residence under TAS | #15 | **B6** (in-simulation passive observation under TAS) | The runtime `bridgeResidence` signal and per-port-pair statistics; frames dropped by a shaped queue, preemption, aborted transmissions (refused); hosted execution |
 | M2B-5: common-epoch schedule alignment (`base_time_ns`, `TtEpochGate`) | #16 | **B5**, B3 | Clock synchronization accuracy, cross-translator feasibility, worst-case latency, 802.1Qbv / 802.1AS conformance; sanitizer runs; future activation (ConfigChange); runtime reconfiguration |
 
 **Evidence class of all five increments:** level 2. The functional bridge results come from **local release-build runs** on the pinned stack versions, not from the pinned tier-1 environment. No hosted run executed the M2B configurations. Tier-0 runs the M2B-1 and M2B-3 compiler suites. The tier-1 workflow completed successfully on each PR head; it builds and links the changed C++ but does not resolve or run the M2B configurations, and whether its full-stack job ran or was skipped by trigger selection is recorded per run and is not re-verified here.
@@ -582,14 +588,14 @@ Where the sources leave a release question open, this record says **"undecided"*
 | **B3** | TSN AF offline compiler; reproduces the generator's bearer and QoS sections byte for byte before emitting anything new | **PARTIAL** | Tier-0: 147 / 147 (37 compatibility cases), 54 / 54 (TAS). Locally: 32 / 32 (common epoch, **not in tier-0**) | TSCAI; VID classification (currently refused); per-UE DRB templates; `.ini` section integration; traffic applications; S-PATH member-stream emission (M3) | Scenario runs using its output | B2 | yes | after B2 |
 | **B4** | `StaticBmca` offline validator, conditional on the equivalence analysis (DR-03) | **NOT STARTED** | DR-03 analysis table | DR-03 conditions (2) (the fail-closed difference) and (3) (every legacy check with an offline counterpart and a test); then the validator | Legacy scalar check | Condition (1) **BLOCKED** on the VM-only datasets (DR-06b) | yes (DR-03) | conditions (2), (3) |
 | **B5** | TAS / Qbv at the TT ports: default-off configuration, a gate oracle from the configuration, negative controls; acceptance by gate-observation rows on an independent environment | **IMPLEMENTED** | Level 2: M2B-2 / 3 / 5 component and bridge suites (local); the picosecond gate oracle; negative configurations | A hosted-evidence path (a maintainer decision on the tier-1 query extension, M2B-3 §8, or a DR-15 hosted run); the M2B-5 compiler suite into tier-0 (a CI change); optionally ConfigChange semantics | The protocol row "gates observed opening and closing" on an independent environment; the scientific items of M2B-5 §6 | Independent executor; the acceptance protocol is not yet written | yes | hosted-evidence decision |
-| **B6** | Runtime bridge-delay observer: statistics per port pair; independent oracle | **IMPLEMENTED** | Level 2: M2B-2 offline observer; M2B-4 per-class pairing, all 238 bridged frames against the independent oracle (local) | As B5 for hosted evidence | Observer runs under an approved protocol | As B5 | yes | as B5 |
+| **B6** | Runtime bridge-delay observer: signals and statistics per port pair; an independent oracle from PCAP (travel plan §2) | **PARTIAL** | Level 2, three distinct parts:<br>1. **Offline residence statistics:** `bridge_delay.py` (M2B-2), per port pair / PCP / VID, exact ps — **implemented**;<br>2. **In-simulation passive per-frame observation:** `TtTimestampProcessor` with `TtEgressPairer`, the M2-S1 FIFO pairing and the M2B-4 per-class `pairingMode = "tas"`; all 238 bridged frames against the independent PCAP oracle (local) — **implemented**;<br>3. **Runtime `bridgeResidence` signal and declared per-port-pair statistics** (M2B-2 §5, B6 item 2) — **not implemented**: no such signal or `@statistic` exists in `src/nasctime/m2` at `3b2c294`. | **B6-R:** a default-off, passive runtime signal `bridgeResidence` (R per frame) at the egress processor, with `@statistic` per port pair / PCP, equal to `bridge_delay.py` on the same run (oracle); then hosted evidence as B5 | Observer runs under an approved protocol | As B5 | yes | B6-R |
 | **B7** | DR-04 analysis: the Phase 2 clock-error row against M2-S6 / S8 | **NOT STARTED** | — | The analysis note | — | — | yes (it decides S8 eligibility) | Write B7 |
 
 **DR-02 scope items without a B number in the travel plan.** Recorded here with their own labels; they are not renumbered into B1–B7.
 
 | Item | Status | Remaining | Blocker | 2.0 |
 |---|---|---|---|---|
-| DS-TT VLAN translation (retained by DR-02; legacy source PR #2 head `1501a50`) | **NOT STARTED** | Design (in B2), then a default-off implementation and oracle | — (PR #2 is legacy input only and targets the frozen `master`) | yes |
+| DS-TT VLAN translation (retained by DR-02) on the Ethernet PDU-session architecture | **NOT STARTED** | Design (in B2), then a default-off implementation and oracle | — | yes |
 | Multi-endpoint data plane: S4 general case, S7, S8 (bidirectional, 3 endpoints) | **PARTIAL** | The S-CFG per-UE emitter (B3); the S8 integration scenario at N = 3 (not in the S7.2a set 1, 2, 4, 8) | UL gPTP needs S7.2b | yes |
 | `GptpSideband` labelled baseline (G2 sideband part) | **NOT STARTED** | Design in B2 | — | yes (DR-02 task) |
 | H5 retirement: equivalence analysis (streaming PHY, timing) | **NOT STARTED** (retirement pending) | Analysis note | — | yes (a DR-02 decision is pending on it) |
@@ -622,6 +628,7 @@ Where the sources leave a release question open, this record says **"undecided"*
 - S7.2b and S7.3;
 - S8;
 - B1, B2, B3 (completion), B4, B7;
+- the B6 runtime `bridgeResidence` signal and per-port-pair statistics (B6-R);
 - DS-TT VLAN translation;
 - the multi-endpoint S8 scenario;
 - the `GptpSideband` baseline;
@@ -638,6 +645,6 @@ Where the sources leave a release question open, this record says **"undecided"*
 | Q-2 | Does Phase 0 bit-identical regeneration gate M4, or only the legacy comparisons? | The §1 rule says nothing waits for Phase 0 closure; the M2 and M3 experimental rows need its mapping |
 | Q-3 | Hosted evidence for the M2B configurations: the tier-1 configuration-query extension (M2B-3 §8) and/or a DR-15 hosted functional run | Currently local-only functional evidence |
 | Q-4 | Add `test_tsnaf_compile_epoch.py` (pure Python, 32 / 32) to tier-0 | The M2B-5 compiler path is not under hosted regression |
-| Q-5 | The disposition of the open PRs #2 and #3 (external, against the frozen `master`) | #2 is the source of the retained VLAN translation; #3 is relevant to M3 F2 / TP-3. Neither can merge into `master` (DR-18). |
+| Q-5 | The disposition of the open PRs #2 and #3 (external, against the frozen `master`) | Historical reference only. #2 is legacy PCP-to-DSCP translation with an uplink reflective-QoS demo, not the retained DS-TT VLAN translation; #3 is relevant to M3 F2 / TP-3. Neither can merge into `master` (DR-18). |
 | Q-6 | The DR-08 smoke closure records (N = 1, N = 2) | They are part of the DR-07c audit trail and need the private evidence |
 | Q-7 | Preservation status of the hosted evidence archives (artifact expiry 24–25 Nov) and the pending job-log exports (register §4.1) | Evidence preservation |
