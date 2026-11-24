@@ -30,6 +30,8 @@ spec_ = importlib.util.spec_from_file_location("tsnaf_compile", os.path.join(M2,
 TC = importlib.util.module_from_spec(spec_)
 spec_.loader.exec_module(TC)
 OMNETPP, INET, SIMU5G = (os.environ.get(k, "") for k in ("OMNETPP_ROOT", "INET_ROOT", "SIMU5G_ROOT"))
+MODE = os.environ.get("M2B5_MODE", "release")          # debug: opp_run_dbg + INET / nasctime_m2 debug builds (assertions on)
+SFX = "_dbg" if MODE == "debug" else ""
 PASS, FAIL = [], []
 MS = 10 ** 9
 T_END = 60 * MS
@@ -71,7 +73,7 @@ def run(case, res):
     with tempfile.TemporaryDirectory() as d:
         ini = os.path.join(d, "epoch.ini")
         open(ini, "w").write("\n".join(lines) + "\n")
-        cmd = [os.path.join(OMNETPP, "bin", "opp_run"), "-u", "Cmdenv", "-f", ini, "-r", "0",
+        cmd = [os.path.join(OMNETPP, "bin", "opp_run" + SFX), "-u", "Cmdenv", "-f", ini, "-r", "0",
                "-n", ":".join([os.path.join(REPO, "simulations"), os.path.join(REPO, "src"), os.path.join(SIMU5G, "src"),
                                os.path.join(INET, "src")]), "-x", "nasctime.nodes;nasctime.simulations.demos;simu5g",
                "-l", os.path.join(INET, "src", "INET"), "-l", os.path.join(REPO, "src", "nasctime", "m2", "nasctime_m2"),
@@ -105,6 +107,10 @@ def oracle(p, tc=5):
 if not (OMNETPP and INET and SIMU5G):
     print("SKIP: OMNETPP_ROOT, INET_ROOT and SIMU5G_ROOT must name a built OMNeT++ 6.5.0 / INET 4.7.0 and the Simu5G 1.8.1 sources")
     sys.exit(2)
+if MODE not in ("release", "debug"):
+    print("SKIP: M2B5_MODE must be release or debug")
+    sys.exit(2)
+print(f"mode {MODE}: opp_run{SFX}, INET{SFX}, nasctime_m2{SFX}" + ("  (INET DEBUG_CHECK_IMPLEMENTATION and ASSERT enabled)" if SFX else ""))
 
 ACC = dict(theta0=300000, y=-100, upd=10 * MS, uoff=3 * MS)       # the accepted DS-TT[0] TT clock (M2S6-E-all)
 CASES = {
@@ -117,6 +123,10 @@ CASES = {
     "C-rates": {"A": dict(theta0=1 * MS, y=200000), "B": dict(theta0=1 * MS, y=-200000, d=1000000)},
     "D-forward": {"A": dict(theta0=2001 * 10 ** 6, y=-200000, upd=10 * MS, uoff=3 * MS), "B": ACC, "tc": 1},
     "D-backward": {"A": dict(theta0=1999 * 10 ** 6, y=200000, upd=10 * MS, uoff=3 * MS), "B": ACC, "tc": 1},
+    # two gates on ONE TtGateClock whose changes are jumped over by the same forward step: simultaneous overdue events
+    "D-simultaneous": {"A": dict(theta0=2001 * 10 ** 6, y=-200000, upd=10 * MS, uoff=3 * MS),
+                       "B": dict(theta0=2001 * 10 ** 6, y=-200000, upd=10 * MS, uoff=3 * MS), "tc": 1,
+                       "extra": ['**.gateB.clockModule = "^.clockA"']},
 }
 results = {}
 with tempfile.TemporaryDirectory() as root:
@@ -166,6 +176,13 @@ with tempfile.TemporaryDirectory() as root:
     check(f"T5g D forward 5G update steps: {od} gate changes jumped over by a step are delivered at the step instant (oracle) and "
           f"counted by TtGateClock (numOverdueClockEvents = {sca.get(('clockA', 'numOverdueClockEvents'))})",
           od > 0 and sca.get(("clockA", "numOverdueClockEvents")) == str(od))
+    r, vec, sca = results["D-simultaneous"]
+    ctA, exA = oracle(CASES["D-simultaneous"]["A"], 1)
+    od = O.overdue_count(exA, ctA)
+    check(f"T5g D simultaneous: two gates on one TtGateClock with {od} overdue changes each at the same update instants: "
+          f"identical transitions, both equal to the oracle, the clock counts {2 * od} overdue deliveries",
+          od > 0 and vec.get("gateA") == vec.get("gateB") and sca.get(("clockA", "numOverdueClockEvents")) == str(2 * od),
+          str(sca.get(("clockA", "numOverdueClockEvents"))))
     r, vec, sca = results["D-backward"]
     ctA, exA = oracle(CASES["D-backward"]["A"], 1)
     br = O.backward_retraversals(exA, ctA)
@@ -207,5 +224,5 @@ with tempfile.TemporaryDirectory() as root:
     check("T5g-negative a gate bound to another translator's TT clock: its runtime schedule position is inconsistent with its own "
           "translator's clock and the oracle detects it", r.returncode == 0 and vec.get("gateB") != [(t, s) for t, s, _ in expB])
 
-print(f"\nM2B-5 common-epoch gate tests: {len(PASS)} / {len(PASS) + len(FAIL)} PASS, {len(FAIL)} FAIL")
+print(f"\nM2B-5 common-epoch gate tests ({MODE}): {len(PASS)} / {len(PASS) + len(FAIL)} PASS, {len(FAIL)} FAIL")
 sys.exit(1 if FAIL else 0)

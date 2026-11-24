@@ -1,6 +1,6 @@
 # M2B-5 — Common-epoch TAS schedule alignment
 
-**Status: draft for independent review (step 156).**
+**Status: draft for independent review (step 156; step 157 debug-assertion validation, §5.5).**
 
 - **Branch:** `m2b/tas-common-basetime`, from `m2/continuation` at `9781291` (M2B-4 merged).
 - **Stack:** OMNeT++ 6.5.0, INET 4.7.0, unmodified Simu5G 1.8.1.
@@ -123,7 +123,7 @@ The accepted compiler suites are unchanged: S-CFG/1 **147 / 147** (37 cases) and
 - Change j occurs at **t_j = inf{t ≥ t_(j−1) | C_T(t) ≥ c_j}**, c_j = b + k·T + boundary, searched segment by segment.
 - It never reads compiled gate parameters.
 
-**`check/test_m2b5_epoch_gate.py` on test network `m2b5/EpochGateTest.ned`** (two translators A / B, each `TtClock` + `TtGateClock` + one `TtEpochGate`): **35 / 35**. Every gate transition equals the oracle to the ps, in every case:
+**`check/test_m2b5_epoch_gate.py` on test network `m2b5/EpochGateTest.ned`** (two translators A / B, each `TtClock` + `TtGateClock` + one `TtEpochGate`): **38 / 38** (35 in step 156, plus the D-simultaneous case of step 157). Every gate transition equals the oracle to the ps, in every case:
 
 | Scenario | Result |
 |---|---|
@@ -134,6 +134,7 @@ The accepted compiler suites are unchanged: S-CFG/1 **147 / 147** (37 cases) and
 | C: +200 ppm / −200 ppm with drift | Each follows its own TT clock, not an ideal clock |
 | D, forward 5G steps | 6 changes jumped over and delivered at the step instant, equal to `TtGateClock`'s `numOverdueClockEvents` |
 | D, backward 5G steps | 6 changes re-traversed and not repeated (§4) |
+| D, simultaneous (step 157) | Two gates on **one** `TtGateClock`, each with 6 changes jumped over by the same forward steps: identical transitions, both equal to the oracle; the clock counts 12 overdue deliveries |
 
 Negatives, each failing for its intended reason:
 
@@ -182,12 +183,47 @@ A mutation with no epoch offset fails **14 / 35**.
 | M2B-3 configuration check | 10 / 10 |
 | M2B-4 pairer | 33 / 33 |
 | M2B-4 residence | 21 / 21 |
-| **New:** compiler epoch / gate / bridge | **32 / 32**, **35 / 35**, **36 / 36** |
+| **New:** compiler epoch / gate / bridge | **32 / 32**, **38 / 38**, **36 / 36** |
 
 ### 5.4 Hosted CI
 
 - **Tier-0** runs the unchanged 12 suites. The new suites are separate and not added.
 - **Tier-1** (if a maintainer applies `tier1:run`) builds and links `libnasctime_m2` with `TtEpochGate`. No protected tier-1 gate is changed, and no hosted run executes the M2B-5 configurations.
+
+### 5.5 Debug-assertion validation (step 157; local)
+
+**Build configuration:**
+
+| Item | Value |
+|---|---|
+| Compiler | Ubuntu clang 18.1.3 |
+| OMNeT++ | 6.5.0, `make MODE=debug` (`opp_run_dbg`, `liboppsim_dbg`) |
+| INET | 4.7.0, unmodified pinned tarball, `make MODE=debug` (`libINET_dbg.so`) |
+| `libnasctime_m2_dbg.so` | Built from this branch by `simulations/m2/m2b2/build_debug.sh`, linked against `INET_dbg`; includes `TtEpochGate` |
+| Debug flags (OMNeT++ `Makefile.inc` `CFLAGS_DEBUG`) | `-O0 -Wall -glldb -fstandalone-debug`. **No `-DNDEBUG`**, so INET's `ASSERT` and `DEBUG_CHECK_IMPLEMENTATION` (`DEBUG_CMP`) are enabled. Release (`CFLAGS_RELEASE`) uses `-O3 -DNDEBUG=1`. |
+| Simu5G 1.8.1 | NED sources only (the component network uses no Simu5G module) |
+
+**Assertions present:** the assertion texts of the IClock invariants are in `libINET_dbg.so` and absent from the release `libINET.so`:
+- `ClockEvent::execute`, invariant 2: `getArrivalClockTime() == clockTime`;
+- `ClockBase::checkScheduledClockEvent`, invariant 5.
+
+This is the same debug build that caught the IClock violations of the M2B-2 adapter at `c1a0d7d` in step 148.
+
+**Executed:** `M2B5_MODE=debug python3 -B simulations/m2/check/test_m2b5_epoch_gate.py`, which uses `opp_run_dbg` with `INET_dbg` and `nasctime_m2_dbg`. It covers every component case:
+- initialisation exactly at a schedule boundary, and in an open / closed window;
+- base time equal to the initial reading;
+- different TT clock offsets;
+- ±200 ppm and drift;
+- forward corrections with overdue gate events;
+- backward corrections;
+- simultaneous overdue gate events of two gates on one `TtGateClock` at the same update instants;
+- all negative controls.
+
+**Result: `M2B-5 common-epoch gate tests (debug): 38 / 38 PASS, 0 FAIL`.** No INET clock-event or scheduling invariant failed. The release run of the same suite is also 38 / 38.
+
+**Not executed:**
+- the bridge suites in debug mode (no Simu5G debug build);
+- any sanitizer run of `TtEpochGate`.
 
 ## 6. Limitations and outstanding validation
 
@@ -197,5 +233,5 @@ A mutation with no epoch offset fails **14 / 35**.
 | Runtime reconfiguration | Refused. Its semantics are not defined. |
 | Backward 5G steps | The gate may differ from the position formula for at most the step size, because executed changes are not repeated (§4). |
 | Base-time range | Limited to 9000 s for exact ps conversion |
-| Debug and sanitizer builds | `TtEpochGate` was not exercised under the INET debug-assertion build or sanitizers in this increment (M2B-2 covered `TtGateClock`). |
+| Debug and sanitizer builds | The component suite passes under the INET debug-assertion build (§5.5). The bridge tests were not run in debug mode: there is no Simu5G debug build. `TtEpochGate` was **not** run under any sanitizer. |
 | Scientific validation outstanding | Clock synchronization accuracy between translators; feasibility and consistency of cross-translator schedules (e.g. windows sized for the 5G-system delay); worst-case latency bounds; conformance to IEEE 802.1Qbv / 802.1AS. |
