@@ -135,6 +135,7 @@ class TtTimestampProcessor : public queueing::PacketFlowBase, public Transparent
 
     void selfTest();
     int selfTestPairer();
+    int selfTestPairerTas();        // M2B-4: TAS pairing rules (only with pairingMode "tas")
 
     void writeLog(const char *event, const Layout& layout, const std::string& hash, const TtTimestampTag *tag, int regions, const std::string& note);
 };
