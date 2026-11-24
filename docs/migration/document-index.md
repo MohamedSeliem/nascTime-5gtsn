@@ -26,6 +26,9 @@ Approval of the classification framework is **not** approval to publish any R or
 | `ci/tier1/README.md` | **(rev. 4)** Tier-1 full-stack CI: pins, triggering, acceptance C-1 … C-15, limits (integrated with PR #7) |
 | `ci/tier2/README.md` on branch `wp-e3/e3b-r1-publication` | **(rev. 4)** The experimental tier-2 harness, E3a / E3b / E3b-R1 acceptance definitions and the N3 publication policy. Not on `m2/continuation` (DR-15). |
 | `docs/migration/document-index.md` | This index |
+| `docs/migration/remaining-work-roadmap.md` | **(rev. 5, 24 Nov)** Remaining-work roadmap: milestone matrix, dependency-aware work-package sequence, outstanding independent validation, blockers and risks, release eligibility criteria. A proposal for review, not a delivery commitment |
+| `docs/migration/m2b-scfg-interface.md`, `m2b-1-compatibility-report.md`, `m2b-2-clock-and-observation.md`, `m2b-3-tas-qbv.md`, `m2b-4-tas-residence.md`, `m2b-5-common-epoch.md` | **(rev. 5)** M2-B implementation records M2B-1 … M2B-5 (PRs #12 … #16), level 2 |
+| `docs/migration/wp-a1-a21-e0vn-wrapper-design.md`, `wp-a1-level2-closure.md`, `wp-a1-remote-validation-plan.md`, `wp-a1-validation-runbook.md`, `wp-a1-validation-test-report.md`, `wp-a1-validation/` | **(rev. 5)** WP-A1 design, level-2 closure, independent-validation plan, runbook rev. 4 with its scripts, and the procedure test report (PR #11) |
 
 ## 3. Imported planning file (P)
 
