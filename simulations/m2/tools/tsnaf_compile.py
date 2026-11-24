@@ -20,6 +20,10 @@ Exit: 0 success; 1 invalid specification (one error line per problem, nothing wr
 With --out the file must not exist; it is written completely (temporary file, then rename) or not at all. Without
 --out the result goes to standard output only after the whole compilation succeeded. No other file is read or written.
 
+M2B-5 (docs/migration/m2b-5-common-epoch.md): with "tas": {"time_reference": "common-epoch", ...} every schedule is
+anchored by base_time_ns (a TT time) instead of phase_ns; its gates become nasctime.m2.TtEpochGate (INET PeriodicGate
+with the initial position taken from the translator's TT clock). Without time_reference, S-CFG/2 is unchanged.
+
 S-CFG/2 (schema "nasctime-scfg/2") additionally emits the IEEE 802.1Qbv gate schedules of the translators' egress ports
 as native INET parameters (Ieee8021qTimeAwareShaper / PeriodicGate) and the TT clock binding (TtGateClock and the
 explicit transmissionGate clockModule binding); see check_tas() and emit_tas(). An S-CFG/1 specification compiles
@@ -52,8 +56,13 @@ STREAM = {"id": True, "direction": True, "source": True, "destination": True, "u
           "class": False, "qfi": True}
 TOP2 = dict(TOP, tas=True)
 # S-CFG/2 TAS section
-TAS = {"untagged_tc": True, "schedules": True}
+TAS = {"untagged_tc": True, "schedules": True, "time_reference": False}
 SCHED = {"id": True, "translator": True, "port": True, "cycle_ns": True, "phase_ns": True, "entries": True}
+# M2B-5: common-epoch schedules (opt-in, tas.time_reference = "common-epoch"): anchored by base_time_ns instead of phase_ns
+TIME_REFS = ("relative-phase", "common-epoch")
+SCHED_EPOCH = {"id": True, "translator": True, "port": True, "cycle_ns": True, "base_time_ns": False, "phase_ns": False,
+               "entries": True}
+MAX_BASE_NS = 9000000000000                            # 9000 s: base_time_ns * 1000 ps < 2^53 (exact as an INI double)
 ENTRY = {"start_ns": True, "duration_ns": True, "open": True}
 NTC = 8                                                # Ieee8021qTimeAwareShaper default number of traffic classes
 # INET 4.7.0 PcpTrafficClassClassifier default mapping at 8 traffic classes (IEEE 802.1Q Table 8-5): PCP -> class
@@ -316,6 +325,11 @@ def check_tas(c, tas, n_ues, streams):
         return None
     utc = tas.get("untagged_tc")
     c.rng(utc, 0, NTC - 1, "tas.untagged_tc")
+    tref = tas.get("time_reference", "relative-phase")
+    if not _str(tref) or tref not in TIME_REFS:
+        c.err(f"tas.time_reference: {tref!r}, expected one of {list(TIME_REFS)}")
+        tref = None
+    epoch = tref == "common-epoch"
     scheds = tas.get("schedules")
     if not isinstance(scheds, list) or not scheds:
         c.err("tas.schedules: must be a non-empty list")
@@ -323,8 +337,13 @@ def check_tas(c, tas, n_ues, streams):
     out, ids, owner = [], set(), {}                    # owner: (translator, port) -> schedule id
     for i, sc in enumerate(scheds):
         w = f"tas.schedules[{i}]"
-        if not c.fields(sc, SCHED, w):
+        if not c.fields(sc, SCHED_EPOCH if epoch else SCHED, w):
             continue
+        if epoch and "phase_ns" in sc:
+            c.err(f"{w}: conflicting phase_ns and base_time_ns: a common-epoch schedule (tas.time_reference) is anchored "
+                  f"by base_time_ns only")
+        if epoch and "base_time_ns" not in sc:
+            c.err(f"{w}: missing base_time_ns: common-epoch mode (tas.time_reference) requires a common base time")
         sid = sc.get("id")
         if not _str(sid) or not NAME.match(sid):
             c.err(f"{w}.id: schedule identity {sid!r} must be a string matching {NAME.pattern}")
@@ -347,8 +366,12 @@ def check_tas(c, tas, n_ues, streams):
             port = None
         cyc = sc.get("cycle_ns")
         cyc_ok = c.rng(cyc, MIN_CYCLE_NS, MAX_CYCLE_NS, f"{w}.cycle_ns")
-        if cyc_ok:
-            c.rng(sc.get("phase_ns"), 0, cyc - 1, f"{w}.phase_ns")
+        base_ok = phase_ok = False
+        if epoch:
+            if "base_time_ns" in sc:
+                base_ok = c.rng(sc.get("base_time_ns"), 0, MAX_BASE_NS, f"{w}.base_time_ns")
+        elif cyc_ok:
+            phase_ok = c.rng(sc.get("phase_ns"), 0, cyc - 1, f"{w}.phase_ns")
         elif not _int(sc.get("phase_ns")) or sc.get("phase_ns") < 0:
             c.err(f"{w}.phase_ns: {sc.get('phase_ns')!r} is not a non-negative integer")
         ents = sc.get("entries")
@@ -389,14 +412,21 @@ def check_tas(c, tas, n_ues, streams):
             if shut:
                 c.err(f"{w}: the untagged traffic class {utc} (gPTP) must be open in every entry; closed in entries {shut}")
                 ok = False
-        if not ok or tr is None or port is None or not cyc_ok:
+        # a schedule whose anchor (phase_ns or base_time_ns) is missing or invalid was reported above; it is not normalised
+        # (M2B-5: a missing phase_ns previously raised KeyError after its error had been recorded)
+        if not ok or tr is None or port is None or not cyc_ok or (epoch and (not base_ok or "phase_ns" in sc)) \
+                or (not epoch and not phase_ok):
             continue
         for t in _targets(tr, n_ues):
             prev = owner.get((t, port))
             if prev is not None:
                 c.err(f"{w}: overlapping schedules: {prev!r} and {sid!r} both configure the gates of {_tname(t)} port {port}")
             owner.setdefault((t, port), sid)
-        out.append({"id": sid, "translator": tr, "port": port, "cycle": cyc, "phase": sc["phase_ns"], "entries": norm_e})
+        if epoch:
+            out.append({"id": sid, "translator": tr, "port": port, "cycle": cyc, "phase": 0, "base": sc["base_time_ns"],
+                        "entries": norm_e})
+        else:
+            out.append({"id": sid, "translator": tr, "port": port, "cycle": cyc, "phase": sc["phase_ns"], "entries": norm_e})
     if c.p:
         return None
     by_target = {(t, s["port"]): s for s in out for t in _targets(s["translator"], n_ues)}
@@ -455,6 +485,8 @@ def emit_tas(tas):
         for tc in range(NTC):
             op, durs, off = gate_params(s, tc)
             g = f"{q}.transmissionGate[{tc}]"
+            if s.get("base") is not None:              # M2B-5 common epoch: offset = list position when C_T = baseTime
+                out += [f'{g}.typename = "nasctime.m2.TtEpochGate"', f"{g}.baseTime = {s['base']}ns"]
             out += [f"{g}.initiallyOpen = {'true' if op else 'false'}",
                     f"{g}.durations = [{', '.join(f'{d}ns' for d in durs)}]",
                     f"{g}.offset = {off}ns"]

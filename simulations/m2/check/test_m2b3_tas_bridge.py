@@ -406,7 +406,8 @@ with tempfile.TemporaryDirectory() as res:
 # ---- default-off: nothing accepted references the TAS configuration
 hits = subprocess.run(["git", "-C", REPO, "grep", "-l", "-e", "hasEgressTrafficShaping", "-e", "TtGateClock", "--", "simulations",
                        ":!simulations/m2/m2b2", ":!simulations/m2/m2b3", ":!simulations/m2/check/test_m2b2_*",
-                       ":!simulations/m2/check/test_m2b3_*", ":!simulations/m2/check/check_m2b3_*", ":!simulations/m2/check/test_tsnaf_compile_tas.py",
+                       ":!simulations/m2/check/test_m2b3_*", ":!simulations/m2/check/check_m2b3_*", ":!simulations/m2/m2b5", ":!simulations/m2/check/test_m2b5_*",
+                       ":!simulations/m2/check/m2b5_oracle.py", ":!simulations/m2/check/test_tsnaf_compile_epoch.py", ":!simulations/m2/check/test_tsnaf_compile_tas.py",
                        ":!simulations/m2/tools/tsnaf_compile.py"], capture_output=True, text=True).stdout.split()
 check("T3-default-off no accepted configuration, network or generator enables TAS or the gate clock", hits == [], str(hits))
 

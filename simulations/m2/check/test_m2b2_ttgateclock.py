@@ -354,6 +354,11 @@ allowed = {"simulations/m2/m2b2/TtGateClockTest.ned", "simulations/m2/m2b2/omnet
            "simulations/m2/tools/tsnaf_compile.py", "simulations/m2/m2b3/s72-q0-tas.scfg.ini", "simulations/m2/m2b3/tas.ini",
            "simulations/m2/check/test_m2b3_tas_bridge.py", "simulations/m2/check/test_tsnaf_compile_tas.py",
            "simulations/m2/check/check_m2b3_tas_config.py",
+           # M2B-5 (opt-in common-epoch TAS): test-only configurations, network, oracle and tests
+           "simulations/m2/m2b5/s72-q0-epoch.scfg.ini", "simulations/m2/m2b5/epoch.ini", "simulations/m2/m2b5/EpochGateTest.ned",
+           "simulations/m2/check/m2b5_oracle.py", "simulations/m2/check/test_m2b5_epoch_gate.py",
+           "simulations/m2/check/test_m2b5_epoch_bridge.py", "simulations/m2/check/test_tsnaf_compile_epoch.py",
+           "src/nasctime/m2/TtEpochGate.cc", "src/nasctime/m2/TtEpochGate.h", "src/nasctime/m2/TtEpochGate.ned",
            "src/nasctime/m2/TtGateClock.cc", "src/nasctime/m2/TtGateClock.h", "src/nasctime/m2/TtGateClock.ned"}
 check("T-default-off TtGateClock is referenced only by its own sources, test network and test", set(hits) <= allowed, str(sorted(set(hits) - allowed)))
 
