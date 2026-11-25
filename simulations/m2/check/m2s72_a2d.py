@@ -7,9 +7,18 @@ results/M2-S7.2a-a2d-protocol.md). Read-only on raw outputs; never simulates; ne
         base and A2-V1, saved to <out dir>/runconfig-<cfg>.txt, then the checks of resolve-files; exit 0 / 1 / 2
     m2s72_a2d.py resolve-files <diag> <ref> <base> <a2v1>   (saved runconfig outputs)
         R-1 diagnostic vs twin: exactly the scheduler-logging entry differs
-        R-2 twin vs accepted base: exactly the declared NACK-injection entries are added (num-rngs 4 -> 5), the rest
+        R-2 twin vs accepted base: exactly the declared NACK-injection entries are added (num-rngs 4 -> 7), the rest
             of the effective entries identical in content and order
-        R-3 twin vs A2-V1: exactly the perDl / harqReduction scope and value differ
+        R-3 twin vs A2-V1: exactly the perDl / harqReduction scope and value and the RNG entries (A2-V1's shared RNG 4
+            vs the declared per-UE streams 4 / 5 / 6) differ
+    m2s72_a2d.py rng-check <diag runconfig> <ref runconfig> <smoke json>
+        the RNG streams (A2-D1 / P2), with the accepted S5-2 audit's pattern semantics (m2s72_rngaudit.py, unchanged)
+        applied to the recorded effective entries and to the channel-model instances the smoke actually constructed:
+        RNG-1 num-rngs 7, every seed explicit and distinct; RNG-2 the constructed channel-model instances are exactly
+        the five expected, each on its required physical RNG (ue[0] DL 4, ue[1] DL 5, gNB 6, LTE legs 0); RNG-3 RNGs
+        4, 5 and 6 each have exactly one consumer among the audit inventory and the constructed instances, and no
+        clock shares an RNG with a non-clock; RNG-4 twin and diagnostic map identically; RNG-5 the LTE legs are
+        detached (servingNodeId 0) with no initialization draw (insideBuilding false). Exit 0 / 1 / 2
         R-4 no other scheduler log-level entry; every accepted log-level entry of the base kept
     m2s72_a2d.py twin <runs> <records dir>
         the non-perturbation twin (DR-07a): T-1 the accepted E0 comparator (check_m2s72_e0.nonpert, unchanged) on every
@@ -66,9 +75,22 @@ NACK = [("*.gnb1.cellularNic.channelModelType", '"IdealChannelModel"'),
         ("*.ue[*].cellularNic.nrChannelModel[*].perDl", "0.3"),
         ("*.ue[*].cellularNic.nrChannelModel[*].harqReduction", "1"),
         ("**.perDl", "0"), ("**.perUl", "0"), ("**.perD2D", "0"),
-        ("num-rngs", "5"), ("seed-4-mt", "4000"),
-        ("**.channelModel[*].rng-0", "4"), ("**.nrChannelModel[*].rng-0", "4")]
+        ("num-rngs", "7"), ("seed-4-mt", "4000"), ("seed-5-mt", "5000"), ("seed-6-mt", "6000"),
+        ("*.ue[0].cellularNic.nrChannelModel[*].rng-0", "4"), ("*.ue[1].cellularNic.nrChannelModel[*].rng-0", "5"),
+        ("*.gnb1.cellularNic.channelModel[*].rng-0", "6")]
+NUM_RNGS = "7"
+# the RNG entries of the declared configuration (A2-D1 / P2, step 162-R3: per-UE isolation) and of A2-V1 (unchanged)
+RNG_DECL = [e for e in NACK if e[0] == "num-rngs" or re.fullmatch(r"seed-\d+-mt", e[0]) or e[0].endswith(".rng-0")]
+A2V1_RNG = [("num-rngs", "5"), ("seed-4-mt", "4000"), ("**.channelModel[*].rng-0", "4"), ("**.nrChannelModel[*].rng-0", "4")]
 A2V1_SCOPE = {"*.ue[1].cellularNic.nrChannelModel[*].perDl": "0.1", "*.ue[1].cellularNic.nrChannelModel[*].harqReduction": "1"}
+# rng-check: every channel-model instance the network constructs, with its required physical RNG (local RNG 0)
+NET = "M2S72Bridge"
+RNG_WANT = {f"{NET}.ue[0].cellularNic.nrChannelModel[0]": 4,   # ue[0] DL channel-error process
+            f"{NET}.ue[1].cellularNic.nrChannelModel[0]": 5,   # ue[1] DL channel-error process
+            f"{NET}.gnb1.cellularNic.channelModel[0]": 6,      # gNB channel model (UL reception of every UE)
+            f"{NET}.ue[0].cellularNic.channelModel[0]": 0,     # ue[0] LTE leg (detached): the accepted base mapping
+            f"{NET}.ue[1].cellularNic.channelModel[0]": 0}     # ue[1] LTE leg (detached): the accepted base mapping
+ISOLATED = (4, 5, 6)
 # DR-07a declared minimum counts (decision 17 Nov 2026): NACK chains on more than one UE, multi-NACK groups, at least
 # one maxHarqRtx discard. "multi-NACK groups" read as at least one; nothing else is a threshold.
 COV_MULTI = "multi-NACK groups (handle relations kept ambiguous)"
@@ -128,17 +150,25 @@ def check_resolution(diag, ref, base, a2v1):
     base_rest = [e for e in base if e[0] != "num-rngs"]
     ref_rest = [e for e in ref if e[0] not in nk]
     bn = first(base).get("num-rngs")
-    out.append(("R-2", added == NACK and ref_rest == base_rest and bn == "4" and first(ref).get("num-rngs") == "5",
+    out.append(("R-2", added == NACK and ref_rest == base_rest and bn == "4" and first(ref).get("num-rngs") == NUM_RNGS,
                 f"twin vs base: NACK entries {'as declared' if added == NACK else added}; base num-rngs {bn} -> "
                 f"{first(ref).get('num-rngs')}; other entries {'identical in order' if ref_rest == base_rest else 'DIFFERENT'}"))
     # R-3
-    d_ref = {k: v for k, v in ref if k.startswith("*.ue[") and "nrChannelModel[*]" in k}
-    d_a2v = {k: v for k, v in a2v1 if k.startswith("*.ue[") and "nrChannelModel[*]" in k}
-    other_ref = [e for e in ref if not (e[0].startswith("*.ue[") and "nrChannelModel[*]" in e[0])]
-    other_a2v = [e for e in a2v1 if not (e[0].startswith("*.ue[") and "nrChannelModel[*]" in e[0])]
-    want_ref = {k: v for k, v in NACK if k.startswith("*.ue[") and "nrChannelModel[*]" in k}
-    out.append(("R-3", d_a2v == A2V1_SCOPE and d_ref == want_ref and other_ref == other_a2v,
-                f"twin vs A2-V1: A2-V1 {d_a2v}, twin {d_ref}; other entries {'identical' if other_ref == other_a2v else 'DIFFERENT'}"))
+    rk = {k for k, _ in RNG_DECL} | {k for k, _ in A2V1_RNG}
+
+    def scope(k):
+        return k.startswith("*.ue[") and k.endswith(("nrChannelModel[*].perDl", "nrChannelModel[*].harqReduction"))
+    d_ref = {k: v for k, v in ref if scope(k)}
+    d_a2v = {k: v for k, v in a2v1 if scope(k)}
+    r_ref = [e for e in ref if e[0] in rk]
+    r_a2v = [e for e in a2v1 if e[0] in rk]
+    other_ref = [e for e in ref if not scope(e[0]) and e[0] not in rk]
+    other_a2v = [e for e in a2v1 if not scope(e[0]) and e[0] not in rk]
+    want_ref = {k: v for k, v in NACK if scope(k)}
+    out.append(("R-3", d_a2v == A2V1_SCOPE and d_ref == want_ref and r_ref == RNG_DECL and r_a2v == A2V1_RNG
+                and other_ref == other_a2v,
+                f"twin vs A2-V1: A2-V1 {d_a2v}, twin {d_ref}; RNG entries A2-V1 {r_a2v}, twin "
+                f"{'as declared' if r_ref == RNG_DECL else r_ref}; other entries {'identical' if other_ref == other_a2v else 'DIFFERENT'}"))
     # R-4
     sched = [e for e in diag if "scheduler" in e[0].lower() and e[0].endswith("cmdenv-log-level")]
     logs_base = [e for e in base if e[0].endswith("cmdenv-log-level") or e[0] == "cmdenv-log-prefix"]
@@ -481,6 +511,67 @@ def smoke_check(record):
     return 0 if ok else 1
 
 
+# ----------------------------------------------------------------------------------------------- RNG streams ----
+def _audit():
+    import m2s72_rngaudit as A        # the accepted S5-2 audit (unchanged): OMNeT++ pattern semantics, inventory
+    return A
+
+
+def rng_of(A, ents, full):
+    """physical RNG of local RNG 0 of the module at <full>: the first matching '<pattern>.rng-0' entry, else 0"""
+    v = A.first_value(ents, full, "rng-0")
+    return 0 if v is None else (int(v) if v.isdigit() else f"UNRESOLVED {v}")
+
+
+def check_rng(diag, ref, smoke_rec):
+    """RNG-1 .. RNG-5 on the effective entries of the diagnostic and the twin and on the channel-model instances the
+    initialization smoke constructed (eventlog creation records)"""
+    A = _audit()
+    R = smoke_rec["runs"]
+    out = []
+    maps = {}
+    for c, ents in ((REF, ref), (DIAG, diag)):
+        num, sd = A.seeds(ents)
+        vals = [v for v, _ in sd.values()]
+        ok1 = (str(num) == NUM_RNGS and all(k == "explicit" for _, k in sd.values()) and len(set(vals)) == len(vals)
+               and [sd[j][0] for j in ISOLATED] == [4000, 5000, 6000])
+        out.append(("RNG-1", ok1, f"{c}: num-rngs {num}; seeds {[(j, v, k) for j, (v, k) in sorted(sd.items())]}"))
+        inst = sorted(m for m in R[c]["types"] if re.search(r"(channelModel|nrChannelModel)\[\d+\]$", m))
+        got = {m: rng_of(A, ents, m) for m in inst}
+        ok2 = set(inst) == set(RNG_WANT) and all(got[m] == RNG_WANT[m] for m in inst)
+        out.append(("RNG-2", ok2, f"{c}: constructed channel models -> physical RNG "
+                                  f"{[(m.split('.', 1)[1], got[m], R[c]['types'][m].rsplit('.', 1)[1]) for m in inst]}"))
+        mp = A.rng_map(ents, 2)
+        cons = {}
+        for path, x in mp.items():
+            if A.draws(x, ents, path):
+                cons.setdefault(x[0], set()).add(f"{NET}.{path}" if not path.startswith(A.DIRECT) else path)
+        for m in inst:                                   # every constructed instance, in or beyond the inventory
+            cons.setdefault(got[m], set()).add(m)
+        excl = {j: sorted(cons.get(j, ())) for j in ISOLATED}
+        want_excl = {j: [m for m, r in RNG_WANT.items() if r == j] for j in ISOLATED}
+        clocks = {x[0] for p, x in mp.items() if A.is_clock(p)}
+        nonclock = {x[0] for p, x in mp.items() if not A.is_clock(p) and A.draws(x, ents, p)} | set(got.values())
+        ok3 = excl == want_excl and not (clocks & nonclock) and not (clocks & set(ISOLATED))
+        out.append(("RNG-3", ok3, f"{c}: consumers of RNG 4 / 5 / 6 "
+                                  f"{ {j: [m.split('.', 1)[1] for m in v] for j, v in excl.items()} }; clock RNGs "
+                                  f"{sorted(clocks)}, shared with a non-clock {sorted(clocks & nonclock)}"))
+        maps[c] = ({p: x[0] for p, x in mp.items()}, got)
+    out.append(("RNG-4", maps[REF] == maps[DIAG], "twin and diagnostic RNG maps "
+                                                   f"{'identical' if maps[REF] == maps[DIAG] else 'DIFFERENT'}"))
+    eff = first(ref)
+    lte = [m for m, r in RNG_WANT.items() if r == 0]
+    par = R[REF]["par"]
+    ok5 = (eff.get("*.ue[*].servingNodeId") == "0" and eff.get("*.ue[*].nrServingNodeId") == "1"
+           and all(R[REF]["types"].get(m, "").endswith(".StochasticChannelModel") for m in lte)
+           and all(par.get(m, {}).get("insideBuilding") == "false" for m in lte))
+    out.append(("RNG-5", ok5, f"LTE legs: servingNodeId {eff.get('*.ue[*].servingNodeId')}, nrServingNodeId "
+                              f"{eff.get('*.ue[*].nrServingNodeId')}; types "
+                              f"{sorted({R[REF]['types'].get(m, '?').rsplit('.', 1)[1] for m in lte})}; insideBuilding "
+                              f"{sorted({par.get(m, {}).get('insideBuilding') for m in lte})} (static: no draw observed or counted)"))
+    return out
+
+
 # ---------------------------------------------------------------------------------------------------- main ------
 def main(argv):
     try:
@@ -504,6 +595,17 @@ def main(argv):
                 print(f"{'PASS' if r[1] else 'FAIL'} | {r[0]} | {r[2]}")
             ok = all(r[1] for r in res)
             print(f"A2 resolution: {'AS DECLARED' if ok else 'NOT AS DECLARED'}")
+            return 0 if ok else 1
+        if len(a) == 4 and a[0] == "rng-check":
+            sm = json.load(open(a[3], encoding="utf-8"))
+            if sm.get("schema") != "m2s72-a2d-smoke/1" or not {REF, DIAG} <= set(sm.get("runs", {})):
+                raise EvalError(f"{a[3]}: not a complete smoke record")
+            res = check_rng(entries(open(a[1], encoding="utf-8").read(), DIAG),
+                            entries(open(a[2], encoding="utf-8").read(), REF), sm)
+            for r in res:
+                print(f"{'PASS' if r[1] else 'FAIL'} | {r[0]} | {r[2]}")
+            ok = all(r[1] for r in res)
+            print(f"A2 RNG streams: {'AS DECLARED' if ok else 'NOT AS DECLARED'} (per-UE isolation, A2-D1 / P2)")
             return 0 if ok else 1
         if len(a) == 3 and a[0] == "twin":
             return twin(a[1], a[2])

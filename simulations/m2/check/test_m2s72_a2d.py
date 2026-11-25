@@ -31,6 +31,7 @@ ACCEPTED = ["simulations/m2/m2s72.ini", "simulations/m2/m2s72s5.ini", "simulatio
             "simulations/m2/check/check_m2s72_a2.py", "simulations/m2/check/m2s72_a2.py",
             "simulations/m2/check/check_m2s72_a2v1.py", "simulations/m2/check/m2s72_e0vn21.py",
             "simulations/m2/check/check_m2s72_s5n21.py", "simulations/m2/check/m2s72_fgo_registry.json",
+            "simulations/m2/check/m2s72_rngaudit.py",            # the accepted S5-2 RNG audit, imported unchanged
             "simulations/m2/check/expect", "simulations/m2/check/fixtures", "simulations/m2/results", "src", ".github",
             ":(exclude).github/workflows/tier0-python.yml",       # the one authorised CI change (162-R1: the 15th suite)
             "docs/migration/wp-a1-a21-e0vn-wrapper-design.md", "docs/migration/wp-a1-validation-runbook.md",
@@ -157,12 +158,14 @@ def _mutated(i, fn):
 @test("resolution negative controls: an extra entry, a missing scheduler entry, a changed perDl, a second scheduler "
       "log entry, an unchanged num-rngs and an empty resolution are each refused")
 def _():
-    cases = [(0, lambda t: t.replace("\tnum-rngs = 5\n", "\tnum-rngs = 5\n\t*.ue[0].cellularNic.nrMac.queueSize = 1\n", 1), "R-1"),
+    cases = [(0, lambda t: t.replace("\tnum-rngs = 7\n", "\tnum-rngs = 7\n\t*.ue[0].cellularNic.nrMac.queueSize = 1\n", 1), "R-1"),
              (0, lambda t: t.replace(f"\t{D.SCHED_KEY} = info\n", "", 1), "R-1"),
              (1, lambda t: t.replace("nrChannelModel[*].perDl = 0.3", "nrChannelModel[*].perDl = 0.2", 1), "R-2"),
              (0, lambda t: t.replace(f"\t{D.SCHED_KEY} = info\n",
                                      f"\t{D.SCHED_KEY} = info\n\t*.gnb1.cellularNic.mac.schedulerUl.cmdenv-log-level = info\n", 1), "R-4"),
-             (2, lambda t: t.replace("\tnum-rngs = 4\n", "\tnum-rngs = 5\n", 1), "R-2")]
+             (2, lambda t: t.replace("\tnum-rngs = 4\n", "\tnum-rngs = 5\n", 1), "R-2"),
+             (1, lambda t: t.replace("\t*.ue[1].cellularNic.nrChannelModel[*].rng-0 = 5\n",
+                                     "\t*.ue[1].cellularNic.nrChannelModel[*].rng-0 = 4\n", 1), "R-3")]
     for i, fn, row in cases:
         d, ps = _mutated(i, fn)
         try:
@@ -387,6 +390,64 @@ def _():
         r = _smoke_tool(mut(fn))
         assert r.returncode == 1 and needle in r.stdout and "NOT AS DECLARED" in r.stdout, (needle, r.stdout[-500:])
     r = _smoke_tool({"schema": "m2s72-a2d-smoke/1", "runs": {}})
+    assert r.returncode == 2 and "not a complete smoke record" in r.stdout, r.stdout
+
+
+# ================================================================================= RNG streams (A2-D1 / P2) ===
+RNG_REC = [os.path.join(REC, f"runconfig-{c}.txt") for c in (D.DIAG, D.REF)]
+
+
+def _rng_tool(diag_t=None, ref_t=None, smoke=None):
+    d = tempfile.mkdtemp()
+    try:
+        ps = []
+        for p, t in zip(RNG_REC, (diag_t, ref_t)):
+            q = os.path.join(d, os.path.basename(p))
+            open(q, "w").write(open(p).read() if t is None else t(open(p).read()))
+            ps.append(q)
+        sp = os.path.join(d, "s.json")
+        json.dump(json.load(open(SMOKE)) if smoke is None else smoke, open(sp, "w"))
+        return tool("rng-check", ps[0], ps[1], sp)
+    finally:
+        shutil.rmtree(d)
+
+
+@test("RNG streams (recorded resolution + constructed channel-model instances, accepted S5-2 audit semantics): ue[0] DL "
+      "on RNG 4, ue[1] DL on RNG 5, gNB on RNG 6, each the only consumer; LTE legs on the base mapping; seeds explicit")
+def _():
+    r = _rng_tool()
+    assert r.returncode == 0 and "A2 RNG streams: AS DECLARED" in r.stdout and r.stdout.count("PASS |") == 8, r.stdout
+    assert "{4: ['ue[0].cellularNic.nrChannelModel[0]'], 5: ['ue[1].cellularNic.nrChannelModel[0]'], " \
+           "6: ['gnb1.cellularNic.channelModel[0]']}" in r.stdout, r.stdout
+    au = open(os.path.join(REC, "rngaudit-p2.txt")).read()            # the accepted audit's own output, recorded
+    assert au.count("PASS  RA-1  num-rngs 7") == 2 and "FAIL" not in au.split("== M2S72-E0vN-q0-one0-n2-f1 (N = 2)")[0], au[:400]
+    for ln in ("ue[0].cellularNic.nrChannelModel[0]                  ->   4", "ue[1].cellularNic.nrChannelModel[0]                  ->   5",
+               "gnb1.cellularNic.channelModel[0]                     ->   6"):
+        assert au.count(ln) == 2, ln
+
+
+@test("RNG stream negative controls: ue[1] on RNG 4, the gNB on a UE's RNG, an auto-seeded RNG, a duplicate seed, an LTE "
+      "leg on an isolated RNG, an unexpected constructed channel model, a UE MAC (non-channel consumer) on an isolated RNG, an attached LTE leg")
+def _():
+    sm = json.load(open(SMOKE))
+    extra = json.loads(json.dumps(sm))
+    for c in (D.DIAG, D.REF):
+        extra["runs"][c]["types"]["M2S72Bridge.gnb1.cellularNic.channelModel[1]"] = "simu5g.stack.phy.channelmodel.IdealChannelModel"
+    sub = lambda a, b: (lambda t: t.replace(a, b, 1))   # noqa: E731
+    u1 = "\t*.ue[1].cellularNic.nrChannelModel[*].rng-0 = 5\n"
+    g6 = "\t*.gnb1.cellularNic.channelModel[*].rng-0 = 6\n"
+    cases = [(dict(diag_t=sub(u1, u1.replace("= 5", "= 4"))), "FAIL | RNG-2"),
+             (dict(ref_t=sub(g6, g6.replace("= 6", "= 5"))), "FAIL | RNG-3"),
+             (dict(diag_t=sub("\tseed-6-mt = 6000\n", "")), "FAIL | RNG-1"),
+             (dict(ref_t=sub("\tseed-5-mt = 5000\n", "\tseed-5-mt = 4000\n")), "FAIL | RNG-1"),
+             (dict(diag_t=sub(g6, g6 + "\t*.ue[0].cellularNic.channelModel[*].rng-0 = 4\n")), "FAIL | RNG-3"),
+             (dict(smoke=extra), "FAIL | RNG-2"),
+             (dict(diag_t=sub(u1, u1 + "\t*.ue[0].cellularNic.nrMac.rng-0 = 4\n")), "FAIL | RNG-3"),
+             (dict(ref_t=sub("\t*.ue[*].servingNodeId = 0\n", "\t*.ue[*].servingNodeId = 1\n")), "FAIL | RNG-5")]
+    for kw, needle in cases:
+        r = _rng_tool(**kw)
+        assert r.returncode == 1 and needle in r.stdout and "NOT AS DECLARED" in r.stdout, (needle, r.stdout[-700:])
+    r = _rng_tool(smoke={"schema": "m2s72-a2d-smoke/1", "runs": {}})
     assert r.returncode == 2 and "not a complete smoke record" in r.stdout, r.stdout
 
 
