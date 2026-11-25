@@ -1,0 +1,3749 @@
+{
+ "args": [
+  "--repeat=1",
+  "-r",
+  "0",
+  "--cmdenv-express-mode=false",
+  "--sim-time-limit=0s",
+  "--unused-entry-check=warning",
+  "--unused-entry-check-time=initialization",
+  "--**.channelModel[*].param-record-as-scalar=true",
+  "--**.nrChannelModel[*].param-record-as-scalar=true"
+ ],
+ "purpose": "development-level network-initialization smoke (not V-6, not an experiment): network built, initialized, stopped at simulated time 0",
+ "runs": {
+  "M2S72-E0vN-q0-one0-n2-f1": {
+   "errors": [],
+   "par": {
+    "M2S72Bridge.gnb1.cellularNic.channelModel[0]": {
+     "antennGainEnB": "18dBi",
+     "antennGainMicro": "5dBi",
+     "antennaGainUe": "0dBi",
+     "bgCellInterference": "true",
+     "binderModule": "\"\\\"binder\\\"\"",
+     "bsNoiseFigure": "5dBm",
+     "buildingHeight": "20m",
+     "cableLoss": "2dB",
+     "cellInfoModule": "\"\\\"M2S72Bridge.gnb1.cellInfo\\\"\"",
+     "collectSinrStatistics": "true",
+     "componentCarrierModule": "\"\\\"carrierAggregation.componentCarrier[0]\\\"\"",
+     "correlationDistance": "50m",
+     "delayRms": "3.63e-07s",
+     "downlinkInterference": "false",
+     "dynamicLos": "false",
+     "enableExtCellLos": "true",
+     "extCellInterference": "true",
+     "fading": "true",
+     "fadingType": "\"\\\"JAKES\\\"\"",
+     "fixedLos": "false",
+     "harqReduction": "0.2",
+     "insideBuilding": "false",
+     "nodebHeight": "25m",
+     "numFadingPaths": "6",
+     "pathLossType": "\"\\\"Tr38901\\\"\"",
+     "scenario": "\"\\\"URBAN_MACROCELL\\\"\"",
+     "shadowing": "true",
+     "streetWidth": "20m",
+     "targetBler": "0.01",
+     "thermalNoise": "-104.5dBm",
+     "tolerateMaxDistViolation": "false",
+     "typename": "\"\\\"simu5g.stack.phy.channelmodel.Tr38901ChannelModel\\\"\"",
+     "ueHeight": "1.5m",
+     "ueNoiseFigure": "7dBm",
+     "uplinkInterference": "false",
+     "useBuildingPenetrationHighLossModel": "false",
+     "useTorus": "false"
+    },
+    "M2S72Bridge.ue[0].cellularNic.channelModel[0]": {
+     "antennGainEnB": "18dBi",
+     "antennGainMicro": "5dBi",
+     "antennaGainUe": "0dBi",
+     "bgCellInterference": "true",
+     "binderModule": "\"\\\"binder\\\"\"",
+     "bsNoiseFigure": "5dBm",
+     "buildingHeight": "20m",
+     "cableLoss": "2dB",
+     "cellInfoModule": "\"\\\"^.^.cellInfo\\\"\"",
+     "collectSinrStatistics": "true",
+     "componentCarrierModule": "\"\\\"carrierAggregation.componentCarrier[0]\\\"\"",
+     "correlationDistance": "50m",
+     "delayRms": "3.63e-07s",
+     "downlinkInterference": "false",
+     "dynamicLos": "false",
+     "enableExtCellLos": "true",
+     "extCellInterference": "true",
+     "fading": "true",
+     "fadingType": "\"\\\"JAKES\\\"\"",
+     "fixedLos": "false",
+     "harqReduction": "0.2",
+     "insideBuilding": "false",
+     "nodebHeight": "25m",
+     "numFadingPaths": "6",
+     "pathLossType": "\"\\\"Tr36814\\\"\"",
+     "scenario": "\"\\\"URBAN_MACROCELL\\\"\"",
+     "shadowing": "true",
+     "streetWidth": "20m",
+     "targetBler": "0.01",
+     "thermalNoise": "-104.5dBm",
+     "tolerateMaxDistViolation": "false",
+     "typename": "\"\\\"simu5g.stack.phy.channelmodel.StochasticChannelModel\\\"\"",
+     "ueHeight": "1.5m",
+     "ueNoiseFigure": "7dBm",
+     "uplinkInterference": "false",
+     "useBuildingPenetrationHighLossModel": "false",
+     "useTorus": "false"
+    },
+    "M2S72Bridge.ue[0].cellularNic.nrChannelModel[0]": {
+     "antennGainEnB": "18dBi",
+     "antennGainMicro": "5dBi",
+     "antennaGainUe": "0dBi",
+     "bgCellInterference": "true",
+     "binderModule": "\"\\\"binder\\\"\"",
+     "bsNoiseFigure": "5dBm",
+     "buildingHeight": "20m",
+     "cableLoss": "2dB",
+     "cellInfoModule": "\"\\\"^.^.cellInfo\\\"\"",
+     "collectSinrStatistics": "true",
+     "componentCarrierModule": "\"\\\"carrierAggregation.componentCarrier[0]\\\"\"",
+     "correlationDistance": "50m",
+     "delayRms": "3.63e-07s",
+     "downlinkInterference": "false",
+     "dynamicLos": "false",
+     "enableExtCellLos": "true",
+     "extCellInterference": "true",
+     "fading": "true",
+     "fadingType": "\"\\\"JAKES\\\"\"",
+     "fixedLos": "false",
+     "harqReduction": "0.2",
+     "insideBuilding": "false",
+     "nodebHeight": "25m",
+     "numFadingPaths": "6",
+     "pathLossType": "\"\\\"Tr38901\\\"\"",
+     "scenario": "\"\\\"URBAN_MACROCELL\\\"\"",
+     "shadowing": "true",
+     "streetWidth": "20m",
+     "targetBler": "0.01",
+     "thermalNoise": "-104.5dBm",
+     "tolerateMaxDistViolation": "false",
+     "typename": "\"\\\"simu5g.stack.phy.channelmodel.Tr38901ChannelModel\\\"\"",
+     "ueHeight": "1.5m",
+     "ueNoiseFigure": "7dBm",
+     "uplinkInterference": "false",
+     "useBuildingPenetrationHighLossModel": "false",
+     "useTorus": "false"
+    },
+    "M2S72Bridge.ue[1].cellularNic.channelModel[0]": {
+     "antennGainEnB": "18dBi",
+     "antennGainMicro": "5dBi",
+     "antennaGainUe": "0dBi",
+     "bgCellInterference": "true",
+     "binderModule": "\"\\\"binder\\\"\"",
+     "bsNoiseFigure": "5dBm",
+     "buildingHeight": "20m",
+     "cableLoss": "2dB",
+     "cellInfoModule": "\"\\\"^.^.cellInfo\\\"\"",
+     "collectSinrStatistics": "true",
+     "componentCarrierModule": "\"\\\"carrierAggregation.componentCarrier[0]\\\"\"",
+     "correlationDistance": "50m",
+     "delayRms": "3.63e-07s",
+     "downlinkInterference": "false",
+     "dynamicLos": "false",
+     "enableExtCellLos": "true",
+     "extCellInterference": "true",
+     "fading": "true",
+     "fadingType": "\"\\\"JAKES\\\"\"",
+     "fixedLos": "false",
+     "harqReduction": "0.2",
+     "insideBuilding": "false",
+     "nodebHeight": "25m",
+     "numFadingPaths": "6",
+     "pathLossType": "\"\\\"Tr36814\\\"\"",
+     "scenario": "\"\\\"URBAN_MACROCELL\\\"\"",
+     "shadowing": "true",
+     "streetWidth": "20m",
+     "targetBler": "0.01",
+     "thermalNoise": "-104.5dBm",
+     "tolerateMaxDistViolation": "false",
+     "typename": "\"\\\"simu5g.stack.phy.channelmodel.StochasticChannelModel\\\"\"",
+     "ueHeight": "1.5m",
+     "ueNoiseFigure": "7dBm",
+     "uplinkInterference": "false",
+     "useBuildingPenetrationHighLossModel": "false",
+     "useTorus": "false"
+    },
+    "M2S72Bridge.ue[1].cellularNic.nrChannelModel[0]": {
+     "antennGainEnB": "18dBi",
+     "antennGainMicro": "5dBi",
+     "antennaGainUe": "0dBi",
+     "bgCellInterference": "true",
+     "binderModule": "\"\\\"binder\\\"\"",
+     "bsNoiseFigure": "5dBm",
+     "buildingHeight": "20m",
+     "cableLoss": "2dB",
+     "cellInfoModule": "\"\\\"^.^.cellInfo\\\"\"",
+     "collectSinrStatistics": "true",
+     "componentCarrierModule": "\"\\\"carrierAggregation.componentCarrier[0]\\\"\"",
+     "correlationDistance": "50m",
+     "delayRms": "3.63e-07s",
+     "downlinkInterference": "false",
+     "dynamicLos": "false",
+     "enableExtCellLos": "true",
+     "extCellInterference": "true",
+     "fading": "true",
+     "fadingType": "\"\\\"JAKES\\\"\"",
+     "fixedLos": "false",
+     "harqReduction": "0.2",
+     "insideBuilding": "false",
+     "nodebHeight": "25m",
+     "numFadingPaths": "6",
+     "pathLossType": "\"\\\"Tr38901\\\"\"",
+     "scenario": "\"\\\"URBAN_MACROCELL\\\"\"",
+     "shadowing": "true",
+     "streetWidth": "20m",
+     "targetBler": "0.01",
+     "thermalNoise": "-104.5dBm",
+     "tolerateMaxDistViolation": "false",
+     "typename": "\"\\\"simu5g.stack.phy.channelmodel.Tr38901ChannelModel\\\"\"",
+     "ueHeight": "1.5m",
+     "ueNoiseFigure": "7dBm",
+     "uplinkInterference": "false",
+     "useBuildingPenetrationHighLossModel": "false",
+     "useTorus": "false"
+    }
+   },
+   "rc": 0,
+   "scheduler_lines": 0,
+   "stopped_at_t0_event": 36,
+   "types": {
+    "M2S72Bridge.gnb1.cellularNic.channelModel[0]": "simu5g.stack.phy.channelmodel.Tr38901ChannelModel",
+    "M2S72Bridge.gnb1.cellularNic.mac.schedulerDl": "simu5g.stack.mac.scheduler.LteSchedulerEnbDl",
+    "M2S72Bridge.ue[0].cellularNic.channelModel[0]": "simu5g.stack.phy.channelmodel.StochasticChannelModel",
+    "M2S72Bridge.ue[0].cellularNic.nrChannelModel[0]": "simu5g.stack.phy.channelmodel.Tr38901ChannelModel",
+    "M2S72Bridge.ue[1].cellularNic.channelModel[0]": "simu5g.stack.phy.channelmodel.StochasticChannelModel",
+    "M2S72Bridge.ue[1].cellularNic.nrChannelModel[0]": "simu5g.stack.phy.channelmodel.Tr38901ChannelModel"
+   },
+   "unused": [
+    [
+     "**.routingRecorder.enabled",
+     "false",
+     "m2s72.ini",
+     6886
+    ],
+    [
+     "*.dsTt[*].eth[0].measurementLayer.measurementRecorder.flowName",
+     "\"transit5gs\"",
+     "m2s72.ini",
+     6626
+    ],
+    [
+     "*.dsTt[*].eth[0].measurementLayer.measurementRecorder.measure",
+     "\"elapsedTime\"",
+     "m2s72.ini",
+     6629
+    ],
+    [
+     "*.dsTt[*].eth[0].measurementLayer.measurementStarter.flowName",
+     "\"transit5gs\"",
+     "m2s72.ini",
+     6620
+    ],
+    [
+     "*.dsTt[*].eth[0].measurementLayer.measurementStarter.measure",
+     "\"elapsedTime\"",
+     "m2s72.ini",
+     6623
+    ],
+    [
+     "*.dsTt[2].eth[0].measurementLayer.ttId",
+     "4",
+     "m2s72.ini",
+     6503
+    ],
+    [
+     "*.dsTt[2].eth[1].measurementLayer.ttId",
+     "4",
+     "m2s72.ini",
+     6521
+    ],
+    [
+     "*.dsTt[2].eth[1].trafficConditionerLayer.engine.clockIdentity",
+     "\"0x00000000000000d3\"",
+     "m2s72.ini",
+     6465
+    ],
+    [
+     "*.dsTt[2].eth[1].trafficConditionerLayer.syncOut.ttId",
+     "4",
+     "m2s72.ini",
+     6427
+    ],
+    [
+     "*.dsTt[3].eth[0].measurementLayer.ttId",
+     "5",
+     "m2s72.ini",
+     6504
+    ],
+    [
+     "*.dsTt[3].eth[1].measurementLayer.ttId",
+     "5",
+     "m2s72.ini",
+     6522
+    ],
+    [
+     "*.dsTt[3].eth[1].trafficConditionerLayer.engine.clockIdentity",
+     "\"0x00000000000000d4\"",
+     "m2s72.ini",
+     6466
+    ],
+    [
+     "*.dsTt[3].eth[1].trafficConditionerLayer.syncOut.ttId",
+     "5",
+     "m2s72.ini",
+     6428
+    ],
+    [
+     "*.dsTt[4].eth[0].measurementLayer.ttId",
+     "6",
+     "m2s72.ini",
+     6505
+    ],
+    [
+     "*.dsTt[4].eth[1].measurementLayer.ttId",
+     "6",
+     "m2s72.ini",
+     6523
+    ],
+    [
+     "*.dsTt[4].eth[1].trafficConditionerLayer.engine.clockIdentity",
+     "\"0x00000000000000d5\"",
+     "m2s72.ini",
+     6467
+    ],
+    [
+     "*.dsTt[4].eth[1].trafficConditionerLayer.syncOut.ttId",
+     "6",
+     "m2s72.ini",
+     6429
+    ],
+    [
+     "*.dsTt[5].eth[0].measurementLayer.ttId",
+     "7",
+     "m2s72.ini",
+     6506
+    ],
+    [
+     "*.dsTt[5].eth[1].measurementLayer.ttId",
+     "7",
+     "m2s72.ini",
+     6524
+    ],
+    [
+     "*.dsTt[5].eth[1].trafficConditionerLayer.engine.clockIdentity",
+     "\"0x00000000000000d6\"",
+     "m2s72.ini",
+     6468
+    ],
+    [
+     "*.dsTt[5].eth[1].trafficConditionerLayer.syncOut.ttId",
+     "7",
+     "m2s72.ini",
+     6430
+    ],
+    [
+     "*.dsTt[6].eth[0].measurementLayer.ttId",
+     "8",
+     "m2s72.ini",
+     6507
+    ],
+    [
+     "*.dsTt[6].eth[1].measurementLayer.ttId",
+     "8",
+     "m2s72.ini",
+     6525
+    ],
+    [
+     "*.dsTt[6].eth[1].trafficConditionerLayer.engine.clockIdentity",
+     "\"0x00000000000000d7\"",
+     "m2s72.ini",
+     6469
+    ],
+    [
+     "*.dsTt[6].eth[1].trafficConditionerLayer.syncOut.ttId",
+     "8",
+     "m2s72.ini",
+     6431
+    ],
+    [
+     "*.dsTt[7].eth[0].measurementLayer.ttId",
+     "9",
+     "m2s72.ini",
+     6508
+    ],
+    [
+     "*.dsTt[7].eth[1].measurementLayer.ttId",
+     "9",
+     "m2s72.ini",
+     6526
+    ],
+    [
+     "*.dsTt[7].eth[1].trafficConditionerLayer.engine.clockIdentity",
+     "\"0x00000000000000d8\"",
+     "m2s72.ini",
+     6470
+    ],
+    [
+     "*.dsTt[7].eth[1].trafficConditionerLayer.syncOut.ttId",
+     "9",
+     "m2s72.ini",
+     6432
+    ],
+    [
+     "*.gm.clock.emitClockTimeInterval",
+     "1ms",
+     "m2s72.ini",
+     6380
+    ],
+    [
+     "*.gm.clock.oscillator.driftRate",
+     "100ppm",
+     "m2s72.ini",
+     6324
+    ],
+    [
+     "*.gm.clock.oscillator.nominalTickLength",
+     "1ns",
+     "m2s72.ini",
+     6334
+    ],
+    [
+     "*.gm.clock.oscillator.typename",
+     "\"ConstantDriftOscillator\"",
+     "m2s72.ini",
+     6330
+    ],
+    [
+     "*.listener.app[10].io.interface",
+     "\"eth0\"",
+     "m2s72.ini",
+     6773
+    ],
+    [
+     "*.listener.app[10].io.remoteAddress",
+     "\"talker[4]\"",
+     "m2s72.ini",
+     6857
+    ],
+    [
+     "*.listener.app[10].source.initialProductionOffset",
+     "0.1s + 5ms * 1",
+     "m2s72.ini",
+     6757
+    ],
+    [
+     "*.listener.app[10].source.packetLength",
+     "100B",
+     "m2s72.ini",
+     6725
+    ],
+    [
+     "*.listener.app[10].source.packetRepresentation",
+     "\"applicationPacket\"",
+     "m2s72.ini",
+     6608
+    ],
+    [
+     "*.listener.app[10].source.productionInterval",
+     "20ms",
+     "m2s72.ini",
+     6260
+    ],
+    [
+     "*.listener.app[10].tagger.encapsulationProtocols",
+     "[\"ieee8021qctag\"]",
+     "m2s72.ini",
+     6821
+    ],
+    [
+     "*.listener.app[10].tagger.pcp",
+     "0",
+     "m2s72.ini",
+     6842
+    ],
+    [
+     "*.listener.app[10].tagger.typename",
+     "\"PacketTagger\"",
+     "m2s72.ini",
+     6789
+    ],
+    [
+     "*.listener.app[10].tagger.vlanId",
+     "42",
+     "m2s72.ini",
+     6805
+    ],
+    [
+     "*.listener.app[10].typename",
+     "\"EthernetSourceApp\"",
+     "m2s72.ini",
+     6709
+    ],
+    [
+     "*.listener.app[11].io.interface",
+     "\"eth0\"",
+     "m2s72.ini",
+     6774
+    ],
+    [
+     "*.listener.app[11].io.remoteAddress",
+     "\"talker[5]\"",
+     "m2s72.ini",
+     6858
+    ],
+    [
+     "*.listener.app[11].source.initialProductionOffset",
+     "0.1s + 5ms * 0",
+     "m2s72.ini",
+     6758
+    ],
+    [
+     "*.listener.app[11].source.packetLength",
+     "100B",
+     "m2s72.ini",
+     6726
+    ],
+    [
+     "*.listener.app[11].source.packetRepresentation",
+     "\"applicationPacket\"",
+     "m2s72.ini",
+     6609
+    ],
+    [
+     "*.listener.app[11].source.productionInterval",
+     "20ms",
+     "m2s72.ini",
+     6261
+    ],
+    [
+     "*.listener.app[11].tagger.encapsulationProtocols",
+     "[\"ieee8021qctag\"]",
+     "m2s72.ini",
+     6822
+    ],
+    [
+     "*.listener.app[11].tagger.pcp",
+     "5",
+     "m2s72.ini",
+     6834
+    ],
+    [
+     "*.listener.app[11].tagger.typename",
+     "\"PacketTagger\"",
+     "m2s72.ini",
+     6790
+    ],
+    [
+     "*.listener.app[11].tagger.vlanId",
+     "42",
+     "m2s72.ini",
+     6806
+    ],
+    [
+     "*.listener.app[11].typename",
+     "\"EthernetSourceApp\"",
+     "m2s72.ini",
+     6710
+    ],
+    [
+     "*.listener.app[12].io.interface",
+     "\"eth0\"",
+     "m2s72.ini",
+     6775
+    ],
+    [
+     "*.listener.app[12].io.remoteAddress",
+     "\"talker[5]\"",
+     "m2s72.ini",
+     6859
+    ],
+    [
+     "*.listener.app[12].source.initialProductionOffset",
+     "0.1s + 5ms * 1",
+     "m2s72.ini",
+     6759
+    ],
+    [
+     "*.listener.app[12].source.packetLength",
+     "100B",
+     "m2s72.ini",
+     6727
+    ],
+    [
+     "*.listener.app[12].source.packetRepresentation",
+     "\"applicationPacket\"",
+     "m2s72.ini",
+     6610
+    ],
+    [
+     "*.listener.app[12].source.productionInterval",
+     "20ms",
+     "m2s72.ini",
+     6262
+    ],
+    [
+     "*.listener.app[12].tagger.encapsulationProtocols",
+     "[\"ieee8021qctag\"]",
+     "m2s72.ini",
+     6823
+    ],
+    [
+     "*.listener.app[12].tagger.pcp",
+     "0",
+     "m2s72.ini",
+     6843
+    ],
+    [
+     "*.listener.app[12].tagger.typename",
+     "\"PacketTagger\"",
+     "m2s72.ini",
+     6791
+    ],
+    [
+     "*.listener.app[12].tagger.vlanId",
+     "42",
+     "m2s72.ini",
+     6807
+    ],
+    [
+     "*.listener.app[12].typename",
+     "\"EthernetSourceApp\"",
+     "m2s72.ini",
+     6711
+    ],
+    [
+     "*.listener.app[13].io.interface",
+     "\"eth0\"",
+     "m2s72.ini",
+     6776
+    ],
+    [
+     "*.listener.app[13].io.remoteAddress",
+     "\"talker[6]\"",
+     "m2s72.ini",
+     6860
+    ],
+    [
+     "*.listener.app[13].source.initialProductionOffset",
+     "0.1s + 5ms * 0",
+     "m2s72.ini",
+     6760
+    ],
+    [
+     "*.listener.app[13].source.packetLength",
+     "100B",
+     "m2s72.ini",
+     6728
+    ],
+    [
+     "*.listener.app[13].source.packetRepresentation",
+     "\"applicationPacket\"",
+     "m2s72.ini",
+     6611
+    ],
+    [
+     "*.listener.app[13].source.productionInterval",
+     "20ms",
+     "m2s72.ini",
+     6263
+    ],
+    [
+     "*.listener.app[13].tagger.encapsulationProtocols",
+     "[\"ieee8021qctag\"]",
+     "m2s72.ini",
+     6824
+    ],
+    [
+     "*.listener.app[13].tagger.pcp",
+     "5",
+     "m2s72.ini",
+     6835
+    ],
+    [
+     "*.listener.app[13].tagger.typename",
+     "\"PacketTagger\"",
+     "m2s72.ini",
+     6792
+    ],
+    [
+     "*.listener.app[13].tagger.vlanId",
+     "42",
+     "m2s72.ini",
+     6808
+    ],
+    [
+     "*.listener.app[13].typename",
+     "\"EthernetSourceApp\"",
+     "m2s72.ini",
+     6712
+    ],
+    [
+     "*.listener.app[14].io.interface",
+     "\"eth0\"",
+     "m2s72.ini",
+     6777
+    ],
+    [
+     "*.listener.app[14].io.remoteAddress",
+     "\"talker[6]\"",
+     "m2s72.ini",
+     6861
+    ],
+    [
+     "*.listener.app[14].source.initialProductionOffset",
+     "0.1s + 5ms * 1",
+     "m2s72.ini",
+     6761
+    ],
+    [
+     "*.listener.app[14].source.packetLength",
+     "100B",
+     "m2s72.ini",
+     6729
+    ],
+    [
+     "*.listener.app[14].source.packetRepresentation",
+     "\"applicationPacket\"",
+     "m2s72.ini",
+     6612
+    ],
+    [
+     "*.listener.app[14].source.productionInterval",
+     "20ms",
+     "m2s72.ini",
+     6264
+    ],
+    [
+     "*.listener.app[14].tagger.encapsulationProtocols",
+     "[\"ieee8021qctag\"]",
+     "m2s72.ini",
+     6825
+    ],
+    [
+     "*.listener.app[14].tagger.pcp",
+     "0",
+     "m2s72.ini",
+     6844
+    ],
+    [
+     "*.listener.app[14].tagger.typename",
+     "\"PacketTagger\"",
+     "m2s72.ini",
+     6793
+    ],
+    [
+     "*.listener.app[14].tagger.vlanId",
+     "42",
+     "m2s72.ini",
+     6809
+    ],
+    [
+     "*.listener.app[14].typename",
+     "\"EthernetSourceApp\"",
+     "m2s72.ini",
+     6713
+    ],
+    [
+     "*.listener.app[15].io.interface",
+     "\"eth0\"",
+     "m2s72.ini",
+     6778
+    ],
+    [
+     "*.listener.app[15].io.remoteAddress",
+     "\"talker[7]\"",
+     "m2s72.ini",
+     6862
+    ],
+    [
+     "*.listener.app[15].source.initialProductionOffset",
+     "0.1s + 5ms * 0",
+     "m2s72.ini",
+     6762
+    ],
+    [
+     "*.listener.app[15].source.packetLength",
+     "100B",
+     "m2s72.ini",
+     6730
+    ],
+    [
+     "*.listener.app[15].source.packetRepresentation",
+     "\"applicationPacket\"",
+     "m2s72.ini",
+     6613
+    ],
+    [
+     "*.listener.app[15].source.productionInterval",
+     "20ms",
+     "m2s72.ini",
+     6265
+    ],
+    [
+     "*.listener.app[15].tagger.encapsulationProtocols",
+     "[\"ieee8021qctag\"]",
+     "m2s72.ini",
+     6826
+    ],
+    [
+     "*.listener.app[15].tagger.pcp",
+     "5",
+     "m2s72.ini",
+     6836
+    ],
+    [
+     "*.listener.app[15].tagger.typename",
+     "\"PacketTagger\"",
+     "m2s72.ini",
+     6794
+    ],
+    [
+     "*.listener.app[15].tagger.vlanId",
+     "42",
+     "m2s72.ini",
+     6810
+    ],
+    [
+     "*.listener.app[15].typename",
+     "\"EthernetSourceApp\"",
+     "m2s72.ini",
+     6714
+    ],
+    [
+     "*.listener.app[16].io.interface",
+     "\"eth0\"",
+     "m2s72.ini",
+     6779
+    ],
+    [
+     "*.listener.app[16].io.remoteAddress",
+     "\"talker[7]\"",
+     "m2s72.ini",
+     6863
+    ],
+    [
+     "*.listener.app[16].source.initialProductionOffset",
+     "0.1s + 5ms * 1",
+     "m2s72.ini",
+     6763
+    ],
+    [
+     "*.listener.app[16].source.packetLength",
+     "100B",
+     "m2s72.ini",
+     6731
+    ],
+    [
+     "*.listener.app[16].source.packetRepresentation",
+     "\"applicationPacket\"",
+     "m2s72.ini",
+     6614
+    ],
+    [
+     "*.listener.app[16].source.productionInterval",
+     "20ms",
+     "m2s72.ini",
+     6266
+    ],
+    [
+     "*.listener.app[16].tagger.encapsulationProtocols",
+     "[\"ieee8021qctag\"]",
+     "m2s72.ini",
+     6827
+    ],
+    [
+     "*.listener.app[16].tagger.pcp",
+     "0",
+     "m2s72.ini",
+     6845
+    ],
+    [
+     "*.listener.app[16].tagger.typename",
+     "\"PacketTagger\"",
+     "m2s72.ini",
+     6795
+    ],
+    [
+     "*.listener.app[16].tagger.vlanId",
+     "42",
+     "m2s72.ini",
+     6811
+    ],
+    [
+     "*.listener.app[16].typename",
+     "\"EthernetSourceApp\"",
+     "m2s72.ini",
+     6715
+    ],
+    [
+     "*.listener.app[6].io.interface",
+     "\"eth0\"",
+     "m2s72.ini",
+     6769
+    ],
+    [
+     "*.listener.app[6].io.remoteAddress",
+     "\"talker[2]\"",
+     "m2s72.ini",
+     6853
+    ],
+    [
+     "*.listener.app[6].source.initialProductionOffset",
+     "0.1s + 5ms * 1",
+     "m2s72.ini",
+     6753
+    ],
+    [
+     "*.listener.app[6].source.packetLength",
+     "100B",
+     "m2s72.ini",
+     6721
+    ],
+    [
+     "*.listener.app[6].source.packetRepresentation",
+     "\"applicationPacket\"",
+     "m2s72.ini",
+     6604
+    ],
+    [
+     "*.listener.app[6].source.productionInterval",
+     "20ms",
+     "m2s72.ini",
+     6256
+    ],
+    [
+     "*.listener.app[6].tagger.encapsulationProtocols",
+     "[\"ieee8021qctag\"]",
+     "m2s72.ini",
+     6817
+    ],
+    [
+     "*.listener.app[6].tagger.pcp",
+     "0",
+     "m2s72.ini",
+     6840
+    ],
+    [
+     "*.listener.app[6].tagger.typename",
+     "\"PacketTagger\"",
+     "m2s72.ini",
+     6785
+    ],
+    [
+     "*.listener.app[6].tagger.vlanId",
+     "42",
+     "m2s72.ini",
+     6801
+    ],
+    [
+     "*.listener.app[6].typename",
+     "\"EthernetSourceApp\"",
+     "m2s72.ini",
+     6705
+    ],
+    [
+     "*.listener.app[7].io.interface",
+     "\"eth0\"",
+     "m2s72.ini",
+     6770
+    ],
+    [
+     "*.listener.app[7].io.remoteAddress",
+     "\"talker[3]\"",
+     "m2s72.ini",
+     6854
+    ],
+    [
+     "*.listener.app[7].source.initialProductionOffset",
+     "0.1s + 5ms * 0",
+     "m2s72.ini",
+     6754
+    ],
+    [
+     "*.listener.app[7].source.packetLength",
+     "100B",
+     "m2s72.ini",
+     6722
+    ],
+    [
+     "*.listener.app[7].source.packetRepresentation",
+     "\"applicationPacket\"",
+     "m2s72.ini",
+     6605
+    ],
+    [
+     "*.listener.app[7].source.productionInterval",
+     "20ms",
+     "m2s72.ini",
+     6257
+    ],
+    [
+     "*.listener.app[7].tagger.encapsulationProtocols",
+     "[\"ieee8021qctag\"]",
+     "m2s72.ini",
+     6818
+    ],
+    [
+     "*.listener.app[7].tagger.pcp",
+     "5",
+     "m2s72.ini",
+     6832
+    ],
+    [
+     "*.listener.app[7].tagger.typename",
+     "\"PacketTagger\"",
+     "m2s72.ini",
+     6786
+    ],
+    [
+     "*.listener.app[7].tagger.vlanId",
+     "42",
+     "m2s72.ini",
+     6802
+    ],
+    [
+     "*.listener.app[7].typename",
+     "\"EthernetSourceApp\"",
+     "m2s72.ini",
+     6706
+    ],
+    [
+     "*.listener.app[8].io.interface",
+     "\"eth0\"",
+     "m2s72.ini",
+     6771
+    ],
+    [
+     "*.listener.app[8].io.remoteAddress",
+     "\"talker[3]\"",
+     "m2s72.ini",
+     6855
+    ],
+    [
+     "*.listener.app[8].source.initialProductionOffset",
+     "0.1s + 5ms * 1",
+     "m2s72.ini",
+     6755
+    ],
+    [
+     "*.listener.app[8].source.packetLength",
+     "100B",
+     "m2s72.ini",
+     6723
+    ],
+    [
+     "*.listener.app[8].source.packetRepresentation",
+     "\"applicationPacket\"",
+     "m2s72.ini",
+     6606
+    ],
+    [
+     "*.listener.app[8].source.productionInterval",
+     "20ms",
+     "m2s72.ini",
+     6258
+    ],
+    [
+     "*.listener.app[8].tagger.encapsulationProtocols",
+     "[\"ieee8021qctag\"]",
+     "m2s72.ini",
+     6819
+    ],
+    [
+     "*.listener.app[8].tagger.pcp",
+     "0",
+     "m2s72.ini",
+     6841
+    ],
+    [
+     "*.listener.app[8].tagger.typename",
+     "\"PacketTagger\"",
+     "m2s72.ini",
+     6787
+    ],
+    [
+     "*.listener.app[8].tagger.vlanId",
+     "42",
+     "m2s72.ini",
+     6803
+    ],
+    [
+     "*.listener.app[8].typename",
+     "\"EthernetSourceApp\"",
+     "m2s72.ini",
+     6707
+    ],
+    [
+     "*.listener.app[9].io.interface",
+     "\"eth0\"",
+     "m2s72.ini",
+     6772
+    ],
+    [
+     "*.listener.app[9].io.remoteAddress",
+     "\"talker[4]\"",
+     "m2s72.ini",
+     6856
+    ],
+    [
+     "*.listener.app[9].source.initialProductionOffset",
+     "0.1s + 5ms * 0",
+     "m2s72.ini",
+     6756
+    ],
+    [
+     "*.listener.app[9].source.packetLength",
+     "100B",
+     "m2s72.ini",
+     6724
+    ],
+    [
+     "*.listener.app[9].source.packetRepresentation",
+     "\"applicationPacket\"",
+     "m2s72.ini",
+     6607
+    ],
+    [
+     "*.listener.app[9].source.productionInterval",
+     "20ms",
+     "m2s72.ini",
+     6259
+    ],
+    [
+     "*.listener.app[9].tagger.encapsulationProtocols",
+     "[\"ieee8021qctag\"]",
+     "m2s72.ini",
+     6820
+    ],
+    [
+     "*.listener.app[9].tagger.pcp",
+     "5",
+     "m2s72.ini",
+     6833
+    ],
+    [
+     "*.listener.app[9].tagger.typename",
+     "\"PacketTagger\"",
+     "m2s72.ini",
+     6788
+    ],
+    [
+     "*.listener.app[9].tagger.vlanId",
+     "42",
+     "m2s72.ini",
+     6804
+    ],
+    [
+     "*.listener.app[9].typename",
+     "\"EthernetSourceApp\"",
+     "m2s72.ini",
+     6708
+    ],
+    [
+     "*.nwTt.eth[0].measurementLayer.measurementRecorder.flowName",
+     "\"transit5gs\"",
+     "m2s72.ini",
+     6625
+    ],
+    [
+     "*.nwTt.eth[0].measurementLayer.measurementRecorder.measure",
+     "\"elapsedTime\"",
+     "m2s72.ini",
+     6628
+    ],
+    [
+     "*.nwTt.eth[0].measurementLayer.measurementStarter.flowName",
+     "\"transit5gs\"",
+     "m2s72.ini",
+     6619
+    ],
+    [
+     "*.nwTt.eth[0].measurementLayer.measurementStarter.measure",
+     "\"elapsedTime\"",
+     "m2s72.ini",
+     6622
+    ],
+    [
+     "*.slave.clock.oscillator.driftRate",
+     "-100ppm",
+     "m2s72.ini",
+     6342
+    ],
+    [
+     "*.slave.clock.oscillator.nominalTickLength",
+     "1ns",
+     "m2s72.ini",
+     6352
+    ],
+    [
+     "*.slave.clock.oscillator.typename",
+     "\"ConstantDriftOscillator\"",
+     "m2s72.ini",
+     6348
+    ],
+    [
+     "*.slave.clock.underlyingClock.emitClockTimeInterval",
+     "1ms",
+     "m2s72.ini",
+     6384
+    ],
+    [
+     "*.talker.eth[*].typename",
+     "\"LayeredEthernetInterface\"",
+     "omnetpp.ini",
+     42
+    ],
+    [
+     "*.talker.ethernet.hasSocketSupport",
+     "true",
+     "omnetpp.ini",
+     48
+    ],
+    [
+     "*.talker.ethernet.typename",
+     "\"EthernetLayer\"",
+     "omnetpp.ini",
+     44
+    ],
+    [
+     "*.talker.hasIpv4",
+     "false",
+     "omnetpp.ini",
+     40
+    ],
+    [
+     "*.talker.ieee8021q.typename",
+     "\"Ieee8021qProtocol\"",
+     "omnetpp.ini",
+     46
+    ],
+    [
+     "*.talker.llc.typename",
+     "\"\"",
+     "omnetpp.ini",
+     50
+    ],
+    [
+     "*.talker[*].numApps",
+     "3",
+     "m2s72.ini",
+     6273
+    ],
+    [
+     "*.talker[2].app[2].io.localAddress",
+     "\"talker[2]\"",
+     "m2s72.ini",
+     6873
+    ],
+    [
+     "*.talker[2].clock.oscillator.rng-0",
+     "4",
+     "m2s72.ini",
+     6403
+    ],
+    [
+     "*.talker[3].app[2].io.localAddress",
+     "\"talker[3]\"",
+     "m2s72.ini",
+     6874
+    ],
+    [
+     "*.talker[3].clock.oscillator.rng-0",
+     "6",
+     "m2s72.ini",
+     6404
+    ],
+    [
+     "*.talker[4].app[2].io.localAddress",
+     "\"talker[4]\"",
+     "m2s72.ini",
+     6875
+    ],
+    [
+     "*.talker[4].clock.oscillator.rng-0",
+     "8",
+     "m2s72.ini",
+     6405
+    ],
+    [
+     "*.talker[5].app[2].io.localAddress",
+     "\"talker[5]\"",
+     "m2s72.ini",
+     6876
+    ],
+    [
+     "*.talker[5].clock.oscillator.rng-0",
+     "10",
+     "m2s72.ini",
+     6406
+    ],
+    [
+     "*.talker[6].app[2].io.localAddress",
+     "\"talker[6]\"",
+     "m2s72.ini",
+     6877
+    ],
+    [
+     "*.talker[6].clock.oscillator.rng-0",
+     "12",
+     "m2s72.ini",
+     6407
+    ],
+    [
+     "*.talker[7].app[2].io.localAddress",
+     "\"talker[7]\"",
+     "m2s72.ini",
+     6878
+    ],
+    [
+     "*.talker[7].clock.oscillator.rng-0",
+     "14",
+     "m2s72.ini",
+     6408
+    ]
+   ],
+   "unused_count": 181
+  },
+  "M2S72-E0vN-q0-one0-n2-f1_A2D": {
+   "errors": [],
+   "par": {
+    "M2S72Bridge.gnb1.cellularNic.channelModel[0]": {
+     "binderModule": "\"\\\"binder\\\"\"",
+     "cellInfoModule": "\"\\\"M2S72Bridge.gnb1.cellInfo\\\"\"",
+     "componentCarrierModule": "\"\\\"carrierAggregation.componentCarrier[0]\\\"\"",
+     "harqReduction": "0.3",
+     "per": "0.1",
+     "perD2D": "0",
+     "perDl": "0",
+     "perUl": "0",
+     "typename": "\"\\\"simu5g.stack.phy.channelmodel.IdealChannelModel\\\"\""
+    },
+    "M2S72Bridge.ue[0].cellularNic.channelModel[0]": {
+     "antennGainEnB": "18dBi",
+     "antennGainMicro": "5dBi",
+     "antennaGainUe": "0dBi",
+     "bgCellInterference": "true",
+     "binderModule": "\"\\\"binder\\\"\"",
+     "bsNoiseFigure": "5dBm",
+     "buildingHeight": "20m",
+     "cableLoss": "2dB",
+     "cellInfoModule": "\"\\\"^.^.cellInfo\\\"\"",
+     "collectSinrStatistics": "true",
+     "componentCarrierModule": "\"\\\"carrierAggregation.componentCarrier[0]\\\"\"",
+     "correlationDistance": "50m",
+     "delayRms": "3.63e-07s",
+     "downlinkInterference": "false",
+     "dynamicLos": "false",
+     "enableExtCellLos": "true",
+     "extCellInterference": "true",
+     "fading": "true",
+     "fadingType": "\"\\\"JAKES\\\"\"",
+     "fixedLos": "false",
+     "harqReduction": "0.2",
+     "insideBuilding": "false",
+     "nodebHeight": "25m",
+     "numFadingPaths": "6",
+     "pathLossType": "\"\\\"Tr36814\\\"\"",
+     "scenario": "\"\\\"URBAN_MACROCELL\\\"\"",
+     "shadowing": "true",
+     "streetWidth": "20m",
+     "targetBler": "0.01",
+     "thermalNoise": "-104.5dBm",
+     "tolerateMaxDistViolation": "false",
+     "typename": "\"\\\"simu5g.stack.phy.channelmodel.StochasticChannelModel\\\"\"",
+     "ueHeight": "1.5m",
+     "ueNoiseFigure": "7dBm",
+     "uplinkInterference": "false",
+     "useBuildingPenetrationHighLossModel": "false",
+     "useTorus": "false"
+    },
+    "M2S72Bridge.ue[0].cellularNic.nrChannelModel[0]": {
+     "binderModule": "\"\\\"binder\\\"\"",
+     "cellInfoModule": "\"\\\"^.^.cellInfo\\\"\"",
+     "componentCarrierModule": "\"\\\"carrierAggregation.componentCarrier[0]\\\"\"",
+     "harqReduction": "1",
+     "per": "0.1",
+     "perD2D": "0",
+     "perDl": "0.3",
+     "perUl": "0",
+     "typename": "\"\\\"simu5g.stack.phy.channelmodel.IdealChannelModel\\\"\""
+    },
+    "M2S72Bridge.ue[1].cellularNic.channelModel[0]": {
+     "antennGainEnB": "18dBi",
+     "antennGainMicro": "5dBi",
+     "antennaGainUe": "0dBi",
+     "bgCellInterference": "true",
+     "binderModule": "\"\\\"binder\\\"\"",
+     "bsNoiseFigure": "5dBm",
+     "buildingHeight": "20m",
+     "cableLoss": "2dB",
+     "cellInfoModule": "\"\\\"^.^.cellInfo\\\"\"",
+     "collectSinrStatistics": "true",
+     "componentCarrierModule": "\"\\\"carrierAggregation.componentCarrier[0]\\\"\"",
+     "correlationDistance": "50m",
+     "delayRms": "3.63e-07s",
+     "downlinkInterference": "false",
+     "dynamicLos": "false",
+     "enableExtCellLos": "true",
+     "extCellInterference": "true",
+     "fading": "true",
+     "fadingType": "\"\\\"JAKES\\\"\"",
+     "fixedLos": "false",
+     "harqReduction": "0.2",
+     "insideBuilding": "false",
+     "nodebHeight": "25m",
+     "numFadingPaths": "6",
+     "pathLossType": "\"\\\"Tr36814\\\"\"",
+     "scenario": "\"\\\"URBAN_MACROCELL\\\"\"",
+     "shadowing": "true",
+     "streetWidth": "20m",
+     "targetBler": "0.01",
+     "thermalNoise": "-104.5dBm",
+     "tolerateMaxDistViolation": "false",
+     "typename": "\"\\\"simu5g.stack.phy.channelmodel.StochasticChannelModel\\\"\"",
+     "ueHeight": "1.5m",
+     "ueNoiseFigure": "7dBm",
+     "uplinkInterference": "false",
+     "useBuildingPenetrationHighLossModel": "false",
+     "useTorus": "false"
+    },
+    "M2S72Bridge.ue[1].cellularNic.nrChannelModel[0]": {
+     "binderModule": "\"\\\"binder\\\"\"",
+     "cellInfoModule": "\"\\\"^.^.cellInfo\\\"\"",
+     "componentCarrierModule": "\"\\\"carrierAggregation.componentCarrier[0]\\\"\"",
+     "harqReduction": "1",
+     "per": "0.1",
+     "perD2D": "0",
+     "perDl": "0.3",
+     "perUl": "0",
+     "typename": "\"\\\"simu5g.stack.phy.channelmodel.IdealChannelModel\\\"\""
+    }
+   },
+   "rc": 0,
+   "scheduler_lines": 1,
+   "stopped_at_t0_event": 36,
+   "types": {
+    "M2S72Bridge.gnb1.cellularNic.channelModel[0]": "simu5g.stack.phy.channelmodel.IdealChannelModel",
+    "M2S72Bridge.gnb1.cellularNic.mac.schedulerDl": "simu5g.stack.mac.scheduler.LteSchedulerEnbDl",
+    "M2S72Bridge.ue[0].cellularNic.channelModel[0]": "simu5g.stack.phy.channelmodel.StochasticChannelModel",
+    "M2S72Bridge.ue[0].cellularNic.nrChannelModel[0]": "simu5g.stack.phy.channelmodel.IdealChannelModel",
+    "M2S72Bridge.ue[1].cellularNic.channelModel[0]": "simu5g.stack.phy.channelmodel.StochasticChannelModel",
+    "M2S72Bridge.ue[1].cellularNic.nrChannelModel[0]": "simu5g.stack.phy.channelmodel.IdealChannelModel"
+   },
+   "unused": [
+    [
+     "**.routingRecorder.enabled",
+     "false",
+     "m2s72.ini",
+     6886
+    ],
+    [
+     "*.dsTt[*].eth[0].measurementLayer.measurementRecorder.flowName",
+     "\"transit5gs\"",
+     "m2s72.ini",
+     6626
+    ],
+    [
+     "*.dsTt[*].eth[0].measurementLayer.measurementRecorder.measure",
+     "\"elapsedTime\"",
+     "m2s72.ini",
+     6629
+    ],
+    [
+     "*.dsTt[*].eth[0].measurementLayer.measurementStarter.flowName",
+     "\"transit5gs\"",
+     "m2s72.ini",
+     6620
+    ],
+    [
+     "*.dsTt[*].eth[0].measurementLayer.measurementStarter.measure",
+     "\"elapsedTime\"",
+     "m2s72.ini",
+     6623
+    ],
+    [
+     "*.dsTt[2].eth[0].measurementLayer.ttId",
+     "4",
+     "m2s72.ini",
+     6503
+    ],
+    [
+     "*.dsTt[2].eth[1].measurementLayer.ttId",
+     "4",
+     "m2s72.ini",
+     6521
+    ],
+    [
+     "*.dsTt[2].eth[1].trafficConditionerLayer.engine.clockIdentity",
+     "\"0x00000000000000d3\"",
+     "m2s72.ini",
+     6465
+    ],
+    [
+     "*.dsTt[2].eth[1].trafficConditionerLayer.syncOut.ttId",
+     "4",
+     "m2s72.ini",
+     6427
+    ],
+    [
+     "*.dsTt[3].eth[0].measurementLayer.ttId",
+     "5",
+     "m2s72.ini",
+     6504
+    ],
+    [
+     "*.dsTt[3].eth[1].measurementLayer.ttId",
+     "5",
+     "m2s72.ini",
+     6522
+    ],
+    [
+     "*.dsTt[3].eth[1].trafficConditionerLayer.engine.clockIdentity",
+     "\"0x00000000000000d4\"",
+     "m2s72.ini",
+     6466
+    ],
+    [
+     "*.dsTt[3].eth[1].trafficConditionerLayer.syncOut.ttId",
+     "5",
+     "m2s72.ini",
+     6428
+    ],
+    [
+     "*.dsTt[4].eth[0].measurementLayer.ttId",
+     "6",
+     "m2s72.ini",
+     6505
+    ],
+    [
+     "*.dsTt[4].eth[1].measurementLayer.ttId",
+     "6",
+     "m2s72.ini",
+     6523
+    ],
+    [
+     "*.dsTt[4].eth[1].trafficConditionerLayer.engine.clockIdentity",
+     "\"0x00000000000000d5\"",
+     "m2s72.ini",
+     6467
+    ],
+    [
+     "*.dsTt[4].eth[1].trafficConditionerLayer.syncOut.ttId",
+     "6",
+     "m2s72.ini",
+     6429
+    ],
+    [
+     "*.dsTt[5].eth[0].measurementLayer.ttId",
+     "7",
+     "m2s72.ini",
+     6506
+    ],
+    [
+     "*.dsTt[5].eth[1].measurementLayer.ttId",
+     "7",
+     "m2s72.ini",
+     6524
+    ],
+    [
+     "*.dsTt[5].eth[1].trafficConditionerLayer.engine.clockIdentity",
+     "\"0x00000000000000d6\"",
+     "m2s72.ini",
+     6468
+    ],
+    [
+     "*.dsTt[5].eth[1].trafficConditionerLayer.syncOut.ttId",
+     "7",
+     "m2s72.ini",
+     6430
+    ],
+    [
+     "*.dsTt[6].eth[0].measurementLayer.ttId",
+     "8",
+     "m2s72.ini",
+     6507
+    ],
+    [
+     "*.dsTt[6].eth[1].measurementLayer.ttId",
+     "8",
+     "m2s72.ini",
+     6525
+    ],
+    [
+     "*.dsTt[6].eth[1].trafficConditionerLayer.engine.clockIdentity",
+     "\"0x00000000000000d7\"",
+     "m2s72.ini",
+     6469
+    ],
+    [
+     "*.dsTt[6].eth[1].trafficConditionerLayer.syncOut.ttId",
+     "8",
+     "m2s72.ini",
+     6431
+    ],
+    [
+     "*.dsTt[7].eth[0].measurementLayer.ttId",
+     "9",
+     "m2s72.ini",
+     6508
+    ],
+    [
+     "*.dsTt[7].eth[1].measurementLayer.ttId",
+     "9",
+     "m2s72.ini",
+     6526
+    ],
+    [
+     "*.dsTt[7].eth[1].trafficConditionerLayer.engine.clockIdentity",
+     "\"0x00000000000000d8\"",
+     "m2s72.ini",
+     6470
+    ],
+    [
+     "*.dsTt[7].eth[1].trafficConditionerLayer.syncOut.ttId",
+     "9",
+     "m2s72.ini",
+     6432
+    ],
+    [
+     "*.gm.clock.emitClockTimeInterval",
+     "1ms",
+     "m2s72.ini",
+     6380
+    ],
+    [
+     "*.gm.clock.oscillator.driftRate",
+     "100ppm",
+     "m2s72.ini",
+     6324
+    ],
+    [
+     "*.gm.clock.oscillator.nominalTickLength",
+     "1ns",
+     "m2s72.ini",
+     6334
+    ],
+    [
+     "*.gm.clock.oscillator.typename",
+     "\"ConstantDriftOscillator\"",
+     "m2s72.ini",
+     6330
+    ],
+    [
+     "*.listener.app[10].io.interface",
+     "\"eth0\"",
+     "m2s72.ini",
+     6773
+    ],
+    [
+     "*.listener.app[10].io.remoteAddress",
+     "\"talker[4]\"",
+     "m2s72.ini",
+     6857
+    ],
+    [
+     "*.listener.app[10].source.initialProductionOffset",
+     "0.1s + 5ms * 1",
+     "m2s72.ini",
+     6757
+    ],
+    [
+     "*.listener.app[10].source.packetLength",
+     "100B",
+     "m2s72.ini",
+     6725
+    ],
+    [
+     "*.listener.app[10].source.packetRepresentation",
+     "\"applicationPacket\"",
+     "m2s72.ini",
+     6608
+    ],
+    [
+     "*.listener.app[10].source.productionInterval",
+     "20ms",
+     "m2s72.ini",
+     6260
+    ],
+    [
+     "*.listener.app[10].tagger.encapsulationProtocols",
+     "[\"ieee8021qctag\"]",
+     "m2s72.ini",
+     6821
+    ],
+    [
+     "*.listener.app[10].tagger.pcp",
+     "0",
+     "m2s72.ini",
+     6842
+    ],
+    [
+     "*.listener.app[10].tagger.typename",
+     "\"PacketTagger\"",
+     "m2s72.ini",
+     6789
+    ],
+    [
+     "*.listener.app[10].tagger.vlanId",
+     "42",
+     "m2s72.ini",
+     6805
+    ],
+    [
+     "*.listener.app[10].typename",
+     "\"EthernetSourceApp\"",
+     "m2s72.ini",
+     6709
+    ],
+    [
+     "*.listener.app[11].io.interface",
+     "\"eth0\"",
+     "m2s72.ini",
+     6774
+    ],
+    [
+     "*.listener.app[11].io.remoteAddress",
+     "\"talker[5]\"",
+     "m2s72.ini",
+     6858
+    ],
+    [
+     "*.listener.app[11].source.initialProductionOffset",
+     "0.1s + 5ms * 0",
+     "m2s72.ini",
+     6758
+    ],
+    [
+     "*.listener.app[11].source.packetLength",
+     "100B",
+     "m2s72.ini",
+     6726
+    ],
+    [
+     "*.listener.app[11].source.packetRepresentation",
+     "\"applicationPacket\"",
+     "m2s72.ini",
+     6609
+    ],
+    [
+     "*.listener.app[11].source.productionInterval",
+     "20ms",
+     "m2s72.ini",
+     6261
+    ],
+    [
+     "*.listener.app[11].tagger.encapsulationProtocols",
+     "[\"ieee8021qctag\"]",
+     "m2s72.ini",
+     6822
+    ],
+    [
+     "*.listener.app[11].tagger.pcp",
+     "5",
+     "m2s72.ini",
+     6834
+    ],
+    [
+     "*.listener.app[11].tagger.typename",
+     "\"PacketTagger\"",
+     "m2s72.ini",
+     6790
+    ],
+    [
+     "*.listener.app[11].tagger.vlanId",
+     "42",
+     "m2s72.ini",
+     6806
+    ],
+    [
+     "*.listener.app[11].typename",
+     "\"EthernetSourceApp\"",
+     "m2s72.ini",
+     6710
+    ],
+    [
+     "*.listener.app[12].io.interface",
+     "\"eth0\"",
+     "m2s72.ini",
+     6775
+    ],
+    [
+     "*.listener.app[12].io.remoteAddress",
+     "\"talker[5]\"",
+     "m2s72.ini",
+     6859
+    ],
+    [
+     "*.listener.app[12].source.initialProductionOffset",
+     "0.1s + 5ms * 1",
+     "m2s72.ini",
+     6759
+    ],
+    [
+     "*.listener.app[12].source.packetLength",
+     "100B",
+     "m2s72.ini",
+     6727
+    ],
+    [
+     "*.listener.app[12].source.packetRepresentation",
+     "\"applicationPacket\"",
+     "m2s72.ini",
+     6610
+    ],
+    [
+     "*.listener.app[12].source.productionInterval",
+     "20ms",
+     "m2s72.ini",
+     6262
+    ],
+    [
+     "*.listener.app[12].tagger.encapsulationProtocols",
+     "[\"ieee8021qctag\"]",
+     "m2s72.ini",
+     6823
+    ],
+    [
+     "*.listener.app[12].tagger.pcp",
+     "0",
+     "m2s72.ini",
+     6843
+    ],
+    [
+     "*.listener.app[12].tagger.typename",
+     "\"PacketTagger\"",
+     "m2s72.ini",
+     6791
+    ],
+    [
+     "*.listener.app[12].tagger.vlanId",
+     "42",
+     "m2s72.ini",
+     6807
+    ],
+    [
+     "*.listener.app[12].typename",
+     "\"EthernetSourceApp\"",
+     "m2s72.ini",
+     6711
+    ],
+    [
+     "*.listener.app[13].io.interface",
+     "\"eth0\"",
+     "m2s72.ini",
+     6776
+    ],
+    [
+     "*.listener.app[13].io.remoteAddress",
+     "\"talker[6]\"",
+     "m2s72.ini",
+     6860
+    ],
+    [
+     "*.listener.app[13].source.initialProductionOffset",
+     "0.1s + 5ms * 0",
+     "m2s72.ini",
+     6760
+    ],
+    [
+     "*.listener.app[13].source.packetLength",
+     "100B",
+     "m2s72.ini",
+     6728
+    ],
+    [
+     "*.listener.app[13].source.packetRepresentation",
+     "\"applicationPacket\"",
+     "m2s72.ini",
+     6611
+    ],
+    [
+     "*.listener.app[13].source.productionInterval",
+     "20ms",
+     "m2s72.ini",
+     6263
+    ],
+    [
+     "*.listener.app[13].tagger.encapsulationProtocols",
+     "[\"ieee8021qctag\"]",
+     "m2s72.ini",
+     6824
+    ],
+    [
+     "*.listener.app[13].tagger.pcp",
+     "5",
+     "m2s72.ini",
+     6835
+    ],
+    [
+     "*.listener.app[13].tagger.typename",
+     "\"PacketTagger\"",
+     "m2s72.ini",
+     6792
+    ],
+    [
+     "*.listener.app[13].tagger.vlanId",
+     "42",
+     "m2s72.ini",
+     6808
+    ],
+    [
+     "*.listener.app[13].typename",
+     "\"EthernetSourceApp\"",
+     "m2s72.ini",
+     6712
+    ],
+    [
+     "*.listener.app[14].io.interface",
+     "\"eth0\"",
+     "m2s72.ini",
+     6777
+    ],
+    [
+     "*.listener.app[14].io.remoteAddress",
+     "\"talker[6]\"",
+     "m2s72.ini",
+     6861
+    ],
+    [
+     "*.listener.app[14].source.initialProductionOffset",
+     "0.1s + 5ms * 1",
+     "m2s72.ini",
+     6761
+    ],
+    [
+     "*.listener.app[14].source.packetLength",
+     "100B",
+     "m2s72.ini",
+     6729
+    ],
+    [
+     "*.listener.app[14].source.packetRepresentation",
+     "\"applicationPacket\"",
+     "m2s72.ini",
+     6612
+    ],
+    [
+     "*.listener.app[14].source.productionInterval",
+     "20ms",
+     "m2s72.ini",
+     6264
+    ],
+    [
+     "*.listener.app[14].tagger.encapsulationProtocols",
+     "[\"ieee8021qctag\"]",
+     "m2s72.ini",
+     6825
+    ],
+    [
+     "*.listener.app[14].tagger.pcp",
+     "0",
+     "m2s72.ini",
+     6844
+    ],
+    [
+     "*.listener.app[14].tagger.typename",
+     "\"PacketTagger\"",
+     "m2s72.ini",
+     6793
+    ],
+    [
+     "*.listener.app[14].tagger.vlanId",
+     "42",
+     "m2s72.ini",
+     6809
+    ],
+    [
+     "*.listener.app[14].typename",
+     "\"EthernetSourceApp\"",
+     "m2s72.ini",
+     6713
+    ],
+    [
+     "*.listener.app[15].io.interface",
+     "\"eth0\"",
+     "m2s72.ini",
+     6778
+    ],
+    [
+     "*.listener.app[15].io.remoteAddress",
+     "\"talker[7]\"",
+     "m2s72.ini",
+     6862
+    ],
+    [
+     "*.listener.app[15].source.initialProductionOffset",
+     "0.1s + 5ms * 0",
+     "m2s72.ini",
+     6762
+    ],
+    [
+     "*.listener.app[15].source.packetLength",
+     "100B",
+     "m2s72.ini",
+     6730
+    ],
+    [
+     "*.listener.app[15].source.packetRepresentation",
+     "\"applicationPacket\"",
+     "m2s72.ini",
+     6613
+    ],
+    [
+     "*.listener.app[15].source.productionInterval",
+     "20ms",
+     "m2s72.ini",
+     6265
+    ],
+    [
+     "*.listener.app[15].tagger.encapsulationProtocols",
+     "[\"ieee8021qctag\"]",
+     "m2s72.ini",
+     6826
+    ],
+    [
+     "*.listener.app[15].tagger.pcp",
+     "5",
+     "m2s72.ini",
+     6836
+    ],
+    [
+     "*.listener.app[15].tagger.typename",
+     "\"PacketTagger\"",
+     "m2s72.ini",
+     6794
+    ],
+    [
+     "*.listener.app[15].tagger.vlanId",
+     "42",
+     "m2s72.ini",
+     6810
+    ],
+    [
+     "*.listener.app[15].typename",
+     "\"EthernetSourceApp\"",
+     "m2s72.ini",
+     6714
+    ],
+    [
+     "*.listener.app[16].io.interface",
+     "\"eth0\"",
+     "m2s72.ini",
+     6779
+    ],
+    [
+     "*.listener.app[16].io.remoteAddress",
+     "\"talker[7]\"",
+     "m2s72.ini",
+     6863
+    ],
+    [
+     "*.listener.app[16].source.initialProductionOffset",
+     "0.1s + 5ms * 1",
+     "m2s72.ini",
+     6763
+    ],
+    [
+     "*.listener.app[16].source.packetLength",
+     "100B",
+     "m2s72.ini",
+     6731
+    ],
+    [
+     "*.listener.app[16].source.packetRepresentation",
+     "\"applicationPacket\"",
+     "m2s72.ini",
+     6614
+    ],
+    [
+     "*.listener.app[16].source.productionInterval",
+     "20ms",
+     "m2s72.ini",
+     6266
+    ],
+    [
+     "*.listener.app[16].tagger.encapsulationProtocols",
+     "[\"ieee8021qctag\"]",
+     "m2s72.ini",
+     6827
+    ],
+    [
+     "*.listener.app[16].tagger.pcp",
+     "0",
+     "m2s72.ini",
+     6845
+    ],
+    [
+     "*.listener.app[16].tagger.typename",
+     "\"PacketTagger\"",
+     "m2s72.ini",
+     6795
+    ],
+    [
+     "*.listener.app[16].tagger.vlanId",
+     "42",
+     "m2s72.ini",
+     6811
+    ],
+    [
+     "*.listener.app[16].typename",
+     "\"EthernetSourceApp\"",
+     "m2s72.ini",
+     6715
+    ],
+    [
+     "*.listener.app[6].io.interface",
+     "\"eth0\"",
+     "m2s72.ini",
+     6769
+    ],
+    [
+     "*.listener.app[6].io.remoteAddress",
+     "\"talker[2]\"",
+     "m2s72.ini",
+     6853
+    ],
+    [
+     "*.listener.app[6].source.initialProductionOffset",
+     "0.1s + 5ms * 1",
+     "m2s72.ini",
+     6753
+    ],
+    [
+     "*.listener.app[6].source.packetLength",
+     "100B",
+     "m2s72.ini",
+     6721
+    ],
+    [
+     "*.listener.app[6].source.packetRepresentation",
+     "\"applicationPacket\"",
+     "m2s72.ini",
+     6604
+    ],
+    [
+     "*.listener.app[6].source.productionInterval",
+     "20ms",
+     "m2s72.ini",
+     6256
+    ],
+    [
+     "*.listener.app[6].tagger.encapsulationProtocols",
+     "[\"ieee8021qctag\"]",
+     "m2s72.ini",
+     6817
+    ],
+    [
+     "*.listener.app[6].tagger.pcp",
+     "0",
+     "m2s72.ini",
+     6840
+    ],
+    [
+     "*.listener.app[6].tagger.typename",
+     "\"PacketTagger\"",
+     "m2s72.ini",
+     6785
+    ],
+    [
+     "*.listener.app[6].tagger.vlanId",
+     "42",
+     "m2s72.ini",
+     6801
+    ],
+    [
+     "*.listener.app[6].typename",
+     "\"EthernetSourceApp\"",
+     "m2s72.ini",
+     6705
+    ],
+    [
+     "*.listener.app[7].io.interface",
+     "\"eth0\"",
+     "m2s72.ini",
+     6770
+    ],
+    [
+     "*.listener.app[7].io.remoteAddress",
+     "\"talker[3]\"",
+     "m2s72.ini",
+     6854
+    ],
+    [
+     "*.listener.app[7].source.initialProductionOffset",
+     "0.1s + 5ms * 0",
+     "m2s72.ini",
+     6754
+    ],
+    [
+     "*.listener.app[7].source.packetLength",
+     "100B",
+     "m2s72.ini",
+     6722
+    ],
+    [
+     "*.listener.app[7].source.packetRepresentation",
+     "\"applicationPacket\"",
+     "m2s72.ini",
+     6605
+    ],
+    [
+     "*.listener.app[7].source.productionInterval",
+     "20ms",
+     "m2s72.ini",
+     6257
+    ],
+    [
+     "*.listener.app[7].tagger.encapsulationProtocols",
+     "[\"ieee8021qctag\"]",
+     "m2s72.ini",
+     6818
+    ],
+    [
+     "*.listener.app[7].tagger.pcp",
+     "5",
+     "m2s72.ini",
+     6832
+    ],
+    [
+     "*.listener.app[7].tagger.typename",
+     "\"PacketTagger\"",
+     "m2s72.ini",
+     6786
+    ],
+    [
+     "*.listener.app[7].tagger.vlanId",
+     "42",
+     "m2s72.ini",
+     6802
+    ],
+    [
+     "*.listener.app[7].typename",
+     "\"EthernetSourceApp\"",
+     "m2s72.ini",
+     6706
+    ],
+    [
+     "*.listener.app[8].io.interface",
+     "\"eth0\"",
+     "m2s72.ini",
+     6771
+    ],
+    [
+     "*.listener.app[8].io.remoteAddress",
+     "\"talker[3]\"",
+     "m2s72.ini",
+     6855
+    ],
+    [
+     "*.listener.app[8].source.initialProductionOffset",
+     "0.1s + 5ms * 1",
+     "m2s72.ini",
+     6755
+    ],
+    [
+     "*.listener.app[8].source.packetLength",
+     "100B",
+     "m2s72.ini",
+     6723
+    ],
+    [
+     "*.listener.app[8].source.packetRepresentation",
+     "\"applicationPacket\"",
+     "m2s72.ini",
+     6606
+    ],
+    [
+     "*.listener.app[8].source.productionInterval",
+     "20ms",
+     "m2s72.ini",
+     6258
+    ],
+    [
+     "*.listener.app[8].tagger.encapsulationProtocols",
+     "[\"ieee8021qctag\"]",
+     "m2s72.ini",
+     6819
+    ],
+    [
+     "*.listener.app[8].tagger.pcp",
+     "0",
+     "m2s72.ini",
+     6841
+    ],
+    [
+     "*.listener.app[8].tagger.typename",
+     "\"PacketTagger\"",
+     "m2s72.ini",
+     6787
+    ],
+    [
+     "*.listener.app[8].tagger.vlanId",
+     "42",
+     "m2s72.ini",
+     6803
+    ],
+    [
+     "*.listener.app[8].typename",
+     "\"EthernetSourceApp\"",
+     "m2s72.ini",
+     6707
+    ],
+    [
+     "*.listener.app[9].io.interface",
+     "\"eth0\"",
+     "m2s72.ini",
+     6772
+    ],
+    [
+     "*.listener.app[9].io.remoteAddress",
+     "\"talker[4]\"",
+     "m2s72.ini",
+     6856
+    ],
+    [
+     "*.listener.app[9].source.initialProductionOffset",
+     "0.1s + 5ms * 0",
+     "m2s72.ini",
+     6756
+    ],
+    [
+     "*.listener.app[9].source.packetLength",
+     "100B",
+     "m2s72.ini",
+     6724
+    ],
+    [
+     "*.listener.app[9].source.packetRepresentation",
+     "\"applicationPacket\"",
+     "m2s72.ini",
+     6607
+    ],
+    [
+     "*.listener.app[9].source.productionInterval",
+     "20ms",
+     "m2s72.ini",
+     6259
+    ],
+    [
+     "*.listener.app[9].tagger.encapsulationProtocols",
+     "[\"ieee8021qctag\"]",
+     "m2s72.ini",
+     6820
+    ],
+    [
+     "*.listener.app[9].tagger.pcp",
+     "5",
+     "m2s72.ini",
+     6833
+    ],
+    [
+     "*.listener.app[9].tagger.typename",
+     "\"PacketTagger\"",
+     "m2s72.ini",
+     6788
+    ],
+    [
+     "*.listener.app[9].tagger.vlanId",
+     "42",
+     "m2s72.ini",
+     6804
+    ],
+    [
+     "*.listener.app[9].typename",
+     "\"EthernetSourceApp\"",
+     "m2s72.ini",
+     6708
+    ],
+    [
+     "*.nwTt.eth[0].measurementLayer.measurementRecorder.flowName",
+     "\"transit5gs\"",
+     "m2s72.ini",
+     6625
+    ],
+    [
+     "*.nwTt.eth[0].measurementLayer.measurementRecorder.measure",
+     "\"elapsedTime\"",
+     "m2s72.ini",
+     6628
+    ],
+    [
+     "*.nwTt.eth[0].measurementLayer.measurementStarter.flowName",
+     "\"transit5gs\"",
+     "m2s72.ini",
+     6619
+    ],
+    [
+     "*.nwTt.eth[0].measurementLayer.measurementStarter.measure",
+     "\"elapsedTime\"",
+     "m2s72.ini",
+     6622
+    ],
+    [
+     "*.slave.clock.oscillator.driftRate",
+     "-100ppm",
+     "m2s72.ini",
+     6342
+    ],
+    [
+     "*.slave.clock.oscillator.nominalTickLength",
+     "1ns",
+     "m2s72.ini",
+     6352
+    ],
+    [
+     "*.slave.clock.oscillator.typename",
+     "\"ConstantDriftOscillator\"",
+     "m2s72.ini",
+     6348
+    ],
+    [
+     "*.slave.clock.underlyingClock.emitClockTimeInterval",
+     "1ms",
+     "m2s72.ini",
+     6384
+    ],
+    [
+     "*.talker.eth[*].typename",
+     "\"LayeredEthernetInterface\"",
+     "omnetpp.ini",
+     42
+    ],
+    [
+     "*.talker.ethernet.hasSocketSupport",
+     "true",
+     "omnetpp.ini",
+     48
+    ],
+    [
+     "*.talker.ethernet.typename",
+     "\"EthernetLayer\"",
+     "omnetpp.ini",
+     44
+    ],
+    [
+     "*.talker.hasIpv4",
+     "false",
+     "omnetpp.ini",
+     40
+    ],
+    [
+     "*.talker.ieee8021q.typename",
+     "\"Ieee8021qProtocol\"",
+     "omnetpp.ini",
+     46
+    ],
+    [
+     "*.talker.llc.typename",
+     "\"\"",
+     "omnetpp.ini",
+     50
+    ],
+    [
+     "*.talker[*].numApps",
+     "3",
+     "m2s72.ini",
+     6273
+    ],
+    [
+     "*.talker[2].app[2].io.localAddress",
+     "\"talker[2]\"",
+     "m2s72.ini",
+     6873
+    ],
+    [
+     "*.talker[2].clock.oscillator.rng-0",
+     "4",
+     "m2s72.ini",
+     6403
+    ],
+    [
+     "*.talker[3].app[2].io.localAddress",
+     "\"talker[3]\"",
+     "m2s72.ini",
+     6874
+    ],
+    [
+     "*.talker[3].clock.oscillator.rng-0",
+     "6",
+     "m2s72.ini",
+     6404
+    ],
+    [
+     "*.talker[4].app[2].io.localAddress",
+     "\"talker[4]\"",
+     "m2s72.ini",
+     6875
+    ],
+    [
+     "*.talker[4].clock.oscillator.rng-0",
+     "8",
+     "m2s72.ini",
+     6405
+    ],
+    [
+     "*.talker[5].app[2].io.localAddress",
+     "\"talker[5]\"",
+     "m2s72.ini",
+     6876
+    ],
+    [
+     "*.talker[5].clock.oscillator.rng-0",
+     "10",
+     "m2s72.ini",
+     6406
+    ],
+    [
+     "*.talker[6].app[2].io.localAddress",
+     "\"talker[6]\"",
+     "m2s72.ini",
+     6877
+    ],
+    [
+     "*.talker[6].clock.oscillator.rng-0",
+     "12",
+     "m2s72.ini",
+     6407
+    ],
+    [
+     "*.talker[7].app[2].io.localAddress",
+     "\"talker[7]\"",
+     "m2s72.ini",
+     6878
+    ],
+    [
+     "*.talker[7].clock.oscillator.rng-0",
+     "14",
+     "m2s72.ini",
+     6408
+    ]
+   ],
+   "unused_count": 181
+  },
+  "M2S72-E0vN-q0-one0-n2-f1_A2DREF": {
+   "errors": [],
+   "par": {
+    "M2S72Bridge.gnb1.cellularNic.channelModel[0]": {
+     "binderModule": "\"\\\"binder\\\"\"",
+     "cellInfoModule": "\"\\\"M2S72Bridge.gnb1.cellInfo\\\"\"",
+     "componentCarrierModule": "\"\\\"carrierAggregation.componentCarrier[0]\\\"\"",
+     "harqReduction": "0.3",
+     "per": "0.1",
+     "perD2D": "0",
+     "perDl": "0",
+     "perUl": "0",
+     "typename": "\"\\\"simu5g.stack.phy.channelmodel.IdealChannelModel\\\"\""
+    },
+    "M2S72Bridge.ue[0].cellularNic.channelModel[0]": {
+     "antennGainEnB": "18dBi",
+     "antennGainMicro": "5dBi",
+     "antennaGainUe": "0dBi",
+     "bgCellInterference": "true",
+     "binderModule": "\"\\\"binder\\\"\"",
+     "bsNoiseFigure": "5dBm",
+     "buildingHeight": "20m",
+     "cableLoss": "2dB",
+     "cellInfoModule": "\"\\\"^.^.cellInfo\\\"\"",
+     "collectSinrStatistics": "true",
+     "componentCarrierModule": "\"\\\"carrierAggregation.componentCarrier[0]\\\"\"",
+     "correlationDistance": "50m",
+     "delayRms": "3.63e-07s",
+     "downlinkInterference": "false",
+     "dynamicLos": "false",
+     "enableExtCellLos": "true",
+     "extCellInterference": "true",
+     "fading": "true",
+     "fadingType": "\"\\\"JAKES\\\"\"",
+     "fixedLos": "false",
+     "harqReduction": "0.2",
+     "insideBuilding": "false",
+     "nodebHeight": "25m",
+     "numFadingPaths": "6",
+     "pathLossType": "\"\\\"Tr36814\\\"\"",
+     "scenario": "\"\\\"URBAN_MACROCELL\\\"\"",
+     "shadowing": "true",
+     "streetWidth": "20m",
+     "targetBler": "0.01",
+     "thermalNoise": "-104.5dBm",
+     "tolerateMaxDistViolation": "false",
+     "typename": "\"\\\"simu5g.stack.phy.channelmodel.StochasticChannelModel\\\"\"",
+     "ueHeight": "1.5m",
+     "ueNoiseFigure": "7dBm",
+     "uplinkInterference": "false",
+     "useBuildingPenetrationHighLossModel": "false",
+     "useTorus": "false"
+    },
+    "M2S72Bridge.ue[0].cellularNic.nrChannelModel[0]": {
+     "binderModule": "\"\\\"binder\\\"\"",
+     "cellInfoModule": "\"\\\"^.^.cellInfo\\\"\"",
+     "componentCarrierModule": "\"\\\"carrierAggregation.componentCarrier[0]\\\"\"",
+     "harqReduction": "1",
+     "per": "0.1",
+     "perD2D": "0",
+     "perDl": "0.3",
+     "perUl": "0",
+     "typename": "\"\\\"simu5g.stack.phy.channelmodel.IdealChannelModel\\\"\""
+    },
+    "M2S72Bridge.ue[1].cellularNic.channelModel[0]": {
+     "antennGainEnB": "18dBi",
+     "antennGainMicro": "5dBi",
+     "antennaGainUe": "0dBi",
+     "bgCellInterference": "true",
+     "binderModule": "\"\\\"binder\\\"\"",
+     "bsNoiseFigure": "5dBm",
+     "buildingHeight": "20m",
+     "cableLoss": "2dB",
+     "cellInfoModule": "\"\\\"^.^.cellInfo\\\"\"",
+     "collectSinrStatistics": "true",
+     "componentCarrierModule": "\"\\\"carrierAggregation.componentCarrier[0]\\\"\"",
+     "correlationDistance": "50m",
+     "delayRms": "3.63e-07s",
+     "downlinkInterference": "false",
+     "dynamicLos": "false",
+     "enableExtCellLos": "true",
+     "extCellInterference": "true",
+     "fading": "true",
+     "fadingType": "\"\\\"JAKES\\\"\"",
+     "fixedLos": "false",
+     "harqReduction": "0.2",
+     "insideBuilding": "false",
+     "nodebHeight": "25m",
+     "numFadingPaths": "6",
+     "pathLossType": "\"\\\"Tr36814\\\"\"",
+     "scenario": "\"\\\"URBAN_MACROCELL\\\"\"",
+     "shadowing": "true",
+     "streetWidth": "20m",
+     "targetBler": "0.01",
+     "thermalNoise": "-104.5dBm",
+     "tolerateMaxDistViolation": "false",
+     "typename": "\"\\\"simu5g.stack.phy.channelmodel.StochasticChannelModel\\\"\"",
+     "ueHeight": "1.5m",
+     "ueNoiseFigure": "7dBm",
+     "uplinkInterference": "false",
+     "useBuildingPenetrationHighLossModel": "false",
+     "useTorus": "false"
+    },
+    "M2S72Bridge.ue[1].cellularNic.nrChannelModel[0]": {
+     "binderModule": "\"\\\"binder\\\"\"",
+     "cellInfoModule": "\"\\\"^.^.cellInfo\\\"\"",
+     "componentCarrierModule": "\"\\\"carrierAggregation.componentCarrier[0]\\\"\"",
+     "harqReduction": "1",
+     "per": "0.1",
+     "perD2D": "0",
+     "perDl": "0.3",
+     "perUl": "0",
+     "typename": "\"\\\"simu5g.stack.phy.channelmodel.IdealChannelModel\\\"\""
+    }
+   },
+   "rc": 0,
+   "scheduler_lines": 0,
+   "stopped_at_t0_event": 36,
+   "types": {
+    "M2S72Bridge.gnb1.cellularNic.channelModel[0]": "simu5g.stack.phy.channelmodel.IdealChannelModel",
+    "M2S72Bridge.gnb1.cellularNic.mac.schedulerDl": "simu5g.stack.mac.scheduler.LteSchedulerEnbDl",
+    "M2S72Bridge.ue[0].cellularNic.channelModel[0]": "simu5g.stack.phy.channelmodel.StochasticChannelModel",
+    "M2S72Bridge.ue[0].cellularNic.nrChannelModel[0]": "simu5g.stack.phy.channelmodel.IdealChannelModel",
+    "M2S72Bridge.ue[1].cellularNic.channelModel[0]": "simu5g.stack.phy.channelmodel.StochasticChannelModel",
+    "M2S72Bridge.ue[1].cellularNic.nrChannelModel[0]": "simu5g.stack.phy.channelmodel.IdealChannelModel"
+   },
+   "unused": [
+    [
+     "**.routingRecorder.enabled",
+     "false",
+     "m2s72.ini",
+     6886
+    ],
+    [
+     "*.dsTt[*].eth[0].measurementLayer.measurementRecorder.flowName",
+     "\"transit5gs\"",
+     "m2s72.ini",
+     6626
+    ],
+    [
+     "*.dsTt[*].eth[0].measurementLayer.measurementRecorder.measure",
+     "\"elapsedTime\"",
+     "m2s72.ini",
+     6629
+    ],
+    [
+     "*.dsTt[*].eth[0].measurementLayer.measurementStarter.flowName",
+     "\"transit5gs\"",
+     "m2s72.ini",
+     6620
+    ],
+    [
+     "*.dsTt[*].eth[0].measurementLayer.measurementStarter.measure",
+     "\"elapsedTime\"",
+     "m2s72.ini",
+     6623
+    ],
+    [
+     "*.dsTt[2].eth[0].measurementLayer.ttId",
+     "4",
+     "m2s72.ini",
+     6503
+    ],
+    [
+     "*.dsTt[2].eth[1].measurementLayer.ttId",
+     "4",
+     "m2s72.ini",
+     6521
+    ],
+    [
+     "*.dsTt[2].eth[1].trafficConditionerLayer.engine.clockIdentity",
+     "\"0x00000000000000d3\"",
+     "m2s72.ini",
+     6465
+    ],
+    [
+     "*.dsTt[2].eth[1].trafficConditionerLayer.syncOut.ttId",
+     "4",
+     "m2s72.ini",
+     6427
+    ],
+    [
+     "*.dsTt[3].eth[0].measurementLayer.ttId",
+     "5",
+     "m2s72.ini",
+     6504
+    ],
+    [
+     "*.dsTt[3].eth[1].measurementLayer.ttId",
+     "5",
+     "m2s72.ini",
+     6522
+    ],
+    [
+     "*.dsTt[3].eth[1].trafficConditionerLayer.engine.clockIdentity",
+     "\"0x00000000000000d4\"",
+     "m2s72.ini",
+     6466
+    ],
+    [
+     "*.dsTt[3].eth[1].trafficConditionerLayer.syncOut.ttId",
+     "5",
+     "m2s72.ini",
+     6428
+    ],
+    [
+     "*.dsTt[4].eth[0].measurementLayer.ttId",
+     "6",
+     "m2s72.ini",
+     6505
+    ],
+    [
+     "*.dsTt[4].eth[1].measurementLayer.ttId",
+     "6",
+     "m2s72.ini",
+     6523
+    ],
+    [
+     "*.dsTt[4].eth[1].trafficConditionerLayer.engine.clockIdentity",
+     "\"0x00000000000000d5\"",
+     "m2s72.ini",
+     6467
+    ],
+    [
+     "*.dsTt[4].eth[1].trafficConditionerLayer.syncOut.ttId",
+     "6",
+     "m2s72.ini",
+     6429
+    ],
+    [
+     "*.dsTt[5].eth[0].measurementLayer.ttId",
+     "7",
+     "m2s72.ini",
+     6506
+    ],
+    [
+     "*.dsTt[5].eth[1].measurementLayer.ttId",
+     "7",
+     "m2s72.ini",
+     6524
+    ],
+    [
+     "*.dsTt[5].eth[1].trafficConditionerLayer.engine.clockIdentity",
+     "\"0x00000000000000d6\"",
+     "m2s72.ini",
+     6468
+    ],
+    [
+     "*.dsTt[5].eth[1].trafficConditionerLayer.syncOut.ttId",
+     "7",
+     "m2s72.ini",
+     6430
+    ],
+    [
+     "*.dsTt[6].eth[0].measurementLayer.ttId",
+     "8",
+     "m2s72.ini",
+     6507
+    ],
+    [
+     "*.dsTt[6].eth[1].measurementLayer.ttId",
+     "8",
+     "m2s72.ini",
+     6525
+    ],
+    [
+     "*.dsTt[6].eth[1].trafficConditionerLayer.engine.clockIdentity",
+     "\"0x00000000000000d7\"",
+     "m2s72.ini",
+     6469
+    ],
+    [
+     "*.dsTt[6].eth[1].trafficConditionerLayer.syncOut.ttId",
+     "8",
+     "m2s72.ini",
+     6431
+    ],
+    [
+     "*.dsTt[7].eth[0].measurementLayer.ttId",
+     "9",
+     "m2s72.ini",
+     6508
+    ],
+    [
+     "*.dsTt[7].eth[1].measurementLayer.ttId",
+     "9",
+     "m2s72.ini",
+     6526
+    ],
+    [
+     "*.dsTt[7].eth[1].trafficConditionerLayer.engine.clockIdentity",
+     "\"0x00000000000000d8\"",
+     "m2s72.ini",
+     6470
+    ],
+    [
+     "*.dsTt[7].eth[1].trafficConditionerLayer.syncOut.ttId",
+     "9",
+     "m2s72.ini",
+     6432
+    ],
+    [
+     "*.gm.clock.emitClockTimeInterval",
+     "1ms",
+     "m2s72.ini",
+     6380
+    ],
+    [
+     "*.gm.clock.oscillator.driftRate",
+     "100ppm",
+     "m2s72.ini",
+     6324
+    ],
+    [
+     "*.gm.clock.oscillator.nominalTickLength",
+     "1ns",
+     "m2s72.ini",
+     6334
+    ],
+    [
+     "*.gm.clock.oscillator.typename",
+     "\"ConstantDriftOscillator\"",
+     "m2s72.ini",
+     6330
+    ],
+    [
+     "*.listener.app[10].io.interface",
+     "\"eth0\"",
+     "m2s72.ini",
+     6773
+    ],
+    [
+     "*.listener.app[10].io.remoteAddress",
+     "\"talker[4]\"",
+     "m2s72.ini",
+     6857
+    ],
+    [
+     "*.listener.app[10].source.initialProductionOffset",
+     "0.1s + 5ms * 1",
+     "m2s72.ini",
+     6757
+    ],
+    [
+     "*.listener.app[10].source.packetLength",
+     "100B",
+     "m2s72.ini",
+     6725
+    ],
+    [
+     "*.listener.app[10].source.packetRepresentation",
+     "\"applicationPacket\"",
+     "m2s72.ini",
+     6608
+    ],
+    [
+     "*.listener.app[10].source.productionInterval",
+     "20ms",
+     "m2s72.ini",
+     6260
+    ],
+    [
+     "*.listener.app[10].tagger.encapsulationProtocols",
+     "[\"ieee8021qctag\"]",
+     "m2s72.ini",
+     6821
+    ],
+    [
+     "*.listener.app[10].tagger.pcp",
+     "0",
+     "m2s72.ini",
+     6842
+    ],
+    [
+     "*.listener.app[10].tagger.typename",
+     "\"PacketTagger\"",
+     "m2s72.ini",
+     6789
+    ],
+    [
+     "*.listener.app[10].tagger.vlanId",
+     "42",
+     "m2s72.ini",
+     6805
+    ],
+    [
+     "*.listener.app[10].typename",
+     "\"EthernetSourceApp\"",
+     "m2s72.ini",
+     6709
+    ],
+    [
+     "*.listener.app[11].io.interface",
+     "\"eth0\"",
+     "m2s72.ini",
+     6774
+    ],
+    [
+     "*.listener.app[11].io.remoteAddress",
+     "\"talker[5]\"",
+     "m2s72.ini",
+     6858
+    ],
+    [
+     "*.listener.app[11].source.initialProductionOffset",
+     "0.1s + 5ms * 0",
+     "m2s72.ini",
+     6758
+    ],
+    [
+     "*.listener.app[11].source.packetLength",
+     "100B",
+     "m2s72.ini",
+     6726
+    ],
+    [
+     "*.listener.app[11].source.packetRepresentation",
+     "\"applicationPacket\"",
+     "m2s72.ini",
+     6609
+    ],
+    [
+     "*.listener.app[11].source.productionInterval",
+     "20ms",
+     "m2s72.ini",
+     6261
+    ],
+    [
+     "*.listener.app[11].tagger.encapsulationProtocols",
+     "[\"ieee8021qctag\"]",
+     "m2s72.ini",
+     6822
+    ],
+    [
+     "*.listener.app[11].tagger.pcp",
+     "5",
+     "m2s72.ini",
+     6834
+    ],
+    [
+     "*.listener.app[11].tagger.typename",
+     "\"PacketTagger\"",
+     "m2s72.ini",
+     6790
+    ],
+    [
+     "*.listener.app[11].tagger.vlanId",
+     "42",
+     "m2s72.ini",
+     6806
+    ],
+    [
+     "*.listener.app[11].typename",
+     "\"EthernetSourceApp\"",
+     "m2s72.ini",
+     6710
+    ],
+    [
+     "*.listener.app[12].io.interface",
+     "\"eth0\"",
+     "m2s72.ini",
+     6775
+    ],
+    [
+     "*.listener.app[12].io.remoteAddress",
+     "\"talker[5]\"",
+     "m2s72.ini",
+     6859
+    ],
+    [
+     "*.listener.app[12].source.initialProductionOffset",
+     "0.1s + 5ms * 1",
+     "m2s72.ini",
+     6759
+    ],
+    [
+     "*.listener.app[12].source.packetLength",
+     "100B",
+     "m2s72.ini",
+     6727
+    ],
+    [
+     "*.listener.app[12].source.packetRepresentation",
+     "\"applicationPacket\"",
+     "m2s72.ini",
+     6610
+    ],
+    [
+     "*.listener.app[12].source.productionInterval",
+     "20ms",
+     "m2s72.ini",
+     6262
+    ],
+    [
+     "*.listener.app[12].tagger.encapsulationProtocols",
+     "[\"ieee8021qctag\"]",
+     "m2s72.ini",
+     6823
+    ],
+    [
+     "*.listener.app[12].tagger.pcp",
+     "0",
+     "m2s72.ini",
+     6843
+    ],
+    [
+     "*.listener.app[12].tagger.typename",
+     "\"PacketTagger\"",
+     "m2s72.ini",
+     6791
+    ],
+    [
+     "*.listener.app[12].tagger.vlanId",
+     "42",
+     "m2s72.ini",
+     6807
+    ],
+    [
+     "*.listener.app[12].typename",
+     "\"EthernetSourceApp\"",
+     "m2s72.ini",
+     6711
+    ],
+    [
+     "*.listener.app[13].io.interface",
+     "\"eth0\"",
+     "m2s72.ini",
+     6776
+    ],
+    [
+     "*.listener.app[13].io.remoteAddress",
+     "\"talker[6]\"",
+     "m2s72.ini",
+     6860
+    ],
+    [
+     "*.listener.app[13].source.initialProductionOffset",
+     "0.1s + 5ms * 0",
+     "m2s72.ini",
+     6760
+    ],
+    [
+     "*.listener.app[13].source.packetLength",
+     "100B",
+     "m2s72.ini",
+     6728
+    ],
+    [
+     "*.listener.app[13].source.packetRepresentation",
+     "\"applicationPacket\"",
+     "m2s72.ini",
+     6611
+    ],
+    [
+     "*.listener.app[13].source.productionInterval",
+     "20ms",
+     "m2s72.ini",
+     6263
+    ],
+    [
+     "*.listener.app[13].tagger.encapsulationProtocols",
+     "[\"ieee8021qctag\"]",
+     "m2s72.ini",
+     6824
+    ],
+    [
+     "*.listener.app[13].tagger.pcp",
+     "5",
+     "m2s72.ini",
+     6835
+    ],
+    [
+     "*.listener.app[13].tagger.typename",
+     "\"PacketTagger\"",
+     "m2s72.ini",
+     6792
+    ],
+    [
+     "*.listener.app[13].tagger.vlanId",
+     "42",
+     "m2s72.ini",
+     6808
+    ],
+    [
+     "*.listener.app[13].typename",
+     "\"EthernetSourceApp\"",
+     "m2s72.ini",
+     6712
+    ],
+    [
+     "*.listener.app[14].io.interface",
+     "\"eth0\"",
+     "m2s72.ini",
+     6777
+    ],
+    [
+     "*.listener.app[14].io.remoteAddress",
+     "\"talker[6]\"",
+     "m2s72.ini",
+     6861
+    ],
+    [
+     "*.listener.app[14].source.initialProductionOffset",
+     "0.1s + 5ms * 1",
+     "m2s72.ini",
+     6761
+    ],
+    [
+     "*.listener.app[14].source.packetLength",
+     "100B",
+     "m2s72.ini",
+     6729
+    ],
+    [
+     "*.listener.app[14].source.packetRepresentation",
+     "\"applicationPacket\"",
+     "m2s72.ini",
+     6612
+    ],
+    [
+     "*.listener.app[14].source.productionInterval",
+     "20ms",
+     "m2s72.ini",
+     6264
+    ],
+    [
+     "*.listener.app[14].tagger.encapsulationProtocols",
+     "[\"ieee8021qctag\"]",
+     "m2s72.ini",
+     6825
+    ],
+    [
+     "*.listener.app[14].tagger.pcp",
+     "0",
+     "m2s72.ini",
+     6844
+    ],
+    [
+     "*.listener.app[14].tagger.typename",
+     "\"PacketTagger\"",
+     "m2s72.ini",
+     6793
+    ],
+    [
+     "*.listener.app[14].tagger.vlanId",
+     "42",
+     "m2s72.ini",
+     6809
+    ],
+    [
+     "*.listener.app[14].typename",
+     "\"EthernetSourceApp\"",
+     "m2s72.ini",
+     6713
+    ],
+    [
+     "*.listener.app[15].io.interface",
+     "\"eth0\"",
+     "m2s72.ini",
+     6778
+    ],
+    [
+     "*.listener.app[15].io.remoteAddress",
+     "\"talker[7]\"",
+     "m2s72.ini",
+     6862
+    ],
+    [
+     "*.listener.app[15].source.initialProductionOffset",
+     "0.1s + 5ms * 0",
+     "m2s72.ini",
+     6762
+    ],
+    [
+     "*.listener.app[15].source.packetLength",
+     "100B",
+     "m2s72.ini",
+     6730
+    ],
+    [
+     "*.listener.app[15].source.packetRepresentation",
+     "\"applicationPacket\"",
+     "m2s72.ini",
+     6613
+    ],
+    [
+     "*.listener.app[15].source.productionInterval",
+     "20ms",
+     "m2s72.ini",
+     6265
+    ],
+    [
+     "*.listener.app[15].tagger.encapsulationProtocols",
+     "[\"ieee8021qctag\"]",
+     "m2s72.ini",
+     6826
+    ],
+    [
+     "*.listener.app[15].tagger.pcp",
+     "5",
+     "m2s72.ini",
+     6836
+    ],
+    [
+     "*.listener.app[15].tagger.typename",
+     "\"PacketTagger\"",
+     "m2s72.ini",
+     6794
+    ],
+    [
+     "*.listener.app[15].tagger.vlanId",
+     "42",
+     "m2s72.ini",
+     6810
+    ],
+    [
+     "*.listener.app[15].typename",
+     "\"EthernetSourceApp\"",
+     "m2s72.ini",
+     6714
+    ],
+    [
+     "*.listener.app[16].io.interface",
+     "\"eth0\"",
+     "m2s72.ini",
+     6779
+    ],
+    [
+     "*.listener.app[16].io.remoteAddress",
+     "\"talker[7]\"",
+     "m2s72.ini",
+     6863
+    ],
+    [
+     "*.listener.app[16].source.initialProductionOffset",
+     "0.1s + 5ms * 1",
+     "m2s72.ini",
+     6763
+    ],
+    [
+     "*.listener.app[16].source.packetLength",
+     "100B",
+     "m2s72.ini",
+     6731
+    ],
+    [
+     "*.listener.app[16].source.packetRepresentation",
+     "\"applicationPacket\"",
+     "m2s72.ini",
+     6614
+    ],
+    [
+     "*.listener.app[16].source.productionInterval",
+     "20ms",
+     "m2s72.ini",
+     6266
+    ],
+    [
+     "*.listener.app[16].tagger.encapsulationProtocols",
+     "[\"ieee8021qctag\"]",
+     "m2s72.ini",
+     6827
+    ],
+    [
+     "*.listener.app[16].tagger.pcp",
+     "0",
+     "m2s72.ini",
+     6845
+    ],
+    [
+     "*.listener.app[16].tagger.typename",
+     "\"PacketTagger\"",
+     "m2s72.ini",
+     6795
+    ],
+    [
+     "*.listener.app[16].tagger.vlanId",
+     "42",
+     "m2s72.ini",
+     6811
+    ],
+    [
+     "*.listener.app[16].typename",
+     "\"EthernetSourceApp\"",
+     "m2s72.ini",
+     6715
+    ],
+    [
+     "*.listener.app[6].io.interface",
+     "\"eth0\"",
+     "m2s72.ini",
+     6769
+    ],
+    [
+     "*.listener.app[6].io.remoteAddress",
+     "\"talker[2]\"",
+     "m2s72.ini",
+     6853
+    ],
+    [
+     "*.listener.app[6].source.initialProductionOffset",
+     "0.1s + 5ms * 1",
+     "m2s72.ini",
+     6753
+    ],
+    [
+     "*.listener.app[6].source.packetLength",
+     "100B",
+     "m2s72.ini",
+     6721
+    ],
+    [
+     "*.listener.app[6].source.packetRepresentation",
+     "\"applicationPacket\"",
+     "m2s72.ini",
+     6604
+    ],
+    [
+     "*.listener.app[6].source.productionInterval",
+     "20ms",
+     "m2s72.ini",
+     6256
+    ],
+    [
+     "*.listener.app[6].tagger.encapsulationProtocols",
+     "[\"ieee8021qctag\"]",
+     "m2s72.ini",
+     6817
+    ],
+    [
+     "*.listener.app[6].tagger.pcp",
+     "0",
+     "m2s72.ini",
+     6840
+    ],
+    [
+     "*.listener.app[6].tagger.typename",
+     "\"PacketTagger\"",
+     "m2s72.ini",
+     6785
+    ],
+    [
+     "*.listener.app[6].tagger.vlanId",
+     "42",
+     "m2s72.ini",
+     6801
+    ],
+    [
+     "*.listener.app[6].typename",
+     "\"EthernetSourceApp\"",
+     "m2s72.ini",
+     6705
+    ],
+    [
+     "*.listener.app[7].io.interface",
+     "\"eth0\"",
+     "m2s72.ini",
+     6770
+    ],
+    [
+     "*.listener.app[7].io.remoteAddress",
+     "\"talker[3]\"",
+     "m2s72.ini",
+     6854
+    ],
+    [
+     "*.listener.app[7].source.initialProductionOffset",
+     "0.1s + 5ms * 0",
+     "m2s72.ini",
+     6754
+    ],
+    [
+     "*.listener.app[7].source.packetLength",
+     "100B",
+     "m2s72.ini",
+     6722
+    ],
+    [
+     "*.listener.app[7].source.packetRepresentation",
+     "\"applicationPacket\"",
+     "m2s72.ini",
+     6605
+    ],
+    [
+     "*.listener.app[7].source.productionInterval",
+     "20ms",
+     "m2s72.ini",
+     6257
+    ],
+    [
+     "*.listener.app[7].tagger.encapsulationProtocols",
+     "[\"ieee8021qctag\"]",
+     "m2s72.ini",
+     6818
+    ],
+    [
+     "*.listener.app[7].tagger.pcp",
+     "5",
+     "m2s72.ini",
+     6832
+    ],
+    [
+     "*.listener.app[7].tagger.typename",
+     "\"PacketTagger\"",
+     "m2s72.ini",
+     6786
+    ],
+    [
+     "*.listener.app[7].tagger.vlanId",
+     "42",
+     "m2s72.ini",
+     6802
+    ],
+    [
+     "*.listener.app[7].typename",
+     "\"EthernetSourceApp\"",
+     "m2s72.ini",
+     6706
+    ],
+    [
+     "*.listener.app[8].io.interface",
+     "\"eth0\"",
+     "m2s72.ini",
+     6771
+    ],
+    [
+     "*.listener.app[8].io.remoteAddress",
+     "\"talker[3]\"",
+     "m2s72.ini",
+     6855
+    ],
+    [
+     "*.listener.app[8].source.initialProductionOffset",
+     "0.1s + 5ms * 1",
+     "m2s72.ini",
+     6755
+    ],
+    [
+     "*.listener.app[8].source.packetLength",
+     "100B",
+     "m2s72.ini",
+     6723
+    ],
+    [
+     "*.listener.app[8].source.packetRepresentation",
+     "\"applicationPacket\"",
+     "m2s72.ini",
+     6606
+    ],
+    [
+     "*.listener.app[8].source.productionInterval",
+     "20ms",
+     "m2s72.ini",
+     6258
+    ],
+    [
+     "*.listener.app[8].tagger.encapsulationProtocols",
+     "[\"ieee8021qctag\"]",
+     "m2s72.ini",
+     6819
+    ],
+    [
+     "*.listener.app[8].tagger.pcp",
+     "0",
+     "m2s72.ini",
+     6841
+    ],
+    [
+     "*.listener.app[8].tagger.typename",
+     "\"PacketTagger\"",
+     "m2s72.ini",
+     6787
+    ],
+    [
+     "*.listener.app[8].tagger.vlanId",
+     "42",
+     "m2s72.ini",
+     6803
+    ],
+    [
+     "*.listener.app[8].typename",
+     "\"EthernetSourceApp\"",
+     "m2s72.ini",
+     6707
+    ],
+    [
+     "*.listener.app[9].io.interface",
+     "\"eth0\"",
+     "m2s72.ini",
+     6772
+    ],
+    [
+     "*.listener.app[9].io.remoteAddress",
+     "\"talker[4]\"",
+     "m2s72.ini",
+     6856
+    ],
+    [
+     "*.listener.app[9].source.initialProductionOffset",
+     "0.1s + 5ms * 0",
+     "m2s72.ini",
+     6756
+    ],
+    [
+     "*.listener.app[9].source.packetLength",
+     "100B",
+     "m2s72.ini",
+     6724
+    ],
+    [
+     "*.listener.app[9].source.packetRepresentation",
+     "\"applicationPacket\"",
+     "m2s72.ini",
+     6607
+    ],
+    [
+     "*.listener.app[9].source.productionInterval",
+     "20ms",
+     "m2s72.ini",
+     6259
+    ],
+    [
+     "*.listener.app[9].tagger.encapsulationProtocols",
+     "[\"ieee8021qctag\"]",
+     "m2s72.ini",
+     6820
+    ],
+    [
+     "*.listener.app[9].tagger.pcp",
+     "5",
+     "m2s72.ini",
+     6833
+    ],
+    [
+     "*.listener.app[9].tagger.typename",
+     "\"PacketTagger\"",
+     "m2s72.ini",
+     6788
+    ],
+    [
+     "*.listener.app[9].tagger.vlanId",
+     "42",
+     "m2s72.ini",
+     6804
+    ],
+    [
+     "*.listener.app[9].typename",
+     "\"EthernetSourceApp\"",
+     "m2s72.ini",
+     6708
+    ],
+    [
+     "*.nwTt.eth[0].measurementLayer.measurementRecorder.flowName",
+     "\"transit5gs\"",
+     "m2s72.ini",
+     6625
+    ],
+    [
+     "*.nwTt.eth[0].measurementLayer.measurementRecorder.measure",
+     "\"elapsedTime\"",
+     "m2s72.ini",
+     6628
+    ],
+    [
+     "*.nwTt.eth[0].measurementLayer.measurementStarter.flowName",
+     "\"transit5gs\"",
+     "m2s72.ini",
+     6619
+    ],
+    [
+     "*.nwTt.eth[0].measurementLayer.measurementStarter.measure",
+     "\"elapsedTime\"",
+     "m2s72.ini",
+     6622
+    ],
+    [
+     "*.slave.clock.oscillator.driftRate",
+     "-100ppm",
+     "m2s72.ini",
+     6342
+    ],
+    [
+     "*.slave.clock.oscillator.nominalTickLength",
+     "1ns",
+     "m2s72.ini",
+     6352
+    ],
+    [
+     "*.slave.clock.oscillator.typename",
+     "\"ConstantDriftOscillator\"",
+     "m2s72.ini",
+     6348
+    ],
+    [
+     "*.slave.clock.underlyingClock.emitClockTimeInterval",
+     "1ms",
+     "m2s72.ini",
+     6384
+    ],
+    [
+     "*.talker.eth[*].typename",
+     "\"LayeredEthernetInterface\"",
+     "omnetpp.ini",
+     42
+    ],
+    [
+     "*.talker.ethernet.hasSocketSupport",
+     "true",
+     "omnetpp.ini",
+     48
+    ],
+    [
+     "*.talker.ethernet.typename",
+     "\"EthernetLayer\"",
+     "omnetpp.ini",
+     44
+    ],
+    [
+     "*.talker.hasIpv4",
+     "false",
+     "omnetpp.ini",
+     40
+    ],
+    [
+     "*.talker.ieee8021q.typename",
+     "\"Ieee8021qProtocol\"",
+     "omnetpp.ini",
+     46
+    ],
+    [
+     "*.talker.llc.typename",
+     "\"\"",
+     "omnetpp.ini",
+     50
+    ],
+    [
+     "*.talker[*].numApps",
+     "3",
+     "m2s72.ini",
+     6273
+    ],
+    [
+     "*.talker[2].app[2].io.localAddress",
+     "\"talker[2]\"",
+     "m2s72.ini",
+     6873
+    ],
+    [
+     "*.talker[2].clock.oscillator.rng-0",
+     "4",
+     "m2s72.ini",
+     6403
+    ],
+    [
+     "*.talker[3].app[2].io.localAddress",
+     "\"talker[3]\"",
+     "m2s72.ini",
+     6874
+    ],
+    [
+     "*.talker[3].clock.oscillator.rng-0",
+     "6",
+     "m2s72.ini",
+     6404
+    ],
+    [
+     "*.talker[4].app[2].io.localAddress",
+     "\"talker[4]\"",
+     "m2s72.ini",
+     6875
+    ],
+    [
+     "*.talker[4].clock.oscillator.rng-0",
+     "8",
+     "m2s72.ini",
+     6405
+    ],
+    [
+     "*.talker[5].app[2].io.localAddress",
+     "\"talker[5]\"",
+     "m2s72.ini",
+     6876
+    ],
+    [
+     "*.talker[5].clock.oscillator.rng-0",
+     "10",
+     "m2s72.ini",
+     6406
+    ],
+    [
+     "*.talker[6].app[2].io.localAddress",
+     "\"talker[6]\"",
+     "m2s72.ini",
+     6877
+    ],
+    [
+     "*.talker[6].clock.oscillator.rng-0",
+     "12",
+     "m2s72.ini",
+     6407
+    ],
+    [
+     "*.talker[7].app[2].io.localAddress",
+     "\"talker[7]\"",
+     "m2s72.ini",
+     6878
+    ],
+    [
+     "*.talker[7].clock.oscillator.rng-0",
+     "14",
+     "m2s72.ini",
+     6408
+    ]
+   ],
+   "unused_count": 181
+  }
+ },
+ "schema": "m2s72-a2d-smoke/1"
+}
