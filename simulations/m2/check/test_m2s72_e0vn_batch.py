@@ -32,7 +32,8 @@ ACCEPTED = ["simulations/m2/m2s72s5.sh", "simulations/m2/m2s72.sh", "simulations
             "simulations/m2/check/check_m2s72_s5n.py", "simulations/m2/check/check_m2s72_s5v.py",
             "simulations/m2/check/check_m2s72_s5n21.py", "simulations/m2/check/m2s72_e0vn21.py",
             "simulations/m2/check/m2s72_fgo_registry.json", "simulations/m2/check/expect",
-            "simulations/m2/check/fixtures", "simulations/m2/results", ".github"]
+            "simulations/m2/check/fixtures", "simulations/m2/results", ".github",
+            ":(exclude).github/workflows/tier0-python.yml"]   # the one authorised CI change (161-R1: the 14th suite)
 NEW_FILES = ["simulations/m2/m2s72s5n.sh", "simulations/m2/check/m2s72_e0vn_batch.py",
              "simulations/m2/check/test_m2s72_e0vn_batch.py"]
 RESULTS = []
@@ -76,7 +77,33 @@ def decisions(path, **over):
     lines = ["# TEST ONLY decision record: no decision", "format=" + BAT.DECISIONS_FORMAT]
     lines += [f"{k}={v}" for k, v in kv.items() if v is not None]
     open(path, "w").write("\n".join(lines) + "\n")
+    key = os.path.join(os.path.dirname(path), "key")
+    if os.path.exists(key):                                   # re-signed after every rewrite (TEST ONLY key)
+        _sign(path, key)
     return path
+
+
+def _keypair(d, name="key"):
+    """a throwaway ed25519 key labelled TEST ONLY, standing in for the maintainer's (never the real key)"""
+    k = os.path.join(d, name)
+    if not os.path.exists(k):
+        subprocess.run(["ssh-keygen", "-q", "-t", "ed25519", "-N", "", "-C", "TEST ONLY", "-f", k], check=True)
+    return k
+
+
+def _allowed(d, key="key", principal=None, ns=None, path=None, extra=""):
+    pub = open(_keypair(d, key) + ".pub").read().split()
+    p = path or os.path.join(d, "allowed_signers")
+    open(p, "w").write(f'{principal or BAT.AUTH_PRINCIPAL} namespaces="{ns or BAT.AUTH_NAMESPACE}" {pub[0]} {pub[1]}\n' + extra)
+    return p
+
+
+def _sign(path, key, ns=None):
+    if os.path.exists(path + ".sig"):
+        os.remove(path + ".sig")
+    subprocess.run(["ssh-keygen", "-q", "-Y", "sign", "-f", key, "-n", ns or BAT.AUTH_NAMESPACE, path],
+                   check=True, capture_output=True)
+    return path + ".sig"
 
 
 def ENV(**kw):
@@ -376,12 +403,16 @@ def _():
         p = _complete(d, sat)
         txt, f = BAT.select(p["h16"], p["h5"], "not-approved")
         assert f is None and "no f_lo for q0p/one0/1/16" in txt, txt[-400:]
+        _keypair(d)
         rec = decisions(os.path.join(d, "dec.txt"), **{"S5-2-D5": "not-approved"})
         out = os.path.join(d, "fE1.txt")
-        r = helper("select", rec, p["h16"], p["h5"], out, env=dict(os.environ, S5N_ADAPTER_VALIDATED=AV))
-        assert r.returncode == 8 and os.path.isfile(out), (r.returncode, r.stdout[-300:])
-        r = helper("select", rec, p["h16"], p["h5"], out, env=dict(os.environ, S5N_ADAPTER_VALIDATED=AV))
-        assert r.returncode == 2 and "never overwritten" in r.stdout, r.stdout
+        args = ("select", "test", rec, rec + ".sig", _allowed(d), p["h16"], p["h5"], out)
+        r = helper(*args, env=dict(os.environ, S5N_ADAPTER_VALIDATED=AV))
+        assert r.returncode == 8 and os.path.isfile(out) and "TEST MODE" in open(out).read(), (r.returncode, r.stdout[-300:])
+        r = helper(*args, env=dict(os.environ, S5N_ADAPTER_VALIDATED=AV))
+        assert r.returncode == 1 and "never overwritten" in r.stdout, r.stdout
+        r = helper("select", "production", *args[2:-1], out + ".p", env=dict(os.environ, S5N_ADAPTER_VALIDATED=AV))
+        assert r.returncode == 1 and "AG-1" in r.stdout and not os.path.exists(out + ".p"), r.stdout
     finally:
         shutil.rmtree(d)
 
@@ -482,9 +513,12 @@ def _env(d, **kw):
     env = dict(os.environ, OMNETPP_ROOT=om, INET_ROOT=os.path.join(d, "inet"), SIMU5G_ROOT=s5,
                NASCTIME_RESULTS_ROOT=os.path.join(d, "root"), S5_TEST_SKIP_BUILD="1", S5_E0VN_EVALUATOR=ev,
                S5_ENV_DECISION=ED, S5N_ADAPTER_VALIDATED=AV, S5_E0VN_RUN_BYTES="1000", S5_E0VN_RUN_LIMIT_S="60",
+               S5_E0VN_MODE="test", S5_E0VN_ALLOWED_SIGNERS=_allowed(d) if _keypair(d) else None,
                S5_E0VN_DECISIONS=decisions(os.path.join(d, "decisions.txt"), **{"S5-2-D5": "not-approved"}),
+               S5_E0VN_DECISIONS_SIG=os.path.join(d, "decisions.txt.sig"),
                STUB_CALLS=os.path.join(d, "calls.jsonl"), STUB_SIMS=os.path.join(d, "sims.txt"))
-    for k in ("S5_RECORDS_REPO", "S5_E0VN_H16_BRACKET", "S5_E0VN_H5_BRACKET", "STUB_SAT", "STUB_RC", "STUB_ABORT", "STUB_OUTCOME"):
+    for k in ("S5_RECORDS_REPO", "S5_E0VN_H16_BRACKET", "S5_E0VN_H5_BRACKET", "STUB_SAT", "STUB_RC", "STUB_ABORT", "STUB_OUTCOME",
+              "S5_TEST_CHECKER", "S5_TEST_N2_CHECKER"):
         env.pop(k, None)
     env.update(kw)
     return {k: v for k, v in env.items() if v is not None}
@@ -504,7 +538,7 @@ def _repo(d):
 
 
 def _stage(d, seg):
-    return os.path.join(d, "root", "m2", f"M2-S7.2a-e0vn-{seg}")
+    return os.path.join(d, "root", "m2", f"M2-S7.2a-e0vn-TEST-{seg}")
 
 
 @test("runner guards: every missing or inconsistent input is refused before any directory is created")
@@ -527,7 +561,7 @@ def _():
         for over, args, needle in cases:
             r = _runner(_env(d, **over), *args)
             assert r.returncode == 1 and needle in r.stderr, (over, args, r.returncode, r.stderr[-300:])
-            assert not os.path.exists(os.path.join(d, "root", "m2", "M2-S7.2a-e0vn-h16")), (over, "stage created")
+            assert not os.path.exists(os.path.join(d, "root", "m2", "M2-S7.2a-e0vn-TEST-h16")), (over, "stage created")
         open(os.path.join(d, "simu5g", "Version"), "w").write("1.8.0")
         r = _runner(base, "e0vn", "h16")
         assert r.returncode == 1 and "not 1.8.1" in r.stderr
@@ -547,7 +581,7 @@ def _():
         env = _env(d)
         r = _runner(env, "plan", "h5")
         assert r.returncode == 0 and "combinations: 21; configurations: 126" in r.stdout, (r.stdout, r.stderr[-300:])
-        plan = open(os.path.join(d, "root", "m2", "M2-S7.2a-e0vn-plan-h5", "records", "plan.txt")).read()
+        plan = open(os.path.join(d, "root", "m2", "M2-S7.2a-e0vn-TEST-plan-h5", "records", "plan.txt")).read()
         first = [ln for ln in plan.splitlines() if ln.startswith("qdu/sym/8/5\t")]
         assert len(first) == 1 and "M2S72-E0vNH5-qdu-sym-n8-f1" in first[0] and "--fingerprint=0000-0000/tplx" in first[0], first
         assert not os.path.exists(os.path.join(d, "sims.txt"))
@@ -583,13 +617,15 @@ def _():
             assert line == want, (line, want)
         envrec = open(os.path.join(rec, "env-e0vn.txt")).read()
         assert "TEST HOOK ACTIVE (skip build)" in envrec and "is not the WP-A1 wrapper" in envrec, envrec
+        assert "execution mode: test" in envrec and "TEST MODE: synthetic execution; never evidence" in envrec
+        assert "authorization: Good" in envrec and "signer key" in envrec, envrec
         assert "decision_record:" in envrec and "S5N_ADAPTER_VALIDATED (inherited, verbatim): " + AV in envrec
         tsv = open(os.path.join(rec, "runs.tsv")).read().splitlines()
         assert len(tsv) == 1 + len(sims) and all("\tOK\t" in x and "\tC\t" in x for x in tsv[1:]), tsv[:3]
         assert open(os.path.join(rec, "decision-record.txt")).read() == open(env["S5_E0VN_DECISIONS"]).read()
         # release: records committed and verified before any raw output is deleted
         assert os.listdir(os.path.join(out, "runs")) == [], os.listdir(os.path.join(out, "runs"))[:3]
-        batch = "root-M2-S7.2a-e0vn-h16"
+        batch = "root-M2-S7.2a-e0vn-TEST-h16"
         dest = os.path.join(repo, "simulations", "results", "simu5g-1.8.1", "s5", batch)
         h16 = os.path.join(dest, "bracket.tsv")
         assert open(h16).read() == open(os.path.join(rec, "bracket.tsv")).read()
@@ -608,14 +644,14 @@ def _():
         starts = {x["combo"]: x["start"] for x in rows5}
         want = {k: BAT.replay(rows, k.rsplit("/", 1)[0] + "/16", 1.0).result()[0] for k, *_ in BAT.combos("h5")}
         assert starts == want, sorted(set(starts.items()) ^ set(want.items()))[:4]
-        h5 = os.path.join(repo, "simulations", "results", "simu5g-1.8.1", "s5", "root-M2-S7.2a-e0vn-h5", "bracket.tsv")
+        h5 = os.path.join(repo, "simulations", "results", "simu5g-1.8.1", "s5", "root-M2-S7.2a-e0vn-TEST-h5", "bracket.tsv")
         env3 = _env(d, S5_E0VN_H16_BRACKET=h16, S5_E0VN_H5_BRACKET=h5)
         decisions(dec, **{"S5-2-D5": "approved"})
         r = _runner(env3, "select")
         # synthetic: q0/sym/8/16 saturates at 1.0 -> f_lo 0.8, the smallest of all 49 -> (1 - 0.2) x 0.8 = 0.64 -> 0.5
         assert r.returncode == 0 and "(S5-2-D4): f_E1 = 0.5" in r.stdout and "binding q0/sym/8/16" in r.stdout, (r.stdout[-600:], r.stderr)
         assert "qdu/sym/8/5\tstart 1p25\truns 3\tf_lo 1.0\tf_hi 1.25" in r.stdout, r.stdout[:3000]
-        assert os.path.isfile(os.path.join(d, "root", "m2", "M2-S7.2a-e0vn-select", "records", "fE1-selection.txt"))
+        assert os.path.isfile(os.path.join(d, "root", "m2", "M2-S7.2a-e0vn-TEST-select", "records", "fE1-selection.txt"))
     finally:
         shutil.rmtree(d)
 
@@ -688,13 +724,112 @@ def _():
     d = tempfile.mkdtemp()
     try:
         repo = _repo(d)
-        os.makedirs(os.path.join(repo, "simulations", "results", "simu5g-1.8.1", "s5", "root-M2-S7.2a-e0vn-h16"))
+        os.makedirs(os.path.join(repo, "simulations", "results", "simu5g-1.8.1", "s5", "root-M2-S7.2a-e0vn-TEST-h16"))
         r = _runner(_env(d, S5_RECORDS_REPO=repo), "e0vn", "h16")
         assert r.returncode == 1 and "never overwritten" in r.stderr, r.stderr
         os.makedirs(_stage(d, "h16"))
         r = _runner(_env(d), "e0vn", "h16")
         assert r.returncode == 1 and "never overwritten" in r.stderr, r.stderr
         assert not os.path.exists(os.path.join(d, "sims.txt"))
+    finally:
+        shutil.rmtree(d)
+
+
+# ============================================== production / test separation and authorization (161-R1) =====
+def _no_stage(d):
+    """no stage directory, no simulation, no evaluation (nt_results_init may create the empty family directory)"""
+    m2 = os.path.join(d, "root", "m2")
+    return (not os.path.isdir(m2) or os.listdir(m2) == []) and not os.path.exists(os.path.join(d, "sims.txt")) \
+        and not os.path.exists(os.path.join(d, "calls.jsonl"))
+
+
+def _prod(d, **kw):
+    """a production-mode environment: no test hook variable at all, the real WP-A1 wrapper as evaluator"""
+    params = dict(S5_E0VN_MODE="production", S5_E0VN_EVALUATOR=os.path.join(HERE, "check_m2s72_s5n21.py"))
+    params.update(kw)
+    env = _env(d, **params)
+    for k in [k for k in env if k.startswith(("S5_TEST_", "STUB_")) and k not in kw]:
+        env.pop(k)
+    return env
+
+
+@test("negative controls: production refuses a skipped build, a substituted evaluator and any test hook; nothing runs")
+def _():
+    d = tempfile.mkdtemp()
+    try:
+        cases = [({"S5_TEST_SKIP_BUILD": "1"}, "S5_TEST_SKIP_BUILD"), ({"S5_TEST_SKIP_BUILD": ""}, "S5_TEST_SKIP_BUILD"),
+                 ({"S5_TEST_CHECKER": "/x.py"}, "S5_TEST_CHECKER"), ({"S5_TEST_N2_CHECKER": "/x.py"}, "S5_TEST_N2_CHECKER"),
+                 ({"STUB_SAT": "{}"}, "STUB_SAT"),
+                 ({"S5_E0VN_EVALUATOR": os.path.join(d, "stub_eval.py")}, "substituted evaluator")]
+        for over, needle in cases:
+            for mode in (["e0vn", "h16"], ["plan", "h16"]) if "EVALUATOR" not in str(over) else (["e0vn", "h16"],):
+                r = _runner(_prod(d, **over), *mode)
+                assert r.returncode == 1 and needle in r.stderr, (over, mode, r.returncode, r.stderr[-300:])
+        assert _no_stage(d), "a stage was created or something ran"
+    finally:
+        shutil.rmtree(d)
+
+
+@test("negative controls: an incorrectly configured mode is refused (unset, empty, misspelt, wrong case, padded)")
+def _():
+    d = tempfile.mkdtemp()
+    try:
+        for v in (None, "", "Production", "TEST", "prod", "testing", "test ", " production"):
+            for args in (["e0vn", "h16"], ["plan", "h5"], ["select"], ["release", "M2-S7.2a-e0vn-TEST-h16"]):
+                r = _runner(_env(d, S5_E0VN_MODE=v), *args)
+                assert r.returncode == 1 and "S5_E0VN_MODE must be exactly" in r.stderr, (v, args, r.stderr[-200:])
+        assert _no_stage(d)
+    finally:
+        shutil.rmtree(d)
+
+
+@test("negative control: a fully configured production batch with a valid signature is refused at AG-1 (not approved)")
+def _():
+    assert BAT.AUTH_GATE_APPROVAL is None, "AG-1 must not be approved in code by this increment"
+    d = tempfile.mkdtemp()
+    try:
+        for args in (["e0vn", "h16"], ["select"]):
+            env = _prod(d, S5_E0VN_H16_BRACKET=os.path.join(d, "decisions.txt"), S5_E0VN_H5_BRACKET=os.path.join(d, "decisions.txt"))
+            r = _runner(env, *args)
+            assert r.returncode == 1 and "AG-1" in r.stderr and "awaiting the maintainer's approval" in r.stderr, (args, r.stderr[-300:])
+        assert _no_stage(d), "production created a stage or simulated"
+        r = helper("gate", "production")
+        assert r.returncode == 1 and "AG-1" in r.stdout
+        r = _runner(_prod(d), "plan", "h16")                       # no decision, no simulation: allowed, not TEST-named
+        assert r.returncode == 0 and os.path.isdir(os.path.join(d, "root", "m2", "M2-S7.2a-e0vn-plan-h16")), r.stderr[-300:]
+    finally:
+        shutil.rmtree(d)
+
+
+@test("authorization AG-1: unsigned, altered, foreign-key, wrong-namespace or wrong-principal records are refused")
+def _():
+    d = tempfile.mkdtemp()
+    try:
+        env = _env(d)
+        rec, sig = env["S5_E0VN_DECISIONS"], env["S5_E0VN_DECISIONS_SIG"]
+        st, fp = BAT.authorize(rec, sig, env["S5_E0VN_ALLOWED_SIGNERS"])
+        assert "Good" in st and fp.startswith("256 SHA256:"), (st, fp)
+        k2 = _keypair(d, "other")
+        good = open(sig, "rb").read()
+
+        def attempt(e, needle, prepare=None):
+            if prepare:
+                prepare()
+            r = _runner(e, "e0vn", "h16")
+            assert r.returncode == 1 and "authorization refused" in r.stderr and needle in r.stderr, (needle, r.stderr[-300:])
+            assert _no_stage(d), needle
+            open(sig, "wb").write(good)
+            decisions(rec, **{"S5-2-D5": "not-approved"})          # restore and re-sign
+        attempt(_env(d, S5_E0VN_DECISIONS_SIG=None), "missing")
+        attempt(_env(d, S5_E0VN_ALLOWED_SIGNERS=None), "missing")
+        attempt(_env(d, S5_E0VN_DECISIONS_SIG=os.path.join(d, "nope.sig")), "missing")
+        attempt(env, "does not verify", lambda: open(rec, "a").write("# appended after signing\n"))
+        attempt(env, "does not verify", lambda: open(sig, "wb").write(open(_sign(rec, k2), "rb").read()))
+        attempt(env, "does not verify", lambda: open(sig, "wb").write(open(_sign(rec, os.path.join(d, "key"), ns="wpa1-approval"), "rb").read()))
+        attempt(_env(d, S5_E0VN_ALLOWED_SIGNERS=_allowed(d, principal="someone-else", path=os.path.join(d, "as2"))), "principal")
+        attempt(_env(d, S5_E0VN_ALLOWED_SIGNERS=_allowed(d, path=os.path.join(d, "as3"),
+                                                          extra=open(_allowed(d, "other", path=os.path.join(d, "as4"))).read())), "exactly one key")
+        attempt(_env(d, S5_E0VN_ALLOWED_SIGNERS=_allowed(d, "other", path=os.path.join(d, "as5"))), "does not verify")
     finally:
         shutil.rmtree(d)
 
@@ -719,6 +854,8 @@ def _():
         assert not assign.search(src), f"{rel} assigns S5N_ADAPTER_VALIDATED"
         assert "S5_TEST_CHECKER" not in src, f"{rel} uses the S5-1 test checker hook"
         assert not re.search(r"fgo_registry\.json['\"]\s*,\s*['\"][wa]", src), f"{rel} opens the registry for writing"
+    for rel in NEW_FILES:
+        assert "BEGIN OPENSSH " + "PRIVATE KEY" not in open(os.path.join(NASCTIME, rel)).read(), f"{rel} holds key material"
     run = open(os.path.join(M2, "m2s72s5n.sh")).read()
     assert "python3 -I -B \"$S5_E0VN_EVALUATOR\" run" in run, "the wrapper is not invoked as declared (design 5.4)"
 

@@ -28,8 +28,18 @@ configuration set is the accepted generator's (tools/m2s72s5_gen.py matrix(), ki
         appends one outcome after replaying the existing rows (only the next declared step is accepted); fsync'd
     m2s72_e0vn_batch.py cmd <nascTime> <simu5g root> <inet root> <config> <result dir>
         the exact simulation argument vector, NUL-separated (the runner executes exactly this)
-    m2s72_e0vn_batch.py select <decision record> <h16 bracket.tsv> <h5 bracket.tsv> <out record>
-        S-1 / S-2 over every combination of both segments; exit 0 with f_E1 chosen, 8 when the selection must stop
+    m2s72_e0vn_batch.py authorize <decision record> <signature> <allowed_signers>
+        AG-1 (proposed): the record's detached SSH signature verifies (ssh-keygen -Y verify) for the principal
+        wpa1-maintainer in the namespace nasctime-s5-e0vn-approval against an allowed_signers file holding exactly one
+        key of that principal (obtained by the executor out of band); exit 0 / 1. A correctly formatted record without
+        a valid signature is never accepted
+    m2s72_e0vn_batch.py gate <production|test>
+        production: exit 1 unless the authorization gate AG-1 has been approved by the maintainer (AUTH_GATE_APPROVAL,
+        set only by a reviewed commit citing that approval). test: exit 0, labelled TEST (synthetic; never evidence)
+    m2s72_e0vn_batch.py select <mode> <decision record> <signature> <allowed_signers> <h16 bracket.tsv>
+                               <h5 bracket.tsv> <out record>
+        authorize + gate + S-1 / S-2 over every combination of both segments; exit 0 with f_E1 chosen, 8 when the
+        selection must stop, 1 / 2 when refused
 
 Decision record (written and signed off by the maintainer; this tool only reads it):
     format=nasctime-s5-e0vn-decisions/1
@@ -82,6 +92,15 @@ TEXT_KEYS = ("adapter_validated", "env_decision", "ac5_record", "ac6_record", "d
 RUN_ROWS = ("MAP-UE", "C-0", "PU-4h")
 PER_UE_ROWS = ("PU-4o", "A2-8u")
 GATE_OK = ("PASS", "NX")
+# AG-1, the authorization gate (PROPOSED in step 161-R1; consistent with WP-A1 gate A, runbook rev. 4 section 3):
+# the decision record is a statement signed by the maintainer with ssh-keygen -Y sign; the principal is the WP-A1 one,
+# the namespace is specific to this batch so that a WP-A1 approval can never be replayed as an E0v-N one.
+AUTH_PRINCIPAL = "wpa1-maintainer"
+AUTH_NAMESPACE = "nasctime-s5-e0vn-approval"
+# None: AG-1 is not approved, so production execution is refused. Only a reviewed commit that cites the maintainer's
+# approval record of AG-1 may set it (a non-empty reference string). Never set by a tool or a test.
+AUTH_GATE_APPROVAL = None
+MODES = ("production", "test")
 TSV_HEADER = "combo\tstart\tfactor\toutcome\tconfig\twrapper_rc\tdigest_sha256"
 EXIT_STOP = 8
 
@@ -217,6 +236,41 @@ def check_decisions(path, segment, environ=None):
         if ed != kv["env_decision"]:
             raise Refused("S5_ENV_DECISION differs from env_decision of the decision record")
     return kv
+
+
+def authorize(record, sig, allowed):
+    """AG-1 signature check (form and environment are checked separately by check_decisions); returns the verifier's
+    statement and the signer key fingerprint"""
+    import shutil
+    import subprocess
+    for p, what in ((record, "decision record"), (sig, "signature"), (allowed, "allowed_signers")):
+        if not p or not os.path.isfile(p):
+            raise Refused(f"{what} {p!r} missing (AG-1: an unsigned record is never accepted)")
+    lines = [ln for ln in open(allowed, encoding="utf-8").read().splitlines() if ln.strip() and not ln.lstrip().startswith("#")]
+    if len(lines) != 1 or lines[0].split()[0] != AUTH_PRINCIPAL:
+        raise Refused(f"allowed_signers must hold exactly one key, of the principal {AUTH_PRINCIPAL}")
+    kg = shutil.which("ssh-keygen")
+    if not kg:
+        raise Refused("ssh-keygen not available: the signature cannot be verified")
+    with open(record, "rb") as fh:
+        r = subprocess.run([kg, "-Y", "verify", "-f", allowed, "-I", AUTH_PRINCIPAL, "-n", AUTH_NAMESPACE, "-s", sig],
+                           stdin=fh, capture_output=True, text=True)
+    if r.returncode != 0:
+        raise Refused(f"the signature does not verify for {AUTH_PRINCIPAL} / {AUTH_NAMESPACE}: "
+                      f"{(r.stderr or r.stdout).strip()[:200]}")
+    key = " ".join(w for w in lines[0].split()[1:] if not w.startswith("namespaces="))
+    fp = subprocess.run([kg, "-lf", "/dev/stdin"], input=key + "\n", capture_output=True, text=True).stdout.strip()
+    return r.stdout.strip() or "Good signature", fp
+
+
+def gate(mode):
+    if mode not in MODES:
+        raise Refused(f"mode {mode!r}: production or test")
+    if mode == "production" and not AUTH_GATE_APPROVAL:
+        raise Refused("production execution refused: the authorization gate AG-1 (signed decision record, principal "
+                      f"{AUTH_PRINCIPAL}, namespace {AUTH_NAMESPACE}) is a proposal awaiting the maintainer's approval")
+    return ("TEST MODE: synthetic execution; never evidence" if mode == "test"
+            else f"production: AG-1 approved ({AUTH_GATE_APPROVAL})")
 
 
 # ----------------------------------------------------------------------------------------- bracket records -----
@@ -437,20 +491,31 @@ def main(argv):
         if len(a) == 6 and a[0] == "cmd":
             sys.stdout.write("\0".join(sim_argv(*a[1:])) + "\0")
             return 0
-        if len(a) == 5 and a[0] == "select":
-            kv = check_decisions(a[1], "select")
-            if os.path.lexists(a[4]):
-                raise Refused(f"{a[4]} exists (records are never overwritten)")
-            txt, f = select(a[2], a[3], kv["S5-2-D5"])
-            txt = txt.replace("\nbrackets:", f"\ndecision record: {a[1]} sha256 {sha256(a[1])}\n\nbrackets:", 1)
-            with open(a[4], "w", encoding="utf-8") as fh:
+        if len(a) == 4 and a[0] == "authorize":
+            st, fp = authorize(a[1], a[2], a[3])
+            print(f"authorization: {st}; signer key {fp}; record sha256 {sha256(a[1])}")
+            return 0
+        if len(a) == 2 and a[0] == "gate":
+            print(gate(a[1]))
+            return 0
+        if len(a) == 8 and a[0] == "select":
+            g = gate(a[1])
+            kv = check_decisions(a[2], "select")
+            st, fp = authorize(a[2], a[3], a[4])
+            out = a[7]
+            if os.path.lexists(out):
+                raise Refused(f"{out} exists (records are never overwritten)")
+            txt, f = select(a[5], a[6], kv["S5-2-D5"])
+            txt = txt.replace("\nbrackets:", f"\ndecision record: {a[2]} sha256 {sha256(a[2])}\nauthorization: {st}; "
+                              f"signer key {fp}\nmode: {g}\n\nbrackets:", 1)
+            with open(out, "w", encoding="utf-8") as fh:
                 fh.write(txt)
-            LIB.durable([a[4]])
+            LIB.durable([out])
             print(txt.rstrip())
             return 0 if f is not None else EXIT_STOP
     except Refused as ex:
         print(f"REFUSED: {ex}")
-        return 2 if (argv[1:2] in (["next"], ["record"], ["outcome"], ["select"], ["start"], ["cmd"])) else 1
+        return 2 if (argv[1:2] in (["next"], ["record"], ["outcome"], ["start"], ["cmd"])) else 1
     except Exception as ex:   # noqa: BLE001  (fail closed: never a result)
         print(f"ERROR {type(ex).__name__}: {ex}")
         return 2
