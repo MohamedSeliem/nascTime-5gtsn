@@ -96,7 +96,7 @@ The tracks run in parallel. Independent validation (track V) never waits for dev
 | WP | Inputs | Deliverables | Acceptance (level 2) | Dependencies |
 |---|---|---|---|---|
 | **A2** Full-contract diagnostic configuration (DR-07a) | Plan §2; DR-07a | Default-off scheduler-logging mixin; a NACK-injection diagnostic configuration with declared coverage minima; a protocol | Loads under a tier-1 query or an authorised run; accepted outputs unchanged | I: none beyond tier-1. A: V-6 |
-| **A3** E0v-N batch protocol addendum | WP-A1 (level 2); plan §4 | Predictions, stop rules, storage tiers, exact commands; runner modes in new files; stub-simulator tests | Tier-0; frozen files untouched | I: A1 (met). A: V-3 |
+| **A3** E0v-N batch protocol addendum. **Status (step 161): IMPLEMENTED at level 2, pending review**: protocol `simulations/m2/results/M2-S7.2a-e0vn-protocol.md`, runner `m2s72s5n.sh`, record `M2-S7.2a-a3-implementation.md`. The bracket stays BLOCKED on V-2, V-3 and the registry admissions | WP-A1 (level 2); plan §4 | Predictions, stop rules, storage tiers, exact commands; runner modes in new files; stub-simulator tests | Tier-0; frozen files untouched | I: A1 (met). A: V-3 |
 | **A4** E3 / E1 / E4 generator sections (G-1, G-2, G-3 remainder) | Generator `tools/m2s72_gen.py` | Append-only sections; per-UE S7.1 rows; the per-UE no-stranding row; mutation controls | Existing sections regenerate byte-identically; T0 byte-identical | A1 |
 | **A5** Stage 6 failure isolation | A4 | Exact comparator, canaries CN-1 … CN-4, rule AR, Block D / E configurations, CP3 protocol | Canary self-tests | A4 |
 | **A6** Stages 7–9 tooling | A5 | `m2s72.sh all` staging; results-document template | Dry runs | A5 |
