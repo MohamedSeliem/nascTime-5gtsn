@@ -541,9 +541,9 @@ Where the sources leave a release question open, this record says **"undecided"*
 | A-2.1 | F3 CLOSED; A2-V1-S1 CLOSED under F1-d(i); full contract INCOMPLETE (A2-4c) |
 | A1 (WP-A1) | IMPLEMENTED (above) |
 | A2 full-contract diagnostic configuration (DR-07a) | NOT STARTED |
-| A3 E0v-N batch protocol addendum | NOT STARTED (its I-dep A1 is now met at level 2) |
+| A3 E0v-N batch protocol addendum | ~~NOT STARTED (its I-dep A1 is now met at level 2)~~ **(step 161) IMPLEMENTED at level 2, pending review**: protocol `simulations/m2/results/M2-S7.2a-e0vn-protocol.md`; runner `simulations/m2/m2s72s5n.sh` (new); record `M2-S7.2a-a3-implementation.md`. No E0v-N run executed |
 | E0v core / H5 / p | NOT STARTED (needs A3 and an independent batch) |
-| E0v-N bracket, f_E1 | **BLOCKED** on AC-5, AC-6 and A3 |
+| E0v-N bracket, f_E1 | **BLOCKED** on AC-5, AC-6 ~~and A3~~ and the registry admissions after VG-3 (step 161: A3 is prepared; every realistic run is HELD FOR REVIEW until the admissions, WP-A1 design §8.5) |
 | A4 E3 / E1 / E4 generator sections (G-1, G-2, G-3 remainder) | NOT STARTED |
 | E3, E1 + E4 runs | BLOCKED on A4 |
 
