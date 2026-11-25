@@ -31,7 +31,8 @@ results/M2-S7.2a-a2d-protocol.md). Read-only on raw outputs; never simulates; ne
         (paths normalised), then the checks of smoke-check
     m2s72_a2d.py smoke-check <record json>
         SM-1 every run rc 0, stopped at t = 0 by the limit, no error; SM-2 the unused-entry lists of twin and
-        diagnostic equal the accepted base's (every A2 mixin entry had an effect); SM-3 constructed types (eventlog
+        diagnostic equal the accepted base's and no A2 entry is reported unused (a consistency check only: it does NOT
+        show that a setting was applied; that evidence is SM-3 / SM-4 / SM-5); SM-3 constructed types (eventlog
         module creation): IdealChannelModel at the gNB and at every UE's nrChannelModel in twin and diagnostic, none in
         the base, a schedulerDl submodule in all; SM-4 the assigned values at the constructed modules (perDl 0.3,
         harqReduction 1, perUl 0 at every UE; perDl / perUl 0 at the gNB); SM-5 no scheduler line in the twin
@@ -449,7 +450,7 @@ def smoke_check(record):
         leak = sorted({u[0] for u in R[c]["unused"]} & a2keys)
         rows.append(("SM-2", same and not leak and R[BASE]["unused_count"] == len(R[BASE]["unused"]),
                      f"{c}: {R[c]['unused_count']} unused entries, {'identical to' if same else 'DIFFERENT from'} the base's "
-                     f"{R[BASE]['unused_count']}; A2 entries without effect {leak}"))
+                     f"{R[BASE]['unused_count']}; A2 entries reported unused {leak}"))
     for c in (BASE, REF, DIAG):
         t = R[c]["types"]
         gnb = {k: v for k, v in t.items() if ".gnb1." in k and k.endswith("channelModel[0]")}
