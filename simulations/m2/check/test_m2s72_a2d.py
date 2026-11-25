@@ -32,6 +32,7 @@ ACCEPTED = ["simulations/m2/m2s72.ini", "simulations/m2/m2s72s5.ini", "simulatio
             "simulations/m2/check/check_m2s72_a2v1.py", "simulations/m2/check/m2s72_e0vn21.py",
             "simulations/m2/check/check_m2s72_s5n21.py", "simulations/m2/check/m2s72_fgo_registry.json",
             "simulations/m2/check/expect", "simulations/m2/check/fixtures", "simulations/m2/results", "src", ".github",
+            ":(exclude).github/workflows/tier0-python.yml",       # the one authorised CI change (162-R1: the 15th suite)
             "docs/migration/wp-a1-a21-e0vn-wrapper-design.md", "docs/migration/wp-a1-validation-runbook.md",
             "docs/migration/wp-a1-validation"]
 RESULTS = []
@@ -338,6 +339,89 @@ def _():
         shutil.rmtree(d)
 
 
+# ============================================================== network-initialization smoke (162-R1, recorded) ===
+SMOKE = os.path.join(REC, "smoke-init.json")
+
+
+def _smoke_tool(d):
+    p = os.path.join(tempfile.mkdtemp(), "s.json")
+    json.dump(d, open(p, "w"))
+    try:
+        return tool("smoke-check", p)
+    finally:
+        shutil.rmtree(os.path.dirname(p))
+
+
+@test("initialization smoke (recorded run of the pinned stack, stopped at t = 0; development level, not V-6): SM-1 .. "
+      "SM-5 AS DECLARED; the record holds no local path")
+def _():
+    assert os.path.isfile(SMOKE), SMOKE
+    t = open(SMOKE).read()
+    assert "/tmp/" not in t and "/home/" not in t and "/root" not in t
+    d = json.loads(t)
+    assert d["args"][d["args"].index("--sim-time-limit=0s")] == "--sim-time-limit=0s" and \
+        "--unused-entry-check-time=initialization" in d["args"], d["args"]
+    r = tool("smoke-check", SMOKE)
+    assert r.returncode == 0 and "AS DECLARED" in r.stdout and r.stdout.count("PASS |") == 11, r.stdout
+
+
+@test("initialization smoke negative controls: a failed run, a run not stopped at t = 0, an A2 entry without effect, a "
+      "different unused set, a non-Ideal channel model, a wrong perDl, Ideal in the base, scheduler lines in the twin")
+def _():
+    base = json.load(open(SMOKE))
+
+    def mut(fn):
+        d = json.loads(json.dumps(base))
+        fn(d["runs"])
+        return d
+    ue0 = "M2S72Bridge.ue[0].cellularNic.nrChannelModel[0]"
+    cases = [(lambda R: R[D.DIAG].update(rc=1), "FAIL | SM-1"),
+             (lambda R: R[D.REF].update(stopped_at_t0_event=None), "FAIL | SM-1"),
+             (lambda R: R[D.DIAG]["unused"].append([D.SCHED_KEY, "info", "m2s72a2d.ini", 28]), "FAIL | SM-2"),
+             (lambda R: R[D.REF]["unused"].pop(0), "FAIL | SM-2"),
+             (lambda R: R[D.DIAG]["types"].update({ue0: "simu5g.stack.phy.channelmodel.Tr38901ChannelModel"}), "FAIL | SM-3"),
+             (lambda R: R[D.REF]["par"][ue0].update(perDl="0.2"), "FAIL | SM-4"),
+             (lambda R: R[D.BASE]["types"].update({ue0: "simu5g.stack.phy.channelmodel.IdealChannelModel"}), "FAIL | SM-3"),
+             (lambda R: R[D.REF].update(scheduler_lines=3), "FAIL | SM-5")]
+    for fn, needle in cases:
+        r = _smoke_tool(mut(fn))
+        assert r.returncode == 1 and needle in r.stdout and "NOT AS DECLARED" in r.stdout, (needle, r.stdout[-500:])
+    r = _smoke_tool({"schema": "m2s72-a2d-smoke/1", "runs": {}})
+    assert r.returncode == 2 and "not a complete smoke record" in r.stdout, r.stdout
+
+
+@test("initialization smoke parsers: the unused-entry list, the t = 0 stop, errors and scheduler lines (console); module "
+      "types from eventlog creation records; parameter scalars (.sca)")
+def _():
+    con = "\n".join(["Setting up network \"M2S72Bridge\"...",
+                     "<!> Warning: 2 configuration entries had no effect in this run (see the unused-entry-check option):",
+                     "  *.talker[2].app[2].io.localAddress = \"talker[2]\"  -- /x/simulations/m2/m2s72.ini:6873",
+                     "  **.routingRecorder.enabled = false  -- /x/simulations/m2/m2s72.ini:6886",
+                     "Possible causes: a typo", "0|M2S72Bridge.gnb1.cellularNic.mac.schedulerDl|Creating LteScheduler MAXCI",
+                     "<!> Simulation time limit reached -- at t=0s, event #36", "End."])
+    unused, count, stop, errs, sched = D.parse_console(con)
+    assert count == 2 and len(unused) == 2 and unused[0][2] == "m2s72.ini" and stop == 36 and not errs and sched == 1, \
+        (unused, count, stop, errs, sched)
+    _, _, stop2, errs2, _ = D.parse_console("<!> Error: Unknown parameter\nEnd.")
+    assert stop2 is None and errs2, errs2
+    d = tempfile.mkdtemp()
+    try:
+        el = os.path.join(d, "0.elog")
+        open(el, "w").write("MC id 1 c omnetpp::cModule t M2S72Bridge n M2S72Bridge\n"
+                            "MC id 2 c x t simu5g.nodes.NR.gNodeB pid 1 n gnb1\n"
+                            "MC id 3 c x t simu5g.stack.NrNicEnb pid 2 n cellularNic\n"
+                            "MC id 4 c simu5g::IdealChannelModel t simu5g.stack.phy.channelmodel.IdealChannelModel pid 3 n channelModel[0]\n"
+                            "E # 0 t 0 m 1 ce -1 msg -1\n")
+        t = D.parse_elog_types(el)
+        assert t["M2S72Bridge.gnb1.cellularNic.channelModel[0]"] == "simu5g.stack.phy.channelmodel.IdealChannelModel", t
+        sc = os.path.join(d, "0.sca")
+        open(sc, "w").write("version 3\nrun x\npar M2S72Bridge.ue[0].cellularNic.nrChannelModel[0] perDl 0.3\n"
+                            "scalar M2S72Bridge.ue[0] y 1\n")
+        assert D.parse_sca_par(sc) == {"M2S72Bridge.ue[0].cellularNic.nrChannelModel[0]": {"perDl": "0.3"}}
+    finally:
+        shutil.rmtree(d)
+
+
 # =============================================================================================== commands ==========
 @test("plan: deterministic, absolute paths only, diagnostic names only, the accepted runner's simulation flags, the A2 "
       "file; evaluation order twin -> A-2.1 full -> coverage -> manifests")
@@ -371,7 +455,9 @@ def _():
         assert "S5N_ADAPTER_VALIDATED" not in t, rel
         assert not re.search(r"fgo_registry\.json['\"]\s*,\s*['\"][wa]", t) and "expect/" not in t, rel
     src = open(os.path.join(HERE, "m2s72_a2d.py")).read()
-    assert src.count("subprocess.run(") == 1 and "-q\", \"runconfig\"" in src, "opp_run only for -q runconfig"
+    # exactly two simulator calls: -q runconfig (resolve) and the bounded initialization smoke (stopped at t = 0)
+    assert src.count("subprocess.run(") == 2 and "-q\", \"runconfig\"" in src, "opp_run only for runconfig and the smoke"
+    assert '"--sim-time-limit=0s"' in src and "SMOKE_ARGS" in src and src.count("SMOKE_ARGS") >= 2
     assert "a21_verdict_verbatim" in src
 
 

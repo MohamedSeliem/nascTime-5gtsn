@@ -23,6 +23,18 @@ results/M2-S7.2a-a2d-protocol.md). Read-only on raw outputs; never simulates; ne
         is never changed; the counters are diagnostic counters, never performance measurements
     m2s72_a2d.py plan <nascTime> <simu5g root> <inet root> <results root>
         the exact command of every step for the independent executor (prints only)
+    m2s72_a2d.py smoke <out dir> <record json> -- <opp_run prefix with -l / -n / -x / -u ...>
+        DEVELOPMENT-LEVEL NETWORK-INITIALIZATION SMOKE (step 162-R1; not V-6, not an experiment): the accepted base, the
+        twin and the diagnostic, each built and initialized by the real stack and stopped at simulated time 0
+        (--sim-time-limit=0s: only the t = 0 start-up events run), with OMNeT++'s unused-entry check after
+        initialization and the channel models' parameters recorded as scalars. The extracted facts go to <record json>
+        (paths normalised), then the checks of smoke-check
+    m2s72_a2d.py smoke-check <record json>
+        SM-1 every run rc 0, stopped at t = 0 by the limit, no error; SM-2 the unused-entry lists of twin and
+        diagnostic equal the accepted base's (every A2 mixin entry had an effect); SM-3 constructed types (eventlog
+        module creation): IdealChannelModel at the gNB and at every UE's nrChannelModel in twin and diagnostic, none in
+        the base, a schedulerDl submodule in all; SM-4 the assigned values at the constructed modules (perDl 0.3,
+        harqReduction 1, perUl 0 at every UE; perDl / perUl 0 at the gNB); SM-5 no scheduler line in the twin
 """
 import gzip
 import hashlib
@@ -325,6 +337,149 @@ def plan(nascTime, simu5g, inet, root):
     return lines
 
 
+# --------------------------------------------------------------------------------------- initialization smoke ----
+SMOKE_ARGS = ["--repeat=1", "-r", "0", "--cmdenv-express-mode=false", "--sim-time-limit=0s",
+              "--unused-entry-check=warning", "--unused-entry-check-time=initialization",
+              "--**.channelModel[*].param-record-as-scalar=true", "--**.nrChannelModel[*].param-record-as-scalar=true"]
+UNUSED_HDR = re.compile(r"^<!> Warning: (\d+) configuration entries had no effect")
+UNUSED_LINE = re.compile(r"^  (.+?) = (.*?)  -- (.+):(\d+)$")
+STOP_T0 = re.compile(r"^<!> Simulation time limit reached -- at t=0s, event #(\d+)")
+
+
+def parse_console(text):
+    """(unused entries as sorted [key, value, file basename, line], header count, t=0 stop event number or None,
+    error lines, scheduler lines)"""
+    lines = text.splitlines()
+    unused, count, stop, errs, sched = [], None, None, [], 0
+    in_list = False
+    for s in lines:
+        m = UNUSED_HDR.match(s)
+        if m:
+            count, in_list = int(m.group(1)), True
+            continue
+        if in_list:
+            u = UNUSED_LINE.match(s)
+            if u:
+                unused.append([u.group(1), u.group(2), os.path.basename(u.group(3)), int(u.group(4))])
+                continue
+            in_list = False
+        m = STOP_T0.match(s)
+        if m:
+            stop = int(m.group(1))
+        if s.startswith("<!> Error") or "cRuntimeError" in s:
+            errs.append(s[:200])
+        sched += bool(SCHED_LINE.match(s))
+    return sorted(unused), count, stop, errs, sched
+
+
+def parse_elog_types(path):
+    """module full path -> NED type, from the eventlog's module-creation records (MC)"""
+    mods = {}
+    op = gzip.open if path.endswith(".gz") else open
+    with op(path, "rt", errors="replace") as fh:
+        for s in fh:
+            if not s.startswith("MC "):
+                continue
+            f = s.split()
+            kv = {f[i]: f[i + 1] for i in range(1, len(f) - 1, 2)}
+            mods[kv["id"]] = (kv.get("pid"), kv["n"], kv["t"])
+    out = {}
+    for mid, (pid, n, t) in mods.items():
+        path_, p = [n], pid
+        while p in mods:
+            path_.insert(0, mods[p][1])
+            p = mods[p][0]
+        out[".".join(path_)] = t
+    return out
+
+
+def parse_sca_par(path):
+    """{module: {parameter: value}} from the .sca 'par' lines"""
+    out = {}
+    for s in open(path, encoding="utf-8", errors="replace"):
+        if s.startswith("par "):
+            f = s.split()
+            if len(f) >= 4:
+                out.setdefault(f[1], {})[f[2]] = " ".join(f[3:])
+    return out
+
+
+def smoke(out, record, cmd):
+    facts = {"schema": "m2s72-a2d-smoke/1", "purpose": "development-level network-initialization smoke (not V-6, "
+             "not an experiment): network built, initialized, stopped at simulated time 0", "args": SMOKE_ARGS, "runs": {}}
+    for c in (BASE, REF, DIAG):
+        rd = os.path.join(out, "runs", c)
+        r = subprocess.run(cmd + ["-f", INI, "-c", c, f"--result-dir={rd}"] + SMOKE_ARGS, cwd=M2, capture_output=True,
+                           text=True, timeout=900)
+        text = r.stdout + r.stderr
+        open(os.path.join(out, f"console-{c}.txt"), "w").write(text)
+        unused, count, stop, errs, sched = parse_console(text)
+        elog = sca = None
+        for r_, _, fs in os.walk(rd):
+            for fn in fs:
+                if fn.endswith(".elog"):
+                    elog = os.path.join(r_, fn)
+                if fn.endswith(".sca"):
+                    sca = os.path.join(r_, fn)
+        types = parse_elog_types(elog) if elog else {}
+        pars = parse_sca_par(sca) if sca else {}
+        facts["runs"][c] = {
+            "rc": r.returncode, "stopped_at_t0_event": stop, "errors": errs, "scheduler_lines": sched,
+            "unused_count": count, "unused": unused,
+            "types": {k: v for k, v in types.items() if re.search(r"(channelModel|nrChannelModel)\[\d+\]$|\.schedulerDl$", k)},
+            "par": {m: v for m, v in pars.items() if re.search(r"(channelModel|nrChannelModel)\[\d+\]$", m)}}
+    with open(record, "w") as fh:
+        json.dump(facts, fh, indent=1, sort_keys=True)
+    return smoke_check(record)
+
+
+def smoke_check(record):
+    d = json.load(open(record, encoding="utf-8"))
+    if d.get("schema") != "m2s72-a2d-smoke/1" or set(d.get("runs", {})) != {BASE, REF, DIAG}:
+        raise EvalError(f"{record}: not a complete smoke record")
+    R = d["runs"]
+    rows = []
+    for c in (BASE, REF, DIAG):
+        x = R[c]
+        rows.append(("SM-1", x["rc"] == 0 and x["stopped_at_t0_event"] is not None and not x["errors"],
+                     f"{c}: rc {x['rc']}, stopped at t = 0 after event #{x['stopped_at_t0_event']}, errors {x['errors'][:2]}"))
+    a2keys = {k for k, _ in NACK} | {SCHED_KEY}
+    for c in (REF, DIAG):
+        same = R[c]["unused"] == R[BASE]["unused"] and R[c]["unused_count"] == R[BASE]["unused_count"]
+        leak = sorted({u[0] for u in R[c]["unused"]} & a2keys)
+        rows.append(("SM-2", same and not leak and R[BASE]["unused_count"] == len(R[BASE]["unused"]),
+                     f"{c}: {R[c]['unused_count']} unused entries, {'identical to' if same else 'DIFFERENT from'} the base's "
+                     f"{R[BASE]['unused_count']}; A2 entries without effect {leak}"))
+    for c in (BASE, REF, DIAG):
+        t = R[c]["types"]
+        gnb = {k: v for k, v in t.items() if ".gnb1." in k and k.endswith("channelModel[0]")}
+        nr = {k: v for k, v in t.items() if re.search(r"\.ue\[\d+\]\.cellularNic\.nrChannelModel\[0\]$", k)}
+        sch = [k for k, v in t.items() if k.endswith(".schedulerDl") and v.endswith("LteSchedulerEnbDl")]
+        ideal = [k for k, v in t.items() if v.endswith(".IdealChannelModel")]
+        if c == BASE:
+            ok = not ideal and len(nr) == 2 and len(sch) == 1
+        else:
+            ok = (len(nr) == 2 and all(v.endswith(".IdealChannelModel") for v in nr.values()) and gnb
+                  and all(v.endswith(".IdealChannelModel") for v in gnb.values()) and len(sch) == 1)
+        rows.append(("SM-3", bool(ok), f"{c}: gNB {sorted(set(gnb.values()))}, UE nrChannelModel {sorted(set(nr.values()))}, "
+                                       f"schedulerDl {len(sch)}"))
+    for c in (REF, DIAG):
+        p = R[c]["par"]
+        ue = {m: v for m, v in p.items() if re.search(r"\.ue\[\d+\]\.cellularNic\.nrChannelModel\[0\]$", m)}
+        gn = {m: v for m, v in p.items() if ".gnb1." in m}
+        ok = (len(ue) == 2 and all(v.get("perDl") == "0.3" and v.get("harqReduction") == "1" and v.get("perUl") == "0" for v in ue.values())
+              and gn and all(v.get("perDl") == "0" and v.get("perUl") == "0" for v in gn.values()))
+        rows.append(("SM-4", bool(ok), f"{c}: UE nrChannelModel {sorted({(v.get('perDl'), v.get('harqReduction'), v.get('perUl')) for v in ue.values()})} "
+                                       f"(perDl, harqReduction, perUl); gNB {sorted({(v.get('perDl'), v.get('perUl')) for v in gn.values()})}"))
+    rows.append(("SM-5", R[REF]["scheduler_lines"] == 0,
+                 f"scheduler lines up to t = 0: twin {R[REF]['scheduler_lines']} (must be 0), diagnostic {R[DIAG]['scheduler_lines']} (reported)"))
+    for r in rows:
+        print(f"{'PASS' if r[1] else 'FAIL'} | {r[0]} | {r[2]}")
+    ok = all(r[1] for r in rows)
+    print(f"A2 initialization smoke: {'AS DECLARED' if ok else 'NOT AS DECLARED'} (development level; not V-6)")
+    return 0 if ok else 1
+
+
 # ---------------------------------------------------------------------------------------------------- main ------
 def main(argv):
     try:
@@ -353,6 +508,11 @@ def main(argv):
             return twin(a[1], a[2])
         if len(a) == 3 and a[0] == "coverage":
             return coverage(a[1], a[2])
+        if a and a[0] == "smoke" and len(a) >= 5 and a[3] == "--":
+            os.makedirs(a[1], exist_ok=True)
+            return smoke(a[1], a[2], a[4:])
+        if len(a) == 2 and a[0] == "smoke-check":
+            return smoke_check(a[1])
         if len(a) == 5 and a[0] == "plan":
             print("\n".join(plan(*a[1:])))
             return 0
